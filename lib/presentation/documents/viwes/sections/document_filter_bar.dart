@@ -1,27 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../data/models/document_category_model.dart';
 
 class DocumentFilterBar extends StatelessWidget {
   final String activeCategory;
   final ValueChanged<String> onCategoryChanged;
+  final List<DocumentCategoryModel> apiCategories;
+  final bool isLoading;
 
   const DocumentFilterBar({
     super.key,
     required this.activeCategory,
     required this.onCategoryChanged,
+    this.apiCategories = const [],
+    this.isLoading = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final categories = [
-      {"id": "all", "label": "allCategories".tr, "count": 41},
-      {"id": "mydocuments", "label": "myDocuments".tr, "count": 3},
-      {"id": "ownership", "label": "ownershipLegal".tr, "count": 5},
-      {"id": "technical", "label": "technicalBuilding".tr, "count": 8},
-      {"id": "energy", "label": "energyEnvironmental".tr, "count": 10},
-      {"id": "compliance", "label": "complianceSafety".tr, "count": 7},
-      {"id": "administrative", "label": "administrativeMaintenance".tr, "count": 11},
+    // Always start with "All Categories" as first item
+    final List<Map<String, dynamic>> categories = [
+      {"id": "all", "label": "allCategories".tr, "count": 0},
     ];
+
+    // Add categories from API
+    for (var category in apiCategories) {
+      categories.add({
+        "id": category.categoryName.toLowerCase(),
+        "label": category.categoryName,
+        "count": category.count,
+      });
+    }
+
+    // Show loading indicator if categories are being fetched
+    if (isLoading) {
+      return SizedBox(
+        height: 48,
+        child: Center(
+          child: CircularProgressIndicator(
+            color: const Color(0xFF4CAF47),
+            strokeWidth: 2,
+          ),
+        ),
+      );
+    }
 
     return SizedBox(
       height: 48,
@@ -47,11 +69,11 @@ class DocumentFilterBar extends StatelessWidget {
                 ),
                 boxShadow: isActive
                     ? [
-                  BoxShadow(
-                    color: const Color(0xFF4CAF47).withOpacity(.25),
-                    blurRadius: 8,
-                  ),
-                ]
+                        BoxShadow(
+                          color: const Color(0xFF4CAF47).withOpacity(.25),
+                          blurRadius: 8,
+                        ),
+                      ]
                     : [],
               ),
               child: Row(
@@ -65,7 +87,10 @@ class DocumentFilterBar extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: isActive
                           ? Colors.white.withOpacity(0.25)
@@ -79,7 +104,7 @@ class DocumentFilterBar extends StatelessWidget {
                         fontSize: 12,
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
             ),

@@ -2,10 +2,7 @@ import 'package:get/get.dart';
 
 class AppTranslations extends Translations {
   @override
-  Map<String, Map<String, String>> get keys => {
-    'en_US': enUS,
-    'it_IT': itIT,
-  };
+  Map<String, Map<String, String>> get keys => {'en_US': enUS, 'it_IT': itIT};
 
   // Translation key constants for easy access
   static const String trustedDevices = 'trusted_devices';
@@ -51,7 +48,8 @@ class AppTranslations extends Translations {
     'sign_in': 'Sign In',
     'sign_out': 'Sign Out',
     'demo_mode': 'Development Version',
-    'copyright': '© 2025 CasaZero Developed by AttoExa Solutions. All rights reserved.',
+    'copyright':
+        '© 2025 CasaZero Developed by AttoExa Solutions. All rights reserved.',
     'password_reset_sent': 'Password reset link sent',
     'check_email': 'Check your email for reset instructions',
     'login_failed': 'Login Failed',
@@ -62,11 +60,13 @@ class AppTranslations extends Translations {
 
     // First Login Setup
     'first_login_setup': 'First-Time Setup',
-    'secure_your_account': 'Secure your account with a new password and two-factor authentication',
+    'secure_your_account':
+        'Secure your account with a new password and two-factor authentication',
     'change_password': 'Change Password',
     'two_factor_auth': 'Two-Factor Authentication',
     'create_strong_password': 'Create a strong, unique password',
-    'first_login_password_change': 'For security reasons, you must change your password on first login',
+    'first_login_password_change':
+        'For security reasons, you must change your password on first login',
     'current_password': 'Current Password',
     'new_password': 'New Password',
     'confirm_password': 'Confirm New Password',
@@ -82,9 +82,11 @@ class AppTranslations extends Translations {
     'continue_to_2fa': 'Continue to 2FA Setup',
     'complete_fields': 'Complete all fields and meet password requirements',
     'add_extra_security': 'Add an extra layer of security',
-    '2fa_recommended': 'Two-factor authentication is highly recommended for protecting your account',
+    '2fa_recommended':
+        'Two-factor authentication is highly recommended for protecting your account',
     'enable_2fa': 'Enable Two-Factor Authentication',
-    '2fa_description': 'Require a verification code from your phone when signing in',
+    '2fa_description':
+        'Require a verification code from your phone when signing in',
     'qr_code_placeholder': 'QR Code',
     'scan_qr_code': 'Scan this QR code with your authenticator app',
     'verification_code': 'Verification Code',
@@ -143,7 +145,8 @@ class AppTranslations extends Translations {
     // Errors
     'something_went_wrong': 'Something went wrong',
     'network_error': 'Network error. Please try again.',
-    'connection_timeout': 'Connection timeout. Please check your internet connection.',
+    'connection_timeout':
+        'Connection timeout. Please check your internet connection.',
 
     // ---------------- PROFILE ----------------
     "profile": "Profile",
@@ -178,18 +181,22 @@ class AppTranslations extends Translations {
     // Trusted Devices
     "trusted_devices": "Trusted Devices",
     "manage_your_devices": "Manage your trusted devices",
-    "trusted_devices_info": "These are the devices that have been verified to access your account. Remove any devices you don't recognize.",
+    "trusted_devices_info":
+        "These are the devices that have been verified to access your account. Remove any devices you don't recognize.",
     "current_device": "Current Device",
     "last_active": "Last active",
     "recent_activity": "Details",
     "remove_device": "Remove Device",
     "confirm_remove_device": "Remove Device?",
-    "remove_device_message": "Are you sure you want to remove this device? You'll need to verify it again on next login.",
+    "remove_device_message":
+        "Are you sure you want to remove this device? You'll need to verify it again on next login.",
     "remove": "Remove",
     "no_trusted_devices": "No Trusted Devices",
-    "no_trusted_devices_desc": "Your trusted devices will appear here after logging in from different devices.",
+    "no_trusted_devices_desc":
+        "Your trusted devices will appear here after logging in from different devices.",
     "trusted_devices_info_title": "Manage Your Trusted Devices",
-    "trusted_devices_info_desc": "These devices have access to your account. You can remove any device you don't recognize.",
+    "trusted_devices_info_desc":
+        "These devices have access to your account. You can remove any device you don't recognize.",
     "remove_device_title": "Remove Device?",
     "device_removed_successfully": "Device removed successfully",
     "failed_to_remove_device": "Failed to remove device",
@@ -248,7 +255,8 @@ class AppTranslations extends Translations {
     'verify_your_identity': 'Verify Your Identity',
     '2fa_is_active': '2FA is Active',
     'current_method': 'Current Method',
-    'choose_verification_method': 'Choose how you want to receive verification codes',
+    'choose_verification_method':
+        'Choose how you want to receive verification codes',
     'change_method_subtitle': 'Switch to a different authentication method',
     'deactivate_subtitle': 'Disable two-factor authentication',
 
@@ -260,7 +268,8 @@ class AppTranslations extends Translations {
     'setup_step_3': '3. Enter the 6-digit code below',
 
     // Verification
-    'enter_code_from_authenticator': 'Enter the code from your authenticator app',
+    'enter_code_from_authenticator':
+        'Enter the code from your authenticator app',
     'code_sent_to': 'A verification code has been sent to {contact}',
 
     // Buttons
@@ -271,7 +280,8 @@ class AppTranslations extends Translations {
 
     // 2FA Activation Screen
     'enhance_account_security': 'Enhance your account security',
-    'two_factor_info': 'Two-factor authentication adds an extra layer of security to your account by requiring a verification code in addition to your password.',
+    'two_factor_info':
+        'Two-factor authentication adds an extra layer of security to your account by requiring a verification code in addition to your password.',
     'authenticator_app': 'Authenticator App',
     'authenticator_app_desc': 'Use an app like Google Authenticator or Authy',
     'sms_verification': 'SMS Verification',
@@ -280,27 +290,35 @@ class AppTranslations extends Translations {
     'email_verification_desc': 'Receive codes via email',
     'recommended': 'Recommended',
     'most_secure': 'Most secure method',
-    'scan_qr_instructions': 'Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.) or enter the key manually.',
+    'scan_qr_instructions':
+        'Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.) or enter the key manually.',
     'manual_entry_key': 'Manual Entry Key',
     'copied_to_clipboard': 'Copied to clipboard',
     'send_code': 'Send Code',
-    'enter_authenticator_code': 'Enter the 6-digit code from your authenticator app',
+    'enter_authenticator_code':
+        'Enter the 6-digit code from your authenticator app',
     'enter_sms_code': 'Enter the code sent to your phone',
     'enter_email_code': 'Enter the code sent to your email',
     'resend_code': 'Resend Code',
     'verify': 'Verify',
-    'two_factor_success_message': 'Your account is now protected with two-factor authentication',
+    'two_factor_success_message':
+        'Your account is now protected with two-factor authentication',
     'sms_sent': 'SMS code sent successfully',
     'email_sent': 'Email code sent successfully',
     'sms_setup_desc': 'We will send a verification code to your phone number',
     'email_setup_desc': 'We will send a verification code to your email',
-    'verification_code_sent_to': 'The verification code will be sent to this contact',
-    'sms_2fa_instructions': 'A verification code will be sent to your registered phone number',
-    'email_2fa_instructions': 'A verification code will be sent to your registered email address',
+    'verification_code_sent_to':
+        'The verification code will be sent to this contact',
+    'sms_2fa_instructions':
+        'A verification code will be sent to your registered phone number',
+    'email_2fa_instructions':
+        'A verification code will be sent to your registered email address',
 
     // 2FA Deactivation
-    'deactivation_warning': 'Are you sure you want to deactivate Two-Factor Authentication? This will make your account less secure. You will need to verify your identity.',
-    'verify_identity_to_deactivate': 'Enter verification code to deactivate 2FA',
+    'deactivation_warning':
+        'Are you sure you want to deactivate Two-Factor Authentication? This will make your account less secure. You will need to verify your identity.',
+    'verify_identity_to_deactivate':
+        'Enter verification code to deactivate 2FA',
     'security_warning': 'Security Warning',
     'security_risks': 'Security Risks',
     'deactivating_will_result': 'Deactivating 2FA will result in:',
@@ -309,10 +327,12 @@ class AppTranslations extends Translations {
     'risk_data_breach': 'Reduced protection against data breaches',
     'risk_identity_theft': 'Greater exposure to identity theft',
     'understand_risks': 'I understand the risks and want to proceed',
-    'enter_code_to_confirm': 'Enter your verification code to confirm deactivation',
+    'enter_code_to_confirm':
+        'Enter your verification code to confirm deactivation',
     'open_authenticator_app': 'Open your authenticator app for the code',
     'two_factor_deactivated': '2FA Deactivated',
-    'two_factor_deactivated_message': 'Two-factor authentication has been disabled for your account',
+    'two_factor_deactivated_message':
+        'Two-factor authentication has been disabled for your account',
     'reactivate_anytime': 'You can reactivate 2FA anytime in settings',
 
     // OTP Resend
@@ -346,6 +366,20 @@ class AppTranslations extends Translations {
     'title': 'Title',
     'description': 'Description',
     'upload': 'Upload',
+
+    // ADD DOCUMENT DIALOG - NEW KEYS
+    'optional': 'Optional',
+    'documentType': 'Document Type',
+    'selectType': 'Select type',
+    'documentTitlePlaceholder': 'Enter document title',
+    'documentDescPlaceholder': 'Add notes or description',
+    'clickToUpload': 'Click to upload file',
+    'dragDropHint': 'or drag and drop here',
+    'supportedFormats': 'Supported formats: PDF, DOC, DOCX, JPG, PNG',
+    'filePickError': 'Error selecting file',
+    'documentUploadSuccess': 'Document uploaded successfully',
+    'documentUploadError': 'Error uploading document',
+    'uploading': 'Uploading...',
 
     // ---------------- MAINTENANCE SCREEN ----------------
     'all': 'All',
@@ -435,60 +469,71 @@ class AppTranslations extends Translations {
     'lockAllDoors': 'Lock all doors',
     'outside': 'Outside',
     'humidity': 'Humidity',
-    'viewOnlyMode': 'View-only mode. Contact your administrator for device control access.',
+    'viewOnlyMode':
+        'View-only mode. Contact your administrator for device control access.',
     'goodNightActivated': 'Good Night scene activated',
     'goodMorningActivated': 'Good Morning scene activated',
     'leavingHomeActivated': 'Leaving Home scene activated',
 
     // ---------------- HUB SCREEN ----------------
-    'exploreFeatures': 'Explore all the intelligent features of CasaZero to manage your home',
+    'exploreFeatures':
+        'Explore all the intelligent features of CasaZero to manage your home',
     'domotica': 'Smart Home',
     'chatCondominio': 'Condominium Chat',
     'assistenza': 'Support',
 
     // 2FA Deactivation - Security Warnings
     // 'security_warning': 'Security Warning',
-    'deactivate_two_factor_warning': 'Deactivating two-factor authentication will significantly reduce the security of your account. Please consider the risks before proceeding.',
+    'deactivate_two_factor_warning':
+        'Deactivating two-factor authentication will significantly reduce the security of your account. Please consider the risks before proceeding.',
 
-// Security Risks
-//     'security_risks': 'Security Risks',
-//     'deactivating_will_result': 'Deactivating two-factor authentication will result in:',
+    // Security Risks
+    //     'security_risks': 'Security Risks',
+    //     'deactivating_will_result': 'Deactivating two-factor authentication will result in:',
     'increase_vulnerability': 'Increased Vulnerability',
-    'increase_vulnerability_desc': 'Your account becomes more susceptible to unauthorized access and cyber attacks.',
+    'increase_vulnerability_desc':
+        'Your account becomes more susceptible to unauthorized access and cyber attacks.',
     'unauthorized_access': 'Unauthorized Access',
-    'unauthorized_access_desc': 'Without 2FA, anyone with your password can access your account.',
+    'unauthorized_access_desc':
+        'Without 2FA, anyone with your password can access your account.',
     'data_breach_risk': 'Data Breach Risk',
-    'data_breach_risk_desc': 'Higher likelihood of sensitive information being compromised.',
+    'data_breach_risk_desc':
+        'Higher likelihood of sensitive information being compromised.',
     'identity_theft': 'Identity Theft',
-    'identity_theft_desc': 'Increased risk of your personal information being stolen and misused.',
+    'identity_theft_desc':
+        'Increased risk of your personal information being stolen and misused.',
 
-// Better Alternatives
+    // Better Alternatives
     'better_alternatives': 'Better Alternatives',
-    'alternative_switch_method': 'Switch to a different 2FA method (SMS, Email, Authenticator)',
+    'alternative_switch_method':
+        'Switch to a different 2FA method (SMS, Email, Authenticator)',
     'alternative_update_backup': 'Update your backup codes or recovery options',
-    'alternative_contact_support': 'Contact support if you\'re having issues with 2FA',
+    'alternative_contact_support':
+        'Contact support if you\'re having issues with 2FA',
 
-// Deactivation Actions
+    // Deactivation Actions
     'continue_deactivation': 'Continue with Deactivation',
     'confirm_deactivation': 'Confirm Deactivation',
-    'confirm_deactivation_message': 'This action will remove two-factor authentication from your account. You can re-enable it at any time, but your account will be less secure until you do.',
+    'confirm_deactivation_message':
+        'This action will remove two-factor authentication from your account. You can re-enable it at any time, but your account will be less secure until you do.',
     'proceed': 'Proceed',
     // 'deactivate': 'Deactivate',
     'deactivate_two_factor': 'Deactivate Two-Factor Authentication',
     'verify_to_deactivate': 'Verify to deactivate',
 
-// Verification Step
-//     'verify_identity_to_deactivate': 'For security, please verify your identity to deactivate 2FA',
-    'enter_current_two_factor_code': 'Enter the current 6-digit code from your two-factor authentication method',
+    // Verification Step
+    //     'verify_identity_to_deactivate': 'For security, please verify your identity to deactivate 2FA',
+    'enter_current_two_factor_code':
+        'Enter the current 6-digit code from your two-factor authentication method',
     'verifying': 'Verifying...',
     'invalid_o_t_p': 'Invalid verification code. Please try again.',
-    'verification_failed': 'Verification failed. Please check your code and try again.',
+    'verification_failed':
+        'Verification failed. Please check your code and try again.',
 
-// Success State
-//     'two_factor_deactivated': 'Two-Factor Authentication Deactivated',
-//     'two_factor_deactivated_message': 'Your account is now less secure. We strongly recommend re-enabling 2FA as soon as possible.',
-//     'reactivate_anytime': 'You can reactivate 2FA anytime in Security settings',
-
+    // Success State
+    //     'two_factor_deactivated': 'Two-Factor Authentication Deactivated',
+    //     'two_factor_deactivated_message': 'Your account is now less secure. We strongly recommend re-enabling 2FA as soon as possible.',
+    //     'reactivate_anytime': 'You can reactivate 2FA anytime in Security settings',
   };
 
   // ============================================================================
@@ -522,7 +567,8 @@ class AppTranslations extends Translations {
     'sign_in': 'Accedi',
     'sign_out': 'Esci',
     'demo_mode': 'Versione di Sviluppo',
-    'copyright': '© 2025 CasaZero Sviluppato da AttoExa Solutions. Tutti i diritti riservati.',
+    'copyright':
+        '© 2025 CasaZero Sviluppato da AttoExa Solutions. Tutti i diritti riservati.',
     'password_reset_sent': 'Link di reset password inviato',
     'check_email': 'Controlla la tua email per le istruzioni di reset',
     'login_failed': 'Accesso Fallito',
@@ -564,18 +610,22 @@ class AppTranslations extends Translations {
     // Trusted Devices
     "trusted_devices": "Dispositivi Fidati",
     "manage_your_devices": "Gestisci i tuoi dispositivi fidati",
-    "trusted_devices_info": "Questi sono i dispositivi che sono stati verificati per accedere al tuo account. Rimuovi eventuali dispositivi che non riconosci.",
+    "trusted_devices_info":
+        "Questi sono i dispositivi che sono stati verificati per accedere al tuo account. Rimuovi eventuali dispositivi che non riconosci.",
     "current_device": "Dispositivo Corrente",
     "last_active": "Ultimo accesso",
     "recent_activity": "Dettagli",
     "remove_device": "Rimuovi Dispositivo",
     "confirm_remove_device": "Rimuovere Dispositivo?",
-    "remove_device_message": "Sei sicuro di voler rimuovere questo dispositivo? Dovrai verificarlo nuovamente al prossimo accesso.",
+    "remove_device_message":
+        "Sei sicuro di voler rimuovere questo dispositivo? Dovrai verificarlo nuovamente al prossimo accesso.",
     "remove": "Rimuovi",
     "no_trusted_devices": "Nessun Dispositivo Fidato",
-    "no_trusted_devices_desc": "I tuoi dispositivi fidati appariranno qui dopo aver effettuato l'accesso da dispositivi diversi.",
+    "no_trusted_devices_desc":
+        "I tuoi dispositivi fidati appariranno qui dopo aver effettuato l'accesso da dispositivi diversi.",
     "trusted_devices_info_title": "Gestisci i Tuoi Dispositivi Fidati",
-    "trusted_devices_info_desc": "Questi dispositivi hanno accesso al tuo account. Puoi rimuovere qualsiasi dispositivo che non riconosci.",
+    "trusted_devices_info_desc":
+        "Questi dispositivi hanno accesso al tuo account. Puoi rimuovere qualsiasi dispositivo che non riconosci.",
     "remove_device_title": "Rimuovere Dispositivo?",
     "device_removed_successfully": "Dispositivo rimosso con successo",
     "failed_to_remove_device": "Impossibile rimuovere il dispositivo",
@@ -634,7 +684,8 @@ class AppTranslations extends Translations {
     'verify_your_identity': 'Verifica la Tua Identità',
     '2fa_is_active': '2FA è Attivo',
     'current_method': 'Metodo Attuale',
-    'choose_verification_method': 'Scegli come vuoi ricevere i codici di verifica',
+    'choose_verification_method':
+        'Scegli come vuoi ricevere i codici di verifica',
     'change_method_subtitle': 'Passa a un metodo di autenticazione diverso',
     'deactivate_subtitle': 'Disabilita l\'autenticazione a due fattori',
 
@@ -646,7 +697,8 @@ class AppTranslations extends Translations {
     'setup_step_3': '3. Inserisci il codice a 6 cifre qui sotto',
 
     // Verification
-    'enter_code_from_authenticator': 'Inserisci il codice dalla tua app di autenticazione',
+    'enter_code_from_authenticator':
+        'Inserisci il codice dalla tua app di autenticazione',
     'code_sent_to': 'Un codice di verifica è stato inviato a {contact}',
 
     // Buttons
@@ -657,7 +709,8 @@ class AppTranslations extends Translations {
 
     // 2FA Activation Screen
     'enhance_account_security': 'Migliora la sicurezza del tuo account',
-    'two_factor_info': 'L\'autenticazione a due fattori aggiunge un ulteriore livello di sicurezza al tuo account richiedendo un codice di verifica oltre alla password.',
+    'two_factor_info':
+        'L\'autenticazione a due fattori aggiunge un ulteriore livello di sicurezza al tuo account richiedendo un codice di verifica oltre alla password.',
     'authenticator_app': 'App Authenticator',
     'authenticator_app_desc': 'Usa un\'app come Google Authenticator o Authy',
     'sms_verification': 'Verifica SMS',
@@ -666,40 +719,53 @@ class AppTranslations extends Translations {
     'email_verification_desc': 'Ricevi codici tramite email',
     'recommended': 'Consigliato',
     'most_secure': 'Metodo più sicuro',
-    'scan_qr_instructions': 'Scansiona questo codice QR con la tua app authenticator (Google Authenticator, Authy, ecc.) o inserisci la chiave manualmente.',
+    'scan_qr_instructions':
+        'Scansiona questo codice QR con la tua app authenticator (Google Authenticator, Authy, ecc.) o inserisci la chiave manualmente.',
     'manual_entry_key': 'Chiave di Inserimento Manuale',
     'copied_to_clipboard': 'Copiato negli appunti',
     'send_code': 'Invia Codice',
-    'enter_authenticator_code': 'Inserisci il codice a 6 cifre dalla tua app authenticator',
+    'enter_authenticator_code':
+        'Inserisci il codice a 6 cifre dalla tua app authenticator',
     'enter_sms_code': 'Inserisci il codice inviato al tuo telefono',
     'enter_email_code': 'Inserisci il codice inviato alla tua email',
     'resend_code': 'Reinvia Codice',
     'verify': 'Verifica',
-    'two_factor_success_message': 'Il tuo account è ora protetto con l\'autenticazione a due fattori',
+    'two_factor_success_message':
+        'Il tuo account è ora protetto con l\'autenticazione a due fattori',
     'sms_sent': 'Codice SMS inviato con successo',
     'email_sent': 'Codice email inviato con successo',
-    'sms_setup_desc': 'Invieremo un codice di verifica al tuo numero di telefono',
+    'sms_setup_desc':
+        'Invieremo un codice di verifica al tuo numero di telefono',
     'email_setup_desc': 'Invieremo un codice di verifica alla tua email',
-    'verification_code_sent_to': 'Il codice di verifica verrà inviato a questo contatto',
-    'sms_2fa_instructions': 'Un codice di verifica verrà inviato al tuo numero di telefono registrato',
-    'email_2fa_instructions': 'Un codice di verifica verrà inviato al tuo indirizzo email registrato',
+    'verification_code_sent_to':
+        'Il codice di verifica verrà inviato a questo contatto',
+    'sms_2fa_instructions':
+        'Un codice di verifica verrà inviato al tuo numero di telefono registrato',
+    'email_2fa_instructions':
+        'Un codice di verifica verrà inviato al tuo indirizzo email registrato',
 
     // 2FA Deactivation
-    'deactivation_warning': 'Sei sicuro di voler disattivare l\'Autenticazione a Due Fattori? Questo renderà il tuo account meno sicuro. Dovrai verificare la tua identità.',
-    'verify_identity_to_deactivate': 'Inserisci il codice di verifica per disattivare 2FA',
+    'deactivation_warning':
+        'Sei sicuro di voler disattivare l\'Autenticazione a Due Fattori? Questo renderà il tuo account meno sicuro. Dovrai verificare la tua identità.',
+    'verify_identity_to_deactivate':
+        'Inserisci il codice di verifica per disattivare 2FA',
     'security_warning': 'Avviso di Sicurezza',
     'security_risks': 'Rischi di Sicurezza',
     'deactivating_will_result': 'La disattivazione del 2FA comporterà:',
-    'risk_unauthorized_access': 'Aumento del rischio di accesso non autorizzato',
+    'risk_unauthorized_access':
+        'Aumento del rischio di accesso non autorizzato',
     'risk_account_takeover': 'Maggiore vulnerabilità al furto dell\'account',
     'risk_data_breach': 'Ridotta protezione contro le violazioni dei dati',
     'risk_identity_theft': 'Maggiore esposizione al furto d\'identità',
     'understand_risks': 'Comprendo i rischi e voglio procedere',
-    'enter_code_to_confirm': 'Inserisci il tuo codice di verifica per confermare la disattivazione',
+    'enter_code_to_confirm':
+        'Inserisci il tuo codice di verifica per confermare la disattivazione',
     'open_authenticator_app': 'Apri la tua app authenticator per il codice',
     'two_factor_deactivated': '2FA Disattivato',
-    'two_factor_deactivated_message': 'L\'autenticazione a due fattori è stata disabilitata per il tuo account',
-    'reactivate_anytime': 'Puoi riattivare 2FA in qualsiasi momento nelle impostazioni',
+    'two_factor_deactivated_message':
+        'L\'autenticazione a due fattori è stata disabilitata per il tuo account',
+    'reactivate_anytime':
+        'Puoi riattivare 2FA in qualsiasi momento nelle impostazioni',
 
     // OTP Resend
     'please_wait_to_resend': 'Attendi {seconds} secondi prima di reinviare',
@@ -712,16 +778,20 @@ class AppTranslations extends Translations {
     'failed_to_deactivate_2fa': 'Impossibile disattivare 2FA',
 
     // Info messages
-    '2fa_adds_security': '2FA aggiunge un ulteriore livello di sicurezza al tuo account',
-    'enable_2fa_for_security': 'Abilita 2FA per aggiungere un ulteriore livello di sicurezza',
+    '2fa_adds_security':
+        '2FA aggiunge un ulteriore livello di sicurezza al tuo account',
+    'enable_2fa_for_security':
+        'Abilita 2FA per aggiungere un ulteriore livello di sicurezza',
 
     // First Login Setup (Italian)
     'first_login_setup': 'Configurazione Primo Accesso',
-    'secure_your_account': 'Proteggi il tuo account con una nuova password e l\'autenticazione a due fattori',
+    'secure_your_account':
+        'Proteggi il tuo account con una nuova password e l\'autenticazione a due fattori',
     'change_password': 'Cambia Password',
     'two_factor_auth': 'Autenticazione a Due Fattori',
     'create_strong_password': 'Crea una password forte e unica',
-    'first_login_password_change': 'Per motivi di sicurezza, devi cambiare la password al primo accesso',
+    'first_login_password_change':
+        'Per motivi di sicurezza, devi cambiare la password al primo accesso',
     'current_password': 'Password Attuale',
     'new_password': 'Nuova Password',
     'confirm_password': 'Conferma Nuova Password',
@@ -735,20 +805,25 @@ class AppTranslations extends Translations {
     'password_special': 'Contiene carattere speciale',
     'valid_password': 'Password valida! Pronto per continuare',
     'continue_to_2fa': 'Continua alla Configurazione 2FA',
-    'complete_fields': 'Completa tutti i campi e soddisfa i requisiti della password',
+    'complete_fields':
+        'Completa tutti i campi e soddisfa i requisiti della password',
     'add_extra_security': 'Aggiungi un ulteriore livello di sicurezza',
-    '2fa_recommended': 'L\'autenticazione a due fattori è altamente consigliata per proteggere il tuo account',
+    '2fa_recommended':
+        'L\'autenticazione a due fattori è altamente consigliata per proteggere il tuo account',
     'enable_2fa': 'Abilita Autenticazione a Due Fattori',
-    '2fa_description': 'Richiedi un codice di verifica dal tuo telefono quando accedi',
+    '2fa_description':
+        'Richiedi un codice di verifica dal tuo telefono quando accedi',
     'qr_code_placeholder': 'Codice QR',
     'scan_qr_code': 'Scansiona questo codice QR con la tua app authenticator',
     'verification_code': 'Codice di Verifica',
-    'enter_code_from_app': 'Inserisci il codice a 6 cifre dalla tua app authenticator',
+    'enter_code_from_app':
+        'Inserisci il codice a 6 cifre dalla tua app authenticator',
     'complete_setup': 'Completa Configurazione',
     'skip_for_now': 'Salta per ora',
     'enter_current_password': 'Inserisci la tua password attuale',
     'enter_new_password': 'Inserisci e conferma la tua nuova password',
-    'password_requirements_not_met': 'La password non soddisfa tutti i requisiti',
+    'password_requirements_not_met':
+        'La password non soddisfa tutti i requisiti',
     'password_changed': 'Password cambiata con successo',
     'enter_verification_code': 'Inserisci il codice di verifica a 6 cifre',
     '2fa_enabled': 'Autenticazione a due fattori abilitata con successo',
@@ -769,7 +844,8 @@ class AppTranslations extends Translations {
     'manage_buildings_desc': 'Gestisci le proprietà',
     'no_notifications': 'Nessuna notifica',
     'whats_new': "Novità:",
-    'ai_document_analysis': 'CasaZero AI ora supporta l\'analisi dei documenti!',
+    'ai_document_analysis':
+        'CasaZero AI ora supporta l\'analisi dei documenti!',
 
     // Construction Status (Italian)
     'completed': 'Completato',
@@ -798,7 +874,8 @@ class AppTranslations extends Translations {
     // Errors (Italian)
     'something_went_wrong': 'Qualcosa è andato storto',
     'network_error': 'Errore di rete. Riprova.',
-    'connection_timeout': 'Timeout di connessione. Controlla la tua connessione internet.',
+    'connection_timeout':
+        'Timeout di connessione. Controlla la tua connessione internet.',
 
     // ---------------- DOCUMENTS SCREEN (Italian) ----------------
     'searchDocuments': 'Cerca documenti...',
@@ -817,6 +894,20 @@ class AppTranslations extends Translations {
     'title': 'Titolo',
     'description': 'Descrizione',
     'upload': 'Carica',
+
+    // ADD DOCUMENT DIALOG - NEW KEYS (ITALIAN)
+    'optional': 'Facoltativo',
+    'documentType': 'Tipo di Documento',
+    'selectType': 'Seleziona tipo',
+    'documentTitlePlaceholder': 'Inserisci il titolo del documento',
+    'documentDescPlaceholder': 'Aggiungi note o descrizione',
+    'clickToUpload': 'Clicca per caricare il file',
+    'dragDropHint': 'o trascina e rilascia qui',
+    'supportedFormats': 'Formati supportati: PDF, DOC, DOCX, JPG, PNG',
+    'filePickError': 'Errore nella selezione del file',
+    'documentUploadSuccess': 'Documento caricato con successo',
+    'documentUploadError': 'Errore nel caricamento del documento',
+    'uploading': 'Caricamento...',
 
     // ---------------- MAINTENANCE SCREEN (Italian) ----------------
     'all': 'Tutto',
@@ -841,7 +932,8 @@ class AppTranslations extends Translations {
     'viewDetails': 'Visualizza Dettagli',
     'createTask': 'Crea Attività',
     'createMaintenanceTask': 'Crea Attività di Manutenzione',
-    'createTaskDescription': 'Crea un\'attività di manutenzione personale da tracciare',
+    'createTaskDescription':
+        'Crea un\'attività di manutenzione personale da tracciare',
     'titleLabel': 'Titolo',
     'titlePlaceholder': 'es., Sostituzione filtri',
     'categoryLabel': 'Categoria',
@@ -866,7 +958,8 @@ class AppTranslations extends Translations {
     'attachFile': 'Allega file o foto',
     'create': 'Crea',
     'noMaintenanceTasks': 'Nessuna Attività di Manutenzione',
-    'createFirstTask': 'Crea la tua prima attività di manutenzione per iniziare',
+    'createFirstTask':
+        'Crea la tua prima attività di manutenzione per iniziare',
 
     // ---------------- AI SCREEN (Italian) ----------------
     'casaZeroAI': 'CasaZero AI',
@@ -906,178 +999,199 @@ class AppTranslations extends Translations {
     'lockAllDoors': 'Blocca tutte le porte',
     'outside': 'Esterno',
     'humidity': 'Umidità',
-    'viewOnlyMode': 'Modalità solo visualizzazione. Contatta l\'amministratore per l\'accesso al controllo dei dispositivi.',
+    'viewOnlyMode':
+        'Modalità solo visualizzazione. Contatta l\'amministratore per l\'accesso al controllo dei dispositivi.',
     'goodNightActivated': 'Scena Buonanotte attivata',
     'goodMorningActivated': 'Scena Buongiorno attivata',
     'leavingHomeActivated': 'Scena Uscendo di Casa attivata',
 
     // ---------------- HUB SCREEN (Italian) ----------------
-    'exploreFeatures': 'Esplora tutte le funzionalità intelligenti di CasaZero per gestire la tua casa',
+    'exploreFeatures':
+        'Esplora tutte le funzionalità intelligenti di CasaZero per gestire la tua casa',
     'domotica': 'Domotica',
     'chatCondominio': 'Chat Condominio',
     'assistenza': 'Assistenza',
 
     // 2FA Deactivation - Security Warnings
     // 'security_warning': 'Avviso di Sicurezza',
-    'deactivate_two_factor_warning': 'La disattivazione dell\'autenticazione a due fattori ridurrà significativamente la sicurezza del tuo account. Si prega di considerare i rischi prima di procedere.',
+    'deactivate_two_factor_warning':
+        'La disattivazione dell\'autenticazione a due fattori ridurrà significativamente la sicurezza del tuo account. Si prega di considerare i rischi prima di procedere.',
 
-// Security Risks
-//     'security_risks': 'Rischi per la Sicurezza',
-//     'deactivating_will_result': 'La disattivazione dell\'autenticazione a due fattori comporterà:',
+    // Security Risks
+    //     'security_risks': 'Rischi per la Sicurezza',
+    //     'deactivating_will_result': 'La disattivazione dell\'autenticazione a due fattori comporterà:',
     'increase_vulnerability': 'Aumento della Vulnerabilità',
-    'increase_vulnerability_desc': 'Il tuo account diventa più suscettibile ad accessi non autorizzati e attacchi informatici.',
+    'increase_vulnerability_desc':
+        'Il tuo account diventa più suscettibile ad accessi non autorizzati e attacchi informatici.',
     'unauthorized_access': 'Accesso Non Autorizzato',
-    'unauthorized_access_desc': 'Senza 2FA, chiunque conosca la tua password può accedere al tuo account.',
+    'unauthorized_access_desc':
+        'Senza 2FA, chiunque conosca la tua password può accedere al tuo account.',
     'data_breach_risk': 'Rischio di Violazione dei Dati',
-    'data_breach_risk_desc': 'Maggiore probabilità che informazioni sensibili vengano compromesse.',
+    'data_breach_risk_desc':
+        'Maggiore probabilità che informazioni sensibili vengano compromesse.',
     'identity_theft': 'Furto d\'Identità',
-    'identity_theft_desc': 'Maggiore rischio che le tue informazioni personali vengano rubate e utilizzate in modo improprio.',
+    'identity_theft_desc':
+        'Maggiore rischio che le tue informazioni personali vengano rubate e utilizzate in modo improprio.',
 
-// Better Alternatives
+    // Better Alternatives
     'better_alternatives': 'Alternative Migliori',
-    'alternative_switch_method': 'Passa a un metodo 2FA diverso (SMS, Email, Authenticator)',
-    'alternative_update_backup': 'Aggiorna i tuoi codici di backup o le opzioni di recupero',
-    'alternative_contact_support': 'Contatta il supporto se hai problemi con 2FA',
+    'alternative_switch_method':
+        'Passa a un metodo 2FA diverso (SMS, Email, Authenticator)',
+    'alternative_update_backup':
+        'Aggiorna i tuoi codici di backup o le opzioni di recupero',
+    'alternative_contact_support':
+        'Contatta il supporto se hai problemi con 2FA',
 
-// Deactivation Actions
+    // Deactivation Actions
     'continue_deactivation': 'Continua con la Disattivazione',
     'confirm_deactivation': 'Conferma Disattivazione',
-    'confirm_deactivation_message': 'Questa azione rimuoverà l\'autenticazione a due fattori dal tuo account. Puoi riattivarla in qualsiasi momento, ma il tuo account sarà meno sicuro fino a quando non lo farai.',
+    'confirm_deactivation_message':
+        'Questa azione rimuoverà l\'autenticazione a due fattori dal tuo account. Puoi riattivarla in qualsiasi momento, ma il tuo account sarà meno sicuro fino a quando non lo farai.',
     'proceed': 'Procedi',
 
     'deactivate_two_factor': 'Disattiva Autenticazione a Due Fattori',
     'verify_to_deactivate': 'Verifica per disattivare',
 
-// Verification Step
-
-    'enter_current_two_factor_code': 'Inserisci il codice a 6 cifre corrente dal tuo metodo di autenticazione a due fattori',
+    // Verification Step
+    'enter_current_two_factor_code':
+        'Inserisci il codice a 6 cifre corrente dal tuo metodo di autenticazione a due fattori',
     'verifying': 'Verifica in corso...',
     'invalid_o_t_p': 'Codice di verifica non valido. Riprova.',
-    'verification_failed': 'Verifica fallita. Controlla il tuo codice e riprova.',
+    'verification_failed':
+        'Verifica fallita. Controlla il tuo codice e riprova.',
 
     // OTP Verification Screen - Italian Translations
-// Add these to the itIT map in app_translations.dart
+    // Add these to the itIT map in app_translations.dart
 
-// Identity Verification
+    // Identity Verification
     'verify_identity': 'Verifica la Tua Identità',
 
-// Authentication Methods
+    // Authentication Methods
     'email_authentication': 'Autenticazione Email',
     'sms_authentication': 'Autenticazione SMS',
     'two_factor_authentication': 'Autenticazione a Due Fattori',
 
-// OTP Instructions
-    'otp_email_instruction': 'Abbiamo inviato un codice di verifica a 6 cifre alla tua email',
-    'otp_sms_instruction': 'Abbiamo inviato un codice di verifica a 6 cifre al tuo numero di telefono',
-    'otp_authenticator_instruction': 'Apri la tua app authenticator e inserisci il codice a 6 cifre',
-    'otp_verification_instruction': 'Inserisci il codice di verifica a 6 cifre per continuare',
+    // OTP Instructions
+    'otp_email_instruction':
+        'Abbiamo inviato un codice di verifica a 6 cifre alla tua email',
+    'otp_sms_instruction':
+        'Abbiamo inviato un codice di verifica a 6 cifre al tuo numero di telefono',
+    'otp_authenticator_instruction':
+        'Apri la tua app authenticator e inserisci il codice a 6 cifre',
+    'otp_verification_instruction':
+        'Inserisci il codice di verifica a 6 cifre per continuare',
 
-// Contact Information
+    // Contact Information
     'sent_to_email': 'Codice inviato a',
     'sent_to_phone': 'Codice inviato a',
     //'open_authenticator_app': 'Apri la tua app authenticator',
 
-// Code Input
+    // Code Input
     'enter_6_digit_code': 'Inserisci codice di verifica',
     'enter_otp_code': 'Inserisci il codice di verifica',
     'otp_must_be_6_digits': 'Il codice di verifica deve essere di 6 cifre',
 
-// Validation & Errors
+    // Validation & Errors
     'invalid_otp_code': 'Codice di verifica non valido. Riprova',
     'failed_to_send_otp': 'Impossibile inviare il codice di verifica',
 
-// Resend Functionality
+    // Resend Functionality
     'resend_code_in': 'Reinvia codice tra {seconds}s',
-    'please_wait_before_resend': 'Attendi {seconds} secondi prima di richiedere un nuovo codice',
+    'please_wait_before_resend':
+        'Attendi {seconds} secondi prima di richiedere un nuovo codice',
 
-// Actions
+    // Actions
     'verify_continue': 'Verifica e Continua',
     'cancel_logout': 'Annulla ed Esci',
 
-// Cancellation Dialog
+    // Cancellation Dialog
     'cancel_verification': 'Annulla Verifica',
-    'cancel_verification_message': 'Sei sicuro di voler annullare? Verrai disconnesso.',
+    'cancel_verification_message':
+        'Sei sicuro di voler annullare? Verrai disconnesso.',
 
-// General
+    // General
     'info': 'Informazione',
     // First Login Setup - Italian Translations
-// Add these to the itIT map in app_translations.dart
+    // Add these to the itIT map in app_translations.dart
 
-// ============== MAIN SCREEN ==============
-// Setup Screen Headers
-//     'first_login_setup': 'Configurazione Iniziale',
-//     'secure_your_account': 'Proteggi il tuo account con una nuova password e l\'autenticazione a due fattori',
-//     'two_factor_auth': 'Autenticazione a Due Fattori',
+    // ============== MAIN SCREEN ==============
+    // Setup Screen Headers
+    //     'first_login_setup': 'Configurazione Iniziale',
+    //     'secure_your_account': 'Proteggi il tuo account con una nuova password e l\'autenticazione a due fattori',
+    //     'two_factor_auth': 'Autenticazione a Due Fattori',
 
-// ============== PASSWORD CHANGE STEP ==============
-// Password Change Section
-//     'change_password': 'Cambia Password',
-//     'create_strong_password': 'Crea una password forte e unica',
-//     'first_login_password_change': 'Per motivi di sicurezza, devi cambiare la password al primo accesso',
+    // ============== PASSWORD CHANGE STEP ==============
+    // Password Change Section
+    //     'change_password': 'Cambia Password',
+    //     'create_strong_password': 'Crea una password forte e unica',
+    //     'first_login_password_change': 'Per motivi di sicurezza, devi cambiare la password al primo accesso',
 
-// Password Fields
-//     'current_password': 'Password Attuale',
-//     'new_password': 'Nuova Password',
-//     'confirm_password': 'Conferma Nuova Password',
+    // Password Fields
+    //     'current_password': 'Password Attuale',
+    //     'new_password': 'Nuova Password',
+    //     'confirm_password': 'Conferma Nuova Password',
 
-// Password Validation
-//     'password_requirements': 'Requisiti Password:',
-//     'password_requirements_not_met': 'La password non soddisfa tutti i requisiti',
-//     'valid_password': 'Password valida! Pronta per continuare',
-//     'password_changed': 'Password cambiata con successo',
+    // Password Validation
+    //     'password_requirements': 'Requisiti Password:',
+    //     'password_requirements_not_met': 'La password non soddisfa tutti i requisiti',
+    //     'valid_password': 'Password valida! Pronta per continuare',
+    //     'password_changed': 'Password cambiata con successo',
 
-// Form Actions
-//     'complete_fields': 'Completa tutti i campi e soddisfa i requisiti della password',
-//     'complete': 'Completa',
+    // Form Actions
+    //     'complete_fields': 'Completa tutti i campi e soddisfa i requisiti della password',
+    //     'complete': 'Completa',
 
-// ============== TWO-FACTOR AUTHENTICATION SETUP ==============
-// 2FA Setup Headers
+    // ============== TWO-FACTOR AUTHENTICATION SETUP ==============
+    // 2FA Setup Headers
     'choose_security_method': 'Scegli il tuo metodo di sicurezza',
     'configure_method': 'Configura autenticazione',
-    '2fa_security_notice': 'L\'autenticazione a due fattori aggiunge un ulteriore livello di sicurezza al tuo account',
+    '2fa_security_notice':
+        'L\'autenticazione a due fattori aggiunge un ulteriore livello di sicurezza al tuo account',
 
-// Authentication Methods
+    // Authentication Methods
     'email_2fa': 'Autenticazione Email',
     'email_2fa_desc': 'Ricevi codici di verifica via email',
-    // 'email_2fa_instructions': 'Invieremo un codice di verifica al tuo indirizzo email',
 
+    // 'email_2fa_instructions': 'Invieremo un codice di verifica al tuo indirizzo email',
     'sms_2fa': 'Autenticazione SMS',
     'sms_2fa_desc': 'Ricevi codici di verifica tramite messaggio di testo',
+
     // 'sms_2fa_instructions': 'Inserisci il tuo numero di telefono per ricevere codici di verifica via SMS',
-
     'authenticator_2fa': 'App Authenticator',
-    'authenticator_2fa_desc': 'Usa Google Authenticator, Microsoft Authenticator o qualsiasi app TOTP',
+    'authenticator_2fa_desc':
+        'Usa Google Authenticator, Microsoft Authenticator o qualsiasi app TOTP',
 
-// QR Code & Manual Entry
-    'show_manual_entry': 'Non riesci a scansionare? Mostra chiave di inserimento manuale',
+    // QR Code & Manual Entry
+    'show_manual_entry':
+        'Non riesci a scansionare? Mostra chiave di inserimento manuale',
     'hide_manual_entry': 'Nascondi chiave di inserimento manuale',
     'secret_copied': 'Chiave segreta copiata negli appunti',
 
-// Verification Code
-//     'verification_code': 'Codice di Verifica',
-//     'enter_verification_code': 'Inserisci il codice di verifica a 6 cifre',
+    // Verification Code
+    //     'verification_code': 'Codice di Verifica',
+    //     'enter_verification_code': 'Inserisci il codice di verifica a 6 cifre',
     'invalid_verification_code': 'Codice di verifica non valido',
     'verification_code_sent': 'Il codice di verifica è stato inviato',
 
-// Phone Number
+    // Phone Number
     'enter_phone_number': 'Inserisci il tuo numero di telefono',
 
-// Code Sending
+    // Code Sending
     'send_verification_code': 'Invia Codice di Verifica',
     'resend_in': 'Reinvia tra',
 
-// Actions
+    // Actions
     'verify_enable': 'Verifica e Abilita',
     // 'skip_for_now': 'Salta per ora',
 
-// Success & Error Messages
-//     '2fa_enabled': 'Autenticazione a due fattori abilitata con successo',
+    // Success & Error Messages
+    //     '2fa_enabled': 'Autenticazione a due fattori abilitata con successo',
     'failed_to_generate_qr': 'Impossibile generare il codice QR',
     // 'failed_to_send_otp': 'Impossibile inviare il codice di verifica',
 
-// Success State
-//     'two_factor_deactivated': 'Autenticazione a Due Fattori Disattivata',
-//     'two_factor_deactivated_message': 'Il tuo account è ora meno sicuro. Ti consigliamo vivamente di riattivare 2FA il prima possibile.',
-//     'reactivate_anytime': 'Puoi riattivare 2FA in qualsiasi momento nelle impostazioni di Sicurezza',
+    // Success State
+    //     'two_factor_deactivated': 'Autenticazione a Due Fattori Disattivata',
+    //     'two_factor_deactivated_message': 'Il tuo account è ora meno sicuro. Ti consigliamo vivamente di riattivare 2FA il prima possibile.',
+    //     'reactivate_anytime': 'Puoi riattivare 2FA in qualsiasi momento nelle impostazioni di Sicurezza',
   };
 }

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'dart:io' show Platform;
+//import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart'
+    show kIsWeb, defaultTargetPlatform, TargetPlatform;
 
 import 'app/routes/app_routes.dart';
 import 'app/bindings/initial_binding.dart';
@@ -58,7 +61,7 @@ class CasaZeroApp extends StatelessWidget {
       splitScreenMode: true,
       builder: (context, child) {
         return Obx(
-              () => GetMaterialApp(
+          () => GetMaterialApp(
             title: 'CasaZero',
             debugShowCheckedModeBanner: false,
 
@@ -84,17 +87,18 @@ class CasaZeroApp extends StatelessWidget {
             // PLATFORM-SPECIFIC SAFE AREA + TEXT SCALER FIX
             builder: (context, widget) {
               // Check if platform is Android
-              final isAndroid = Platform.isAndroid;
+              final isAndroid =
+                  !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
               Widget child = MediaQuery(
-                data: MediaQuery.of(context).copyWith(
-                  textScaler: const TextScaler.linear(1.0),
-                ),
+                data: MediaQuery.of(
+                  context,
+                ).copyWith(textScaler: const TextScaler.linear(1.0)),
                 child: widget!,
               );
 
               // Apply SafeArea ONLY for Android
-              //if (isAndroid) {
+              if (isAndroid) {
                 return SafeArea(
                   top: true,
                   bottom: true,
@@ -102,10 +106,10 @@ class CasaZeroApp extends StatelessWidget {
                   right: false,
                   child: child,
                 );
-              //}
+              }
 
               // iOS - No SafeArea wrapper
-              //return child;
+              return child;
             },
 
             home: child,

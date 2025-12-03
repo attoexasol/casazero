@@ -133,6 +133,7 @@ class ApiConstants {
   static const String GET_ALL_TRUSTED_DEVICES = '/get_all_trusted_device';
 
   static const String CHANGE_LANGUAGE = '/change/language';
+
   /// Revoke a Trusted Device
   /// POST /revoke_trusted_device
   /// Request: { "device_id": 1 }
@@ -165,14 +166,17 @@ class ApiConstants {
   static const String GET_USER_RESIDENCES = '/residences';
 
   static const String GET_FEED_ITEMS = '/feed';
-  static const String GET_CONSTRUCTION_PHASES = '/residences/{residenceId}/construction';
+  static const String GET_CONSTRUCTION_PHASES =
+      '/residences/{residenceId}/construction';
 
   // Buildings Endpoints
   static const String GET_BUILDINGS = '/buildings';
   static const String GET_BUILDING_DETAILS = '/buildings/{buildingId}';
 
-  static const String DELETE_SPECIFIC_USER_DEVICE = '/delete_specific_user_device';
+  static const String DELETE_SPECIFIC_USER_DEVICE =
+      '/delete_specific_user_device';
 
+  static const String GET_DOCUMENT_CATEGORIES = '/document_categories';
 
   // ============================================================================
   // ENDPOINT HELPER METHODS

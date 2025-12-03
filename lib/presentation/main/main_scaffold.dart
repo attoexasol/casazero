@@ -1,3 +1,4 @@
+import 'package:casazero/core/widgets/bounce_glow_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -30,7 +31,7 @@ enum AppScreen {
   smartHome,
   changePassword,
   hubScreen,
-  trustedDevices
+  trustedDevices,
   // Add more screens as needed
 }
 
@@ -39,21 +40,23 @@ class MainScaffold extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() => WillPopScope(
-      onWillPop: () async {
-        // Handle back button - go back to previous screen
-        return controller.handleBackNavigation();
-      },
-      child: Scaffold(
-        backgroundColor: AppColors.surfaceWhite,
-        // SINGLE PERSISTENT APP BAR FOR ALL SCREENS
-        appBar: _buildAppBar(),
-        // BODY - Contains all screens dynamically
-        body: _buildBody(),
-        // SINGLE PERSISTENT BOTTOM NAV BAR (show/hide based on screen)
-        bottomNavigationBar: _buildBottomNavBar(),
+    return Obx(
+      () => WillPopScope(
+        onWillPop: () async {
+          // Handle back button - go back to previous screen
+          return controller.handleBackNavigation();
+        },
+        child: Scaffold(
+          backgroundColor: AppColors.surfaceWhite,
+          // SINGLE PERSISTENT APP BAR FOR ALL SCREENS
+          appBar: _buildAppBar(),
+          // BODY - Contains all screens dynamically
+          body: _buildBody(),
+          // SINGLE PERSISTENT BOTTOM NAV BAR (show/hide based on screen)
+          bottomNavigationBar: _buildBottomNavBar(),
+        ),
       ),
-    ));
+    );
   }
 
   // BUILD APP BAR - PERSISTENT ACROSS ALL SCREENS
@@ -65,10 +68,13 @@ class MainScaffold extends GetView<HomeController> {
 
     switch (controller.currentScreen.value) {
       case AppScreen.home:
-      // Show selected residence name or default
-        title = controller.selectedResidence.value?.residenceName ?? 'AttoExa Solutions';
+        // Show selected residence name or default
+        title =
+            controller.selectedResidence.value?.residenceName ??
+            'AttoExa Solutions';
         showNotification = true;
-        showBuildingSelector = controller.permissions.canManageBuildings &&
+        showBuildingSelector =
+            controller.permissions.canManageBuildings &&
             controller.residences.isNotEmpty;
         showBackButton = false;
         break;
@@ -126,7 +132,6 @@ class MainScaffold extends GetView<HomeController> {
         showBuildingSelector = false;
         showBackButton = true;
         break;
-
     }
 
     return CZAppBar(
@@ -144,85 +149,83 @@ class MainScaffold extends GetView<HomeController> {
   /// Show residence selector dialog
   void _showResidenceSelectorDialog() {
     Get.dialog(
-      Obx(() => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: Text(
-          'select_residence'.tr,
-          style: TextStyle(
-            fontSize: 20.sp,
-            fontWeight: FontWeight.bold,
+      Obx(
+        () => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
-        ),
-        content: controller.isLoadingResidences.value
-            ? const SizedBox(
-          height: 100,
-          child: Center(child: CircularProgressIndicator()),
-        )
-            : controller.residences.isEmpty
-            ? SizedBox(
-          height: 100,
-          child: Center(
-            child: Text(
-              'no_residences_available'.tr,
-              style: TextStyle(color: Colors.grey),
-            ),
+          title: Text(
+            'select_residence'.tr,
+            style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
           ),
-        )
-            : SizedBox(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: controller.residences.length,
-            itemBuilder: (context, index) {
-              final residence = controller.residences[index];
-              final isSelected =
-                  controller.selectedResidence.value?.id == residence.id;
+          content: controller.isLoadingResidences.value
+              ? const SizedBox(
+                  height: 100,
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              : controller.residences.isEmpty
+              ? SizedBox(
+                  height: 100,
+                  child: Center(
+                    child: Text(
+                      'no_residences_available'.tr,
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ),
+                )
+              : SizedBox(
+                  width: double.maxFinite,
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: controller.residences.length,
+                    itemBuilder: (context, index) {
+                      final residence = controller.residences[index];
+                      final isSelected =
+                          controller.selectedResidence.value?.id ==
+                          residence.id;
 
-              return ListTile(
-                leading: Icon(
-                  Icons.apartment_rounded,
-                  color: isSelected
-                      ? AppColors.brandSage600
-                      : Colors.grey,
-                ),
-                title: Text(
-                  residence.residenceName,
-                  style: TextStyle(
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                    color: isSelected
-                        ? AppColors.brandSage600
-                        : Colors.black87,
+                      return ListTile(
+                        leading: Icon(
+                          Icons.apartment_rounded,
+                          color: isSelected
+                              ? AppColors.brandSage600
+                              : Colors.grey,
+                        ),
+                        title: Text(
+                          residence.residenceName,
+                          style: TextStyle(
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: isSelected
+                                ? AppColors.brandSage600
+                                : Colors.black87,
+                          ),
+                        ),
+                        subtitle:
+                            residence.residenceAddress != null &&
+                                residence.residenceAddress!.isNotEmpty
+                            ? Text(residence.residenceAddress!)
+                            : null,
+                        trailing: isSelected
+                            ? Icon(
+                                Icons.check_circle,
+                                color: AppColors.brandSage600,
+                              )
+                            : null,
+                        onTap: () {
+                          controller.selectResidence(residence);
+                          Get.back();
+                        },
+                      );
+                    },
                   ),
                 ),
-                subtitle: residence.residenceAddress != null &&
-                    residence.residenceAddress!.isNotEmpty
-                    ? Text(residence.residenceAddress!)
-                    : null,
-                trailing: isSelected
-                    ? Icon(
-                  Icons.check_circle,
-                  color: AppColors.brandSage600,
-                )
-                    : null,
-                onTap: () {
-                  controller.selectResidence(residence);
-                  Get.back();
-                },
-              );
-            },
-          ),
+          actions: [
+            TextButton(onPressed: () => Get.back(), child: Text('cancel'.tr)),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text('cancel'.tr),
-          ),
-        ],
-      )),
+      ),
     );
   }
 
@@ -239,9 +242,10 @@ class MainScaffold extends GetView<HomeController> {
         );
 
       case AppScreen.hubScreen:
-        return  HubScreen(
+        return HubScreen(
           role: controller.currentUser.value?.role ?? Role.client,
-          onNavigate: (screen) => controller.navigateToScreen(AppScreen.hubScreen),
+          onNavigate: (screen) =>
+              controller.navigateToScreen(AppScreen.hubScreen),
         );
 
       case AppScreen.maintenance:
@@ -254,7 +258,8 @@ class MainScaffold extends GetView<HomeController> {
         return ProfileScreen(
           user: controller.currentUser.value!,
           onLogout: controller.logout,
-          onNavigate: (destination) => controller.navigateToScreenByString(destination),
+          onNavigate: (destination) =>
+              controller.navigateToScreenByString(destination),
         );
 
       case AppScreen.smartHome:
@@ -287,10 +292,12 @@ class MainScaffold extends GetView<HomeController> {
 
   Widget _buildHomeScreen() {
     // Show Hub for completed residence, dashboard for under construction
-    if (controller.currentUser.value?.residenceStatus == ResidenceStatus.completed) {
+    if (controller.currentUser.value?.residenceStatus ==
+        ResidenceStatus.completed) {
       return HubScreen(
         role: controller.currentUser.value?.role ?? Role.client,
-        onNavigate: (destination) => controller.navigateToScreenByString(destination),
+        onNavigate: (destination) =>
+            controller.navigateToScreenByString(destination),
       );
     }
     return const HomeScreen();
@@ -313,10 +320,7 @@ class MainScaffold extends GetView<HomeController> {
       decoration: BoxDecoration(
         color: AppColors.surfaceWhite,
         border: Border(
-          top: BorderSide(
-            color: AppColors.neutralLine200,
-            width: 1.w,
-          ),
+          top: BorderSide(color: AppColors.neutralLine200, width: 1.w),
         ),
         boxShadow: [
           BoxShadow(
@@ -341,26 +345,26 @@ class MainScaffold extends GetView<HomeController> {
                   behavior: HitTestBehavior.translucent,
                   onTap: () => controller.navigateToScreen(tab.screen),
                   child: AnimatedContainer(
+                    key: ValueKey(tab.screen),
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeOutBack,
                     padding: EdgeInsets.only(top: 10.h),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        AnimatedScale(
-                          scale: isActive ? 1.25 : 1.0,
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeOutBack,
+                        BounceGlowWidget(
+                          active: isActive,
                           child: _buildIcon(tab, isActive),
                         ),
-                        SizedBox(height: 5.h),
+
+                        SizedBox(height: 10.h),
                         // Active indicator dot
                         AnimatedOpacity(
                           opacity: isActive ? 1 : 0,
                           duration: const Duration(milliseconds: 200),
                           child: Container(
-                            width: 6.w,
-                            height: 6.w,
+                            width: 4.w,
+                            height: 4.w,
                             decoration: const BoxDecoration(
                               shape: BoxShape.circle,
                               color: AppColors.brandSage500,
@@ -380,19 +384,41 @@ class MainScaffold extends GetView<HomeController> {
   }
 
   Widget _buildIcon(BottomNavTab tab, bool isActive) {
+    // SET YOUR CUSTOM SIZES HERE
+    final double activeSize = 24.w; // Bigger on active
+    final double inactiveSize = 24.w; // Smaller on inactive
+
+    // The icon that should NOT change color when active
+    bool noColorChange = tab.screen == AppScreen.hubScreen;
+
+    final activeColor = AppColors.brandSage500; // green
+    final inactiveColor = Color(0xff333333); // grey
+
+    // Decide which color to apply
+    final Color? iconColor = noColorChange
+        ? null // do NOT apply active/inactive color
+        : (isActive ? activeColor : inactiveColor);
+
+    // Active/inactive colors
+
     if (tab.assetIcon != null) {
       return SvgPicture.asset(
         tab.assetIcon!,
-        width: isActive ? 30.w : 32.w,
-        height: isActive ? 30.w : 32.w,
+        width: isActive ? activeSize : inactiveSize,
+        height: isActive ? activeSize : inactiveSize,
+        // THIS is the correct way to preserve original SVG color:
+        colorFilter: iconColor == null
+            ? null
+            : ColorFilter.mode(iconColor, BlendMode.srcIn),
         fit: BoxFit.contain,
       );
     }
 
     return Image.asset(
       tab.icon!,
-      width: isActive ? 30.w : 32.w,
-      height: isActive ? 30.w : 32.w,
+      width: isActive ? activeSize : inactiveSize,
+      height: isActive ? activeSize : inactiveSize,
+      color: iconColor, // <- smart color
     );
   }
 }

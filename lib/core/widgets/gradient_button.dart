@@ -25,6 +25,7 @@ class GradientButton extends StatelessWidget {
     this.height = 48,
     this.icon,
     this.borderRadius = 12,
+    SizedBox? child,
   }) : super(key: key);
 
   @override
@@ -45,39 +46,43 @@ class GradientButton extends StatelessWidget {
           child: Center(
             child: isLoading
                 ? SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  textColor ?? AppColors.surfaceWhite,
-                ),
-              ),
-            )
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        textColor ?? AppColors.surfaceWhite,
+                      ),
+                    ),
+                  )
                 : icon != null
                 ? Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, size: 18, color: textColor ?? AppColors.surfaceWhite),
-                const SizedBox(width: 8),
-                Text(
-                  text,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: textColor ?? AppColors.surfaceWhite,
-                  ),
-                ),
-              ],
-            )
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        icon,
+                        size: 18,
+                        color: textColor ?? AppColors.surfaceWhite,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        text,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: textColor ?? AppColors.surfaceWhite,
+                        ),
+                      ),
+                    ],
+                  )
                 : Text(
-              text,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: textColor ?? AppColors.surfaceWhite,
-              ),
-            ),
+                    text,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: textColor ?? AppColors.surfaceWhite,
+                    ),
+                  ),
           ),
         ),
       ),
