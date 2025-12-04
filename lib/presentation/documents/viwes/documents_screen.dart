@@ -114,7 +114,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
         /// FLOATING ACTION BUTTON
         if (permissions.canUploadDocuments)
           Positioned(
-            bottom: 100,
+            bottom: 20,
             right: 20,
             child:
                 FloatingActionButton(
