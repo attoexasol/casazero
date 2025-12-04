@@ -77,6 +77,7 @@ class ChangePasswordScreen extends GetView<ChangePasswordController> {
                     CasaZeroLogo(
                       assetPath: 'assets/images/white_logo.png',
                       maxLogoWidthFactor: 0.4,
+                      showTagline: false,
                     ),
                     const SizedBox(height: 40),
                     _buildGlassCard(),
@@ -95,27 +96,31 @@ class ChangePasswordScreen extends GetView<ChangePasswordController> {
       padding: const EdgeInsets.all(24),
       child: Align(
         alignment: Alignment.centerLeft,
-        child: InkWell(
-          onTap: onBack,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.arrow_back,
-                  color: Colors.white.withOpacity(0.9), size: 20),
-              const SizedBox(width: 8),
-              Text(
-                'back'.tr,
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.9),
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-        )
-            .animate()
-            .fadeIn(duration: 500.ms, delay: 200.ms)
-            .slideX(begin: -0.2, delay: 200.ms),
+        child:
+            InkWell(
+                  onTap: onBack,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.arrow_back,
+                        color: Colors.white.withOpacity(0.9),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'back'.tr,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.9),
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+                .animate()
+                .fadeIn(duration: 500.ms, delay: 200.ms)
+                .slideX(begin: -0.2, delay: 200.ms),
       ),
     );
   }
@@ -125,36 +130,36 @@ class ChangePasswordScreen extends GetView<ChangePasswordController> {
   // --------------------------
   Widget _buildGlassCard() {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: Container(
-          padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.white.withOpacity(0.2),
-                Colors.white.withOpacity(0.05),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+            color: Colors.white.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white.withOpacity(0.2)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: Container(
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.white.withOpacity(0.2),
+                    Colors.white.withOpacity(0.05),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: _buildFormContent(),
             ),
           ),
-          child: _buildFormContent(),
-        ),
-      ),
-    )
+        )
         .animate()
         .fadeIn(duration: 600.ms, delay: 400.ms)
         .slideY(begin: 0.2, delay: 400.ms);
@@ -264,43 +269,48 @@ class ChangePasswordScreen extends GetView<ChangePasswordController> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('password_requirements'.tr,
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.white.withOpacity(0.8),
-              )),
+          Text(
+            'password_requirements'.tr,
+            style: TextStyle(
+              fontSize: 11,
+              color: Colors.white.withOpacity(0.8),
+            ),
+          ),
           const SizedBox(height: 8),
           ...ctrl.passwordRequirements.asMap().entries.map((entry) {
             final index = entry.key;
             final req = entry.value;
             return Row(
-              children: [
-                Container(
-                  width: 16,
-                  height: 16,
-                  decoration: BoxDecoration(
-                    color: req.isMet
-                        ? const Color(0xFF22C55E)
-                        : Colors.white.withOpacity(0.3),
-                    shape: BoxShape.circle,
-                  ),
-                  child: req.isMet
-                      ? const Icon(Icons.check,
-                      size: 12, color: Colors.white)
-                      : null,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  req.label.tr,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: req.isMet
-                        ? const Color(0xFF22C55E)
-                        : Colors.white.withOpacity(0.7),
-                  ),
-                ),
-              ],
-            )
+                  children: [
+                    Container(
+                      width: 16,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: req.isMet
+                            ? const Color(0xFF22C55E)
+                            : Colors.white.withOpacity(0.3),
+                        shape: BoxShape.circle,
+                      ),
+                      child: req.isMet
+                          ? const Icon(
+                              Icons.check,
+                              size: 12,
+                              color: Colors.white,
+                            )
+                          : null,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      req.label.tr,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: req.isMet
+                            ? const Color(0xFF22C55E)
+                            : Colors.white.withOpacity(0.7),
+                      ),
+                    ),
+                  ],
+                )
                 .animate()
                 .fadeIn(delay: (index * 50).ms)
                 .slideX(begin: -0.1, delay: (index * 50).ms);
@@ -327,8 +337,7 @@ class ChangePasswordScreen extends GetView<ChangePasswordController> {
           match ? 'passwords_match'.tr : 'passwords_no_match'.tr,
           style: TextStyle(
             fontSize: 11,
-            color:
-            match ? const Color(0xFF22C55E) : const Color(0xFFE11D48),
+            color: match ? const Color(0xFF22C55E) : const Color(0xFFE11D48),
           ),
         ),
       ],
@@ -347,11 +356,13 @@ class ChangePasswordScreen extends GetView<ChangePasswordController> {
             ? () => ctrl.handleChangePassword(onSuccess: onSuccess)
             : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor:
-          ctrl.canSubmit ? const Color(0xFF22C55E) : const Color(0xFF9CA3AF),
+          backgroundColor: ctrl.canSubmit
+              ? const Color(0xFF22C55E)
+              : const Color(0xFF9CA3AF),
           foregroundColor: Colors.white,
-          shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           elevation: 8,
           shadowColor: ctrl.canSubmit
               ? const Color(0xFF22C55E).withOpacity(0.4)
@@ -359,20 +370,20 @@ class ChangePasswordScreen extends GetView<ChangePasswordController> {
         ),
         child: ctrl.isLoading.value
             ? const SizedBox(
-          width: 20,
-          height: 20,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-          ),
-        )
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
             : Text(
-          'change_password'.tr,
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+                'change_password'.tr,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
       ),
     );
   }
