@@ -121,9 +121,8 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                               }
                             : null,
                         onDownload: () {
-                          // TODO: Implement download document
-                          print('Download document: ${doc.title}');
-                          print('File URL: ${doc.fileUrl}');
+                          // Download document using controller
+                          _controller.downloadDocument(doc);
                         },
                         onShare: permissions.canSharedDocuments
                             ? () {

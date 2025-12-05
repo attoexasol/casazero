@@ -49,7 +49,7 @@ class AppTranslations extends Translations {
     'sign_out': 'Sign Out',
     'demo_mode': 'Development Version',
     'copyright':
-        '© 2025 CasaZero Developed by AttoExa Solutions. All rights reserved.',
+        'Â© 2025 CasaZero Developed by AttoExa Solutions. All rights reserved.',
     'password_reset_sent': 'Password reset link sent',
     'check_email': 'Check your email for reset instructions',
     'login_failed': 'Login Failed',
@@ -366,6 +366,16 @@ class AppTranslations extends Translations {
     'title': 'Title',
     'description': 'Description',
     'upload': 'Upload',
+    'downloadDocument': 'Download Document',
+    'downloading': 'Downloading...',
+    'downloadComplete': 'Download Complete',
+    'downloadFailed': 'Download Failed',
+    'downloadSuccess': 'Document downloaded successfully',
+    'downloadError': 'Failed to download document',
+    'permissionDenied': 'Permission Denied',
+    'permissionDeniedMessage':
+        'Storage permission is required to download files',
+    'openSettings': 'Open Settings',
 
     // ADD DOCUMENT DIALOG - NEW KEYS
     'optional': 'Optional',
@@ -555,7 +565,7 @@ class AppTranslations extends Translations {
     'skip': 'Salta',
     'done': 'Fatto',
     'ok': 'OK',
-    'yes': 'Sì',
+    'yes': 'SÃ¬',
     'no': 'No',
 
     // Auth Screen
@@ -568,7 +578,7 @@ class AppTranslations extends Translations {
     'sign_out': 'Esci',
     'demo_mode': 'Versione di Sviluppo',
     'copyright':
-        '© 2025 CasaZero Sviluppato da AttoExa Solutions. Tutti i diritti riservati.',
+        'Â© 2025 CasaZero Sviluppato da AttoExa Solutions. Tutti i diritti riservati.',
     'password_reset_sent': 'Link di reset password inviato',
     'check_email': 'Controlla la tua email per le istruzioni di reset',
     'login_failed': 'Accesso Fallito',
@@ -601,7 +611,7 @@ class AppTranslations extends Translations {
     // Residence
     "residence_title": "Residenza",
     "address": "Indirizzo",
-    "unit": "Unità",
+    "unit": "UnitÃ ",
     "No_Residence": "Nessuna Residenza",
 
     // Security
@@ -681,8 +691,8 @@ class AppTranslations extends Translations {
     'select_2fa_method': 'Seleziona Metodo 2FA',
     'change_2fa_method': 'Cambia Metodo 2FA',
     'deactivate_2fa': 'Disattiva 2FA',
-    'verify_your_identity': 'Verifica la Tua Identità',
-    '2fa_is_active': '2FA è Attivo',
+    'verify_your_identity': 'Verifica la Tua IdentitÃ ',
+    '2fa_is_active': '2FA Ã¨ Attivo',
     'current_method': 'Metodo Attuale',
     'choose_verification_method':
         'Scegli come vuoi ricevere i codici di verifica',
@@ -699,7 +709,7 @@ class AppTranslations extends Translations {
     // Verification
     'enter_code_from_authenticator':
         'Inserisci il codice dalla tua app di autenticazione',
-    'code_sent_to': 'Un codice di verifica è stato inviato a {contact}',
+    'code_sent_to': 'Un codice di verifica Ã¨ stato inviato a {contact}',
 
     // Buttons
     'verify_and_activate': 'Verifica e Attiva',
@@ -718,7 +728,7 @@ class AppTranslations extends Translations {
     'email_verification': 'Verifica Email',
     'email_verification_desc': 'Ricevi codici tramite email',
     'recommended': 'Consigliato',
-    'most_secure': 'Metodo più sicuro',
+    'most_secure': 'Metodo piÃ¹ sicuro',
     'scan_qr_instructions':
         'Scansiona questo codice QR con la tua app authenticator (Google Authenticator, Authy, ecc.) o inserisci la chiave manualmente.',
     'manual_entry_key': 'Chiave di Inserimento Manuale',
@@ -731,39 +741,39 @@ class AppTranslations extends Translations {
     'resend_code': 'Reinvia Codice',
     'verify': 'Verifica',
     'two_factor_success_message':
-        'Il tuo account è ora protetto con l\'autenticazione a due fattori',
+        'Il tuo account Ã¨ ora protetto con l\'autenticazione a due fattori',
     'sms_sent': 'Codice SMS inviato con successo',
     'email_sent': 'Codice email inviato con successo',
     'sms_setup_desc':
         'Invieremo un codice di verifica al tuo numero di telefono',
     'email_setup_desc': 'Invieremo un codice di verifica alla tua email',
     'verification_code_sent_to':
-        'Il codice di verifica verrà inviato a questo contatto',
+        'Il codice di verifica verrÃ  inviato a questo contatto',
     'sms_2fa_instructions':
-        'Un codice di verifica verrà inviato al tuo numero di telefono registrato',
+        'Un codice di verifica verrÃ  inviato al tuo numero di telefono registrato',
     'email_2fa_instructions':
-        'Un codice di verifica verrà inviato al tuo indirizzo email registrato',
+        'Un codice di verifica verrÃ  inviato al tuo indirizzo email registrato',
 
     // 2FA Deactivation
     'deactivation_warning':
-        'Sei sicuro di voler disattivare l\'Autenticazione a Due Fattori? Questo renderà il tuo account meno sicuro. Dovrai verificare la tua identità.',
+        'Sei sicuro di voler disattivare l\'Autenticazione a Due Fattori? Questo renderÃ  il tuo account meno sicuro. Dovrai verificare la tua identitÃ .',
     'verify_identity_to_deactivate':
         'Inserisci il codice di verifica per disattivare 2FA',
     'security_warning': 'Avviso di Sicurezza',
     'security_risks': 'Rischi di Sicurezza',
-    'deactivating_will_result': 'La disattivazione del 2FA comporterà:',
+    'deactivating_will_result': 'La disattivazione del 2FA comporterÃ :',
     'risk_unauthorized_access':
         'Aumento del rischio di accesso non autorizzato',
-    'risk_account_takeover': 'Maggiore vulnerabilità al furto dell\'account',
+    'risk_account_takeover': 'Maggiore vulnerabilitÃ  al furto dell\'account',
     'risk_data_breach': 'Ridotta protezione contro le violazioni dei dati',
-    'risk_identity_theft': 'Maggiore esposizione al furto d\'identità',
+    'risk_identity_theft': 'Maggiore esposizione al furto d\'identitÃ ',
     'understand_risks': 'Comprendo i rischi e voglio procedere',
     'enter_code_to_confirm':
         'Inserisci il tuo codice di verifica per confermare la disattivazione',
     'open_authenticator_app': 'Apri la tua app authenticator per il codice',
     'two_factor_deactivated': '2FA Disattivato',
     'two_factor_deactivated_message':
-        'L\'autenticazione a due fattori è stata disabilitata per il tuo account',
+        'L\'autenticazione a due fattori Ã¨ stata disabilitata per il tuo account',
     'reactivate_anytime':
         'Puoi riattivare 2FA in qualsiasi momento nelle impostazioni',
 
@@ -809,7 +819,7 @@ class AppTranslations extends Translations {
         'Completa tutti i campi e soddisfa i requisiti della password',
     'add_extra_security': 'Aggiungi un ulteriore livello di sicurezza',
     '2fa_recommended':
-        'L\'autenticazione a due fattori è altamente consigliata per proteggere il tuo account',
+        'L\'autenticazione a due fattori Ã¨ altamente consigliata per proteggere il tuo account',
     'enable_2fa': 'Abilita Autenticazione a Due Fattori',
     '2fa_description':
         'Richiedi un codice di verifica dal tuo telefono quando accedi',
@@ -840,10 +850,10 @@ class AppTranslations extends Translations {
     'residents': 'Residenti',
     'building': 'Edificio',
     'residence_insights_desc': 'Visualizza statistiche',
-    'manage_community_desc': 'Gestisci la comunità',
-    'manage_buildings_desc': 'Gestisci le proprietà',
+    'manage_community_desc': 'Gestisci la comunitÃ ',
+    'manage_buildings_desc': 'Gestisci le proprietÃ ',
     'no_notifications': 'Nessuna notifica',
-    'whats_new': "Novità:",
+    'whats_new': "NovitÃ :",
     'ai_document_analysis':
         'CasaZero AI ora supporta l\'analisi dei documenti!',
 
@@ -872,7 +882,7 @@ class AppTranslations extends Translations {
     'under_construction': 'In Costruzione',
 
     // Errors (Italian)
-    'something_went_wrong': 'Qualcosa è andato storto',
+    'something_went_wrong': 'Qualcosa Ã¨ andato storto',
     'network_error': 'Errore di rete. Riprova.',
     'connection_timeout':
         'Timeout di connessione. Controlla la tua connessione internet.',
@@ -881,19 +891,29 @@ class AppTranslations extends Translations {
     'searchDocuments': 'Cerca documenti...',
     'allCategories': 'Tutte le Categorie',
     'myDocuments': 'I Miei Documenti',
-    'ownershipLegal': 'Proprietà e Legale',
+    'ownershipLegal': 'ProprietÃ  e Legale',
     'technicalBuilding': 'Tecnico ed Edilizio',
     'energyEnvironmental': 'Energia e Ambiente',
-    'complianceSafety': 'Conformità e Sicurezza',
+    'complianceSafety': 'ConformitÃ  e Sicurezza',
     'administrativeMaintenance': 'Amministrativo e Manutenzione',
     'noDocumentsFound': 'Nessun documento trovato',
     'tryAdjustingSearch': 'Prova a modificare la ricerca',
     'noDocumentsYet': 'Nessun documento ancora',
-    'adminWillUpload': 'Il tuo amministratore caricherà i documenti qui',
+    'adminWillUpload': 'Il tuo amministratore caricherÃ  i documenti qui',
     'addDocument': 'Aggiungi Documento',
     'title': 'Titolo',
     'description': 'Descrizione',
     'upload': 'Carica',
+    'downloadDocument': 'Scarica Documento',
+    'downloading': 'Download in corso...',
+    'downloadComplete': 'Download Completato',
+    'downloadFailed': 'Download Fallito',
+    'downloadSuccess': 'Documento scaricato con successo',
+    'downloadError': 'Impossibile scaricare il documento',
+    'permissionDenied': 'Permesso Negato',
+    'permissionDeniedMessage':
+        'Ã necessario il permesso di archiviazione per scaricare i file',
+    'openSettings': 'Apri Impostazioni',
 
     // ADD DOCUMENT DIALOG - NEW KEYS (ITALIAN)
     'optional': 'Facoltativo',
@@ -915,8 +935,8 @@ class AppTranslations extends Translations {
     'obbligatorie': 'Obbligatorie',
     'condominiali': 'Condominiali',
     'personal': 'Personali',
-    'maintenanceTasks': 'Attività di Manutenzione',
-    'tasksDueOrOverdue': 'attività in scadenza o scadute',
+    'maintenanceTasks': 'AttivitÃ  di Manutenzione',
+    'tasksDueOrOverdue': 'attivitÃ  in scadenza o scadute',
     'pendingStatus': 'In Attesa',
     'inProgressStatus': 'In Corso',
     'completedStatus': 'Completato',
@@ -930,10 +950,10 @@ class AppTranslations extends Translations {
     'contacts': 'Contatti',
     'markComplete': 'Segna Come Completato',
     'viewDetails': 'Visualizza Dettagli',
-    'createTask': 'Crea Attività',
-    'createMaintenanceTask': 'Crea Attività di Manutenzione',
+    'createTask': 'Crea AttivitÃ ',
+    'createMaintenanceTask': 'Crea AttivitÃ  di Manutenzione',
     'createTaskDescription':
-        'Crea un\'attività di manutenzione personale da tracciare',
+        'Crea un\'attivitÃ  di manutenzione personale da tracciare',
     'titleLabel': 'Titolo',
     'titlePlaceholder': 'es., Sostituzione filtri',
     'categoryLabel': 'Categoria',
@@ -957,9 +977,9 @@ class AppTranslations extends Translations {
     'attachmentOptional': 'Allegato (Opzionale)',
     'attachFile': 'Allega file o foto',
     'create': 'Crea',
-    'noMaintenanceTasks': 'Nessuna Attività di Manutenzione',
+    'noMaintenanceTasks': 'Nessuna AttivitÃ  di Manutenzione',
     'createFirstTask':
-        'Crea la tua prima attività di manutenzione per iniziare',
+        'Crea la tua prima attivitÃ  di manutenzione per iniziare',
 
     // ---------------- AI SCREEN (Italian) ----------------
     'casaZeroAI': 'CasaZero AI',
@@ -986,7 +1006,7 @@ class AppTranslations extends Translations {
     'deviceOff': 'Spento',
     'deviceLocked': 'Bloccato',
     'deviceUnlocked': 'Sbloccato',
-    'brightness': 'Luminosità',
+    'brightness': 'LuminositÃ ',
     'position': 'Posizione',
     'temperature': 'Temperatura',
     'quickActions': 'Azioni Rapide',
@@ -998,16 +1018,16 @@ class AppTranslations extends Translations {
     'leavingHome': 'Uscendo di Casa',
     'lockAllDoors': 'Blocca tutte le porte',
     'outside': 'Esterno',
-    'humidity': 'Umidità',
+    'humidity': 'UmiditÃ ',
     'viewOnlyMode':
-        'Modalità solo visualizzazione. Contatta l\'amministratore per l\'accesso al controllo dei dispositivi.',
+        'ModalitÃ  solo visualizzazione. Contatta l\'amministratore per l\'accesso al controllo dei dispositivi.',
     'goodNightActivated': 'Scena Buonanotte attivata',
     'goodMorningActivated': 'Scena Buongiorno attivata',
     'leavingHomeActivated': 'Scena Uscendo di Casa attivata',
 
     // ---------------- HUB SCREEN (Italian) ----------------
     'exploreFeatures':
-        'Esplora tutte le funzionalità intelligenti di CasaZero per gestire la tua casa',
+        'Esplora tutte le funzionalitÃ  intelligenti di CasaZero per gestire la tua casa',
     'domotica': 'Domotica',
     'chatCondominio': 'Chat Condominio',
     'assistenza': 'Assistenza',
@@ -1015,21 +1035,21 @@ class AppTranslations extends Translations {
     // 2FA Deactivation - Security Warnings
     // 'security_warning': 'Avviso di Sicurezza',
     'deactivate_two_factor_warning':
-        'La disattivazione dell\'autenticazione a due fattori ridurrà significativamente la sicurezza del tuo account. Si prega di considerare i rischi prima di procedere.',
+        'La disattivazione dell\'autenticazione a due fattori ridurrÃ  significativamente la sicurezza del tuo account. Si prega di considerare i rischi prima di procedere.',
 
     // Security Risks
     //     'security_risks': 'Rischi per la Sicurezza',
-    //     'deactivating_will_result': 'La disattivazione dell\'autenticazione a due fattori comporterà:',
-    'increase_vulnerability': 'Aumento della Vulnerabilità',
+    //     'deactivating_will_result': 'La disattivazione dell\'autenticazione a due fattori comporterÃ :',
+    'increase_vulnerability': 'Aumento della VulnerabilitÃ ',
     'increase_vulnerability_desc':
-        'Il tuo account diventa più suscettibile ad accessi non autorizzati e attacchi informatici.',
+        'Il tuo account diventa piÃ¹ suscettibile ad accessi non autorizzati e attacchi informatici.',
     'unauthorized_access': 'Accesso Non Autorizzato',
     'unauthorized_access_desc':
-        'Senza 2FA, chiunque conosca la tua password può accedere al tuo account.',
+        'Senza 2FA, chiunque conosca la tua password puÃ² accedere al tuo account.',
     'data_breach_risk': 'Rischio di Violazione dei Dati',
     'data_breach_risk_desc':
-        'Maggiore probabilità che informazioni sensibili vengano compromesse.',
-    'identity_theft': 'Furto d\'Identità',
+        'Maggiore probabilitÃ  che informazioni sensibili vengano compromesse.',
+    'identity_theft': 'Furto d\'IdentitÃ ',
     'identity_theft_desc':
         'Maggiore rischio che le tue informazioni personali vengano rubate e utilizzate in modo improprio.',
 
@@ -1046,7 +1066,7 @@ class AppTranslations extends Translations {
     'continue_deactivation': 'Continua con la Disattivazione',
     'confirm_deactivation': 'Conferma Disattivazione',
     'confirm_deactivation_message':
-        'Questa azione rimuoverà l\'autenticazione a due fattori dal tuo account. Puoi riattivarla in qualsiasi momento, ma il tuo account sarà meno sicuro fino a quando non lo farai.',
+        'Questa azione rimuoverÃ  l\'autenticazione a due fattori dal tuo account. Puoi riattivarla in qualsiasi momento, ma il tuo account sarÃ  meno sicuro fino a quando non lo farai.',
     'proceed': 'Procedi',
 
     'deactivate_two_factor': 'Disattiva Autenticazione a Due Fattori',
@@ -1064,7 +1084,7 @@ class AppTranslations extends Translations {
     // Add these to the itIT map in app_translations.dart
 
     // Identity Verification
-    'verify_identity': 'Verifica la Tua Identità',
+    'verify_identity': 'Verifica la Tua IdentitÃ ',
 
     // Authentication Methods
     'email_authentication': 'Autenticazione Email',
@@ -1171,7 +1191,7 @@ class AppTranslations extends Translations {
     //     'verification_code': 'Codice di Verifica',
     //     'enter_verification_code': 'Inserisci il codice di verifica a 6 cifre',
     'invalid_verification_code': 'Codice di verifica non valido',
-    'verification_code_sent': 'Il codice di verifica è stato inviato',
+    'verification_code_sent': 'Il codice di verifica Ã¨ stato inviato',
 
     // Phone Number
     'enter_phone_number': 'Inserisci il tuo numero di telefono',
@@ -1191,7 +1211,7 @@ class AppTranslations extends Translations {
 
     // Success State
     //     'two_factor_deactivated': 'Autenticazione a Due Fattori Disattivata',
-    //     'two_factor_deactivated_message': 'Il tuo account è ora meno sicuro. Ti consigliamo vivamente di riattivare 2FA il prima possibile.',
+    //     'two_factor_deactivated_message': 'Il tuo account Ã¨ ora meno sicuro. Ti consigliamo vivamente di riattivare 2FA il prima possibile.',
     //     'reactivate_anytime': 'Puoi riattivare 2FA in qualsiasi momento nelle impostazioni di Sicurezza',
   };
 }
