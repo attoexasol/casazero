@@ -178,6 +178,20 @@ class ApiConstants {
 
   static const String GET_DOCUMENT_CATEGORIES = '/document_categories';
 
+  /// Get Residence Documents
+  /// POST /get_residence_wise_documents
+  /// Request: { "residence_id": 23 }
+  /// Response: {
+  ///   "status": true,
+  ///   "message": "Residence documents retrieved successfully",
+  ///   "residence": {
+  ///     "id": 23,
+  ///     "residence_name": "POLICE PARK1",
+  ///     "documents": [ ... ]
+  ///   }
+  /// }
+  static const String GET_RESIDENCE_DOCUMENTS = '/get_residence_wise_documents';
+
   // ============================================================================
   // ENDPOINT HELPER METHODS
   // ============================================================================

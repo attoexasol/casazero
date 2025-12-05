@@ -200,10 +200,10 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.only(
-        top: 22, // 🔥 extra top padding (matches screenshot)
+        top: 18, // 🔥 extra top padding (matches screenshot)
         bottom: 14,
-        left: 16,
-        right: 16,
+        left: 5,
+        right: 5,
       ),
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -234,6 +234,8 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
               ),
             ],
           ),
+
+          const Spacer(),
 
           /// CLOSE BUTTON — TOP RIGHT
           Positioned(

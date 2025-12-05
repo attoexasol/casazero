@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-
 import '../../../../data/models/document_model.dart';
-
+import 'package:flutter_svg/flutter_svg.dart';
 
 class DocumentCard extends StatelessWidget {
   final DocumentModel document;
@@ -23,120 +22,142 @@ class DocumentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final scale = size.width / 390; // responsive scale based on screen width
+
     return Container(
-      padding: const EdgeInsets.all(14),
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: EdgeInsets.only(bottom: 12 * scale),
+      padding: EdgeInsets.all(14 * scale),
+
+      /// ⭐ Figma Card Design
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        color: const Color(0xFFFFFFFF).withOpacity(0.95),
+        borderRadius: BorderRadius.circular(24 * scale),
+        border: Border.all(color: const Color(0xFFF2F2F2), width: 1.19 * scale),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
+            color: const Color(0x22000000),
+            offset: Offset(0, 4 * scale),
+            blurRadius: 12 * scale,
+          ),
+          BoxShadow(
+            color: const Color(0x11000000),
+            offset: Offset(0, 2 * scale),
+            blurRadius: 8 * scale,
           ),
         ],
       ),
+
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /// ICON
+          /// DOCUMENT ICON BOX
           Container(
-            width: 48,
-            height: 48,
+            width: 48 * scale,
+            height: 48 * scale,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14 * scale),
             ),
             child: Text(
               document.type,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 13 * scale,
+              ),
             ),
           ),
 
-          const SizedBox(width: 12),
+          SizedBox(width: 12 * scale),
 
-          /// CONTENT
+          /// CONTENT SECTION
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                /// TITLE
                 Text(
                   document.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    fontSize: 15,
+                    fontSize: 15 * scale,
+                    color: Colors.black,
                   ),
                 ),
-                const SizedBox(height: 4),
+
+                SizedBox(height: 4 * scale),
+
+                /// DATE + SIZE
                 Text(
                   "${document.date} • ${document.size}",
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 13 * scale,
+                  ),
                 ),
-                const SizedBox(height: 6),
+
+                SizedBox(height: 6 * scale),
 
                 /// TAGS
                 Wrap(
-                  spacing: 6,
+                  spacing: 6 * scale,
                   runSpacing: -4,
                   children: document.tags
                       .map(
                         (tag) => Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        tag,
-                        style: TextStyle(
-                            fontSize: 11, color: Colors.grey.shade700),
-                      ),
-                    ),
-                  )
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8 * scale,
+                            vertical: 3 * scale,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(20 * scale),
+                          ),
+                          child: Text(
+                            tag,
+                            style: TextStyle(
+                              fontSize: 11 * scale,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                        ),
+                      )
                       .toList(),
                 ),
 
-                const SizedBox(height: 8),
+                SizedBox(height: 10 * scale),
 
-                /// ACTION BUTTONS
+                /// ACTION BUTTONS + ASK AI
                 Row(
                   children: [
-                    if (onView != null)
-                      _actionBtn(Icons.visibility_outlined, onView!),
                     if (onDownload != null)
-                      _actionBtn(Icons.download_outlined, onDownload!),
+                      _actionBtn(
+                        "assets/images/download.svg",
+                        onDownload!,
+                        scale,
+                      ),
                     if (onShare != null)
-                      _actionBtn(Icons.share_outlined, onShare!),
-                    if (onDelete != null)
-                      _actionBtn(Icons.delete_outline, onDelete!),
+                      _actionBtn("assets/images/chat.svg", onShare!, scale),
 
                     const Spacer(),
-
-                    /// ASK AI
-                    GestureDetector(
-                      onTap: onAskAI,
-                      child: const Icon(Icons.auto_awesome,
-                          color: Color(0xFF4CAF47)),
-                    ),
                   ],
-                )
+                ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );
   }
 
-  Widget _actionBtn(IconData icon, VoidCallback onTap) {
+  /// Action Icons
+  Widget _actionBtn(String svgAsstePath, VoidCallback onTap, double scale) {
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
+      padding: EdgeInsets.only(right: 8 * scale),
       child: GestureDetector(
         onTap: onTap,
-        child: Icon(icon, size: 20, color: Colors.grey.shade700),
+        child: SvgPicture.asset(svgAsstePath, width: 20, height: 20),
       ),
     );
   }

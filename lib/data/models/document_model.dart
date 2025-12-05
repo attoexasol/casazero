@@ -7,6 +7,10 @@ class DocumentModel {
   final String size;
   final List<String> tags;
   final String? status;
+  final String? fileUrl;
+  final String? description;
+  final int? categoryId;
+  final int? typeId;
 
   DocumentModel({
     required this.id,
@@ -17,7 +21,113 @@ class DocumentModel {
     required this.size,
     required this.tags,
     this.status,
+    this.fileUrl,
+    this.description,
+    this.categoryId,
+    this.typeId,
   });
+
+  /// Create DocumentModel from API response
+  factory DocumentModel.fromJson(Map<String, dynamic> json) {
+    return DocumentModel(
+      id: json['id']?.toString() ?? '',
+      title: json['document_name'] ?? 'Untitled Document',
+      type: (json['file_type'] ?? 'file').toString().toUpperCase(),
+      category: _getCategoryName(json['category_id']),
+      date: json['uploaded_date'] ?? '',
+      size: json['file_size'] ?? '',
+      tags: _generateTags(json),
+      status: null, // Can be extended later if needed
+      fileUrl: json['file_url'],
+      description: json['document_description'],
+      categoryId: json['category_id'],
+      typeId: json['type_id'],
+    );
+  }
+
+  /// Convert DocumentModel to JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'document_name': title,
+      'file_type': type.toLowerCase(),
+      'category_id': categoryId,
+      'uploaded_date': date,
+      'file_size': size,
+      'file_url': fileUrl,
+      'document_description': description,
+      'type_id': typeId,
+    };
+  }
+
+  /// Helper method to get category name from category_id
+  static String _getCategoryName(int? categoryId) {
+    // Default categories based on common IDs
+    // This can be extended based on actual category data
+    switch (categoryId) {
+      case 1:
+        return 'Ownership & Legal';
+      case 2:
+        return 'Technical Building';
+      case 3:
+        return 'Energy & Environmental';
+      case 4:
+        return 'Compliance & Safety';
+      case 5:
+        return 'Administrative & Maintenance';
+      default:
+        return 'Others';
+    }
+  }
+
+  /// Helper method to generate tags from document data
+  static List<String> _generateTags(Map<String, dynamic> json) {
+    List<String> tags = [];
+
+    // Add category-based tag
+    final categoryId = json['category_id'];
+    if (categoryId != null) {
+      tags.add(_getCategoryName(categoryId));
+    }
+
+    // Add file type tag
+    if (json['file_type'] != null) {
+      tags.add(json['file_type'].toString().toUpperCase());
+    }
+
+    return tags;
+  }
+
+  /// Copy with method for updating specific fields
+  DocumentModel copyWith({
+    String? id,
+    String? title,
+    String? type,
+    String? category,
+    String? date,
+    String? size,
+    List<String>? tags,
+    String? status,
+    String? fileUrl,
+    String? description,
+    int? categoryId,
+    int? typeId,
+  }) {
+    return DocumentModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      type: type ?? this.type,
+      category: category ?? this.category,
+      date: date ?? this.date,
+      size: size ?? this.size,
+      tags: tags ?? this.tags,
+      status: status ?? this.status,
+      fileUrl: fileUrl ?? this.fileUrl,
+      description: description ?? this.description,
+      categoryId: categoryId ?? this.categoryId,
+      typeId: typeId ?? this.typeId,
+    );
+  }
 
   static final mockDocuments = <DocumentModel>[
     DocumentModel(

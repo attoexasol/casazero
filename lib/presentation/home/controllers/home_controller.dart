@@ -1,3 +1,4 @@
+import 'package:casazero/presentation/documents/controllers/documents_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/repositories/home_repository.dart';
@@ -30,41 +31,38 @@ class HomeController extends GetxController {
   final screenHistory = <AppScreen>[].obs;
 
   // Computed properties
-  Permissions get permissions => Permissions.fromRole(
-    currentUser.value?.role ?? Role.client,
-  );
+  Permissions get permissions =>
+      Permissions.fromRole(currentUser.value?.role ?? Role.client);
 
   // Bottom navigation tabs
   List<BottomNavTab> get bottomNavTabs => [
     const BottomNavTab(
-        screen: AppScreen.home,
-        label: 'Home',
-        //icon: Icons.home_outlined,
-        assetIcon: 'assets/images/home.svg'
+      screen: AppScreen.home,
+      label: 'Home',
+      //icon: Icons.home_outlined,
+      assetIcon: 'assets/images/home.svg',
     ),
     const BottomNavTab(
-        screen: AppScreen.documents,
-        label: 'Documents',
-        //icon: Icons.description,
-        assetIcon: 'assets/images/document.svg'
-
+      screen: AppScreen.documents,
+      label: 'Documents',
+      //icon: Icons.description,
+      assetIcon: 'assets/images/document.svg',
     ),
     const BottomNavTab(
-        screen: AppScreen.hubScreen,
-        label: 'AI',
-        assetIcon: "assets/images/casa_zero_nav_bar.svg"
-
+      screen: AppScreen.hubScreen,
+      label: 'AI',
+      assetIcon: "assets/images/casa_zero_nav_bar.svg",
     ),
     const BottomNavTab(
-        screen: AppScreen.maintenance,
-        label: 'Maintenance',
-        //icon: Icons.build_outlined,
-        assetIcon: "assets/images/maintainance.svg"
+      screen: AppScreen.maintenance,
+      label: 'Maintenance',
+      //icon: Icons.build_outlined,
+      assetIcon: "assets/images/maintainance.svg",
     ),
     const BottomNavTab(
-        screen: AppScreen.profile,
-        label: 'Profile',
-        assetIcon: "assets/images/profile.svg"
+      screen: AppScreen.profile,
+      label: 'Profile',
+      assetIcon: "assets/images/profile.svg",
     ),
   ];
 
@@ -74,6 +72,20 @@ class HomeController extends GetxController {
     _loadUserData();
     fetchResidences(); // Fetch residences on init
   }
+
+  //   @override
+  // void onInit() {
+  //   super.onInit();
+
+  //   fetchDocumentCategories();
+
+  //   // WAIT for HomeController to finish loading residences
+  //   ever(Get.find<HomeController>().selectedResidence, (residence) {
+  //     if (residence != null) {
+  //       fetchDocuments();
+  //     }
+  //   });
+  // }
 
   @override
   void onReady() {
@@ -101,7 +113,11 @@ class HomeController extends GetxController {
         // Auto-select first residence if available and none selected
         if (residences.isNotEmpty && selectedResidence.value == null) {
           selectedResidence.value = residences.first;
-          print('âœ… Auto-selected residence: ${selectedResidence.value?.residenceName}');
+          print(
+            'âœ… Auto-selected residence: ${selectedResidence.value?.residenceName}',
+          );
+
+          Get.find<DocumentsController>().fetchDocuments();
         }
 
         print('âœ… Loaded ${residences.length} residences');
@@ -128,6 +144,7 @@ class HomeController extends GetxController {
     print('Selected residence: ${residence.residenceName}');
     // Optionally refresh data for the selected residence
     // fetchHomeData();
+    Get.find<DocumentsController>().fetchDocuments();
   }
 
   /// Show residence selector dialog
@@ -162,7 +179,9 @@ class HomeController extends GetxController {
                 title: Text(
                   residence.residenceName,
                   style: TextStyle(
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                   ),
                 ),
                 subtitle: residence.residenceAddress != null
@@ -269,7 +288,7 @@ class HomeController extends GetxController {
         navigateToScreen(AppScreen.trustedDevices);
         break;
       case 'buildings':
-      // Handle buildings navigation
+        // Handle buildings navigation
         navigateToScreen(AppScreen.home);
         break;
       default:

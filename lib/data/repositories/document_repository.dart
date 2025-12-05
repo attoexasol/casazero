@@ -47,4 +47,54 @@ class DocumentRepository {
       };
     }
   }
+
+  /// Get Residence Documents
+  /// POST /get_residence_wise_documents
+  /// Request: { "residence_id": 23 }
+  Future<Map<String, dynamic>> getResidenceDocuments(int residenceId) async {
+    try {
+      final response = await _apiService.post(
+        ApiConstants.GET_RESIDENCE_DOCUMENTS,
+        data: {'residence_id': residenceId},
+      );
+
+      if (response.statusCode == 200 && response.data['status'] == true) {
+        final List<dynamic> documentsData =
+            response.data['residence']?['documents'] ?? [];
+
+        final documents = documentsData
+            .map(
+              (item) => {
+                'id': item['id']?.toString() ?? '',
+                'document_name': item['document_name'] ?? '',
+                'file_type': item['file_type'] ?? '',
+                'category_id': item['category_id'],
+                'uploaded_date': item['uploaded_date'] ?? '',
+                'file_size': item['file_size'] ?? '',
+                'file_url': item['file_url'],
+                'document_description': item['document_description'],
+                'type_id': item['type_id'],
+              },
+            )
+            .toList();
+
+        return {
+          'success': true,
+          'data': documents,
+          'residence': response.data['residence'],
+        };
+      } else {
+        return {
+          'success': false,
+          'error': response.data['message'] ?? 'Failed to fetch documents',
+        };
+      }
+    } catch (e) {
+      print('Error fetching residence documents: $e');
+      return {
+        'success': false,
+        'error': 'Failed to fetch documents. Please try again.',
+      };
+    }
+  }
 }

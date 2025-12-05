@@ -30,30 +30,9 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
   // Initialize the controller
   final DocumentsController _controller = Get.put(DocumentsController());
 
-  // Mock documents (will place in separate file later)
-  final mockDocuments = DocumentModel.mockDocuments;
-
   @override
   Widget build(BuildContext context) {
     final permissions = Permissions.fromRole(widget.role);
-
-    final filteredDocs = mockDocuments.where((doc) {
-      final matchesSearch = doc.title.toLowerCase().contains(
-        searchQuery.toLowerCase(),
-      );
-
-      bool matchesCategory = activeCategory == "all";
-
-      if (activeCategory == "mydocuments") {
-        matchesCategory = doc.category == "My Documents";
-      } else if (activeCategory != "all") {
-        matchesCategory = doc.category.toLowerCase().contains(
-          activeCategory.toLowerCase(),
-        );
-      }
-
-      return matchesSearch && matchesCategory;
-    }).toList();
 
     return Stack(
       children: [
@@ -79,34 +58,84 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
 
             /// DOCUMENTS LIST
             Expanded(
-              child: filteredDocs.isNotEmpty
-                  ? ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: filteredDocs.length,
-                      itemBuilder: (_, i) {
-                        final doc = filteredDocs[i];
-                        return DocumentCard(
-                          document: doc,
-                          onAskAI: widget.onAskAI,
-                          onView: () {},
-                          onDelete: permissions.canDeleteDocuments
-                              ? () {}
-                              : null,
-                          onDownload: () {},
-                          onShare: permissions.canSharedDocuments
-                              ? () {}
-                              : null,
-                        ).animate().fadeIn().slideY(begin: 0.1);
-                      },
-                    )
-                  : EmptyState(
-                      title: searchQuery.isNotEmpty
-                          ? "noDocumentsFound".tr
-                          : "noDocumentsYet".tr,
-                      description: searchQuery.isNotEmpty
-                          ? "tryAdjustingSearch".tr
-                          : "adminWillUpload".tr,
-                    ),
+              child: Obx(() {
+                // Show loading indicator
+                if (_controller.isLoadingDocuments.value &&
+                    _controller.documents.isEmpty) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF4CAF47)),
+                  );
+                }
+
+                // Filter documents based on search and category
+                final filteredDocs = _controller.documents.where((doc) {
+                  final matchesSearch = doc.title.toLowerCase().contains(
+                    searchQuery.toLowerCase(),
+                  );
+
+                  bool matchesCategory = activeCategory == "all";
+
+                  if (activeCategory == "mydocuments") {
+                    matchesCategory = doc.category == "My Documents";
+                  } else if (activeCategory != "all") {
+                    matchesCategory = doc.category.toLowerCase().contains(
+                      activeCategory.toLowerCase(),
+                    );
+                  }
+
+                  return matchesSearch && matchesCategory;
+                }).toList();
+
+                // Show empty state
+                if (filteredDocs.isEmpty) {
+                  return EmptyState(
+                    title: searchQuery.isNotEmpty
+                        ? "noDocumentsFound".tr
+                        : "noDocumentsYet".tr,
+                    description: searchQuery.isNotEmpty
+                        ? "tryAdjustingSearch".tr
+                        : "adminWillUpload".tr,
+                  );
+                }
+
+                // Show documents list with pull-to-refresh
+                return RefreshIndicator(
+                  onRefresh: () => _controller.refreshData(),
+                  color: const Color(0xFF4CAF47),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: filteredDocs.length,
+                    itemBuilder: (_, i) {
+                      final doc = filteredDocs[i];
+                      return DocumentCard(
+                        document: doc,
+                        onAskAI: widget.onAskAI,
+                        onView: () {
+                          // TODO: Implement view document
+                          print('View document: ${doc.title}');
+                        },
+                        onDelete: permissions.canDeleteDocuments
+                            ? () {
+                                // TODO: Implement delete document
+                                print('Delete document: ${doc.title}');
+                              }
+                            : null,
+                        onDownload: () {
+                          // TODO: Implement download document
+                          print('Download document: ${doc.title}');
+                          print('File URL: ${doc.fileUrl}');
+                        },
+                        onShare: permissions.canSharedDocuments
+                            ? () {
+                                // TODO: Implement share document
+                                print('Share document: ${doc.title}');
+                              }
+                            : null,
+                      ).animate().fadeIn().slideY(begin: 0.1);
+                    },
+                  ),
+                );
+              }),
             ),
           ],
         ),
@@ -143,8 +172,21 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
               // Simulate upload delay
               await Future.delayed(const Duration(seconds: 2));
 
+              // Refresh documents after successful upload
+              await _controller.fetchDocuments();
+
               // Close dialog after successful upload
               setState(() => showUploadDialog = false);
+
+              // Show success message
+              Get.snackbar(
+                'success'.tr,
+                'Document uploaded successfully',
+                snackPosition: SnackPosition.BOTTOM,
+                backgroundColor: Colors.green[700],
+                colorText: Colors.white,
+                duration: const Duration(seconds: 2),
+              );
             },
           ),
       ],
