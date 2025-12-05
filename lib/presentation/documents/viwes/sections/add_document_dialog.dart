@@ -153,13 +153,13 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
             borderRadius: BorderRadius.circular(20),
           ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize: MainAxisSize.max,
             children: [
               // Dialog Header
               _buildHeader(),
 
               // Dialog Content
-              Flexible(
+              Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(24),
                   child: Column(
@@ -238,18 +238,29 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
           const Spacer(),
 
           /// CLOSE BUTTON — TOP RIGHT
+          // Positioned(
+          //   right: 0,
+          //   top: 0,
+          //   child: Transform.translate(
+          //     offset: const Offset(20, -20), // 🔥 responsive upward shift
+          //     child: IconButton(
+          //       padding: EdgeInsets.zero,
+          //       constraints: const BoxConstraints(),
+          //       onPressed: widget.onClose,
+          //       icon: Icon(Icons.close, color: AppColors.neutralInk500),
+          //       splashRadius: 22,
+          //     ),
+          //   ),
+          // ),
           Positioned(
-            right: 0,
-            top: 0,
-            child: Transform.translate(
-              offset: const Offset(20, -20), // 🔥 responsive upward shift
-              child: IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                onPressed: widget.onClose,
-                icon: Icon(Icons.close, color: AppColors.neutralInk500),
-                splashRadius: 22,
-              ),
+            right: 10,
+            top: 10,
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              onPressed: widget.onClose,
+              icon: Icon(Icons.close, color: AppColors.neutralInk500),
+              splashRadius: 22,
             ),
           ),
         ],
@@ -260,8 +271,8 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
   Widget _buildFileUploadArea() {
     return GestureDetector(
       onTap: _selectedFile == null ? _pickFile : null,
-      child: SizedBox(
-        height: 120,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 100, maxHeight: 150),
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
