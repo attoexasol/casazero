@@ -7,6 +7,7 @@ class DocumentCard extends StatelessWidget {
   final VoidCallback? onView;
   final VoidCallback? onDownload;
   final VoidCallback? onShare;
+  final VoidCallback? onChat;
   final VoidCallback? onDelete;
   final VoidCallback onAskAI;
 
@@ -17,6 +18,7 @@ class DocumentCard extends StatelessWidget {
     this.onView,
     this.onDownload,
     this.onShare,
+    this.onChat,
     this.onDelete,
   });
 
@@ -26,7 +28,6 @@ class DocumentCard extends StatelessWidget {
     final scale = size.width / 390;
 
     return IntrinsicHeight(
-      // 🔥 FIX: prevents height crash in ListView
       child: Container(
         margin: EdgeInsets.only(bottom: 12 * scale),
 
@@ -54,9 +55,7 @@ class DocumentCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            /// --------------------------------------------------
-            /// ⭐ LEFT GREEN BORDER (NO INFINITY → NO CRASH)
-            /// --------------------------------------------------
+            /// LEFT GREEN BORDER
             Container(
               width: 6 * scale,
               decoration: BoxDecoration(
@@ -72,9 +71,7 @@ class DocumentCard extends StatelessWidget {
               ),
             ),
 
-            /// --------------------------------------------------
             /// CONTENT SECTION
-            /// --------------------------------------------------
             Expanded(
               child: Padding(
                 padding: EdgeInsets.all(14 * scale),
@@ -101,9 +98,7 @@ class DocumentCard extends StatelessWidget {
 
                     SizedBox(width: 12 * scale),
 
-                    /// --------------------------------------------------
                     /// TEXT SECTION
-                    /// --------------------------------------------------
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -160,23 +155,37 @@ class DocumentCard extends StatelessWidget {
 
                           SizedBox(height: 10 * scale),
 
-                          /// --------------------------------------------------
-                          /// ACTION BUTTONS + ASK AI
-                          /// --------------------------------------------------
+                          /// ACTION BUTTONS
                           Row(
                             children: [
+                              // Download Button
                               if (onDownload != null)
                                 _actionBtn(
                                   "assets/images/download.svg",
                                   onDownload!,
                                   scale,
                                 ),
-                              SizedBox(width: 15),
+
+                              // Share Button
                               if (onShare != null)
-                                _actionBtn(
-                                  "assets/images/chat.svg",
-                                  onShare!,
-                                  scale,
+                                Padding(
+                                  padding: EdgeInsets.only(left: 15 * scale),
+                                  child: _actionIconBtn(
+                                    Icons.share_outlined,
+                                    onShare!,
+                                    scale,
+                                  ),
+                                ),
+
+                              // Chat Button
+                              if (onChat != null)
+                                Padding(
+                                  padding: EdgeInsets.only(left: 15 * scale),
+                                  child: _actionBtn(
+                                    "assets/images/chat.svg",
+                                    onChat!,
+                                    scale,
+                                  ),
                                 ),
 
                               const Spacer(),
@@ -202,6 +211,17 @@ class DocumentCard extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: SvgPicture.asset(asset, width: 20 * scale, height: 20 * scale),
+      ),
+    );
+  }
+
+  /// Action Button with Material Icon (for Share button)
+  Widget _actionIconBtn(IconData icon, VoidCallback onTap, double scale) {
+    return Padding(
+      padding: EdgeInsets.only(right: 8 * scale),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Icon(icon, size: 20 * scale, color: Colors.grey.shade700),
       ),
     );
   }

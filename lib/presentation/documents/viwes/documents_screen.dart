@@ -24,10 +24,8 @@ class DocumentsScreen extends StatefulWidget {
 class _DocumentsScreenState extends State<DocumentsScreen> {
   String searchQuery = "";
   String activeCategory = "all";
-
   bool showUploadDialog = false;
 
-  // Initialize the controller
   final DocumentsController _controller = Get.put(DocumentsController());
 
   @override
@@ -59,7 +57,6 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
             /// DOCUMENTS LIST
             Expanded(
               child: Obx(() {
-                // Show loading indicator
                 if (_controller.isLoadingDocuments.value &&
                     _controller.documents.isEmpty) {
                   return const Center(
@@ -67,7 +64,6 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                   );
                 }
 
-                // Filter documents based on search and category
                 final filteredDocs = _controller.documents.where((doc) {
                   final matchesSearch = doc.title.toLowerCase().contains(
                     searchQuery.toLowerCase(),
@@ -86,7 +82,6 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                   return matchesSearch && matchesCategory;
                 }).toList();
 
-                // Show empty state
                 if (filteredDocs.isEmpty) {
                   return EmptyState(
                     title: searchQuery.isNotEmpty
@@ -98,7 +93,6 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                   );
                 }
 
-                // Show documents list with pull-to-refresh
                 return RefreshIndicator(
                   onRefresh: () => _controller.refreshData(),
                   color: const Color(0xFF4CAF47),
@@ -111,23 +105,24 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                         document: doc,
                         onAskAI: widget.onAskAI,
                         onView: () {
-                          // TODO: Implement view document
                           print('View document: ${doc.title}');
                         },
                         onDelete: permissions.canDeleteDocuments
                             ? () {
-                                // TODO: Implement delete document
                                 print('Delete document: ${doc.title}');
                               }
                             : null,
                         onDownload: () {
-                          // Download document using controller
                           _controller.downloadDocument(doc);
                         },
                         onShare: permissions.canSharedDocuments
                             ? () {
-                                // TODO: Implement share document
-                                print('Share document: ${doc.title}');
+                                _controller.shareDocument(doc);
+                              }
+                            : null,
+                        onChat: permissions.canSharedDocuments
+                            ? () {
+                                print('Chat about document: ${doc.title}');
                               }
                             : null,
                       ).animate().fadeIn().slideY(begin: 0.1);
@@ -161,23 +156,16 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
           AddDocumentDialog(
             onClose: () => setState(() => showUploadDialog = false),
             onUpload: (documentData) async {
-              // TODO: Implement actual upload logic here
-              // For now, just log the data
               print('Uploading document: ${documentData['fileName']}');
               print('Type: ${documentData['type']}');
               print('Title: ${documentData['title']}');
               print('Description: ${documentData['description']}');
 
-              // Simulate upload delay
               await Future.delayed(const Duration(seconds: 2));
-
-              // Refresh documents after successful upload
               await _controller.fetchDocuments();
 
-              // Close dialog after successful upload
               setState(() => showUploadDialog = false);
 
-              // Show success message
               Get.snackbar(
                 'success'.tr,
                 'Document uploaded successfully',
