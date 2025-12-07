@@ -372,6 +372,14 @@ class AppTranslations extends Translations {
     'downloadFailed': 'Download Failed',
     'downloadSuccess': 'Document downloaded successfully',
     'downloadError': 'Failed to download document',
+
+    // OPEN FILE KEYS  ← ADD HERE
+    'openFile': 'Open',
+    'openFileFailed': 'Failed to Open File',
+    'openFileError': 'Could not open file',
+    'fileNotFound': 'File not found on device',
+    'noAppToOpen': 'No app available to open this file type',
+
     'permissionDenied': 'Permission Denied',
     'permissionDeniedMessage':
         'Storage permission is required to download files',
@@ -910,6 +918,14 @@ class AppTranslations extends Translations {
     'downloadFailed': 'Download Fallito',
     'downloadSuccess': 'Documento scaricato con successo',
     'downloadError': 'Impossibile scaricare il documento',
+
+    // OPEN FILE KEYS  ← ADD HERE
+    'openFile': 'Apri',
+    'openFileFailed': 'Impossibile Aprire File',
+    'openFileError': 'Impossibile aprire il file',
+    'fileNotFound': 'File non trovato sul dispositivo',
+    'noAppToOpen': 'Nessuna app disponibile per aprire questo tipo di file',
+
     'permissionDenied': 'Permesso Negato',
     'permissionDeniedMessage':
         'Ã necessario il permesso di archiviazione per scaricare i file',

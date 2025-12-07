@@ -6,6 +6,7 @@ import '../../../core/services/download_service.dart';
 import '../../home/controllers/home_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:open_filex/open_filex.dart';
 import 'dart:io';
 
 class DocumentsController extends GetxController {
@@ -103,6 +104,7 @@ class DocumentsController extends GetxController {
   }
 
   /// Download a document
+  /// Shows loading dialog, downloads the file, and shows result with Open button
   Future<void> downloadDocument(DocumentModel document) async {
     try {
       if (document.fileUrl == null || document.fileUrl!.isEmpty) {
@@ -140,16 +142,38 @@ class DocumentsController extends GetxController {
       );
 
       if (result['success'] == true) {
+        final filePath = result['filePath'] as String;
+
+        // Download successful - Show snackbar with Open button
         Get.snackbar(
           'downloadSuccess'.tr,
           '${'downloadComplete'.tr}: ${result['fileName']}',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.green[700],
           colorText: Colors.white,
-          duration: const Duration(seconds: 3),
+          duration: const Duration(
+            seconds: 5,
+          ), // Longer duration for user to tap Open
           icon: const Icon(Icons.check_circle, color: Colors.white),
+          mainButton: TextButton(
+            onPressed: () {
+              // Close the snackbar first
+              Get.closeCurrentSnackbar();
+              // Open the file
+              openFile(filePath, document.title);
+            },
+            child: Text(
+              'openFile'.tr,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+          ),
         );
-        print('✅ Download successful: ${result['filePath']}');
+
+        print('✅ Download successful: $filePath');
       } else {
         Get.snackbar(
           'downloadFailed'.tr,
@@ -167,6 +191,99 @@ class DocumentsController extends GetxController {
       Get.snackbar(
         'downloadFailed'.tr,
         'downloadError'.tr,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red[700],
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+        icon: const Icon(Icons.error, color: Colors.white),
+      );
+    }
+  }
+
+  /// Open a downloaded file with external app
+  /// Uses native file manager or appropriate app viewer
+  Future<void> openFile(String filePath, String fileName) async {
+    try {
+      print('📂 Opening file: $filePath');
+
+      // Check if file exists
+      final file = File(filePath);
+      if (!await file.exists()) {
+        Get.snackbar(
+          'openFileFailed'.tr,
+          'fileNotFound'.tr,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red[700],
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+          icon: const Icon(Icons.error, color: Colors.white),
+        );
+        print('❌ File not found: $filePath');
+        return;
+      }
+
+      // Open the file using open_filex
+      final result = await OpenFilex.open(filePath);
+
+      print('📂 Open file result: ${result.type} - ${result.message}');
+
+      // Handle the result
+      switch (result.type) {
+        case ResultType.done:
+          // File opened successfully
+          print('✅ File opened successfully');
+          break;
+
+        case ResultType.fileNotFound:
+          Get.snackbar(
+            'openFileFailed'.tr,
+            'fileNotFound'.tr,
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red[700],
+            colorText: Colors.white,
+            duration: const Duration(seconds: 3),
+          );
+          break;
+
+        case ResultType.noAppToOpen:
+          Get.snackbar(
+            'openFileFailed'.tr,
+            'noAppToOpen'.tr,
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.orange[700],
+            colorText: Colors.white,
+            duration: const Duration(seconds: 4),
+            icon: const Icon(Icons.warning, color: Colors.white),
+          );
+          break;
+
+        case ResultType.permissionDenied:
+          Get.snackbar(
+            'openFileFailed'.tr,
+            'permissionDenied'.tr,
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red[700],
+            colorText: Colors.white,
+            duration: const Duration(seconds: 3),
+          );
+          break;
+
+        case ResultType.error:
+          Get.snackbar(
+            'openFileFailed'.tr,
+            result.message,
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red[700],
+            colorText: Colors.white,
+            duration: const Duration(seconds: 3),
+          );
+          break;
+      }
+    } catch (e) {
+      print('❌ Error opening file: $e');
+      Get.snackbar(
+        'openFileFailed'.tr,
+        'openFileError'.tr,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red[700],
         colorText: Colors.white,

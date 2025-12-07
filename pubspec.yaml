@@ -63,6 +63,7 @@ dev_dependencies:
   geolocator: ^10.1.0
   intl: ^0.20.2
   share_plus: ^10.1.2
+  open_filex: ^4.4.0
   
 
 # For information on the generic Dart part of this file, see the
