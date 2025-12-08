@@ -17,8 +17,24 @@ import 'core/services/storage_service.dart';
 import 'core/localization/app_translations.dart';
 import 'core/localization/locale_controller.dart';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'helpers/local_notification_service.dart';
+
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  print("Background Message: ${message.notification?.title}");
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 🔥 Initialize Firebase
+  await Firebase.initializeApp();
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  // 🔥 Initialize Local Notifications
+  LocalNotificationService.initialize();
 
   // Initialize GetStorage
   await GetStorage.init();
@@ -45,7 +61,39 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
+  // 🔥 Initialize FCM foreground listeners
+  setupFCMListeners();
+
   runApp(const CasaZeroApp());
+}
+
+void setupFCMListeners() async {
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  // 🔥 Request permissions
+  NotificationSettings settings = await messaging.requestPermission(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+  print("Permission: ${settings.authorizationStatus}");
+
+  // 🔥 Get the FCM token
+  String? token = await messaging.getToken();
+  print("FCM Token: $token");
+
+  // TODO: Send token to Laravel API
+
+  // 🔥 Handle foreground messages
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    print("Foreground Message: ${message.notification?.title}");
+    LocalNotificationService.showNotification(message);
+  });
+
+  // 🔥 App opened from terminated / background
+  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    print("Notification Opened App: ${message.data}");
+  });
 }
 
 class CasaZeroApp extends StatelessWidget {
