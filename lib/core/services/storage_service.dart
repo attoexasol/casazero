@@ -27,6 +27,19 @@ class StorageService extends GetxService {
     return _box.read(StorageKeys.REFRESH_TOKEN);
   }
 
+  // Device Token (for trusted device verification)
+  Future<void> saveDeviceToken(String token) async {
+    await _box.write(StorageKeys.DEVICE_TOKEN, token);
+  }
+
+  String? getDeviceToken() {
+    return _box.read(StorageKeys.DEVICE_TOKEN);
+  }
+
+  Future<void> clearDeviceToken() async {
+    await _box.remove(StorageKeys.DEVICE_TOKEN);
+  }
+
   // User Data
   Future<void> saveUserData(Map<String, dynamic> userData) async {
     await _box.write(StorageKeys.USER_DATA, userData);

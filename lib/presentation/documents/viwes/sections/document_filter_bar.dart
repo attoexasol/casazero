@@ -7,6 +7,7 @@ class DocumentFilterBar extends StatelessWidget {
   final ValueChanged<String> onCategoryChanged;
   final List<DocumentCategoryModel> apiCategories;
   final bool isLoading;
+  final int totalDocumentCount;
 
   const DocumentFilterBar({
     super.key,
@@ -14,13 +15,14 @@ class DocumentFilterBar extends StatelessWidget {
     required this.onCategoryChanged,
     this.apiCategories = const [],
     this.isLoading = false,
+    this.totalDocumentCount = 0,
   });
 
   @override
   Widget build(BuildContext context) {
     // Always start with "All Categories" as first item
     final List<Map<String, dynamic>> categories = [
-      {"id": "all", "label": "allCategories".tr, "count": 0},
+      {"id": "all", "label": "allCategories".tr, "count": totalDocumentCount},
     ];
 
     // Add categories from API

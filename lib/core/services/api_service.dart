@@ -12,8 +12,12 @@ class ApiService extends getx.GetxService {
     _dio = Dio(
       BaseOptions(
         baseUrl: ApiConstants.BASE_URL,
-        connectTimeout: const Duration(milliseconds: AppConstants.CONNECTION_TIMEOUT),
-        receiveTimeout: const Duration(milliseconds: AppConstants.RECEIVE_TIMEOUT),
+        connectTimeout: const Duration(
+          milliseconds: AppConstants.CONNECTION_TIMEOUT,
+        ),
+        receiveTimeout: const Duration(
+          milliseconds: AppConstants.RECEIVE_TIMEOUT,
+        ),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -81,7 +85,10 @@ class ApiService extends getx.GetxService {
   }
 
   // Generic GET request
-  Future<Response> get(String endpoint, {Map<String, dynamic>? queryParams}) async {
+  Future<Response> get(
+    String endpoint, {
+    Map<String, dynamic>? queryParams,
+  }) async {
     try {
       final response = await _dio.get(endpoint, queryParameters: queryParams);
       return response;
@@ -93,7 +100,8 @@ class ApiService extends getx.GetxService {
   // Generic POST request
   Future<Response> post(String endpoint, {dynamic data}) async {
     try {
-      print(endpoint);
+      print("RAJIBCSEDUET");
+      print(data);
       final response = await _dio.post(endpoint, data: data);
       return response;
     } on DioException catch (e) {
@@ -126,7 +134,8 @@ class ApiService extends getx.GetxService {
 
     if (error.type == DioExceptionType.connectionTimeout ||
         error.type == DioExceptionType.receiveTimeout) {
-      errorMessage = 'Connection timeout. Please check your internet connection.';
+      errorMessage =
+          'Connection timeout. Please check your internet connection.';
     } else if (error.type == DioExceptionType.badResponse) {
       errorMessage = error.response?.data['message'] ?? 'Server error occurred';
     } else if (error.type == DioExceptionType.cancel) {

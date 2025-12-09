@@ -6,8 +6,19 @@ class LocalNotificationService {
       FlutterLocalNotificationsPlugin();
 
   static void initialize() {
-    const InitializationSettings settings = InitializationSettings(
-      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
+    const iosSettings = DarwinInitializationSettings(
+      // Add iOS settings
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
+
+    const settings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings, // Add this
     );
 
     _plugin.initialize(settings);
@@ -21,8 +32,16 @@ class LocalNotificationService {
       priority: Priority.high,
     );
 
-    const NotificationDetails details = NotificationDetails(
+    const iosDetails = DarwinNotificationDetails(
+      // Add iOS details
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    const details = NotificationDetails(
       android: androidDetails,
+      iOS: iosDetails, // Add this
     );
 
     await _plugin.show(

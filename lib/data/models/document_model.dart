@@ -28,20 +28,49 @@ class DocumentModel {
   });
 
   /// Create DocumentModel from API response
+  /// Supports both old format (with category_id, type_id) and new format (with nested category, type, unit objects)
   factory DocumentModel.fromJson(Map<String, dynamic> json) {
+    // Handle new API format with nested objects
+    String categoryName;
+    int? categoryId;
+    int? typeId;
+    String typeName = '';
+
+    if (json['category'] != null && json['category'] is Map) {
+      // New format: nested category object
+      categoryName = json['category']['category_name'] ?? '';
+      categoryId = json['category']['id'];
+    } else {
+      // Old format: category_id
+      categoryId = json['category_id'];
+      categoryName = _getCategoryName(categoryId);
+    }
+
+    if (json['type'] != null && json['type'] is Map) {
+      // New format: nested type object
+      typeName = json['type']['type_name'] ?? '';
+      typeId = json['type']['id'];
+    } else {
+      // Old format: type_id
+      typeId = json['type_id'];
+    }
+
+    // Generate tags including type name if available
+    List<String> tags = _generateTags(json, categoryName, typeName);
+
     return DocumentModel(
       id: json['id']?.toString() ?? '',
       title: json['document_name'] ?? 'Untitled Document',
       type: (json['file_type'] ?? 'file').toString().toUpperCase(),
-      category: _getCategoryName(json['category_id']),
+      category: categoryName,
       date: json['uploaded_date'] ?? '',
       size: json['file_size'] ?? '',
-      tags: _generateTags(json),
+      tags: tags,
       status: null, // Can be extended later if needed
       fileUrl: json['file_url'],
       description: json['document_description'],
-      categoryId: json['category_id'],
-      typeId: json['type_id'],
+      categoryId: categoryId,
+      typeId: typeId,
     );
   }
 
@@ -81,13 +110,26 @@ class DocumentModel {
   }
 
   /// Helper method to generate tags from document data
-  static List<String> _generateTags(Map<String, dynamic> json) {
+  static List<String> _generateTags(
+    Map<String, dynamic> json, [
+    String? categoryName,
+    String? typeName,
+  ]) {
     List<String> tags = [];
 
     // Add category-based tag
-    final categoryId = json['category_id'];
-    if (categoryId != null) {
-      tags.add(_getCategoryName(categoryId));
+    if (categoryName != null && categoryName.isNotEmpty) {
+      tags.add(categoryName);
+    } else {
+      final categoryId = json['category_id'];
+      if (categoryId != null) {
+        tags.add(_getCategoryName(categoryId));
+      }
+    }
+
+    // Add type name tag if available
+    if (typeName != null && typeName.isNotEmpty) {
+      tags.add(typeName);
     }
 
     // Add file type tag

@@ -1,5 +1,5 @@
 // data/repositories/auth_repository.dart
-// UPDATED WITH DEVICE INFO IN EMAIL OTP VERIFICATION
+// UPDATED WITH FCM TOKEN AND NEW API STRUCTURE
 
 import 'package:get/get.dart';
 import '../../core/services/api_service.dart';
@@ -7,6 +7,7 @@ import '../../core/services/device_info_service.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/services/storage_service.dart';
 import '../models/user_model.dart';
+import '../../core/services/fcm_service.dart';
 
 class AuthRepository {
   final ApiService _apiService = Get.find();
@@ -14,45 +15,71 @@ class AuthRepository {
   final DeviceInfoService _deviceInfoService = Get.find();
 
   // ============================================================================
-  // LOGIN WITH TRUSTED DEVICE TRACKING
+  // LOGIN WITH TRUSTED DEVICE TRACKING + FCM TOKEN
   // ============================================================================
 
   Future<Map<String, dynamic>> login({
     required String email,
     required String password,
+    String? phone,
   }) async {
     try {
       // Get device information
       final deviceInfo = await _deviceInfoService.getDeviceInfoForLogin();
 
-      print('ðŸ“± Device Info:');
+      // Get FCM token (will be empty string if not available)
+      String fcmToken = '';
+      try {
+        final fcmService = Get.find<FcmService>();
+        if (fcmService.toString().contains('FcmService')) {
+          fcmToken = await fcmService.getDeviceToken() ?? '';
+        }
+      } catch (e) {
+        print('⚠️ FCM Service not available: $e');
+      }
+
+      // Get stored device token (for trusted device verification)
+      final storedToken = _storageService.getDeviceToken() ?? '';
+
+      print('📱 Device Info:');
       print('  Device ID: ${deviceInfo['device_id']}');
       print('  Device Name: ${deviceInfo['device_name']}');
       print('  Platform: ${deviceInfo['platform']}');
       print('  Location: ${deviceInfo['lat']}, ${deviceInfo['lng']}');
       print('  IP: ${deviceInfo['ip_address']}');
+      print('  FCM Token: $fcmToken');
+      print('  Phone: ${phone ?? 'not provided'}');
+      print('  Stored Token: $storedToken');
 
       final response = await _apiService.post(
         ApiConstants.LOGIN,
         data: {
           'email': email,
+          'phone': phone ?? '',
           'password': password,
           'device_id': deviceInfo['device_id'],
           'device_name': deviceInfo['device_name'],
           'platform': deviceInfo['platform'],
+          'ip_address': deviceInfo['ip_address'],
           'lat': deviceInfo['lat'],
           'lng': deviceInfo['lng'],
-          'ip_address': deviceInfo['ip_address'],
+          'fcm_token': fcmToken,
+          'token': storedToken,
         },
       );
 
-      print('ðŸ” Login Response:');
+      print('✅ Login Response:');
       print('  Status Code: ${response.statusCode}');
       print('  Status: ${response.data['status']}');
       print('  Message: ${response.data['message']}');
       print('  Is Trusted: ${response.data['is_trusted']}');
 
       if (response.statusCode == 200 && response.data['status'] == true) {
+        // Save the new token from response for next login
+        if (response.data['token'] != null) {
+          await _storageService.saveDeviceToken(response.data['token']);
+        }
+
         return {
           'success': true,
           'user': UserModel.fromJson(response.data['user']),
@@ -67,11 +94,8 @@ class AuthRepository {
         };
       }
     } catch (e) {
-      print('âŒ Login Error: $e');
-      return {
-        'success': false,
-        'error': e.toString(),
-      };
+      print('❌ Login Error: $e');
+      return {'success': false, 'error': e.toString()};
     }
   }
 
@@ -79,6 +103,20 @@ class AuthRepository {
   Future<bool> logout() async {
     try {
       await _apiService.post(ApiConstants.LOGOUT);
+
+      // Clear device token on logout
+      await _storageService.clearDeviceToken();
+
+      // Delete FCM token
+      try {
+        final fcmService = Get.find<FcmService>();
+        if (fcmService.toString().contains('FcmService')) {
+          await fcmService.deleteToken();
+        }
+      } catch (e) {
+        print('⚠️ FCM Service not available during logout: $e');
+      }
+
       return true;
     } catch (e) {
       return false;
@@ -108,10 +146,7 @@ class AuthRepository {
       final userId = userData?['id'];
 
       if (userId == null) {
-        return {
-          'success': false,
-          'error': 'User not found in local storage',
-        };
+        return {'success': false, 'error': 'User not found in local storage'};
       }
 
       final response = await _apiService.post(
@@ -127,7 +162,8 @@ class AuthRepository {
       if (response.statusCode == 200 && response.data['status'] == true) {
         return {
           'success': true,
-          'message': response.data['message'] ?? 'Password changed successfully!',
+          'message':
+              response.data['message'] ?? 'Password changed successfully!',
         };
       } else {
         return {
@@ -136,10 +172,7 @@ class AuthRepository {
         };
       }
     } catch (e) {
-      return {
-        'success': false,
-        'error': e.toString(),
-      };
+      return {'success': false, 'error': e.toString()};
     }
   }
 
@@ -153,10 +186,7 @@ class AuthRepository {
       final userId = userData?['id'];
 
       if (userId == null) {
-        return {
-          'success': false,
-          'error': 'User not found in local storage',
-        };
+        return {'success': false, 'error': 'User not found in local storage'};
       }
 
       final response = await _apiService.get(
@@ -194,20 +224,14 @@ class AuthRepository {
       final userId = userData?['id'];
 
       if (userId == null) {
-        return {
-          'success': false,
-          'error': 'User not found in local storage',
-        };
+        return {'success': false, 'error': 'User not found in local storage'};
       }
 
       int codeNumber;
       try {
         codeNumber = int.parse(code);
       } catch (e) {
-        return {
-          'success': false,
-          'error': 'Invalid code format',
-        };
+        return {'success': false, 'error': 'Invalid code format'};
       }
 
       // Get device information for verification
@@ -270,20 +294,15 @@ class AuthRepository {
       final userId = userData?['id'];
 
       if (userId == null) {
-        return {
-          'success': false,
-          'error': 'User not found in local storage',
-        };
+        return {'success': false, 'error': 'User not found in local storage'};
       }
 
       final response = await _apiService.post(
         ApiConstants.SEND_EMAIL_OTP,
-        data: {
-          'user_id': userId,
-        },
+        data: {'user_id': userId},
       );
 
-      if (response.statusCode == 200 && response.data['status'] == true) {
+      if (response.statusCode == 200 && response.data['Status'] == true) {
         return {
           'success': true,
           'message': response.data['message'] ?? 'OTP sent to your email',
@@ -291,60 +310,38 @@ class AuthRepository {
       } else {
         return {
           'success': false,
-          'error': response.data['message'] ?? 'Failed to send OTP',
+          'error': response.data['message'] ?? 'Failed to send email OTP',
         };
       }
     } catch (e) {
       print('Error sending email OTP: $e');
       return {
         'success': false,
-        'error': 'Failed to send OTP. Please try again.',
+        'error': 'Failed to send email OTP. Please try again.',
       };
     }
   }
 
   /// Verify Email OTP WITH DEVICE INFO
-  /// POST /2fa/email/otp_verify
-  /// Request: {
-  ///   "user_id": 7,
-  ///   "otp": "772267",
-  ///   "device_id": "abcd-12346-unique-mobile-id",
-  ///   "device_name": "Samsung S25",
-  ///   "platform": "android",
-  ///   "ip_address": "102.22.44.5",
-  ///   "lat": 23.8103,
-  ///   "lng": 90.4125
-  /// }
-  /// Response: {
-  ///   "status": true,
-  ///   "message": "Email 2FA verified successfully"
-  /// }
   Future<Map<String, dynamic>> verifyEmailOTP(String otp) async {
     try {
       final userData = _storageService.getUserData();
       final userId = userData?['id'];
 
       if (userId == null) {
-        return {
-          'success': false,
-          'error': 'User not found in local storage',
-        };
+        return {'success': false, 'error': 'User not found in local storage'};
       }
 
-      // Convert OTP to string (API expects string format)
+      // Convert OTP to string
       String otpString = otp.trim();
 
       // Get device information for verification
       final deviceInfo = await _deviceInfoService.getDeviceInfoForLogin();
 
-      print('ðŸ“§ Verifying Email OTP with Device Info:');
+      print('📱 Verifying Email OTP with Device Info:');
       print('  User ID: $userId');
       print('  OTP: $otpString');
-      print('  Device ID: ${deviceInfo['device_id']}');
-      print('  Device Name: ${deviceInfo['device_name']}');
-      print('  Platform: ${deviceInfo['platform']}');
-      print('  Location: ${deviceInfo['lat']}, ${deviceInfo['lng']}');
-      print('  IP: ${deviceInfo['ip_address']}');
+      print('  Device Info: ${deviceInfo['device_name']}');
 
       final response = await _apiService.post(
         ApiConstants.VERIFY_EMAIL_OTP,
@@ -360,15 +357,11 @@ class AuthRepository {
         },
       );
 
-      print('âœ… Email OTP Verification Response:');
-      print('  Status Code: ${response.statusCode}');
-      print('  Status: ${response.data['status']}');
-      print('  Message: ${response.data['message']}');
-
       if (response.statusCode == 200 && response.data['status'] == true) {
         return {
           'success': true,
-          'message': response.data['message'] ?? 'Email 2FA verified successfully',
+          'message':
+              response.data['message'] ?? 'Email OTP verified successfully',
         };
       } else {
         return {
@@ -377,7 +370,7 @@ class AuthRepository {
         };
       }
     } catch (e) {
-      print('âŒ Error verifying email OTP: $e');
+      print('❌ Error verifying email OTP: $e');
       return {
         'success': false,
         'error': 'Failed to verify OTP. Please try again.',
@@ -395,17 +388,12 @@ class AuthRepository {
       final userId = userData?['id'];
 
       if (userId == null) {
-        return {
-          'success': false,
-          'error': 'User not found in local storage',
-        };
+        return {'success': false, 'error': 'User not found in local storage'};
       }
 
       final response = await _apiService.post(
         ApiConstants.SEND_SMS_OTP,
-        data: {
-          'user_id': userId,
-        },
+        data: {'user_id': userId},
       );
 
       if (response.statusCode == 200 && response.data['Status'] == true) {
@@ -436,10 +424,7 @@ class AuthRepository {
       final userId = userData?['id'];
 
       if (userId == null) {
-        return {
-          'success': false,
-          'error': 'User not found in local storage',
-        };
+        return {'success': false, 'error': 'User not found in local storage'};
       }
 
       // Convert OTP to string
@@ -448,7 +433,7 @@ class AuthRepository {
       // Get device information for verification
       final deviceInfo = await _deviceInfoService.getDeviceInfoForLogin();
 
-      print('ðŸ“± Verifying SMS OTP with Device Info:');
+      print('📱 Verifying SMS OTP with Device Info:');
       print('  User ID: $userId');
       print('  OTP: $otpString');
       print('  Device Info: ${deviceInfo['device_name']}');
@@ -470,7 +455,8 @@ class AuthRepository {
       if (response.statusCode == 200 && response.data['Status'] == true) {
         return {
           'success': true,
-          'message': response.data['message'] ?? 'SMS OTP verified successfully',
+          'message':
+              response.data['message'] ?? 'SMS OTP verified successfully',
         };
       } else {
         return {
@@ -503,10 +489,7 @@ class AuthRepository {
           'message': 'Use your authenticator app to generate code',
         };
       default:
-        return {
-          'success': false,
-          'error': 'Invalid 2FA method',
-        };
+        return {'success': false, 'error': 'Invalid 2FA method'};
     }
   }
 
@@ -522,10 +505,7 @@ class AuthRepository {
       case 'authenticator':
         return await verifyAuthenticatorQRCode(code);
       default:
-        return {
-          'success': false,
-          'error': 'Invalid 2FA method',
-        };
+        return {'success': false, 'error': 'Invalid 2FA method'};
     }
   }
 
@@ -539,10 +519,7 @@ class AuthRepository {
       final userId = userData?['id'];
 
       if (userId == null) {
-        return {
-          'success': false,
-          'error': 'User not found in local storage',
-        };
+        return {'success': false, 'error': 'User not found in local storage'};
       }
 
       final response = await _apiService.get(
@@ -565,7 +542,9 @@ class AuthRepository {
 
         return {
           'success': true,
-          'message': response.data['message'] ?? 'Two-factor authentication disabled successfully.',
+          'message':
+              response.data['message'] ??
+              'Two-factor authentication disabled successfully.',
           'data': data,
         };
       } else {
@@ -608,10 +587,7 @@ class AuthRepository {
 
       final response = await _apiService.post(
         ApiConstants.UPDATE_2FA_STATUS,
-        data: {
-          'user_id': userId,
-          'is_two_fa_status': status,
-        },
+        data: {'user_id': userId, 'is_two_fa_status': status},
       );
 
       print('✅ 2FA Status Update Response:');
@@ -621,7 +597,9 @@ class AuthRepository {
       if (response.statusCode == 200 && response.data['success'] == true) {
         return {
           'success': true,
-          'message': response.data['message'] ?? 'Two-factor authentication status updated successfully',
+          'message':
+              response.data['message'] ??
+              'Two-factor authentication status updated successfully',
           'data': response.data['data'],
         };
       } else {

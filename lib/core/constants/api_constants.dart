@@ -178,6 +178,27 @@ class ApiConstants {
 
   static const String GET_DOCUMENT_CATEGORIES = '/document_categories';
 
+  /// Get All Documents
+  /// GET /documents/
+  /// Response: {
+  ///   "status": true,
+  ///   "data": [
+  ///     {
+  ///       "id": 12,
+  ///       "document_name": "National ID Card",
+  ///       "document_description": "Front side of NID",
+  ///       "file_url": "https://...",
+  ///       "file_type": "jpg",
+  ///       "file_size": "0.01 MB",
+  ///       "uploaded_date": "12-04-2025",
+  ///       "category": { "id": 2, "category_name": "My Documents" },
+  ///       "type": { "id": 2, "type_name": "Guarantees" },
+  ///       "unit": { "id": 1, "unit_name": "Updated Unit A1" } or null
+  ///     }
+  ///   ]
+  /// }
+  static const String GET_DOCUMENTS = '/documents/';
+
   /// Get Residence Documents
   /// POST /get_residence_wise_documents
   /// Request: { "residence_id": 23 }

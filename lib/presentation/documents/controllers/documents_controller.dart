@@ -23,6 +23,9 @@ class DocumentsController extends GetxController {
   final RxBool isLoadingDocuments = false.obs;
   final RxString errorMessage = ''.obs;
   final RxBool hasError = false.obs;
+  
+  // Document counts per category
+  final RxInt totalDocumentCount = 0.obs;
 
   @override
   void onInit() {
@@ -42,6 +45,11 @@ class DocumentsController extends GetxController {
       if (result['success'] == true) {
         final List<DocumentCategoryModel> fetchedCategories = result['data'];
         categories.value = fetchedCategories;
+        
+        // If documents are already loaded, update category counts
+        if (documents.isNotEmpty) {
+          _updateCategoryCounts(documents);
+        }
       } else {
         errorMessage.value = result['error'] ?? 'Failed to fetch categories';
         categories.value = [];
@@ -55,36 +63,33 @@ class DocumentsController extends GetxController {
     }
   }
 
-  /// Fetch documents from API based on selected residence
+  /// Fetch documents from API
+  /// Uses the new /documents/ endpoint to get all documents
   Future<void> fetchDocuments() async {
     try {
       isLoadingDocuments.value = true;
       errorMessage.value = '';
       hasError.value = false;
 
-      // Get the selected residence ID from HomeController
-      final HomeController homeController = Get.find<HomeController>();
-      final residenceId = homeController.selectedResidence.value?.id;
+      print('📄 Fetching all documents from API');
 
-      if (residenceId == null) {
-        print('⚠️ No residence selected, using mock data');
-        documents.value = DocumentModel.mockDocuments;
-        isLoadingDocuments.value = false;
-        return;
-      }
-
-      print('📄 Fetching documents for residence ID: $residenceId');
-
-      final result = await _repository.getResidenceDocuments(residenceId);
+      final result = await _repository.getAllDocuments();
 
       if (result['success'] == true) {
-        final List<dynamic> documentsData = result['data'] ?? [];
-
-        final fetchedDocuments = documentsData
-            .map((item) => DocumentModel.fromJson(item as Map<String, dynamic>))
-            .toList();
+        final dynamic data = result['data'];
+        final List<DocumentModel> fetchedDocuments =
+            data is List<DocumentModel>
+                ? data
+                : (data as List<dynamic>?)
+                        ?.map((item) => item as DocumentModel)
+                        .toList() ??
+                    [];
 
         documents.value = fetchedDocuments;
+        totalDocumentCount.value = fetchedDocuments.length;
+
+        // Update category counts based on loaded documents
+        _updateCategoryCounts(fetchedDocuments);
 
         print('✅ Loaded ${documents.length} documents from API');
       } else {
@@ -427,5 +432,45 @@ class DocumentsController extends GetxController {
   /// Refresh all data (pull-to-refresh)
   Future<void> refreshData() async {
     await Future.wait([fetchDocumentCategories(), fetchDocuments()]);
+  }
+
+  /// Update category counts based on loaded documents
+  void _updateCategoryCounts(List<DocumentModel> documents) {
+    // Create a map to count documents per category (case-insensitive)
+    final Map<String, int> categoryCounts = {};
+
+    // Count documents by category name (normalize for matching)
+    for (var doc in documents) {
+      final categoryName = doc.category.trim();
+      if (categoryName.isNotEmpty) {
+        categoryCounts[categoryName] = (categoryCounts[categoryName] ?? 0) + 1;
+      }
+    }
+
+    // Update category models with counts (case-insensitive matching)
+    final updatedCategories = categories.map((category) {
+      // Try exact match first
+      var count = categoryCounts[category.categoryName] ?? 0;
+      
+      // If no exact match, try case-insensitive match
+      if (count == 0) {
+        for (var entry in categoryCounts.entries) {
+          if (entry.key.toLowerCase().trim() == 
+              category.categoryName.toLowerCase().trim()) {
+            count = entry.value;
+            break;
+          }
+        }
+      }
+      
+      return category.copyWith(count: count);
+    }).toList();
+
+    categories.value = updatedCategories;
+
+    print('📊 Updated category counts:');
+    for (var cat in updatedCategories) {
+      print('  - ${cat.categoryName}: ${cat.count}');
+    }
   }
 }

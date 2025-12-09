@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/device_info_service.dart';
 import '../../core/services/download_service.dart';
+import '../../core/services/fcm_service.dart';
 import '../../core/localization/locale_controller.dart';
 import '../../core/services/storage_service.dart';
 import '../../data/repositories/auth_repository.dart';
@@ -30,6 +31,9 @@ class InitialBinding extends Bindings {
 
     // DownloadService for document downloads
     Get.put<DownloadService>(DownloadService(), permanent: true);
+
+    // FCM Service for push notifications
+    Get.putAsync(() => FcmService().init(), permanent: true);
 
     // -----------------------------
     // REPOSITORIES

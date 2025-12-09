@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import '../../core/services/api_service.dart';
 import '../../core/constants/api_constants.dart';
 import '../models/document_category_model.dart';
+import '../models/document_model.dart';
 
 class DocumentRepository {
   final ApiService _apiService = Get.find();
@@ -91,6 +92,57 @@ class DocumentRepository {
       }
     } catch (e) {
       print('Error fetching residence documents: $e');
+      return {
+        'success': false,
+        'error': 'Failed to fetch documents. Please try again.',
+      };
+    }
+  }
+
+  /// Get All Documents
+  /// GET /documents/
+  /// Response: {
+  ///   "status": true,
+  ///   "data": [
+  ///     {
+  ///       "id": 12,
+  ///       "document_name": "National ID Card",
+  ///       "document_description": "Front side of NID",
+  ///       "file_url": "https://...",
+  ///       "file_type": "jpg",
+  ///       "file_size": "0.01 MB",
+  ///       "uploaded_date": "12-04-2025",
+  ///       "category": { "id": 2, "category_name": "My Documents" },
+  ///       "type": { "id": 2, "type_name": "Guarantees" },
+  ///       "unit": { "id": 1, "unit_name": "Updated Unit A1" } or null
+  ///     }
+  ///   ]
+  /// }
+  Future<Map<String, dynamic>> getAllDocuments() async {
+    try {
+      final response = await _apiService.get(
+        ApiConstants.GET_DOCUMENTS,
+      );
+
+      if (response.statusCode == 200 && response.data['status'] == true) {
+        final List<dynamic> documentsData = response.data['data'] ?? [];
+
+        final documents = documentsData
+            .map((item) => DocumentModel.fromJson(item as Map<String, dynamic>))
+            .toList();
+
+        return {
+          'success': true,
+          'data': documents,
+        };
+      } else {
+        return {
+          'success': false,
+          'error': response.data['message'] ?? 'Failed to fetch documents',
+        };
+      }
+    } catch (e) {
+      print('Error fetching all documents: $e');
       return {
         'success': false,
         'error': 'Failed to fetch documents. Please try again.',

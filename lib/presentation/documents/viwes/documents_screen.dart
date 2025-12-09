@@ -49,6 +49,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                 onCategoryChanged: (c) => setState(() => activeCategory = c),
                 apiCategories: _controller.categories,
                 isLoading: _controller.isLoadingCategories.value,
+                totalDocumentCount: _controller.totalDocumentCount.value,
               ),
             ),
 

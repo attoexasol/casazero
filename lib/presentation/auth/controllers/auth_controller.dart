@@ -1,5 +1,5 @@
 // presentation/auth/controllers/auth_controller.dart
-// UPDATED WITH TRUSTED DEVICE NAVIGATION LOGIC
+// UPDATED WITH PHONE SUPPORT FOR LOGIN
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -17,10 +17,12 @@ class AuthController extends GetxController {
   // For development - remove in production
   final emailController = TextEditingController(text: 'rajibduet02@gmail.com');
   final passwordController = TextEditingController(text: 'CasaZero@024017');
+  final phoneController = TextEditingController(); // Add phone controller
 
   // For production - uncomment these
   // final emailController = TextEditingController();
   // final passwordController = TextEditingController();
+  // final phoneController = TextEditingController();
 
   final RxBool isLoading = false.obs;
   final RxBool obscurePassword = true.obs;
@@ -31,6 +33,7 @@ class AuthController extends GetxController {
   void onClose() {
     emailController.dispose();
     passwordController.dispose();
+    phoneController.dispose();
     super.onClose();
   }
 
@@ -59,6 +62,9 @@ class AuthController extends GetxController {
     final result = await _authRepository.login(
       email: emailController.text.trim(),
       password: passwordController.text,
+      phone: phoneController.text.trim().isEmpty
+          ? null
+          : phoneController.text.trim(),
     );
 
     isLoading.value = false;
