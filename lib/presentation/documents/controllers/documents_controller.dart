@@ -95,13 +95,13 @@ class DocumentsController extends GetxController {
         print('⚠️ API Error: ${result['error']}');
         errorMessage.value = result['error'] ?? 'Failed to fetch documents';
         hasError.value = true;
-        documents.value = DocumentModel.mockDocuments;
+        documents.clear();
       }
     } catch (e) {
       print('❌ Error in fetchDocuments: $e');
       errorMessage.value = 'An error occurred while fetching documents';
       hasError.value = true;
-      documents.value = DocumentModel.mockDocuments;
+      documents.clear();
     } finally {
       isLoadingDocuments.value = false;
     }
