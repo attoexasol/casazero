@@ -74,11 +74,16 @@ class AuthController extends GetxController {
       final bool isTrusted = result['is_trusted'] ?? false;
 
       // Save tokens and user data
-      print('Access Token: ${result['access_token']}');
+      print('🔑 Login Access Token (from API): ${result['access_token']}');
       print('Is Trusted Device: $isTrusted');
       print('Is Password Set By Admin: ${user.isPasswordSetByAdmin}');
 
+      // Always replace any old/stale token with the new one
+      await _storageService.clearAccessToken();
       await _storageService.saveAccessToken(result['access_token']);
+      final storedToken = _storageService.getAccessToken();
+      print('💾 Stored Access Token (post-save): $storedToken');
+
       await _storageService.saveUserData(user.toJson());
       await _storageService.setFirstLogin(user.isFirstLogin);
 

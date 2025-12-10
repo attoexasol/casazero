@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../data/models/document_category_model.dart';
+import 'document_colors.dart';
 
 class DocumentFilterBar extends StatelessWidget {
   final String activeCategory;
@@ -57,6 +58,7 @@ class DocumentFilterBar extends StatelessWidget {
         itemBuilder: (_, index) {
           final c = categories[index];
           final isActive = c['id'] == activeCategory;
+          final accentColor = documentCategoryColor(c['id'] as String);
 
           return GestureDetector(
             onTap: () => onCategoryChanged(c['id'] as String),
@@ -64,7 +66,7 @@ class DocumentFilterBar extends StatelessWidget {
               duration: const Duration(milliseconds: 180),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
-                color: isActive ? const Color(0xFF4CAF47) : Colors.white,
+                color: isActive ? accentColor : Colors.white,
                 borderRadius: BorderRadius.circular(30),
                 border: Border.all(
                   color: isActive ? Colors.transparent : Colors.grey.shade300,
@@ -72,7 +74,7 @@ class DocumentFilterBar extends StatelessWidget {
                 boxShadow: isActive
                     ? [
                         BoxShadow(
-                          color: const Color(0xFF4CAF47).withOpacity(.25),
+                          color: accentColor.withOpacity(.25),
                           blurRadius: 8,
                         ),
                       ]
@@ -94,9 +96,8 @@ class DocumentFilterBar extends StatelessWidget {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: isActive
-                          ? Colors.white.withOpacity(0.25)
-                          : Colors.grey.shade200,
+                      color:
+                          isActive ? Colors.white.withOpacity(0.25) : Colors.grey.shade200,
                       borderRadius: BorderRadius.circular(50),
                     ),
                     child: Text(

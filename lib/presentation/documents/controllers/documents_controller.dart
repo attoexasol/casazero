@@ -3,7 +3,6 @@ import '../../../data/models/document_category_model.dart';
 import '../../../data/models/document_model.dart';
 import '../../../data/repositories/document_repository.dart';
 import '../../../core/services/download_service.dart';
-import '../../home/controllers/home_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:open_filex/open_filex.dart';
@@ -64,16 +63,16 @@ class DocumentsController extends GetxController {
   }
 
   /// Fetch documents from API
-  /// Uses the new /documents/ endpoint to get all documents
+  /// Uses the unit-wise documents endpoint to get all documents
   Future<void> fetchDocuments() async {
     try {
       isLoadingDocuments.value = true;
       errorMessage.value = '';
       hasError.value = false;
 
-      print('📄 Fetching all documents from API');
+      print('📄 Fetching unit-wise documents from API');
 
-      final result = await _repository.getAllDocuments();
+      final result = await _repository.getUnitWiseDocuments();
 
       if (result['success'] == true) {
         final dynamic data = result['data'];

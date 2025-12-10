@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../data/models/document_model.dart';
+import 'document_colors.dart';
 
 class DocumentCard extends StatelessWidget {
   final DocumentModel document;
@@ -26,6 +27,8 @@ class DocumentCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final scale = size.width / 390;
+    final accentColor = documentCategoryColor(document.category);
+    final iconAsset = _iconForType(document.type);
 
     return IntrinsicHeight(
       child: Container(
@@ -59,8 +62,8 @@ class DocumentCard extends StatelessWidget {
             Container(
               width: 6 * scale,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF4CAF47), Color(0x804CAF47)],
+                gradient: LinearGradient(
+                  colors: [accentColor, accentColor.withOpacity(0.5)],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -87,13 +90,19 @@ class DocumentCard extends StatelessWidget {
                         color: Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(14 * scale),
                       ),
-                      child: Text(
-                        document.type,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13 * scale,
-                        ),
-                      ),
+                      child: iconAsset != null
+                          ? SvgPicture.asset(
+                              iconAsset,
+                              width: 24 * scale,
+                              height: 24 * scale,
+                            )
+                          : Text(
+                              document.type,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13 * scale,
+                              ),
+                            ),
                     ),
 
                     SizedBox(width: 12 * scale),
@@ -224,5 +233,18 @@ class DocumentCard extends StatelessWidget {
         child: Icon(icon, size: 20 * scale, color: Colors.grey.shade700),
       ),
     );
+  }
+
+  String? _iconForType(String type) {
+    switch (type.toLowerCase()) {
+      case 'compliance':
+        return 'assets/images/complience_doc_icon.svg';
+      case 'owner':
+        return 'assets/images/owner_doc_icon.svg';
+      case 'technical':
+        return 'assets/images/technical_doc_icon.svg';
+      default:
+        return null;
+    }
   }
 }

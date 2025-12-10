@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import '../../core/services/api_service.dart';
+import '../../core/services/storage_service.dart';
 import '../../core/constants/api_constants.dart';
 import '../models/document_category_model.dart';
 import '../models/document_model.dart';
@@ -143,6 +144,69 @@ class DocumentRepository {
       }
     } catch (e) {
       print('Error fetching all documents: $e');
+      return {
+        'success': false,
+        'error': 'Failed to fetch documents. Please try again.',
+      };
+    }
+  }
+
+  /// Get Unit Wise Documents
+  /// POST /get_unit_wise_documents
+  /// Request: { "token": "user token" }
+  /// Response: {
+  ///   "status": true,
+  ///   "message": "Unit-wise documents retrieved successfully",
+  ///   "data": [
+  ///     { "unit_name": "Unit A1", "documents": [ ... ] }
+  ///   ]
+  /// }
+  Future<Map<String, dynamic>> getUnitWiseDocuments() async {
+    try {
+      final storageService = Get.find<StorageService>();
+      final token = storageService.getAccessToken();
+
+      if (token == null || token.isEmpty) {
+        return {
+          'success': false,
+          'error': 'User token is missing. Please login again.',
+        };
+      }
+
+      final response = await _apiService.post(
+        ApiConstants.GET_UNIT_WISE_DOCUMENTS,
+        data: {'token': token},
+      );
+
+      if (response.statusCode == 200 && response.data['status'] == true) {
+        final List<dynamic> unitsData = response.data['data'] ?? [];
+
+        // Flatten all documents from each unit
+        final documents = <DocumentModel>[];
+        for (final unit in unitsData) {
+          final List<dynamic> unitDocuments = unit['documents'] ?? [];
+          documents.addAll(
+            unitDocuments
+                .map(
+                  (item) =>
+                      DocumentModel.fromJson(item as Map<String, dynamic>),
+                )
+                .toList(),
+          );
+        }
+
+        return {
+          'success': true,
+          'data': documents,
+        };
+      } else {
+        return {
+          'success': false,
+          'error': response.data['message'] ?? 'Failed to fetch documents',
+        };
+      }
+    } catch (e) {
+      print('Error fetching unit-wise documents: $e');
       return {
         'success': false,
         'error': 'Failed to fetch documents. Please try again.',

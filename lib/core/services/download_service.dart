@@ -24,6 +24,8 @@ class DownloadService extends getx.GetxService {
           if (token != null) {
             options.headers['Authorization'] = 'Bearer $token';
           }
+          print('🌐 [DOWNLOAD REQUEST] ${options.method} ${options.uri}');
+          print('🔑 [DOWNLOAD TOKEN] ${token ?? 'NO_TOKEN_FOUND'}');
           return handler.next(options);
         },
       ),

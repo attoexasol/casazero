@@ -29,11 +29,18 @@ class ApiService extends getx.GetxService {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          // Add access token to headers
+          // Add access token to headers and log for debugging
           final token = _storageService.getAccessToken();
-          if (token != null) {
+
+          // Ensure we always use the same token everywhere
+          if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
+          } else {
+            options.headers.remove('Authorization');
           }
+
+          print('🌐 [API REQUEST] ${options.method} ${options.uri}');
+          print('🔑 [API TOKEN] ${token ?? 'NO_TOKEN_FOUND'}');
           return handler.next(options);
         },
         onError: (error, handler) async {
@@ -43,6 +50,9 @@ class ApiService extends getx.GetxService {
               // Retry the request
               return handler.resolve(await _retry(error.requestOptions));
             }
+            // Refresh failed - clear stale tokens
+            await _storageService.clearAccessToken();
+            await _storageService.clearRefreshToken();
           }
           return handler.next(error);
         },
@@ -72,6 +82,17 @@ class ApiService extends getx.GetxService {
   }
 
   Future<Response<dynamic>> _retry(RequestOptions requestOptions) async {
+    // Ensure the latest token is attached on retry
+    final freshToken = _storageService.getAccessToken();
+    if (freshToken != null && freshToken.isNotEmpty) {
+      requestOptions.headers['Authorization'] = 'Bearer $freshToken';
+    } else {
+      requestOptions.headers.remove('Authorization');
+    }
+
+    print('🔄 [API RETRY] ${requestOptions.method} ${requestOptions.uri}');
+    print('🔑 [API RETRY TOKEN] ${freshToken ?? 'NO_TOKEN_FOUND'}');
+
     final options = Options(
       method: requestOptions.method,
       headers: requestOptions.headers,

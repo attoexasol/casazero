@@ -73,11 +73,13 @@ class AuthRepository {
       print('  Status: ${response.data['status']}');
       print('  Message: ${response.data['message']}');
       print('  Is Trusted: ${response.data['is_trusted']}');
+      print('  Access Token (response.token): ${response.data['token']}');
 
       if (response.statusCode == 200 && response.data['status'] == true) {
         // Save the new token from response for next login
         if (response.data['token'] != null) {
           await _storageService.saveDeviceToken(response.data['token']);
+          print('💾 Device Token Saved (for trusted login): ${response.data['token']}');
         }
 
         return {

@@ -199,6 +199,12 @@ class ApiConstants {
   /// }
   static const String GET_DOCUMENTS = '/documents/';
 
+  /// Get Unit Wise Documents
+  /// POST /get_unit_wise_documents
+  /// Request: { "token": "user token" }
+  /// Response: Unit-wise document list with nested category/type/unit info
+  static const String GET_UNIT_WISE_DOCUMENTS = '/get_unit_wise_documents';
+
   /// Get Residence Documents
   /// POST /get_residence_wise_documents
   /// Request: { "residence_id": 23 }
