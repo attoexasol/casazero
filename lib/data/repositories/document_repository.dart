@@ -213,4 +213,78 @@ class DocumentRepository {
       };
     }
   }
+
+  /// Get Documents by Unit
+  /// POST /documents/by_unit
+  /// Request: { "token": "user_access_token" }
+  /// Response: {
+  ///   "status": true,
+  ///   "message": "Documents retrieved successfully",
+  ///   "data": [
+  ///     {
+  ///       "id": 27,
+  ///       "document_name": "logu.png",
+  ///       "document_description": "hugkfk",
+  ///       "file_url": "https://...",
+  ///       "file_type": "png",
+  ///       "file_size": "0.06 MB",
+  ///       "uploaded_date": "12-10-2025",
+  ///       "category_id": 4,
+  ///       "type_id": 2,
+  ///       "user_id": 2,
+  ///       "unit_id": 5,
+  ///       "created_at": "2025-12-10T17:26:53.000000Z",
+  ///       "updated_at": "2025-12-10T17:26:53.000000Z"
+  ///     }
+  ///   ]
+  /// }
+  Future<Map<String, dynamic>> getDocumentsByUnit() async {
+    try {
+      final storageService = Get.find<StorageService>();
+      final token = storageService.getAccessToken();
+
+      if (token == null || token.isEmpty) {
+        return {
+          'success': false,
+          'error': 'User token is missing. Please login again.',
+        };
+      }
+
+      print('📄 Fetching documents by unit with token: ${token.substring(0, 10)}...');
+
+      final response = await _apiService.post(
+        ApiConstants.GET_DOCUMENTS_BY_UNIT,
+        data: {'token': token},
+      );
+
+      if (response.statusCode == 200 && response.data['status'] == true) {
+        final List<dynamic> documentsData = response.data['data'] ?? [];
+
+        final documents = documentsData
+            .map(
+              (item) => DocumentModel.fromJson(item as Map<String, dynamic>),
+            )
+            .toList();
+
+        print('✅ Successfully fetched ${documents.length} documents by unit');
+
+        return {
+          'success': true,
+          'data': documents,
+        };
+      } else {
+        print('⚠️ API Error: ${response.data['message']}');
+        return {
+          'success': false,
+          'error': response.data['message'] ?? 'Failed to fetch documents',
+        };
+      }
+    } catch (e) {
+      print('❌ Error fetching documents by unit: $e');
+      return {
+        'success': false,
+        'error': 'Failed to fetch documents. Please try again.',
+      };
+    }
+  }
 }

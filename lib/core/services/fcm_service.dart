@@ -2,21 +2,45 @@
 
 import 'package:get/get.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io' show Platform;
 
 class FcmService extends GetxService {
-  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+  FirebaseMessaging? _messaging;
+  
+  FirebaseMessaging? get messaging {
+    try {
+      if (_messaging == null && Firebase.apps.isNotEmpty) {
+        _messaging = FirebaseMessaging.instance;
+      }
+      return _messaging;
+    } catch (e) {
+      print('❌ Error accessing FirebaseMessaging: $e');
+      return null;
+    }
+  }
 
   String? _currentToken;
   String? get currentToken => _currentToken;
 
   /// Initialize FCM and request permissions
   Future<FcmService> init() async {
-    await _requestPermission();
-    await _getToken();
-    _setupTokenRefreshListener();
+    try {
+      // Check if Firebase is initialized
+      if (Firebase.apps.isEmpty) {
+        print('⚠️  Firebase not initialized, skipping FCM initialization');
+        return this;
+      }
+      
+      await _requestPermission();
+      await _getToken();
+      _setupTokenRefreshListener();
+    } catch (e) {
+      print('❌ FCM Service init error: $e');
+      // Return service instance even if initialization fails
+    }
     return this;
   }
 
@@ -27,9 +51,18 @@ class FcmService extends GetxService {
         print('📱 FCM: Web platform detected, skipping native permissions');
         return;
       }
+      
+      if (Firebase.apps.isEmpty) {
+        print('⚠️  Firebase not initialized, skipping permission request');
+        return;
+      }
 
       // Request FCM permission
-      NotificationSettings settings = await _messaging.requestPermission(
+      if (messaging == null) {
+        print('⚠️  FirebaseMessaging not available');
+        return;
+      }
+      NotificationSettings settings = await messaging!.requestPermission(
         alert: true,
         badge: true,
         sound: true,
@@ -55,8 +88,17 @@ class FcmService extends GetxService {
         print('📱 FCM: Web platform - skipping token retrieval');
         return null;
       }
+      
+      if (Firebase.apps.isEmpty) {
+        print('⚠️  Firebase not initialized, skipping token retrieval');
+        return null;
+      }
 
-      _currentToken = await _messaging.getToken();
+      if (messaging == null) {
+        print('⚠️  FirebaseMessaging not available');
+        return null;
+      }
+      _currentToken = await messaging!.getToken();
       print('🔑 FCM Token: $_currentToken');
       return _currentToken;
     } catch (e) {
@@ -67,7 +109,16 @@ class FcmService extends GetxService {
 
   /// Setup token refresh listener
   void _setupTokenRefreshListener() {
-    _messaging.onTokenRefresh
+    if (Firebase.apps.isEmpty) {
+      print('⚠️  Firebase not initialized, skipping token refresh listener');
+      return;
+    }
+    
+    if (messaging == null) {
+      print('⚠️  FirebaseMessaging not available');
+      return;
+    }
+    messaging!.onTokenRefresh
         .listen((newToken) {
           print('🔄 FCM Token Refreshed: $newToken');
           _currentToken = newToken;
@@ -101,7 +152,15 @@ class FcmService extends GetxService {
   /// Delete token (for logout)
   Future<void> deleteToken() async {
     try {
-      await _messaging.deleteToken();
+      if (Firebase.apps.isEmpty) {
+        print('⚠️  Firebase not initialized, skipping token deletion');
+        return;
+      }
+      if (messaging == null) {
+        print('⚠️  FirebaseMessaging not available');
+        return;
+      }
+      await messaging!.deleteToken();
       _currentToken = null;
       print('🗑️ FCM Token deleted');
     } catch (e) {

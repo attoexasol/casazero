@@ -219,6 +219,16 @@ class ApiConstants {
   /// }
   static const String GET_RESIDENCE_DOCUMENTS = '/get_residence_wise_documents';
 
+  /// Get Documents by Unit
+  /// POST /documents/by_unit
+  /// Request: { "token": "user_access_token" }
+  /// Response: {
+  ///   "status": true,
+  ///   "message": "Documents retrieved successfully",
+  ///   "data": [ ... ]
+  /// }
+  static const String GET_DOCUMENTS_BY_UNIT = '/documents/by_unit';
+
   // ============================================================================
   // ENDPOINT HELPER METHODS
   // ============================================================================

@@ -32,8 +32,16 @@ class InitialBinding extends Bindings {
     // DownloadService for document downloads
     Get.put<DownloadService>(DownloadService(), permanent: true);
 
-    // FCM Service for push notifications
-    Get.putAsync(() => FcmService().init(), permanent: true);
+    // FCM Service for push notifications (with error handling)
+    Get.putAsync(() async {
+      try {
+        return await FcmService().init();
+      } catch (e) {
+        print("❌ FCM Service initialization failed in InitialBinding: $e");
+        // Return a service instance even if init fails
+        return FcmService();
+      }
+    }, permanent: true);
 
     // -----------------------------
     // REPOSITORIES

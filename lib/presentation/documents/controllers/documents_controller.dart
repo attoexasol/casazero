@@ -63,16 +63,16 @@ class DocumentsController extends GetxController {
   }
 
   /// Fetch documents from API
-  /// Uses the unit-wise documents endpoint to get all documents
+  /// Uses the documents/by_unit endpoint to get all documents
   Future<void> fetchDocuments() async {
     try {
       isLoadingDocuments.value = true;
       errorMessage.value = '';
       hasError.value = false;
 
-      print('📄 Fetching unit-wise documents from API');
+      print('📄 Fetching documents by unit from API');
 
-      final result = await _repository.getUnitWiseDocuments();
+      final result = await _repository.getDocumentsByUnit();
 
       if (result['success'] == true) {
         final dynamic data = result['data'];
@@ -95,13 +95,13 @@ class DocumentsController extends GetxController {
         print('⚠️ API Error: ${result['error']}');
         errorMessage.value = result['error'] ?? 'Failed to fetch documents';
         hasError.value = true;
-        documents.value = DocumentModel.mockDocuments;
+        documents.clear();
       }
     } catch (e) {
       print('❌ Error in fetchDocuments: $e');
       errorMessage.value = 'An error occurred while fetching documents';
       hasError.value = true;
-      documents.value = DocumentModel.mockDocuments;
+      documents.clear();
     } finally {
       isLoadingDocuments.value = false;
     }
