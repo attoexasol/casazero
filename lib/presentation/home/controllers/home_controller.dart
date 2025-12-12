@@ -2,11 +2,14 @@ import 'package:casazero/presentation/documents/controllers/documents_controller
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/repositories/home_repository.dart';
+import '../../../data/repositories/document_repository.dart';
+import '../../../data/repositories/auth_repository.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/models/feed_item_model.dart';
 import '../../../data/models/construction_phase_model.dart';
 import '../../../data/models/residence_model.dart';
+import '../../../data/models/document_model.dart';
 import '../../../core/utils/permissions.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../main/main_scaffold.dart'; // Import for AppScreen enum
@@ -91,6 +94,43 @@ class HomeController extends GetxController {
   void onReady() {
     super.onReady();
     fetchHomeData();
+    // Pre-load documents in background after login
+    _preloadDocuments();
+  }
+
+  /// Pre-load documents in background after login
+  /// This ensures documents are ready when user navigates to documents screen
+  void _preloadDocuments() {
+    // Call in background - don't await
+    Future.microtask(() async {
+      try {
+        print('📄 Pre-loading documents in HomeController...');
+        final documentRepository = DocumentRepository();
+        final result = await documentRepository.getDocumentsByUnit();
+        
+        if (result['success'] == true) {
+          // Initialize DocumentsController with pre-loaded data
+          if (!Get.isRegistered<DocumentsController>()) {
+            final documentsController = Get.put(DocumentsController());
+            // Update documents list with pre-loaded data
+            final documentsData = result['data'] as List<dynamic>;
+            documentsController.documents.value = documentsData
+                .map((item) => DocumentModel.fromJson(item as Map<String, dynamic>))
+                .toList();
+            print('✅ Documents pre-loaded in HomeController: ${documentsData.length} documents');
+          } else {
+            // If controller exists, just refresh
+            final documentsController = Get.find<DocumentsController>();
+            await documentsController.fetchDocuments();
+          }
+        } else {
+          print('⚠️  Failed to pre-load documents: ${result['error']}');
+        }
+      } catch (e) {
+        print('⚠️  Error pre-loading documents: $e');
+        // Don't block - just log the error
+      }
+    });
   }
 
   Future<void> _loadUserData() async {
@@ -335,14 +375,42 @@ class HomeController extends GetxController {
   // LOGOUT
   Future<void> logout() async {
     try {
+      print('🚪 Starting logout process from HomeController...');
+
+      // Import AuthRepository
+      final authRepository = AuthRepository();
+
+      // Call logout API first
+      final result = await authRepository.logout();
+
+      if (result['success'] == true) {
+        print('✅ Logout API successful: ${result['message']}');
+      } else {
+        print('⚠️  Logout API failed: ${result['error']}');
+        // Still proceed with clearing storage even if API fails
+      }
+
+      // Clear all storage regardless of API result
       await _storageService.clearAll();
+      print('✅ All storage cleared');
+
+      // Navigate to auth screen
       Get.offAllNamed(AppRoutes.AUTH);
+      print('✅ Navigated to auth screen');
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to logout: $e',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      print('❌ Error during logout: $e');
+      // Even if there's an error, try to clear storage and navigate
+      try {
+        await _storageService.clearAll();
+        Get.offAllNamed(AppRoutes.AUTH);
+      } catch (clearError) {
+        print('❌ Error clearing storage: $clearError');
+        Get.snackbar(
+          'Error',
+          'Failed to logout: $e',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      }
     }
   }
 }

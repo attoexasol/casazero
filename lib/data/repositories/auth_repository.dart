@@ -102,26 +102,67 @@ class AuthRepository {
   }
 
   // Logout
-  Future<bool> logout() async {
+  /// POST /user/logout
+  /// Request: { "token": "user_access_token" }
+  /// Response: { "status": true, "message": "Logout successful" }
+  Future<Map<String, dynamic>> logout() async {
     try {
-      await _apiService.post(ApiConstants.LOGOUT);
+      // Get access token before clearing storage
+      final token = _storageService.getAccessToken();
 
-      // Clear device token on logout
-      await _storageService.clearDeviceToken();
-
-      // Delete FCM token
-      try {
-        final fcmService = Get.find<FcmService>();
-        if (fcmService.toString().contains('FcmService')) {
-          await fcmService.deleteToken();
-        }
-      } catch (e) {
-        print('⚠️ FCM Service not available during logout: $e');
+      if (token == null || token.isEmpty) {
+        print('⚠️  No access token found for logout API call');
+        // Still proceed with clearing storage
+        return {
+          'success': true,
+          'message': 'Logout completed (no token to send)',
+        };
       }
 
-      return true;
+      print('🚪 Calling logout API with token: ${token.substring(0, 10)}...');
+
+      // Call logout API with token in request body
+      final response = await _apiService.post(
+        ApiConstants.LOGOUT,
+        data: {'token': token},
+      );
+
+      print('✅ Logout API Response:');
+      print('  Status Code: ${response.statusCode}');
+      print('  Status: ${response.data['status']}');
+      print('  Message: ${response.data['message']}');
+
+      if (response.statusCode == 200 && response.data['status'] == true) {
+        // Clear device token on logout
+        await _storageService.clearDeviceToken();
+
+        // Delete FCM token
+        try {
+          final fcmService = Get.find<FcmService>();
+          if (fcmService.toString().contains('FcmService')) {
+            await fcmService.deleteToken();
+          }
+        } catch (e) {
+          print('⚠️ FCM Service not available during logout: $e');
+        }
+
+        return {
+          'success': true,
+          'message': response.data['message'] ?? 'Logout successful',
+        };
+      } else {
+        return {
+          'success': false,
+          'error': response.data['message'] ?? 'Logout failed',
+        };
+      }
     } catch (e) {
-      return false;
+      print('❌ Error during logout API call: $e');
+      // Even if API fails, we should still clear local storage
+      return {
+        'success': false,
+        'error': 'Failed to logout. Please try again.',
+      };
     }
   }
 

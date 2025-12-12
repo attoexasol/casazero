@@ -4,6 +4,9 @@ import 'package:get/get.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../app/routes/app_routes.dart';
+import '../../documents/controllers/documents_controller.dart';
+import '../../../data/repositories/document_repository.dart';
+import '../../../data/models/document_model.dart';
 
 class OtpVerificationController extends GetxController {
   final AuthRepository _authRepository = Get.find();
@@ -203,7 +206,8 @@ class OtpVerificationController extends GetxController {
     isLoading.value = false;
     print(result.toString());
     if (result['success']) {
-
+      // Pre-load documents in background while navigating
+      _preloadDocuments();
 
       // Navigate to home
       await Future.delayed(const Duration(milliseconds: 500));
@@ -256,6 +260,41 @@ class OtpVerificationController extends GetxController {
         ],
       ),
     );
+  }
+
+  /// Pre-load documents in background after OTP verification
+  /// This ensures documents are ready when user navigates to documents screen
+  void _preloadDocuments() {
+    // Call in background - don't await, don't block navigation
+    Future.microtask(() async {
+      try {
+        print('📄 Pre-loading documents after OTP verification...');
+        final documentRepository = DocumentRepository();
+        final result = await documentRepository.getDocumentsByUnit();
+        
+        if (result['success'] == true) {
+          // Initialize DocumentsController with pre-loaded data
+          if (!Get.isRegistered<DocumentsController>()) {
+            final documentsController = Get.put(DocumentsController());
+            // Update documents list with pre-loaded data
+            final documentsData = result['data'] as List<dynamic>;
+            documentsController.documents.value = documentsData
+                .map((item) => DocumentModel.fromJson(item as Map<String, dynamic>))
+                .toList();
+            print('✅ Documents pre-loaded: ${documentsData.length} documents');
+          } else {
+            // If controller exists, just refresh
+            final documentsController = Get.find<DocumentsController>();
+            await documentsController.fetchDocuments();
+          }
+        } else {
+          print('⚠️  Failed to pre-load documents: ${result['error']}');
+        }
+      } catch (e) {
+        print('⚠️  Error pre-loading documents: $e');
+        // Don't block - just log the error
+      }
+    });
   }
 
   Future<void> _logout() async {

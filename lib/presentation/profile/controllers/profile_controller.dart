@@ -4,12 +4,15 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/repositories/profile_repository.dart';
+import '../../../data/repositories/auth_repository.dart';
 import '../../../app/theme/app_colors.dart';
+import '../../../app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 
 class ProfileController extends GetxController {
   final StorageService _storage = Get.find<StorageService>();
   final ProfileRepository _profileRepository = ProfileRepository();
+  final AuthRepository _authRepository = AuthRepository();
   final ImagePicker _imagePicker = ImagePicker();
 
   Rx<UserModel?> user = Rx<UserModel?>(null);
@@ -206,9 +209,39 @@ class ProfileController extends GetxController {
   }
 
   /// Logout action
-  void logout() {
-    _storage.clearAll();
-    Get.offAllNamed('/auth');
+  /// Calls logout API, then clears all storage and navigates to auth screen
+  Future<void> logout() async {
+    try {
+      print('🚪 Starting logout process...');
+
+      // Call logout API first
+      final result = await _authRepository.logout();
+
+      if (result['success'] == true) {
+        print('✅ Logout API successful: ${result['message']}');
+      } else {
+        print('⚠️  Logout API failed: ${result['error']}');
+        // Still proceed with clearing storage even if API fails
+      }
+
+      // Clear all storage regardless of API result
+      await _storage.clearAll();
+      print('✅ All storage cleared');
+
+      // Navigate to auth screen
+      Get.offAllNamed(AppRoutes.AUTH);
+      print('✅ Navigated to auth screen');
+    } catch (e) {
+      print('❌ Error during logout: $e');
+      // Even if there's an error, try to clear storage and navigate
+      try {
+        await _storage.clearAll();
+        Get.offAllNamed(AppRoutes.AUTH);
+      } catch (clearError) {
+        print('❌ Error clearing storage: $clearError');
+        _showError('Failed to logout. Please try again.');
+      }
+    }
   }
 
   void _saveUserToStorage() {

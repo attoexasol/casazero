@@ -220,21 +220,18 @@ class DocumentRepository {
   /// Response: {
   ///   "status": true,
   ///   "message": "Documents retrieved successfully",
-  ///   "data": [
+  ///   "unit_id": 12,
+  ///   "documents": [
   ///     {
-  ///       "id": 27,
-  ///       "document_name": "logu.png",
-  ///       "document_description": "hugkfk",
+  ///       "id": 10,
+  ///       "document_name": "January Invoice",
+  ///       "document_description": "Monthly invoice for January",
   ///       "file_url": "https://...",
-  ///       "file_type": "png",
-  ///       "file_size": "0.06 MB",
-  ///       "uploaded_date": "12-10-2025",
-  ///       "category_id": 4,
-  ///       "type_id": 2,
-  ///       "user_id": 2,
-  ///       "unit_id": 5,
-  ///       "created_at": "2025-12-10T17:26:53.000000Z",
-  ///       "updated_at": "2025-12-10T17:26:53.000000Z"
+  ///       "file_type": "pdf",
+  ///       "file_size": "1.20 MB",
+  ///       "uploaded_date": "01-10-2025",
+  ///       "category": { "id": 1, "category_name": "Invoice" },
+  ///       "type": { "id": 2, "type_name": "PDF" }
   ///     }
   ///   ]
   /// }
@@ -258,7 +255,9 @@ class DocumentRepository {
       );
 
       if (response.statusCode == 200 && response.data['status'] == true) {
-        final List<dynamic> documentsData = response.data['data'] ?? [];
+        // Handle new response format with 'documents' array and 'unit_id'
+        final List<dynamic> documentsData = response.data['documents'] ?? response.data['data'] ?? [];
+        final int? unitId = response.data['unit_id'];
 
         final documents = documentsData
             .map(
@@ -266,11 +265,12 @@ class DocumentRepository {
             )
             .toList();
 
-        print('✅ Successfully fetched ${documents.length} documents by unit');
+        print('✅ Successfully fetched ${documents.length} documents by unit (unit_id: $unitId)');
 
         return {
           'success': true,
           'data': documents,
+          'unit_id': unitId,
         };
       } else {
         print('⚠️ API Error: ${response.data['message']}');

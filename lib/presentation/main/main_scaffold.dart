@@ -15,6 +15,7 @@ import '../smart_home/views/smart_home_screen.dart';
 import '../auth/views/change_password_screen.dart';
 
 import '../home/controllers/home_controller.dart';
+import '../profile/controllers/profile_controller.dart';
 import '../../data/models/user_model.dart';
 import '../../core/utils/permissions.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -257,7 +258,11 @@ class MainScaffold extends GetView<HomeController> {
       case AppScreen.profile:
         return ProfileScreen(
           user: controller.currentUser.value!,
-          onLogout: controller.logout,
+          onLogout: () {
+            // Use ProfileController's logout method which calls the API
+            final profileController = Get.find<ProfileController>();
+            profileController.logout();
+          },
           onNavigate: (destination) =>
               controller.navigateToScreenByString(destination),
         );

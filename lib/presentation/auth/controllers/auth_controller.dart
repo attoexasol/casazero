@@ -8,6 +8,9 @@ import '../../../core/services/storage_service.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../data/models/user_model.dart';
+import '../../documents/controllers/documents_controller.dart';
+import '../../../data/repositories/document_repository.dart';
+import '../../../data/models/document_model.dart';
 
 class AuthController extends GetxController {
   final AuthRepository _authRepository = Get.find();
@@ -90,6 +93,9 @@ class AuthController extends GetxController {
       // Set user's preferred language from API
       await _localeController.changeLocale(user.language);
 
+      // Pre-load documents in background while navigating
+      _preloadDocuments();
+
       // Navigation logic based on user status and device trust
       _navigateBasedOnUserStatus(user, isTrusted);
     } else {
@@ -145,6 +151,41 @@ class AuthController extends GetxController {
     // This is less secure but follows the requested logic
     print('  → Going to HOME (untrusted device without 2FA)');
     Get.offAllNamed(AppRoutes.HOME);
+  }
+
+  /// Pre-load documents in background after login
+  /// This ensures documents are ready when user navigates to documents screen
+  void _preloadDocuments() {
+    // Call in background - don't await, don't block navigation
+    Future.microtask(() async {
+      try {
+        print('📄 Pre-loading documents after login...');
+        final documentRepository = DocumentRepository();
+        final result = await documentRepository.getDocumentsByUnit();
+        
+        if (result['success'] == true) {
+          // Initialize DocumentsController with pre-loaded data
+          if (!Get.isRegistered<DocumentsController>()) {
+            final documentsController = Get.put(DocumentsController());
+            // Update documents list with pre-loaded data
+            final documentsData = result['data'] as List<dynamic>;
+            documentsController.documents.value = documentsData
+                .map((item) => DocumentModel.fromJson(item as Map<String, dynamic>))
+                .toList();
+            print('✅ Documents pre-loaded: ${documentsData.length} documents');
+          } else {
+            // If controller exists, just refresh
+            final documentsController = Get.find<DocumentsController>();
+            await documentsController.fetchDocuments();
+          }
+        } else {
+          print('⚠️  Failed to pre-load documents: ${result['error']}');
+        }
+      } catch (e) {
+        print('⚠️  Error pre-loading documents: $e');
+        // Don't block - just log the error
+      }
+    });
   }
 
   Future<void> forgotPassword() async {
