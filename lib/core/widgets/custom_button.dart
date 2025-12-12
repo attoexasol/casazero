@@ -36,9 +36,9 @@ class CustomButton extends StatelessWidget {
       height: height,
       decoration: showShadow
           ? BoxDecoration(
-        borderRadius: BorderRadius.circular(borderRadius),
-        boxShadow: AppShadows.shadowMd,
-      )
+              borderRadius: BorderRadius.circular(borderRadius),
+              boxShadow: AppShadows.shadowMd,
+            )
           : null,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
@@ -57,36 +57,36 @@ class CustomButton extends StatelessWidget {
         ),
         child: isLoading
             ? SizedBox(
-          width: 20,
-          height: 20,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(
-              textColor ?? AppColors.surfaceWhite,
-            ),
-          ),
-        )
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    textColor ?? AppColors.surfaceWhite,
+                  ),
+                ),
+              )
             : icon != null
             ? Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 18),
-            const SizedBox(width: 8),
-            Text(
-              text,
-              style: AppTextStyles.button.copyWith(
-                color: textColor ?? AppColors.surfaceWhite,
-              ),
-            ),
-          ],
-        )
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    text,
+                    style: AppTextStyles.button.copyWith(
+                      color: textColor ?? AppColors.surfaceWhite,
+                    ),
+                  ),
+                ],
+              )
             : Text(
-          text,
-          style: AppTextStyles.button.copyWith(
-            color: textColor ?? AppColors.surfaceWhite,
-          ),
-        ),
+                text,
+                style: AppTextStyles.button.copyWith(
+                  color: textColor ?? AppColors.surfaceWhite,
+                ),
+              ),
       ),
     );
   }

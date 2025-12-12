@@ -94,7 +94,10 @@ class _BuildingSelectorState extends State<BuildingSelector> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(b.name, style: const TextStyle(color: Colors.white)),
+                        Text(
+                          b.name,
+                          style: const TextStyle(color: Colors.white),
+                        ),
                         Text(
                           b.address,
                           style: TextStyle(
@@ -194,14 +197,15 @@ class _BuildingSelectorState extends State<BuildingSelector> {
       color: AppColors.surfaceWarm50,
       child: Row(
         children: [
-          Icon(LucideIcons.building, size: 16.sp, color: AppColors.neutralInk500),
+          Icon(
+            LucideIcons.building,
+            size: 16.sp,
+            color: AppColors.neutralInk500,
+          ),
           SizedBox(width: 6.w),
           Text(
             widget.currentBuilding.name,
-            style: TextStyle(
-              fontSize: 14.sp,
-              color: AppColors.neutralInk700,
-            ),
+            style: TextStyle(fontSize: 14.sp, color: AppColors.neutralInk700),
           ),
         ],
       ),

@@ -65,7 +65,10 @@ class AppShadows {
     ),
   ];
 
-  static List<BoxShadow> customColoredShadow(Color color, {double opacity = 0.08}) {
+  static List<BoxShadow> customColoredShadow(
+    Color color, {
+    double opacity = 0.08,
+  }) {
     return [
       BoxShadow(
         color: color.withOpacity(opacity),

@@ -28,8 +28,8 @@ class AppRoutes {
   static const String CHANGE_PASSWORD = '/change-password';
   static const String TWO_FA_MANAGEMENT = '/two-fa-management';
   static const String TWO_FA_ACTIVATION = '/two-fa-activation';
-  static const String TWO_FA_DEACTIVATION_VERIFICATION = '/two-fa-deactivation-verification';
-
+  static const String TWO_FA_DEACTIVATION_VERIFICATION =
+      '/two-fa-deactivation-verification';
 
   static final routes = [
     GetPage(
@@ -72,7 +72,8 @@ class AppRoutes {
       page: () => const TwoFAManagementScreen(),
       binding: BindingsBuilder(() {
         Get.lazyPut(() => TwoFAManagementController());
-      }),),
+      }),
+    ),
     GetPage(
       name: TWO_FA_ACTIVATION,
       page: () => const TwoFAActivationScreen(),

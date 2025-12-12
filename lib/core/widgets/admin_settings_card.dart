@@ -12,14 +12,9 @@ class AdminSettingsCard extends StatelessWidget {
   final UserModel user;
   final Function(String screen)? onNavigate;
 
-  const AdminSettingsCard({
-    super.key,
-    required this.user,
-    this.onNavigate,
-  });
+  const AdminSettingsCard({super.key, required this.user, this.onNavigate});
 
-  bool get isAdmin =>
-      user.role == Role.admin || user.role == Role.manager;
+  bool get isAdmin => user.role == Role.admin || user.role == Role.manager;
 
   @override
   Widget build(BuildContext context) {
@@ -37,10 +32,7 @@ class AdminSettingsCard extends StatelessWidget {
         children: [
           Text("admin_settings".tr, style: AppTextStyles.h4),
           const SizedBox(height: 6),
-          Text(
-            "admin_settings_desc".tr,
-            style: AppTextStyles.bodySmall,
-          ),
+          Text("admin_settings_desc".tr, style: AppTextStyles.bodySmall),
           const SizedBox(height: 16),
 
           // Building Management

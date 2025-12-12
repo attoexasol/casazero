@@ -47,22 +47,18 @@ class CZAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     return Container(
       height: 70.h + topPadding,
-      padding: EdgeInsets.only(
-        left: 14.w,
-        right: 14.w,
-        top: topPadding,
-      ),
+      padding: EdgeInsets.only(left: 14.w, right: 14.w, top: topPadding),
       decoration: BoxDecoration(
         color: transparent ? Colors.transparent : AppColors.surfaceWhite,
         boxShadow: transparent
             ? []
             : [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 8.r,
-            offset: Offset(0, 3.h),
-          ),
-        ],
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 8.r,
+                  offset: Offset(0, 3.h),
+                ),
+              ],
       ),
       child: Row(
         children: centerLogo
@@ -91,10 +87,10 @@ class CZAppBar extends StatelessWidget implements PreferredSizeWidget {
       if (showBackButton) SizedBox(width: 8.w),
 
       /// CASA ZERO LOGO
-      Image.asset(
-        "assets/images/logo_green.png",
-        height: 25.h,
-      ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.1, duration: 400.ms),
+      Image.asset("assets/images/logo_green.png", height: 25.h)
+          .animate()
+          .fadeIn(duration: 400.ms)
+          .slideY(begin: -0.1, duration: 400.ms),
 
       SizedBox(width: 10.w),
 
@@ -104,21 +100,21 @@ class CZAppBar extends StatelessWidget implements PreferredSizeWidget {
           duration: 250.ms,
           child: showBuildingSelector
               ? BuildingSelectorCapsule(
-            key: const ValueKey("selector"),
-            label: title ?? "",
-            onTap: onBuildingTap,
-          )
+                  key: const ValueKey("selector"),
+                  label: title ?? "",
+                  onTap: onBuildingTap,
+                )
               : Text(
-            title ?? "",
-            key: const ValueKey("title"),
-            textAlign: TextAlign.left,
-            style: TextStyle(
-              fontSize: 15.sp,
-              fontWeight: FontWeight.w600,
-              color: AppColors.neutralInk900,
-              letterSpacing: -0.3,
-            ),
-          ),
+                  title ?? "",
+                  key: const ValueKey("title"),
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.neutralInk900,
+                    letterSpacing: -0.3,
+                  ),
+                ),
         ),
       ),
 
@@ -157,10 +153,10 @@ class CZAppBar extends StatelessWidget implements PreferredSizeWidget {
       /// CENTER LOGO
       Expanded(
         child: Center(
-          child: Image.asset(
-            "assets/images/logo_green.png",
-            height: 28.h,
-          ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.1, duration: 400.ms),
+          child: Image.asset("assets/images/logo_green.png", height: 28.h)
+              .animate()
+              .fadeIn(duration: 400.ms)
+              .slideY(begin: -0.1, duration: 400.ms),
         ),
       ),
 

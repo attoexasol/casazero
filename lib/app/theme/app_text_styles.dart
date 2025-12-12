@@ -65,7 +65,6 @@ class AppTextStyles {
     color: AppColors.grayTextColor,
     fontFamily: fontFamily,
     letterSpacing: 0,
-
   );
 
   static const TextStyle cardText = TextStyle(
@@ -92,7 +91,7 @@ class AppTextStyles {
     //height: 1.6,
     color: AppColors.regulerTextColor,
     fontFamily: fontFamily,
-    height: 20 / 14,              // Line height = 1.428
+    height: 20 / 14, // Line height = 1.428
     letterSpacing: 0,
   );
 

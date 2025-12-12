@@ -77,7 +77,8 @@ class CustomTextField extends StatelessWidget {
             prefixIcon: prefixIcon,
             counterText: '',
             filled: true,
-            fillColor: backgroundColor ?? AppColors.surfaceWhite.withOpacity(0.9),
+            fillColor:
+                backgroundColor ?? AppColors.surfaceWhite.withOpacity(0.9),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(25),
               borderSide: BorderSide.none,
@@ -98,17 +99,11 @@ class CustomTextField extends StatelessWidget {
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(25),
-              borderSide: const BorderSide(
-                color: AppColors.danger,
-                width: 1,
-              ),
+              borderSide: const BorderSide(color: AppColors.danger, width: 1),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(25),
-              borderSide: const BorderSide(
-                color: AppColors.danger,
-                width: 2,
-              ),
+              borderSide: const BorderSide(color: AppColors.danger, width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,

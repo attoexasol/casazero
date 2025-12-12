@@ -5,28 +5,19 @@ class AppGradients {
   static const LinearGradient premiumGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [
-      AppColors.brandSage500,
-      AppColors.brandSage400,
-    ],
+    colors: [AppColors.brandSage500, AppColors.brandSage400],
   );
 
   static const LinearGradient premiumGradientGold = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [
-      AppColors.accentGold500,
-      AppColors.accentGold300,
-    ],
+    colors: [AppColors.accentGold500, AppColors.accentGold300],
   );
 
   static const LinearGradient aquaGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [
-      AppColors.aquaGreen600,
-      AppColors.aquaGreen400,
-    ],
+    colors: [AppColors.aquaGreen600, AppColors.aquaGreen400],
   );
 
   static const LinearGradient shimmerGradient = LinearGradient(
@@ -42,9 +33,6 @@ class AppGradients {
   static LinearGradient glassOverlay = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [
-      Colors.white.withOpacity(0.8),
-      Colors.white.withOpacity(0.6),
-    ],
+    colors: [Colors.white.withOpacity(0.8), Colors.white.withOpacity(0.6)],
   );
 }

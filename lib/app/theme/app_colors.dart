@@ -48,5 +48,4 @@ class AppColors {
   static const Color info = Color(0xFF3B82F6);
   static const Color regulerTextColor = Color(0xFF1A1A1A);
   static const Color grayTextColor = Color(0xFF6F6F6F);
-
 }
