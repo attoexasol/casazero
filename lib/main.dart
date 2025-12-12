@@ -34,7 +34,7 @@ void main() async {
   // Check if Firebase is already initialized (e.g., by AppDelegate on iOS)
   print("🔍 Checking Firebase initialization status...");
   print("🔍 Firebase.apps.length: ${Firebase.apps.length}");
-  
+
   if (Firebase.apps.isEmpty) {
     try {
       print("🔄 Initializing Firebase from Flutter...");
@@ -42,7 +42,10 @@ void main() async {
         const Duration(seconds: 10), // Increased timeout
         onTimeout: () {
           print("⏱️  Firebase initialization timed out after 10 seconds");
-          throw TimeoutException("Firebase initialization timeout", const Duration(seconds: 10));
+          throw TimeoutException(
+            "Firebase initialization timeout",
+            const Duration(seconds: 10),
+          );
         },
       );
       print("✅ Firebase initialized successfully from Flutter");
@@ -59,11 +62,13 @@ void main() async {
       print("✅ Firebase app name: ${app.name}");
     }
   }
-  
+
   // Set background message handler only if Firebase is initialized
   if (Firebase.apps.isNotEmpty) {
     try {
-      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+      FirebaseMessaging.onBackgroundMessage(
+        _firebaseMessagingBackgroundHandler,
+      );
       print("✅ Background message handler registered");
     } catch (e) {
       print("❌ Failed to register background message handler: $e");
@@ -72,16 +77,14 @@ void main() async {
 
   // 🔥 Initialize Local Notifications
   try {
-  LocalNotificationService.initialize();
+    LocalNotificationService.initialize();
   } catch (e) {
     print("❌ Local notifications initialization failed: $e");
   }
 
   // Initialize GetStorage with timeout
   try {
-    await GetStorage.init().timeout(
-      const Duration(seconds: 3),
-    );
+    await GetStorage.init().timeout(const Duration(seconds: 3));
   } on TimeoutException {
     print("⏱️  GetStorage initialization timed out");
   } catch (e) {
@@ -110,7 +113,7 @@ void main() async {
   } catch (e) {
     print("❌ LocaleController initialization failed: $e");
     // Create a fallback locale controller
-  Get.put(LocaleController());
+    Get.put(LocaleController());
   }
 
   // System UI Styling
@@ -133,7 +136,7 @@ void main() async {
   // Don't await - let it run in background so app can start
   if (Firebase.apps.isNotEmpty) {
     // Fire and forget - errors are handled inside setupFCMListeners
-  setupFCMListeners();
+    setupFCMListeners();
   }
 
   // Start the app immediately - don't wait for FCM
@@ -150,14 +153,14 @@ void setupFCMListeners() async {
     }
 
     print("🔥 Starting FCM setup...");
-  FirebaseMessaging messaging = FirebaseMessaging.instance;
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
 
     // 🔥 Request permissions (iOS specific)
     print("📱 Requesting notification permissions...");
-  NotificationSettings settings = await messaging.requestPermission(
-    alert: true,
-    badge: true,
-    sound: true,
+    NotificationSettings settings = await messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
       provisional: false,
     );
     print("📱 Permission Status: ${settings.authorizationStatus}");
@@ -176,7 +179,7 @@ void setupFCMListeners() async {
     int maxWaitTime = 10; // Maximum 10 seconds
     int waited = 0;
     bool apnsTokenReceived = false;
-    
+
     while (waited < maxWaitTime && !apnsTokenReceived) {
       await Future.delayed(const Duration(seconds: 1));
       waited++;
@@ -211,7 +214,9 @@ void setupFCMListeners() async {
           print("✅ FCM Token retrieved successfully: $token");
           break;
         } else {
-          print("⚠️  FCM Token is null or empty, retrying... (${i + 1}/$retries)");
+          print(
+            "⚠️  FCM Token is null or empty, retrying... (${i + 1}/$retries)",
+          );
           await Future.delayed(const Duration(seconds: 3));
         }
       } catch (e) {
@@ -226,23 +231,27 @@ void setupFCMListeners() async {
       print("❌ Failed to get FCM token after $retries attempts");
       print("");
       print("🔍 Troubleshooting steps:");
-      print("   1. Verify GoogleService-Info.plist has CLIENT_ID and REVERSED_CLIENT_ID");
+      print(
+        "   1. Verify GoogleService-Info.plist has CLIENT_ID and REVERSED_CLIENT_ID",
+      );
       print("   2. Check if APNs is configured in Firebase Console");
       print("   3. Ensure Push Notifications capability is enabled in Xcode");
-      print("   4. Make sure you're testing on a physical device (not simulator)");
+      print(
+        "   4. Make sure you're testing on a physical device (not simulator)",
+      );
       print("   5. Check Xcode console for APNs token registration messages");
     }
 
-  // TODO: Send token to Laravel API
+    // TODO: Send token to Laravel API
 
-  // 🔥 Handle foreground messages
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    // 🔥 Handle foreground messages
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       print("📨 Foreground Message: ${message.notification?.title}");
-    LocalNotificationService.showNotification(message);
-  });
+      LocalNotificationService.showNotification(message);
+    });
 
-  // 🔥 App opened from terminated / background
-  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    // 🔥 App opened from terminated / background
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       print("📬 Notification Opened App: ${message.data}");
     });
 
