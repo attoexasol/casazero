@@ -47,10 +47,7 @@ class AppAnimations {
       builder: (context, value, child) {
         return Opacity(
           opacity: value,
-          child: Transform.scale(
-            scale: value,
-            child: child,
-          ),
+          child: Transform.scale(scale: value, child: child),
         );
       },
       child: child,
@@ -70,10 +67,7 @@ class AppAnimations {
       builder: (context, value, child) {
         return Transform.translate(
           offset: Offset(20 * value, 0),
-          child: Opacity(
-            opacity: 1 - value,
-            child: child,
-          ),
+          child: Opacity(opacity: 1 - value, child: child),
         );
       },
       child: child,
@@ -93,10 +87,7 @@ class AppAnimations {
       builder: (context, value, child) {
         return Transform.translate(
           offset: Offset(-20 * value, 0),
-          child: Opacity(
-            opacity: 1 - value,
-            child: child,
-          ),
+          child: Opacity(opacity: 1 - value, child: child),
         );
       },
       child: child,

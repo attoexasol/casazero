@@ -8,13 +8,10 @@ import '../../../core/localization/app_translations.dart';
 import '../controllers/trusted_devices_controller.dart';
 import '../../../data/models/trusted_device_model.dart';
 
-
 import 'package:flutter_animate/flutter_animate.dart';
 
 class TrustedDevicesScreen extends GetView<TrustedDevicesController> {
   const TrustedDevicesScreen({Key? key}) : super(key: key);
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -26,9 +23,7 @@ class TrustedDevicesScreen extends GetView<TrustedDevicesController> {
           Expanded(
             child: Obx(() {
               if (controller.isLoading.value) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
+                return const Center(child: CircularProgressIndicator());
               }
 
               if (controller.devices.isEmpty) {
@@ -38,7 +33,10 @@ class TrustedDevicesScreen extends GetView<TrustedDevicesController> {
               return RefreshIndicator(
                 onRefresh: controller.refreshDevices,
                 child: ListView(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 24.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 24.h,
+                  ),
                   children: [
                     _buildSecurityNotice(),
                     SizedBox(height: 16.h),
@@ -133,10 +131,7 @@ class TrustedDevicesScreen extends GetView<TrustedDevicesController> {
           ],
         ),
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.2),
-          width: 1,
-        ),
+        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
@@ -187,12 +182,15 @@ class TrustedDevicesScreen extends GetView<TrustedDevicesController> {
       final device = entry.value;
 
       return Padding(
-        padding: EdgeInsets.only(bottom: 16.h),
-        child: _buildDeviceCard(device, index),
-      ).animate().fadeIn(
-        duration: 300.ms,
-        delay: Duration(milliseconds: index * 100),
-      ).slideY(begin: 0.2, end: 0);
+            padding: EdgeInsets.only(bottom: 16.h),
+            child: _buildDeviceCard(device, index),
+          )
+          .animate()
+          .fadeIn(
+            duration: 300.ms,
+            delay: Duration(milliseconds: index * 100),
+          )
+          .slideY(begin: 0.2, end: 0);
     }).toList();
   }
 
@@ -202,16 +200,14 @@ class TrustedDevicesScreen extends GetView<TrustedDevicesController> {
     final isActive = device.isActive && device.isTrustedValid;
 
     return Obx(() {
-      final isExpanded = controller.expandedDeviceId.value == device.id.toString();
+      final isExpanded =
+          controller.expandedDeviceId.value == device.id.toString();
 
       return Container(
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(
-            color: const Color(0xFFE5E7EB),
-            width: 1,
-          ),
+          border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
@@ -225,8 +221,9 @@ class TrustedDevicesScreen extends GetView<TrustedDevicesController> {
             // Device Header - Clickable
             InkWell(
               onTap: () {
-                controller.expandedDeviceId.value =
-                isExpanded ? '' : device.id.toString();
+                controller.expandedDeviceId.value = isExpanded
+                    ? ''
+                    : device.id.toString();
               },
               borderRadius: BorderRadius.vertical(
                 top: Radius.circular(12.r),
@@ -316,7 +313,9 @@ class TrustedDevicesScreen extends GetView<TrustedDevicesController> {
                               SizedBox(width: 6.w),
                               Expanded(
                                 child: Obx(() {
-                                  final location = controller.getDeviceLocation(device);
+                                  final location = controller.getDeviceLocation(
+                                    device,
+                                  );
                                   return Text(
                                     location,
                                     style: TextStyle(
@@ -366,10 +365,7 @@ class TrustedDevicesScreen extends GetView<TrustedDevicesController> {
                   decoration: BoxDecoration(
                     color: const Color(0xFFFAFAF9), // surface-warm-50
                     border: Border(
-                      top: BorderSide(
-                        color: const Color(0xFFE5E7EB),
-                        width: 1,
-                      ),
+                      top: BorderSide(color: const Color(0xFFE5E7EB), width: 1),
                     ),
                     borderRadius: BorderRadius.vertical(
                       bottom: Radius.circular(12.r),
@@ -457,76 +453,77 @@ class TrustedDevicesScreen extends GetView<TrustedDevicesController> {
     required int index,
   }) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Dot indicator
-        Container(
-          width: 8.w,
-          height: 8.w,
-          margin: EdgeInsets.only(top: 6.h),
-          decoration: BoxDecoration(
-            color: const Color(0xFF4ADE80), // brand-sage-400
-            shape: BoxShape.circle,
-          ),
-        ),
-        SizedBox(width: 12.w),
-        // Activity details
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                action,
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  color: const Color(0xFF111827), // neutral-ink-900
-                  fontWeight: FontWeight.w500,
-                ),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Dot indicator
+            Container(
+              width: 8.w,
+              height: 8.w,
+              margin: EdgeInsets.only(top: 6.h),
+              decoration: BoxDecoration(
+                color: const Color(0xFF4ADE80), // brand-sage-400
+                shape: BoxShape.circle,
               ),
-              SizedBox(height: 2.h),
-              Row(
+            ),
+            SizedBox(width: 12.w),
+            // Activity details
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.access_time,
-                    size: 12.sp,
-                    color: const Color(0xFF6B7280),
-                  ),
-                  SizedBox(width: 4.w),
                   Text(
-                    timestamp,
+                    action,
                     style: TextStyle(
-                      fontSize: 12.sp,
-                      color: const Color(0xFF6B7280),
+                      fontSize: 14.sp,
+                      color: const Color(0xFF111827), // neutral-ink-900
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  SizedBox(width: 4.w),
-                  Text(
-                    '•',
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: const Color(0xFF6B7280),
-                    ),
-                  ),
-                  SizedBox(width: 4.w),
-                  Expanded(
-                    child: Text(
-                      location,
-                      style: TextStyle(
-                        fontSize: 12.sp,
+                  SizedBox(height: 2.h),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.access_time,
+                        size: 12.sp,
                         color: const Color(0xFF6B7280),
                       ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                      SizedBox(width: 4.w),
+                      Text(
+                        timestamp,
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: const Color(0xFF6B7280),
+                        ),
+                      ),
+                      SizedBox(width: 4.w),
+                      Text(
+                        '•',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: const Color(0xFF6B7280),
+                        ),
+                      ),
+                      SizedBox(width: 4.w),
+                      Expanded(
+                        child: Text(
+                          location,
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: const Color(0xFF6B7280),
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
-        ),
-      ],
-    ).animate().fadeIn(
-      delay: Duration(milliseconds: index * 100),
-    ).slideX(begin: -0.1, end: 0);
+            ),
+          ],
+        )
+        .animate()
+        .fadeIn(delay: Duration(milliseconds: index * 100))
+        .slideX(begin: -0.1, end: 0);
   }
 
   /// Empty State - Matches React empty state design
@@ -563,16 +560,16 @@ class TrustedDevicesScreen extends GetView<TrustedDevicesController> {
             SizedBox(height: 8.h),
             Text(
               AppTranslations.noTrustedDevicesDesc.tr,
-              style: TextStyle(
-                fontSize: 14.sp,
-                color: const Color(0xFF6B7280),
-              ),
+              style: TextStyle(fontSize: 14.sp, color: const Color(0xFF6B7280)),
               textAlign: TextAlign.center,
             ),
           ],
         ),
       ),
-    ).animate().fadeIn().scale(begin: const Offset(0.95, 0.95), end: const Offset(1, 1));
+    ).animate().fadeIn().scale(
+      begin: const Offset(0.95, 0.95),
+      end: const Offset(1, 1),
+    );
   }
 
   /// Get device icon based on platform

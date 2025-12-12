@@ -45,10 +45,12 @@ class _AnimatedGradientBackground extends StatefulWidget {
   const _AnimatedGradientBackground();
 
   @override
-  State<_AnimatedGradientBackground> createState() => _AnimatedGradientBackgroundState();
+  State<_AnimatedGradientBackground> createState() =>
+      _AnimatedGradientBackgroundState();
 }
 
-class _AnimatedGradientBackgroundState extends State<_AnimatedGradientBackground>
+class _AnimatedGradientBackgroundState
+    extends State<_AnimatedGradientBackground>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
@@ -78,7 +80,9 @@ class _AnimatedGradientBackgroundState extends State<_AnimatedGradientBackground
               center: Alignment.center,
               radius: 1.0,
               colors: [
-                Colors.white.withOpacity(0.15 * (0.5 + _controller.value * 0.5)),
+                Colors.white.withOpacity(
+                  0.15 * (0.5 + _controller.value * 0.5),
+                ),
                 Colors.black,
               ],
               stops: const [0.0, 0.7],
@@ -102,14 +106,14 @@ class _ConstellationParticles extends StatelessWidget {
       return _ConstellationParticle(
         angle: angle,
         radius: radius,
-        delay: Duration(milliseconds: (math.Random(index).nextDouble() * 500).toInt()),
+        delay: Duration(
+          milliseconds: (math.Random(index).nextDouble() * 500).toInt(),
+        ),
         scale: 0.5 + math.Random(index).nextDouble() * 0.5,
       );
     });
 
-    return Stack(
-      children: particles,
-    );
+    return Stack(children: particles);
   }
 }
 
@@ -134,35 +138,36 @@ class _ConstellationParticle extends StatelessWidget {
     return Positioned(
       left: centerX,
       top: centerY,
-      child: Container(
-        width: 4,
-        height: 4,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-        ),
-      )
-          .animate()
-          .custom(
-        duration: 1200.ms,
-        delay: delay,
-        curve: const Cubic(0.34, 1.56, 0.64, 1),
-        builder: (context, value, child) {
-          return Transform.translate(
-            offset: Offset(
-              math.cos(angle) * radius * value,
-              math.sin(angle) * radius * value,
+      child:
+          Container(
+            width: 4,
+            height: 4,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
             ),
-            child: Transform.scale(
-              scale: scale * value,
-              child: Opacity(
-                opacity: value < 0.5 ? value * 2 : 1.0 - (value - 0.5) * 0.8,
-                child: child,
-              ),
-            ),
-          );
-        },
-      ),
+          ).animate().custom(
+            duration: 1200.ms,
+            delay: delay,
+            curve: const Cubic(0.34, 1.56, 0.64, 1),
+            builder: (context, value, child) {
+              return Transform.translate(
+                offset: Offset(
+                  math.cos(angle) * radius * value,
+                  math.sin(angle) * radius * value,
+                ),
+                child: Transform.scale(
+                  scale: scale * value,
+                  child: Opacity(
+                    opacity: value < 0.5
+                        ? value * 2
+                        : 1.0 - (value - 0.5) * 0.8,
+                    child: child,
+                  ),
+                ),
+              );
+            },
+          ),
     );
   }
 }
@@ -266,90 +271,90 @@ class _AnimatedLogoState extends State<_AnimatedLogo>
   @override
   Widget build(BuildContext context) {
     return Stack(
-      alignment: Alignment.center,
-      children: [
-        // Inner glow ring
-        AnimatedBuilder(
-          animation: _glowController,
-          builder: (context, child) {
-            final scaleValue = 1.0 + (_glowController.value * 0.15);
-            final opacityValue = 0.5 + (_glowController.value * 0.3);
+          alignment: Alignment.center,
+          children: [
+            // Inner glow ring
+            AnimatedBuilder(
+              animation: _glowController,
+              builder: (context, child) {
+                final scaleValue = 1.0 + (_glowController.value * 0.15);
+                final opacityValue = 0.5 + (_glowController.value * 0.3);
 
-            return Transform.scale(
-              scale: scaleValue,
-              child: Container(
-                width: 400,
-                height: 400,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      Colors.white.withOpacity(opacityValue),
-                      Colors.transparent,
-                    ],
-                    stops: const [0.0, 0.7],
+                return Transform.scale(
+                  scale: scaleValue,
+                  child: Container(
+                    width: 400,
+                    height: 400,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          Colors.white.withOpacity(opacityValue),
+                          Colors.transparent,
+                        ],
+                        stops: const [0.0, 0.7],
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            );
-          },
-        ),
+                );
+              },
+            ),
 
-        // Logo with breathing animation
-        AnimatedBuilder(
-          animation: _breathingController,
-          builder: (context, child) {
-            final scaleValue = 1.0 + (_breathingController.value * 0.03);
+            // Logo with breathing animation
+            AnimatedBuilder(
+              animation: _breathingController,
+              builder: (context, child) {
+                final scaleValue = 1.0 + (_breathingController.value * 0.03);
 
-            return Transform.scale(
-              scale: scaleValue,
-              child: Container(
-                width: 320,
-                height: 320,
-                decoration: BoxDecoration(
-                  image: const DecorationImage(
-                    image: AssetImage('assets/images/white_logo.png'),
-                    fit: BoxFit.contain,
+                return Transform.scale(
+                  scale: scaleValue,
+                  child: Container(
+                    width: 320,
+                    height: 320,
+                    decoration: BoxDecoration(
+                      image: const DecorationImage(
+                        image: AssetImage('assets/images/white_logo.png'),
+                        fit: BoxFit.contain,
+                      ),
+                      // boxShadow: [
+                      //   BoxShadow(
+                      //     color: Colors.white.withOpacity(0.5),
+                      //     blurRadius: 30,
+                      //     spreadRadius: 0,
+                      //   ),
+                      //],
+                    ),
                   ),
-                  // boxShadow: [
-                  //   BoxShadow(
-                  //     color: Colors.white.withOpacity(0.5),
-                  //     blurRadius: 30,
-                  //     spreadRadius: 0,
-                  //   ),
-                  //],
-                ),
-              ),
-            );
-          },
-        ),
-      ],
-    )
+                );
+              },
+            ),
+          ],
+        )
         .animate()
         .fadeIn(duration: 100.ms, delay: 500.ms)
         .scale(
-      begin: const Offset(0, 0),
-      end: const Offset(1.0, 1.0),
-      duration: 2500.ms,
-      delay: 500.ms,
-      curve: const Cubic(0.16, 1, 0.3, 1),
-    )
+          begin: const Offset(0, 0),
+          end: const Offset(1.0, 1.0),
+          duration: 2500.ms,
+          delay: 500.ms,
+          curve: const Cubic(0.16, 1, 0.3, 1),
+        )
         .custom(
-      duration: 2500.ms,
-      delay: 500.ms,
-      curve: const Cubic(0.16, 1, 0.3, 1),
-      builder: (context, value, child) {
-        // 3D rotation effect (rotateY from -360 to 0)
-        final rotationY = (-360 + (360 * value)) * (math.pi / 180);
-        return Transform(
-          transform: Matrix4.identity()
-            ..setEntry(3, 2, 0.001)
-            ..rotateY(rotationY),
-          alignment: Alignment.center,
-          child: child,
+          duration: 2500.ms,
+          delay: 500.ms,
+          curve: const Cubic(0.16, 1, 0.3, 1),
+          builder: (context, value, child) {
+            // 3D rotation effect (rotateY from -360 to 0)
+            final rotationY = (-360 + (360 * value)) * (math.pi / 180);
+            return Transform(
+              transform: Matrix4.identity()
+                ..setEntry(3, 2, 0.001)
+                ..rotateY(rotationY),
+              alignment: Alignment.center,
+              child: child,
+            );
+          },
         );
-      },
-    );
   }
 }
 
@@ -366,14 +371,14 @@ class _BrandNameText extends StatelessWidget {
       child: Column(
         children: [
           const Text(
-            'CASAZERO',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              letterSpacing: 7.2, // 0.3em
-              fontWeight: FontWeight.w300,
-            ),
-          )
+                'CASAZERO',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  letterSpacing: 7.2, // 0.3em
+                  fontWeight: FontWeight.w300,
+                ),
+              )
               .animate()
               .fadeIn(duration: 800.ms, delay: 1500.ms)
               .slideY(begin: 0.3, end: 0, duration: 800.ms, delay: 1500.ms),
@@ -384,16 +389,10 @@ class _BrandNameText extends StatelessWidget {
             width: 200,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  Colors.transparent,
-                  Colors.white,
-                  Colors.transparent,
-                ],
+                colors: [Colors.transparent, Colors.white, Colors.transparent],
               ),
             ),
-          )
-              .animate()
-              .scaleX(
+          ).animate().scaleX(
             begin: 0,
             end: 1.0,
             duration: 800.ms,
@@ -420,7 +419,7 @@ class _LoadingIndicator extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: List.generate(
           4,
-              (index) => Padding(
+          (index) => Padding(
             padding: const EdgeInsets.symmetric(horizontal: 6),
             child: _LoadingDot(index: index),
           ),
@@ -465,8 +464,12 @@ class _LoadingDotState extends State<_LoadingDot>
       builder: (context, child) {
         // Calculate animation progress with delay for each dot
         final progress = (_controller.value - (widget.index * 0.15)) % 1.0;
-        final opacity = progress < 0.5 ? 0.3 + (progress * 1.4) : 1.0 - ((progress - 0.5) * 1.4);
-        final scale = progress < 0.5 ? 1.0 + (progress * 0.8) : 1.4 - ((progress - 0.5) * 0.8);
+        final opacity = progress < 0.5
+            ? 0.3 + (progress * 1.4)
+            : 1.0 - ((progress - 0.5) * 1.4);
+        final scale = progress < 0.5
+            ? 1.0 + (progress * 0.8)
+            : 1.4 - ((progress - 0.5) * 0.8);
 
         return Stack(
           alignment: Alignment.center,

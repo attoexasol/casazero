@@ -118,7 +118,11 @@ class AuthScreen extends GetView<AuthController> {
     );
   }
 
-  Widget _buildLangButton(String label, String lang, LocaleController localeController) {
+  Widget _buildLangButton(
+    String label,
+    String lang,
+    LocaleController localeController,
+  ) {
     final isActive = localeController.currentLanguageCode == lang;
     return GestureDetector(
       onTap: () => controller.changeLanguage(lang),
@@ -198,11 +202,10 @@ class AuthScreen extends GetView<AuthController> {
                 backgroundColor: Colors.white.withOpacity(0.9),
                 borderColor: Colors.white.withOpacity(0.4),
                 textColor: const Color(0xFF1a1a1a),
-
               ),
               const SizedBox(height: 20),
               Obx(
-                    () => CustomTextField(
+                () => CustomTextField(
                   label: 'password'.tr,
                   hint: '••••••••',
                   controller: controller.passwordController,
@@ -239,7 +242,7 @@ class AuthScreen extends GetView<AuthController> {
               ),
               const SizedBox(height: 24),
               Obx(
-                    () => CustomButton(
+                () => CustomButton(
                   text: 'sign_in'.tr,
                   onPressed: controller.login,
                   isLoading: controller.isLoading.value,
@@ -260,10 +263,7 @@ class AuthScreen extends GetView<AuthController> {
     return Row(
       children: [
         Expanded(
-          child: Container(
-            height: 1,
-            color: Colors.white.withOpacity(0.2),
-          ),
+          child: Container(height: 1, color: Colors.white.withOpacity(0.2)),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -276,10 +276,7 @@ class AuthScreen extends GetView<AuthController> {
           ),
         ),
         Expanded(
-          child: Container(
-            height: 1,
-            color: Colors.white.withOpacity(0.2),
-          ),
+          child: Container(height: 1, color: Colors.white.withOpacity(0.2)),
         ),
       ],
     );
@@ -289,10 +286,7 @@ class AuthScreen extends GetView<AuthController> {
     return Text(
       'copyright'.tr,
       textAlign: TextAlign.center,
-      style: TextStyle(
-        fontSize: 12,
-        color: Colors.white.withOpacity(0.6),
-      ),
+      style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.6)),
     );
   }
 }
