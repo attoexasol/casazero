@@ -1,7 +1,16 @@
+// presentation/maintenance/views/maintenance_screen.dart
+// COMPLETE MAINTENANCE SCREEN - WITH REACT-STYLE DIALOG (100% UI MATCH)
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:get/get.dart';
 import 'dart:io';
+import '../../../app/theme/app_colors.dart';
+import '../../../app/theme/app_text_styles.dart';
+
+// ============================================================================
+// MODELS
+// ============================================================================
 
 enum MaintenancePriority { facoltative, obbligatorie, condominiali, personal }
 
@@ -61,6 +70,10 @@ class TaskContact {
   });
 }
 
+// ============================================================================
+// MAIN SCREEN
+// ============================================================================
+
 class MaintenanceScreen extends StatefulWidget {
   final String role; // 'client', 'admin', 'super-admin'
   final VoidCallback onAskAI;
@@ -79,14 +92,33 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
     with SingleTickerProviderStateMixin {
   String _activeFilter = 'all';
   String? _expandedCard;
-  bool _isCreateDialogOpen = false;
-  File? _selectedFile;
   late AnimationController _fabController;
 
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _notesController = TextEditingController();
+  // Dialog form state
+  String _taskTitle = '';
   String _selectedCategory = '';
   String _selectedFrequency = '';
+  String _taskNotes = '';
+  File? _selectedFile;
+
+  // Categories
+  final List<Map<String, String>> _maintenanceCategories = [
+    {'value': 'hvac', 'label': 'HVAC'},
+    {'value': 'plumbing', 'label': 'Plumbing'},
+    {'value': 'electrical', 'label': 'Electrical'},
+    {'value': 'appliances', 'label': 'Appliances'},
+    {'value': 'exterior', 'label': 'Exterior'},
+    {'value': 'other', 'label': 'Other'},
+  ];
+
+  // Frequency options
+  final List<Map<String, String>> _frequencyOptions = [
+    {'value': 'weekly', 'label': 'Weekly'},
+    {'value': 'monthly', 'label': 'Monthly'},
+    {'value': 'quarterly', 'label': 'Quarterly'},
+    {'value': 'biannual', 'label': 'Bi-annual'},
+    {'value': 'annual', 'label': 'Annual'},
+  ];
 
   @override
   void initState() {
@@ -95,7 +127,6 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    // Animate FAB on init
     Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) _fabController.forward();
     });
@@ -103,34 +134,36 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
 
   @override
   void dispose() {
-    _titleController.dispose();
-    _notesController.dispose();
     _fabController.dispose();
     super.dispose();
   }
 
+  // ============================================================================
+  // PRIORITY & STATUS STYLING
+  // ============================================================================
+
   Map<MaintenancePriority, Map<String, Color>> get _priorityColors => {
-    MaintenancePriority.facoltative: {
-      'bg': const Color(0xFFCFE2D7),
-      'text': const Color(0xFF2D5F3F),
-      'border': const Color(0xFFA8C9B5),
-    },
-    MaintenancePriority.obbligatorie: {
-      'bg': const Color(0xFFFFE6B3),
-      'text': const Color(0xFF8B5E00),
-      'border': const Color(0xFFF4D399),
-    },
-    MaintenancePriority.condominiali: {
-      'bg': const Color(0xFFD7E2EA),
-      'text': const Color(0xFF2C5F7F),
-      'border': const Color(0xFFB5CFE0),
-    },
-    MaintenancePriority.personal: {
-      'bg': const Color(0xFFE8F5E9),
-      'text': const Color(0xFF6A8F7B),
-      'border': const Color(0xFF6A8F7B),
-    },
-  };
+        MaintenancePriority.facoltative: {
+          'bg': const Color(0xFFCFE2D7),
+          'text': const Color(0xFF2D5F3F),
+          'border': const Color(0xFFA8C9B5),
+        },
+        MaintenancePriority.obbligatorie: {
+          'bg': const Color(0xFFFFE6B3),
+          'text': const Color(0xFF8B5E00),
+          'border': const Color(0xFFF4D399),
+        },
+        MaintenancePriority.condominiali: {
+          'bg': const Color(0xFFD7E2EA),
+          'text': const Color(0xFF2C5F7F),
+          'border': const Color(0xFFB5CFE0),
+        },
+        MaintenancePriority.personal: {
+          'bg': const Color(0xFFE8F5E9),
+          'text': const Color(0xFF6A8F7B),
+          'border': const Color(0xFF6A8F7B),
+        },
+      };
 
   Color _getStatusColor(MaintenanceStatus status) {
     switch (status) {
@@ -184,6 +217,10 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
     }
   }
 
+  // ============================================================================
+  // MOCK DATA
+  // ============================================================================
+
   List<MaintenanceTask> _getMockTasks() {
     return [
       MaintenanceTask(
@@ -191,7 +228,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
         title: 'Filter Replacement - Kitchen Hood',
         category: 'Appliances',
         description:
-        'Replace grease filters in kitchen ventilation hood for optimal performance.',
+            'Replace grease filters in kitchen ventilation hood for optimal performance.',
         priority: MaintenancePriority.personal,
         status: MaintenanceStatus.pending,
         frequency: 'Every 3 months',
@@ -203,7 +240,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
         title: 'Fridge Coil Cleaning',
         category: 'Appliances',
         description:
-        'Clean refrigerator coils to improve efficiency and reduce energy consumption.',
+            'Clean refrigerator coils to improve efficiency and reduce energy consumption.',
         priority: MaintenancePriority.personal,
         status: MaintenanceStatus.inProgress,
         frequency: 'Every 6 months',
@@ -217,7 +254,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
         title: 'Ispezione Annuale Sistema HVAC',
         category: 'Climatizzazione',
         description:
-        'Ispezione annuale e sostituzione dei filtri per il sistema di riscaldamento, ventilazione e climatizzazione. Richiesto per la conformitÃ  alla garanzia e per garantire l\'efficienza energetica ottimale.',
+            'Ispezione annuale e sostituzione dei filtri per il sistema di riscaldamento, ventilazione e climatizzazione.',
         priority: MaintenancePriority.obbligatorie,
         status: MaintenanceStatus.overdue,
         frequency: 'Annualmente',
@@ -239,193 +276,84 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
       ),
       MaintenanceTask(
         id: '2',
-        title: 'Controllo Pressione Caldaia',
-        category: 'Riscaldamento',
+        title: 'Controllo Sicurezza Ascensore',
+        category: 'Struttura',
         description:
-        'Controllo di routine della pressione e ottimizzazione del sistema. Raccomandato per prestazioni ottimali ed efficienza energetica.',
-        priority: MaintenancePriority.facoltative,
-        status: MaintenanceStatus.pending,
-        frequency: 'Ogni 6 mesi',
-        nextDue: '15 Nov 2025',
-        lastCompleted: '10 Mag 2025',
+            'Ispezione annuale obbligatoria dell\'ascensore per la sicurezza e la certificazione.',
+        priority: MaintenancePriority.condominiali,
+        status: MaintenanceStatus.completed,
+        frequency: 'Annualmente',
+        nextDue: '15 Gen 2026',
+        lastCompleted: '15 Gen 2025',
       ),
       MaintenanceTask(
         id: '3',
-        title: 'Ispezione Sicurezza Ascensore',
-        category: 'Sistemi Edificio',
+        title: 'Pulizia Grondaie e Sistema di Drenaggio',
+        category: 'Esterno',
         description:
-        'Ispezione di sicurezza obbligatoria secondo le normative edilizie. Gestito dall\'amministratore condominiale.',
-        priority: MaintenancePriority.condominiali,
-        status: MaintenanceStatus.inProgress,
-        frequency: 'Annualmente',
-        nextDue: '8 Nov 2025',
-        attachments: [
-          TaskAttachment(
-              name: 'Certificato_Sicurezza.pdf', type: 'PDF', url: '#'),
-        ],
-        contacts: [
-          TaskContact(
-            name: 'SafeLift Italia',
-            role: 'Ispettore Certificato',
-            phone: '+39 02 9876 5432',
-          ),
-        ],
-      ),
-      MaintenanceTask(
-        id: '4',
-        title: 'Sostituzione Batterie Rilevatori di Fumo',
-        category: 'Sicurezza',
-        description:
-        'Sostituire le batterie in tutti i rilevatori di fumo per garantire il corretto funzionamento. Requisito di sicurezza critico.',
-        priority: MaintenancePriority.obbligatorie,
-        status: MaintenanceStatus.pending,
-        frequency: 'Ogni 12 mesi',
-        nextDue: '20 Nov 2025',
-        lastCompleted: '18 Nov 2024',
-      ),
-      MaintenanceTask(
-        id: '5',
-        title: 'Manutenzione Scaldabagno',
-        category: 'Idraulica',
-        description:
-        'Decalcificazione e controllo dell\'efficienza. Aiuta a prevenire guasti e prolunga la vita dell\'apparecchiatura.',
+            'Rimozione di detriti e controllo del corretto funzionamento delle grondaie.',
         priority: MaintenancePriority.facoltative,
         status: MaintenanceStatus.pending,
-        frequency: 'Ogni 18 mesi',
+        frequency: 'Semestrale',
         nextDue: '1 Dic 2025',
-        lastCompleted: '1 Giu 2024',
-      ),
-      MaintenanceTask(
-        id: '6',
-        title: 'Ispezione Guarnizioni Finestre',
-        category: 'Involucro Edificio',
-        description:
-        'Controllare e mantenere le guarnizioni delle finestre per l\'efficienza energetica. Raccomandato prima della stagione invernale.',
-        priority: MaintenancePriority.facoltative,
-        status: MaintenanceStatus.pending,
-        frequency: 'Annualmente',
-        nextDue: '5 Nov 2025',
-      ),
-      MaintenanceTask(
-        id: '7',
-        title: 'Controllo Estintori',
-        category: 'Sicurezza',
-        description:
-        'Ispezione annuale obbligatoria di tutte le attrezzature antincendio.',
-        priority: MaintenancePriority.obbligatorie,
-        status: MaintenanceStatus.pending,
-        frequency: 'Annualmente',
-        nextDue: '12 Nov 2025',
-        lastCompleted: '10 Nov 2024',
-        contacts: [
-          TaskContact(name: 'FireSafe Solutions', role: 'Ispettore Sicurezza'),
-        ],
-      ),
-      MaintenanceTask(
-        id: '8',
-        title: 'Aggiornamento Illuminazione Aree Comuni',
-        category: 'Sistemi Edificio',
-        description:
-        'Progetto di aggiornamento LED per corridoi e spazi comuni dell\'edificio. Gestito dall\'amministratore.',
-        priority: MaintenancePriority.condominiali,
-        status: MaintenanceStatus.pending,
-        frequency: 'Progetto una tantum',
-        nextDue: '25 Nov 2025',
       ),
     ];
   }
 
-  List<MaintenanceTask> _getFilteredTasks() {
-    final allTasks = _getMockTasks();
-    if (_activeFilter == 'all') return allTasks;
-
-    return allTasks.where((task) {
-      switch (_activeFilter) {
-        case 'personal':
-          return task.priority == MaintenancePriority.personal;
-        case 'facoltative':
-          return task.priority == MaintenancePriority.facoltative;
-        case 'obbligatorie':
-          return task.priority == MaintenancePriority.obbligatorie;
-        case 'condominiali':
-          return task.priority == MaintenancePriority.condominiali;
-        case 'pending':
-          return task.status == MaintenanceStatus.pending;
-        case 'overdue':
-          return task.status == MaintenanceStatus.overdue;
-        default:
-          return true;
-      }
-    }).toList();
-  }
-
-  Future<void> _pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
-    );
-
-    if (result != null) {
-      setState(() {
-        _selectedFile = File(result.files.single.path!);
-      });
-    }
-  }
-
-  void _handleCreateTask() {
-    print('Creating task: ${_titleController.text}');
-    setState(() {
-      _isCreateDialogOpen = false;
-      _titleController.clear();
-      _notesController.clear();
-      _selectedCategory = '';
-      _selectedFrequency = '';
-      _selectedFile = null;
-    });
-  }
+  // ============================================================================
+  // BUILD METHOD
+  // ============================================================================
 
   @override
   Widget build(BuildContext context) {
-    final filteredTasks = _getFilteredTasks();
+    final tasks = _getMockTasks();
+    final filteredTasks = _activeFilter == 'all'
+        ? tasks
+        : tasks
+            .where((t) =>
+                _getPriorityLabel(t.priority).toLowerCase() == _activeFilter)
+            .toList();
 
-    // NO SCAFFOLD - This screen is wrapped by MainScaffold
-    return Stack(
-      children: [
-        Column(
-          children: [
-            // Filter Pills
-            _buildFilterBar(),
-
-            // Tasks List
-            Expanded(
-              child: filteredTasks.isEmpty
-                  ? _buildEmptyState()
-                  : ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: filteredTasks.length,
-                itemBuilder: (context, index) {
-                  return _buildTaskCard(filteredTasks[index], index);
-                },
+    return Scaffold(
+      backgroundColor: const Color(0xFFFAF9F7),
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              _buildFilterBar(),
+              Expanded(
+                child: filteredTasks.isEmpty
+                    ? _buildEmptyState()
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: filteredTasks.length,
+                        itemBuilder: (context, index) {
+                          return _buildTaskCard(filteredTasks[index], index)
+                              .animate()
+                              .fadeIn(delay: Duration(milliseconds: 50 * index))
+                              .slideY(begin: 0.1, end: 0);
+                        },
+                      ),
               ),
-            ),
-          ],
-        ),
-
-        // Floating Action Button
-        _buildFAB(),
-      ],
+            ],
+          ),
+          _buildFAB(),
+        ],
+      ),
     );
   }
 
+  // ============================================================================
+  // FILTER BAR
+  // ============================================================================
+
   Widget _buildFilterBar() {
     final filters = [
-      {'id': 'all', 'label': 'Tutte', 'count': 14},
+      {'id': 'all', 'label': 'Tutte', 'count': 5},
       {'id': 'personal', 'label': 'Personal', 'count': 2},
-      {'id': 'facoltative', 'label': 'Facoltative', 'count': 3},
-      {'id': 'obbligatorie', 'label': 'Obbligatorie', 'count': 5},
-      {'id': 'condominiali', 'label': 'Condominiali', 'count': 4},
-      {'id': 'pending', 'label': 'In Attesa', 'count': 6},
-      {'id': 'overdue', 'label': 'Scadute', 'count': 2},
+      {'id': 'facoltative', 'label': 'Facoltative', 'count': 1},
+      {'id': 'obbligatorie', 'label': 'Obbligatorie', 'count': 1},
+      {'id': 'condominiali', 'label': 'Condominiali', 'count': 1},
     ];
 
     return Container(
@@ -461,7 +389,9 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                         filter['label'] as String,
                         style: TextStyle(
                           fontSize: 13,
-                          color: isActive ? Colors.white : Colors.grey.shade700,
+                          fontWeight: FontWeight.w500,
+                          color:
+                              isActive ? Colors.white : Colors.grey.shade700,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -490,11 +420,10 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                     ],
                   ),
                   backgroundColor: Colors.white,
-                  selectedColor: const Color(0xFF6B8E23),
+                  selectedColor: const Color(0xff388E3C),
                   side: BorderSide(
-                    color: isActive
-                        ? const Color(0xFF6B8E23)
-                        : Colors.grey.shade300,
+                    color:
+                        isActive ? const Color(0xFF6A8F7B) : Colors.grey.shade300,
                   ),
                   onSelected: (selected) {
                     setState(() {
@@ -509,6 +438,10 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
       ),
     );
   }
+
+  // ============================================================================
+  // TASK CARD
+  // ============================================================================
 
   Widget _buildTaskCard(MaintenanceTask task, int index) {
     final isExpanded = _expandedCard == task.id;
@@ -588,8 +521,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                                 decoration: BoxDecoration(
                                   color: _getStatusColor(task.status),
                                   border: Border.all(
-                                    color:
-                                    _getStatusTextColor(task.status)
+                                    color: _getStatusTextColor(task.status)
                                         .withOpacity(0.3),
                                   ),
                                   borderRadius: BorderRadius.circular(6),
@@ -651,7 +583,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'â€¢',
+                          '•',
                           style: TextStyle(color: Colors.grey.shade400),
                         ),
                         const SizedBox(width: 8),
@@ -784,10 +716,8 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                                       begin: Alignment.topLeft,
                                       end: Alignment.bottomRight,
                                       colors: [
-                                        const Color(0xFF6B8E23)
-                                            .withOpacity(0.2),
-                                        const Color(0xFF6B8E23)
-                                            .withOpacity(0.1),
+                                        const Color(0xFF6A8F7B).withOpacity(0.2),
+                                        const Color(0xFF6A8F7B).withOpacity(0.1),
                                       ],
                                     ),
                                     borderRadius: BorderRadius.circular(8),
@@ -795,39 +725,41 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                                   child: const Icon(
                                     Icons.description,
                                     size: 16,
-                                    color: Color(0xFF6B8E23),
+                                    color: Color(0xFF6A8F7B),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         file.name,
                                         style: const TextStyle(
-                                          fontSize: 13,
+                                          fontSize: 12,
                                           fontWeight: FontWeight.w500,
-                                          color: Color(0xFF1A1A1A),
                                         ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
                                       ),
                                       Text(
                                         file.type,
                                         style: TextStyle(
-                                          fontSize: 11,
-                                          color: Colors.grey.shade600,
+                                          fontSize: 10,
+                                          color: Colors.grey.shade500,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
+                                Icon(
+                                  Icons.file_download_outlined,
+                                  size: 18,
+                                  color: Colors.grey.shade500,
+                                ),
                               ],
                             ),
                           );
-                        }).toList(),
+                        }),
                       ],
 
                       // Contacts
@@ -854,152 +786,111 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                               ),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Row(
+                            child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Container(
-                                  width: 32,
-                                  height: 32,
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: [
-                                        Colors.blue.shade100,
-                                        Colors.blue.shade50,
-                                      ],
-                                    ),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    Icons.person,
-                                    size: 16,
-                                    color: Colors.blue.shade600,
+                                Text(
+                                  contact.name,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                Text(
+                                  contact.role,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                                if (contact.phone != null) ...[
+                                  const SizedBox(height: 4),
+                                  Row(
                                     children: [
-                                      Text(
-                                        contact.name,
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                          color: Color(0xFF1A1A1A),
-                                        ),
+                                      Icon(
+                                        Icons.phone,
+                                        size: 12,
+                                        color: Colors.grey.shade500,
                                       ),
+                                      const SizedBox(width: 4),
                                       Text(
-                                        contact.role,
+                                        contact.phone!,
                                         style: TextStyle(
                                           fontSize: 11,
-                                          color: Colors.grey.shade600,
+                                          color: Colors.grey.shade700,
                                         ),
                                       ),
-                                      if (contact.phone != null) ...[
-                                        const SizedBox(height: 6),
-                                        InkWell(
-                                          onTap: () {
-                                            // Handle phone call
-                                          },
-                                          child: Row(
-                                            children: [
-                                              const Icon(
-                                                Icons.phone,
-                                                size: 14,
-                                                color: Color(0xFF6B8E23),
-                                              ),
-                                              const SizedBox(width: 6),
-                                              Text(
-                                                contact.phone!,
-                                                style: const TextStyle(
-                                                  fontSize: 11,
-                                                  color: Color(0xFF6B8E23),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                      if (contact.email != null) ...[
-                                        const SizedBox(height: 4),
-                                        InkWell(
-                                          onTap: () {
-                                            // Handle email
-                                          },
-                                          child: Row(
-                                            children: [
-                                              const Icon(
-                                                Icons.email_outlined,
-                                                size: 14,
-                                                color: Color(0xFF6B8E23),
-                                              ),
-                                              const SizedBox(width: 6),
-                                              Text(
-                                                contact.email!,
-                                                style: const TextStyle(
-                                                  fontSize: 11,
-                                                  color: Color(0xFF6B8E23),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
                                     ],
                                   ),
-                                ),
+                                ],
+                                if (contact.email != null) ...[
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.email,
+                                        size: 12,
+                                        color: Colors.grey.shade500,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        contact.email!,
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.grey.shade700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ],
                             ),
                           );
-                        }).toList(),
+                        }),
                       ],
 
                       // Action Buttons
                       const SizedBox(height: 16),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
+                      Row(
                         children: [
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              print('Mark complete: ${task.id}');
-                            },
-                            icon: const Icon(Icons.check_circle, size: 16),
-                            label: const Text('Segna Completato'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF6B8E23),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 10,
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () {
+                                // Mark as complete
+                              },
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(
+                                  color: const Color(0xFF6A8F7B),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text(
+                                'Segna Completato',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF6A8F7B),
+                                ),
                               ),
                             ),
                           ),
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              print('Schedule: ${task.id}');
-                            },
-                            icon: const Icon(Icons.calendar_today, size: 16),
-                            label: const Text('Programma'),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 10,
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: widget.onAskAI,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF6A8F7B),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
-                            ),
-                          ),
-                          TextButton.icon(
-                            onPressed: widget.onAskAI,
-                            icon: const Icon(Icons.chat_bubble_outline,
-                                size: 16),
-                            label: const Text('Chiedi AI'),
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 10,
+                              child: const Text(
+                                'Chiedi a AI',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ),
@@ -1013,247 +904,649 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
           ),
         ),
       ),
-    )
-        .animate()
-        .fadeIn(duration: 400.ms, delay: (index * 50).ms)
-        .slideY(begin: 0.2, end: 0, duration: 400.ms, delay: (index * 50).ms);
+    );
   }
+
+  // ============================================================================
+  // FLOATING ACTION BUTTON
+  // ============================================================================
 
   Widget _buildFAB() {
     return Positioned(
-      bottom: 96,
-      right: 24,
+      right: 16,
+      bottom: 16,
       child: ScaleTransition(
         scale: CurvedAnimation(
           parent: _fabController,
           curve: Curves.elasticOut,
         ),
         child: FloatingActionButton(
-          onPressed: () {
-            setState(() {
-              _isCreateDialogOpen = true;
-            });
-            _showCreateDialog();
-          },
-          backgroundColor: const Color(0xFF4CAF47),
-          child: const Icon(Icons.add, size: 28),
+          onPressed: _showCreateDialog,
+          backgroundColor: const Color(0xff388E3C),
+          elevation: 4,
+          child: const Icon(
+            Icons.add_rounded,
+            color: Colors.white,
+            size: 28,
+          ),
         ),
       ),
     );
   }
 
+  // ============================================================================
+  // REACT-STYLE CREATE DIALOG - 100% UI MATCH
+  // ============================================================================
+
   void _showCreateDialog() {
+    // Reset form state
+    _taskTitle = '';
+    _selectedCategory = '';
+    _selectedFrequency = '';
+    _taskNotes = '';
+    _selectedFile = null;
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add Maintenance Task'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Create a personal maintenance task to track',
-                style: TextStyle(fontSize: 13, color: Colors.grey),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
               ),
-              const SizedBox(height: 20),
-
-              // Title
-              const Text('Title',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  hintText: 'e.g., Filter replacement',
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Category
-              const Text('Category',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                value: _selectedCategory.isEmpty ? null : _selectedCategory,
-                decoration: const InputDecoration(
-                  hintText: 'Select category',
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                ),
-                items: const [
-                  DropdownMenuItem(value: 'appliances', child: Text('Appliances')),
-                  DropdownMenuItem(value: 'hvac', child: Text('HVAC')),
-                  DropdownMenuItem(value: 'plumbing', child: Text('Plumbing')),
-                  DropdownMenuItem(value: 'electrical', child: Text('Electrical')),
-                  DropdownMenuItem(value: 'cleaning', child: Text('Cleaning')),
-                  DropdownMenuItem(value: 'other', child: Text('Other')),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    _selectedCategory = value ?? '';
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Frequency
-              const Text('Frequency',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                value: _selectedFrequency.isEmpty ? null : _selectedFrequency,
-                decoration: const InputDecoration(
-                  hintText: 'Select frequency',
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                ),
-                items: const [
-                  DropdownMenuItem(value: 'weekly', child: Text('Weekly')),
-                  DropdownMenuItem(value: 'monthly', child: Text('Monthly')),
-                  DropdownMenuItem(value: 'quarterly', child: Text('Quarterly')),
-                  DropdownMenuItem(
-                      value: 'biannually', child: Text('Every 6 months')),
-                  DropdownMenuItem(value: 'annually', child: Text('Annually')),
-                  DropdownMenuItem(value: 'custom', child: Text('Custom')),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    _selectedFrequency = value ?? '';
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Notes
-              const Text('Notes (Optional)',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _notesController,
-                maxLines: 3,
-                decoration: const InputDecoration(
-                  hintText: 'Add any additional details...',
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.all(12),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // File Upload
-              const Text('Attachment (Optional)',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              InkWell(
-                onTap: _pickFile,
-                child: Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFAF9F7).withOpacity(0.5),
-                    border: Border.all(
-                      color: Colors.grey.shade300,
-                      style: BorderStyle.solid,
-                      width: 2,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: _selectedFile == null
-                      ? Column(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 448), // max-w-md
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.upload_file,
-                          color: Colors.grey.shade400),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Attach file or photo',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade600,
+                      // Header
+                      _buildDialogHeader(),
+
+                      // Content
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 16,
                         ),
-                      ),
-                    ],
-                  )
-                      : Row(
-                    children: [
-                      const Icon(Icons.attach_file,
-                          color: Color(0xFF6A8F7B)),
-                      const SizedBox(width: 12),
-                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              _selectedFile!.path.split('/').last,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: Color(0xFF1A1A1A),
-                              ),
-                            ),
-                            Text(
-                              '${(_selectedFile!.lengthSync() / 1024 / 1024).toStringAsFixed(2)} MB',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
+                            _buildTitleInput(setState),
+                            const SizedBox(height: 16),
+                            _buildCategoryDropdown(setState),
+                            const SizedBox(height: 16),
+                            _buildFrequencyDropdown(setState),
+                            const SizedBox(height: 16),
+                            _buildNotesInput(setState),
+                            const SizedBox(height: 16),
+                            _buildFileUpload(setState),
                           ],
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () {
-                          setState(() {
-                            _selectedFile = null;
-                          });
-                        },
-                      ),
+
+                      // Footer with buttons
+                      _buildDialogFooter(context),
                     ],
                   ),
                 ),
               ),
-            ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildDialogHeader() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: Colors.grey.shade200,
+            width: 1,
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              setState(() {
-                _isCreateDialogOpen = false;
-              });
-            },
-            child: const Text('Cancel'),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Add Maintenance Task',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1A1A1A),
+            ),
           ),
-          ElevatedButton.icon(
-            onPressed: _titleController.text.isEmpty ||
-                _selectedCategory.isEmpty ||
-                _selectedFrequency.isEmpty
-                ? null
-                : () {
-              _handleCreateTask();
-              Navigator.pop(context);
-            },
-            icon: const Icon(Icons.add, size: 16),
-            label: const Text('Create'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6A8F7B),
-              foregroundColor: Colors.white,
+          const SizedBox(height: 8),
+          Text(
+            'Create a personal maintenance task to track',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade600,
             ),
           ),
         ],
       ),
     );
   }
+
+  Widget _buildTitleInput(StateSetter setState) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Title',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF1A1A1A),
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          onChanged: (value) {
+            setState(() {
+              _taskTitle = value;
+            });
+          },
+          style: const TextStyle(
+            fontSize: 14,
+            color: Color(0xFF1A1A1A),
+          ),
+          decoration: InputDecoration(
+            hintText: 'e.g., Filter replacement',
+            hintStyle: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade400,
+            ),
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Colors.grey.shade300,
+                width: 1,
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Colors.grey.shade300,
+                width: 1,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: Color(0xFF6A8F7B),
+                width: 2,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCategoryDropdown(StateSetter setState) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Category',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF1A1A1A),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.grey.shade300,
+              width: 1,
+            ),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              isExpanded: true,
+              value: _selectedCategory.isEmpty ? null : _selectedCategory,
+              hint: Text(
+                'Select category',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade400,
+                ),
+              ),
+              icon: Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: Colors.grey.shade600,
+              ),
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF1A1A1A),
+              ),
+              borderRadius: BorderRadius.circular(12),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              items: _maintenanceCategories.map((category) {
+                return DropdownMenuItem<String>(
+                  value: category['value'],
+                  child: Text(category['label']!),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedCategory = value ?? '';
+                });
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFrequencyDropdown(StateSetter setState) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Frequency',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF1A1A1A),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.grey.shade300,
+              width: 1,
+            ),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              isExpanded: true,
+              value: _selectedFrequency.isEmpty ? null : _selectedFrequency,
+              hint: Text(
+                'Select frequency',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade400,
+                ),
+              ),
+              icon: Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: Colors.grey.shade600,
+              ),
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF1A1A1A),
+              ),
+              borderRadius: BorderRadius.circular(12),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              items: _frequencyOptions.map((frequency) {
+                return DropdownMenuItem<String>(
+                  value: frequency['value'],
+                  child: Text(frequency['label']!),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedFrequency = value ?? '';
+                });
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNotesInput(StateSetter setState) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Notes (Optional)',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF1A1A1A),
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          onChanged: (value) {
+            setState(() {
+              _taskNotes = value;
+            });
+          },
+          maxLines: 3,
+          style: const TextStyle(
+            fontSize: 14,
+            color: Color(0xFF1A1A1A),
+          ),
+          decoration: InputDecoration(
+            hintText: 'Add any additional details...',
+            hintStyle: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade400,
+            ),
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.all(16),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Colors.grey.shade300,
+                width: 1,
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Colors.grey.shade300,
+                width: 1,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: Color(0xFF6A8F7B),
+                width: 2,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFileUpload(StateSetter setState) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Attachment (Optional)',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF1A1A1A),
+          ),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () => _pickFile(setState),
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFAF9F7).withOpacity(0.5),
+              border: Border.all(
+                color: Colors.grey.shade300,
+                width: 2,
+                style: BorderStyle.solid,
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: _selectedFile != null
+                ? _buildSelectedFile(setState)
+                : _buildFileUploadPlaceholder(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFileUploadPlaceholder() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.upload_rounded,
+          size: 20,
+          color: Colors.grey.shade400,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          'Attach file or photo',
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey.shade600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSelectedFile(StateSetter setState) {
+    final fileName = _selectedFile!.path.split('/').last;
+    final fileSize = _selectedFile!.lengthSync();
+    final fileSizeMB = (fileSize / 1024 / 1024).toStringAsFixed(2);
+
+    return Row(
+      children: [
+        const Icon(
+          Icons.attach_file_rounded,
+          size: 20,
+          color: Color(0xFF6A8F7B),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                fileName,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFF1A1A1A),
+                  fontWeight: FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '$fileSizeMB MB',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        InkWell(
+          onTap: () {
+            setState(() {
+              _selectedFile = null;
+            });
+          },
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade200.withOpacity(0.5),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.close_rounded,
+              size: 16,
+              color: Colors.grey.shade700,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _pickFile(StateSetter setState) async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+      );
+
+      if (result != null && result.files.single.path != null) {
+        setState(() {
+          _selectedFile = File(result.files.single.path!);
+        });
+      }
+    } catch (e) {
+      print('Error picking file: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to pick file'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Widget _buildDialogFooter(BuildContext context) {
+    final isFormValid = _taskTitle.isNotEmpty &&
+        _selectedCategory.isNotEmpty &&
+        _selectedFrequency.isNotEmpty;
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: Colors.grey.shade200,
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          // Cancel Button
+          OutlinedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.grey.shade700,
+              side: BorderSide(
+                color: Colors.grey.shade300,
+                width: 1,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 12,
+              ),
+            ),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // Create Button
+          ElevatedButton(
+            onPressed: isFormValid ? () => _handleCreateTask(context) : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor:
+                  isFormValid ? const Color(0xFF6A8F7B) : Colors.grey.shade300,
+              foregroundColor: Colors.white,
+              disabledBackgroundColor: Colors.grey.shade300,
+              disabledForegroundColor: Colors.white.withOpacity(0.5),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 12,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Icon(
+                  Icons.add_rounded,
+                  size: 18,
+                  color: Colors.white,
+                ),
+                SizedBox(width: 8),
+                Text(
+                  'Create',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _handleCreateTask(BuildContext context) {
+    final taskData = {
+      'title': _taskTitle,
+      'category': _selectedCategory,
+      'frequency': _selectedFrequency,
+      'notes': _taskNotes,
+      'file': _selectedFile?.path,
+    };
+
+    print('Creating maintenance task: $taskData');
+
+    // TODO: Call your API or controller
+    // Example: await _controller.createMaintenanceTask(taskData);
+
+    Navigator.of(context).pop();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Maintenance task created successfully'),
+        backgroundColor: const Color(0xFF6A8F7B),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+
+    // Refresh the maintenance list
+    // _controller.fetchMaintenanceTasks();
+  }
+
+  // ============================================================================
+  // EMPTY STATE
+  // ============================================================================
 
   Widget _buildEmptyState() {
     return Center(
