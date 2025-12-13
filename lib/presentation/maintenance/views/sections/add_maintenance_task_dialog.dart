@@ -228,29 +228,28 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
         ),
       ),
       child: Stack(
-        alignment: Alignment.center,
         children: [
           /// CENTERED TITLE + SUBTITLE
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Add Maintenance Task',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.neutralInk900,
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Add Maintenance Task',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.neutralInk900,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Create a personal maintenance task to track',
-                style: TextStyle(fontSize: 12, color: AppColors.neutralInk500),
-              ),
-            ],
+                const SizedBox(height: 6),
+                Text(
+                  'Create a personal maintenance task to track',
+                  style: TextStyle(fontSize: 12, color: AppColors.neutralInk500),
+                ),
+              ],
+            ),
           ),
-
-          const Spacer(),
 
           /// CLOSE BUTTON — TOP RIGHT
           Positioned(
