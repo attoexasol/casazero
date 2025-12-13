@@ -1,7 +1,6 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../services/storage_service.dart';
-import '../constants/storage_keys.dart';
 
 class LocaleController extends GetxController {
   final StorageService _storageService = Get.find();

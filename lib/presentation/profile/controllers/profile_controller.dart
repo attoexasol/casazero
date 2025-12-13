@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/services/storage_service.dart';
+import '../../../core/localization/locale_controller.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/repositories/profile_repository.dart';
 import '../../../data/repositories/auth_repository.dart';
@@ -99,12 +100,9 @@ class ProfileController extends GetxController {
         // Update local user data
         user.value = user.value!.copyWith(language: lang);
 
-        // Update GetX locale
-        if (lang == "it") {
-          Get.updateLocale(const Locale('it', 'IT'));
-        } else {
-          Get.updateLocale(const Locale('en', 'US'));
-        }
+        // Update LocaleController (single source of truth for app language)
+        final localeController = Get.find<LocaleController>();
+        await localeController.changeLocale(lang);
 
         _showSuccess(result['message'] ?? 'language_updated_successfully'.tr);
         update();

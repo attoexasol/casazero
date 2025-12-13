@@ -8,6 +8,7 @@ import '../../../data/models/user_model.dart';
 import '../../app/theme/app_shadows.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../presentation/profile/controllers/profile_controller.dart';
+import '../../core/localization/locale_controller.dart';
 
 
 class PreferencesCard extends StatefulWidget {
@@ -20,28 +21,23 @@ class PreferencesCard extends StatefulWidget {
 }
 
 class _PreferencesCardState extends State<PreferencesCard> {
-  late String lang;
-
   @override
   void initState() {
     super.initState();
-    lang = widget.user.language; // "en" or "it"
   }
 
   Future<void> _changeLanguage(String code) async {
-    // Update local state immediately for UI responsiveness
-    setState(() => lang = code);
+    // Use LocaleController as single source of truth
+    final localeController = Get.find<LocaleController>();
+    
+    // Update LocaleController immediately (updates app-wide language)
+    await localeController.changeLocale(code);
 
-    // Update GetX locale immediately
-    if (code == "it") {
-      Get.updateLocale(const Locale('it', 'IT'));
-    } else {
-      Get.updateLocale(const Locale('en', 'US'));
+    // Call ProfileController to update API (if user is logged in)
+    final profileController = Get.find<ProfileController>();
+    if (profileController.user.value != null) {
+      await profileController.changeLanguage(code);
     }
-
-    // Call the controller method which will handle API call
-    final controller = Get.find<ProfileController>();
-    await controller.changeLanguage(code);
   }
 
   @override
@@ -118,29 +114,35 @@ class _PreferencesCardState extends State<PreferencesCard> {
   }
 
   Widget _pill(String text, String code) {
-    final active = lang == code;
+    // Use LocaleController as single source of truth
+    final localeController = Get.find<LocaleController>();
+    
+    return Obx(() {
+      final active = (code == 'it' && localeController.isItalian) ||
+          (code == 'en' && localeController.isEnglish);
 
-    return InkWell(
-      onTap: () => _changeLanguage(code),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        decoration: BoxDecoration(
-          color: active ? AppColors.brandSage600 : AppColors.surfaceWhite,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: active ? AppColors.brandSage600 : AppColors.neutralInk300,
+      return InkWell(
+        onTap: () => _changeLanguage(code),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          decoration: BoxDecoration(
+            color: active ? AppColors.brandSage600 : AppColors.surfaceWhite,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: active ? AppColors.brandSage600 : AppColors.neutralInk300,
+            ),
+          ),
+          child: Text(
+            text,
+            style: TextStyle(
+              color: active ? Colors.white : AppColors.neutralInk500,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
-        child: Text(
-          text,
-          style: TextStyle(
-            color: active ? Colors.white : AppColors.neutralInk500,
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
+      );
+    });
   }
 
   // RESET FIRST LOGIN -----------------------------------------------------

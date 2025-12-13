@@ -24,10 +24,12 @@ class InitialBinding extends Bindings {
 
     Get.put<DeviceInfoService>(DeviceInfoService(), permanent: true);
 
-    Get.put<LocaleController>(LocaleController(), permanent: true);
-
-    // StorageService must be initialized before controllers
+    // StorageService must be initialized before LocaleController
+    // (StorageService is already initialized in main.dart, but ensure it's registered here)
     Get.put<StorageService>(StorageService()..init(), permanent: true);
+
+    // LocaleController depends on StorageService, so register it after
+    Get.put<LocaleController>(LocaleController(), permanent: true);
 
     // DownloadService for document downloads
     Get.put<DownloadService>(DownloadService(), permanent: true);
