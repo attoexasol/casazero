@@ -2,6 +2,9 @@
 import 'dart:io';
 import 'package:casazero/app/theme/app_colors.dart';
 import 'package:casazero/app/theme/app_text_styles.dart';
+import 'package:casazero/core/widgets/custom_text_field.dart';
+import 'package:casazero/core/widgets/gradient_button.dart';
+import 'package:casazero/core/widgets/outlined_custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:get/get.dart';
@@ -27,6 +30,9 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
   String _selectedCategory = '';
   String _selectedFrequency = '';
   File? _selectedFile;
+  String? _selectedFileName;
+  String? _selectedFileSize;
+  bool _isCreating = false;
 
   final MaintenanceController _controller = Get.find<MaintenanceController>();
 
@@ -57,10 +63,17 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
     super.dispose();
   }
 
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+
   bool get _isFormValid =>
       _titleController.text.isNotEmpty &&
       _selectedCategory.isNotEmpty &&
-      _selectedFrequency.isNotEmpty;
+      _selectedFrequency.isNotEmpty &&
+      !_isCreating;
 
   Future<void> _pickFile() async {
     try {
@@ -70,8 +83,14 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
       );
 
       if (result != null && result.files.single.path != null) {
+        final file = File(result.files.single.path!);
+        final fileName = result.files.single.name;
+        final fileSize = result.files.single.size;
+
         setState(() {
-          _selectedFile = File(result.files.single.path!);
+          _selectedFile = file;
+          _selectedFileName = fileName;
+          _selectedFileSize = _formatFileSize(fileSize);
         });
       }
     } catch (e) {
@@ -91,67 +110,100 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
   void _removeFile() {
     setState(() {
       _selectedFile = null;
+      _selectedFileName = null;
+      _selectedFileSize = null;
     });
   }
 
   Future<void> _handleCreate() async {
     if (!_isFormValid) return;
 
-    await _controller.createMaintenanceTask(
-      title: _titleController.text.trim(),
-      category: _selectedCategory,
-      frequency: _selectedFrequency,
-      notes: _notesController.text.trim().isEmpty
-          ? null
-          : _notesController.text.trim(),
-      attachment: _selectedFile,
-    );
+    setState(() => _isCreating = true);
 
-    if (mounted) {
-      widget.onClose();
+    try {
+      await _controller.createMaintenanceTask(
+        title: _titleController.text.trim(),
+        category: _selectedCategory,
+        frequency: _selectedFrequency,
+        notes: _notesController.text.trim().isEmpty
+            ? null
+            : _notesController.text.trim(),
+        attachment: _selectedFile,
+      );
+
+      if (mounted) {
+        widget.onClose();
+      }
+    } catch (e) {
+      if (mounted) {
+        Get.snackbar(
+          'Error',
+          'Failed to create maintenance task',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: AppColors.danger,
+          colorText: AppColors.surfaceWhite,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isCreating = false);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-      ),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 448), // max-w-md
-        child: SingleChildScrollView(
+    return Material(
+      color: Colors.black.withOpacity(0.5),
+      child: Center(
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
+          constraints: const BoxConstraints(maxWidth: 500),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceWhite,
+            borderRadius: BorderRadius.circular(20),
+          ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.max,
             children: [
-              // Header
+              // Dialog Header
               _buildHeader(),
 
-              // Content
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 16,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildTitleInput(),
-                    const SizedBox(height: 16),
-                    _buildCategoryDropdown(),
-                    const SizedBox(height: 16),
-                    _buildFrequencyDropdown(),
-                    const SizedBox(height: 16),
-                    _buildNotesInput(),
-                    const SizedBox(height: 16),
-                    _buildFileUpload(),
-                  ],
+              // Dialog Content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // File Upload Area
+                      _buildFileUploadArea(),
+                      const SizedBox(height: 16),
+
+                      // Supported Formats Info
+                      _buildSupportedFormatsInfo(),
+                      const SizedBox(height: 20),
+
+                      // Title Field
+                      _buildTitleField(),
+                      const SizedBox(height: 16),
+
+                      // Category Dropdown
+                      _buildCategoryDropdown(),
+                      const SizedBox(height: 16),
+
+                      // Frequency Dropdown
+                      _buildFrequencyDropdown(),
+                      const SizedBox(height: 16),
+
+                      // Notes Field
+                      _buildNotesField(),
+                    ],
+                  ),
                 ),
               ),
 
-              // Footer
+              // Dialog Footer
               _buildFooter(),
             ],
           ),
@@ -162,30 +214,54 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: AppColors.neutralLine200,
-            width: 1,
-          ),
+      padding: const EdgeInsets.only(
+        top: 18,
+        bottom: 14,
+        left: 5,
+        right: 5,
+      ),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          Text(
-            'Add Maintenance Task',
-            style: AppTextStyles.h4.copyWith(
-              fontWeight: FontWeight.w600,
-              color: AppColors.neutralInk900,
-            ),
+          /// CENTERED TITLE + SUBTITLE
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Add Maintenance Task',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.neutralInk900,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Create a personal maintenance task to track',
+                style: TextStyle(fontSize: 12, color: AppColors.neutralInk500),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Create a personal maintenance task to track',
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.neutralInk500,
+
+          const Spacer(),
+
+          /// CLOSE BUTTON — TOP RIGHT
+          Positioned(
+            right: 10,
+            top: 10,
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              onPressed: widget.onClose,
+              icon: Icon(Icons.close, color: AppColors.neutralInk500),
+              splashRadius: 22,
             ),
           ),
         ],
@@ -193,59 +269,149 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
     );
   }
 
-  Widget _buildTitleInput() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Title',
-          style: AppTextStyles.bodyMedium.copyWith(
-            fontWeight: FontWeight.w500,
-            color: AppColors.neutralInk900,
+  Widget _buildFileUploadArea() {
+    return GestureDetector(
+      onTap: _selectedFile == null ? _pickFile : null,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 100, maxHeight: 150),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: _selectedFile == null
+                ? AppColors.surfaceWarm50
+                : AppColors.brandSage50,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: _selectedFile == null
+                  ? AppColors.neutralLine200
+                  : AppColors.brandSage300,
+              width: 2,
+              style: BorderStyle.solid,
+            ),
+          ),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.center,
+            child: _selectedFile == null
+                ? _buildUploadPrompt()
+                : _buildSelectedFile(),
           ),
         ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _titleController,
-          onChanged: (_) => setState(() {}),
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.neutralInk900,
+      ),
+    );
+  }
+
+  Widget _buildUploadPrompt() {
+    return Column(
+      children: [
+        Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            color: AppColors.brandSage500.withOpacity(0.1),
+            shape: BoxShape.circle,
           ),
-          decoration: InputDecoration(
-            hintText: 'e.g., Filter replacement',
-            hintStyle: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.neutralInk400,
-            ),
-            filled: true,
-            fillColor: AppColors.surfaceWhite,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: AppColors.neutralLine200,
-                width: 1,
+          child: const Icon(
+            Icons.cloud_upload_outlined,
+            size: 32,
+            color: AppColors.brandSage500,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'Click to upload',
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: AppColors.neutralInk700,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Drag and drop file here',
+          style: AppTextStyles.caption.copyWith(color: AppColors.neutralInk400),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSelectedFile() {
+    return Row(
+      children: [
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: AppColors.brandSage500.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Icon(
+            Icons.insert_drive_file,
+            color: AppColors.brandSage500,
+            size: 24,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _selectedFileName ?? '',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.neutralInk900,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: AppColors.neutralLine200,
-                width: 1,
+              const SizedBox(height: 2),
+              Text(
+                _selectedFileSize ?? '',
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.neutralInk500,
+                ),
               ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: AppColors.brandSage400,
-                width: 2,
-              ),
+            ],
+          ),
+        ),
+        IconButton(
+          onPressed: _removeFile,
+          icon: const Icon(Icons.close, size: 20),
+          color: AppColors.neutralInk400,
+          splashRadius: 20,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSupportedFormatsInfo() {
+    return Row(
+      children: [
+        Icon(Icons.info_outline, size: 16, color: AppColors.neutralInk400),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            'Supported formats: PDF, JPG, JPEG, PNG',
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.neutralInk500,
             ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildTitleField() {
+    return CustomTextField(
+      label: 'Title',
+      hint: 'e.g., Filter replacement',
+      controller: _titleController,
+      keyboardType: TextInputType.text,
+      backgroundColor: AppColors.neutralLine100,
+      borderColor: AppColors.neutralLine200,
+      textColor: AppColors.neutralInk900,
+      labelColor: AppColors.neutralInk700,
+      onChanged: (_) => setState(() {}),
     );
   }
 
@@ -255,44 +421,40 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
       children: [
         Text(
           'Category',
-          style: AppTextStyles.bodyMedium.copyWith(
-            fontWeight: FontWeight.w500,
-            color: AppColors.neutralInk900,
+          style: AppTextStyles.label.copyWith(
+            color: AppColors.neutralInk700,
+            fontSize: 14,
           ),
         ),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: AppColors.surfaceWhite,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: AppColors.neutralLine200,
-              width: 1,
-            ),
+            color: AppColors.neutralLine100,
+            borderRadius: BorderRadius.circular(25),
+            border: Border.all(color: AppColors.neutralLine200),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
-              isExpanded: true,
               value: _selectedCategory.isEmpty ? null : _selectedCategory,
+              isExpanded: true,
               hint: Text(
                 'Select category',
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: AppColors.neutralInk400,
                 ),
               ),
-              icon: Icon(
-                Icons.keyboard_arrow_down_rounded,
-                color: AppColors.neutralInk500,
-              ),
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.neutralInk900,
-              ),
-              borderRadius: BorderRadius.circular(12),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              icon: const Icon(Icons.keyboard_arrow_down),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              borderRadius: BorderRadius.circular(25),
               items: _maintenanceCategories.map((category) {
                 return DropdownMenuItem<String>(
                   value: category['value'],
-                  child: Text(category['label']!),
+                  child: Text(
+                    category['label']!,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.neutralInk900,
+                    ),
+                  ),
                 );
               }).toList(),
               onChanged: (value) {
@@ -313,44 +475,40 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
       children: [
         Text(
           'Frequency',
-          style: AppTextStyles.bodyMedium.copyWith(
-            fontWeight: FontWeight.w500,
-            color: AppColors.neutralInk900,
+          style: AppTextStyles.label.copyWith(
+            color: AppColors.neutralInk700,
+            fontSize: 14,
           ),
         ),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: AppColors.surfaceWhite,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: AppColors.neutralLine200,
-              width: 1,
-            ),
+            color: AppColors.neutralLine100,
+            borderRadius: BorderRadius.circular(25),
+            border: Border.all(color: AppColors.neutralLine200),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
-              isExpanded: true,
               value: _selectedFrequency.isEmpty ? null : _selectedFrequency,
+              isExpanded: true,
               hint: Text(
                 'Select frequency',
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: AppColors.neutralInk400,
                 ),
               ),
-              icon: Icon(
-                Icons.keyboard_arrow_down_rounded,
-                color: AppColors.neutralInk500,
-              ),
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.neutralInk900,
-              ),
-              borderRadius: BorderRadius.circular(12),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              icon: const Icon(Icons.keyboard_arrow_down),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              borderRadius: BorderRadius.circular(25),
               items: _frequencyOptions.map((frequency) {
                 return DropdownMenuItem<String>(
                   value: frequency['value'],
-                  child: Text(frequency['label']!),
+                  child: Text(
+                    frequency['label']!,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.neutralInk900,
+                    ),
+                  ),
                 );
               }).toList(),
               onChanged: (value) {
@@ -365,258 +523,49 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
     );
   }
 
-  Widget _buildNotesInput() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Notes (Optional)',
-          style: AppTextStyles.bodyMedium.copyWith(
-            fontWeight: FontWeight.w500,
-            color: AppColors.neutralInk900,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _notesController,
-          maxLines: 3,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.neutralInk900,
-          ),
-          decoration: InputDecoration(
-            hintText: 'Add any additional details...',
-            hintStyle: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.neutralInk400,
-            ),
-            filled: true,
-            fillColor: AppColors.surfaceWhite,
-            contentPadding: const EdgeInsets.all(16),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: AppColors.neutralLine200,
-                width: 1,
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: AppColors.neutralLine200,
-                width: 1,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: AppColors.brandSage400,
-                width: 2,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFileUpload() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Attachment (Optional)',
-          style: AppTextStyles.bodyMedium.copyWith(
-            fontWeight: FontWeight.w500,
-            color: AppColors.neutralInk900,
-          ),
-        ),
-        const SizedBox(height: 8),
-        MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: GestureDetector(
-            onTap: _pickFile,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 24,
-              ),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceWarm50.withOpacity(0.5),
-                border: Border.all(
-                  color: AppColors.neutralLine200,
-                  width: 2,
-                  style: BorderStyle.solid,
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: _selectedFile != null
-                  ? _buildSelectedFile()
-                  : _buildFileUploadPlaceholder(),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFileUploadPlaceholder() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(
-          Icons.upload_rounded,
-          size: 20,
-          color: AppColors.neutralInk400,
-        ),
-        const SizedBox(width: 8),
-        Text(
-          'Attach file or photo',
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.neutralInk500,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSelectedFile() {
-    final fileName = _selectedFile!.path.split('/').last;
-    final fileSize = _selectedFile!.lengthSync();
-    final fileSizeMB = (fileSize / 1024 / 1024).toStringAsFixed(2);
-
-    return Row(
-      children: [
-        Icon(
-          Icons.attach_file_rounded,
-          size: 20,
-          color: const Color(0xFF6A8F7B),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                fileName,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.neutralInk900,
-                  fontWeight: FontWeight.w500,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 2),
-              Text(
-                '$fileSizeMB MB',
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.neutralInk500,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 8),
-        GestureDetector(
-          onTap: _removeFile,
-          child: MouseRegion(
-            cursor: SystemMouseCursors.click,
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: AppColors.neutralLine200.withOpacity(0.5),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.close_rounded,
-                size: 16,
-                color: AppColors.neutralInk700,
-              ),
-            ),
-          ),
-        ),
-      ],
+  Widget _buildNotesField() {
+    return CustomTextField(
+      label: 'Notes (Optional)',
+      hint: 'Add any additional details...',
+      controller: _notesController,
+      keyboardType: TextInputType.multiline,
+      maxLines: 3,
+      backgroundColor: AppColors.neutralLine100,
+      borderColor: AppColors.neutralLine200,
+      textColor: AppColors.neutralInk900,
+      labelColor: AppColors.neutralInk700,
     );
   }
 
   Widget _buildFooter() {
     return Container(
-      padding: const EdgeInsets.all(24),
+      height: 60,
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(
-            color: AppColors.neutralLine200,
-            width: 1,
-          ),
+        color: AppColors.surfaceWarm50,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(20),
+          bottomRight: Radius.circular(20),
         ),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          OutlinedButton(
-            onPressed: widget.onClose,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.neutralInk700,
-              side: BorderSide(
-                color: AppColors.neutralLine200,
-                width: 1,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 12,
-              ),
-            ),
-            child: Text(
-              'Cancel',
-              style: AppTextStyles.bodyMedium.copyWith(
-                fontWeight: FontWeight.w500,
-                color: AppColors.neutralInk700,
-              ),
+          Expanded(
+            child: OutlinedCustomButton(
+              text: 'Cancel',
+              onPressed: widget.onClose,
+              width: 100,
             ),
           ),
           const SizedBox(width: 12),
-          ElevatedButton(
-            onPressed: _isFormValid ? _handleCreate : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _isFormValid
-                  ? const Color(0xFF6A8F7B)
-                  : AppColors.neutralLine200,
-              foregroundColor: _isFormValid
-                  ? AppColors.surfaceWhite
-                  : AppColors.neutralInk400,
-              disabledBackgroundColor: AppColors.neutralLine200,
-              disabledForegroundColor: AppColors.neutralInk400,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 12,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.add_rounded,
-                  size: 16,
-                  color: _isFormValid
-                      ? AppColors.surfaceWhite
-                      : AppColors.neutralInk400,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Create',
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: _isFormValid
-                        ? AppColors.surfaceWhite
-                        : AppColors.neutralInk400,
-                  ),
-                ),
-              ],
+          Expanded(
+            child: GradientButton(
+              text: _isCreating ? '' : 'Create',
+              icon: _isCreating ? null : Icons.add,
+              onPressed: _isFormValid ? _handleCreate : null,
+              width: 140,
+              isLoading: _isCreating,
             ),
           ),
         ],
@@ -624,4 +573,3 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
     );
   }
 }
-
