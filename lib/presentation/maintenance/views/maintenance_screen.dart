@@ -1,5 +1,6 @@
 // presentation/maintenance/views/maintenance_screen.dart
 import 'package:casazero/app/theme/app_colors.dart';
+import 'package:casazero/core/utils/permissions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
@@ -81,8 +82,26 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
     });
   }
 
+
+  Role _getRoleFromString(String roleString) {
+    switch (roleString.toLowerCase()) {
+      case 'admin':
+        return Role.admin;
+      case 'manager':
+        return Role.manager;
+      case 'client':
+      default:
+        return Role.client;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final roleEnum = _getRoleFromString(widget.role);
+    final permissions = Permissions.fromRole(roleEnum);
+    // Allow all users to create personal maintenance tasks
+    final canCreateTasks = true; // All users can create personal maintenance tasks
+    
     return Scaffold(
       backgroundColor: AppColors.surfaceWarm50,
       body: Stack(
@@ -144,25 +163,42 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
           ),
 
           // Floating Action Button
+          // Positioned(
+          //   right: 16,
+          //   bottom: 16,
+          //   child: ScaleTransition(
+          //     scale: CurvedAnimation(
+          //       parent: _fabController,
+          //       curve: Curves.elasticOut,
+          //     ),
+          //     child: FloatingActionButton(
+          //       onPressed: _showCreateDialog,
+          //       backgroundColor: AppColors.brandSage600,
+          //       elevation: 4,
+          //       child: const Icon(
+          //         Icons.add_rounded,
+          //         color: AppColors.surfaceWhite,
+          //         size: 28,
+          //       ),
+          //     ),
+          //   ),
+          // ),
+
+          /// FLOATING ACTION BUTTON
+        if (canCreateTasks)
           Positioned(
-            right: 16,
-            bottom: 16,
-            child: ScaleTransition(
-              scale: CurvedAnimation(
-                parent: _fabController,
-                curve: Curves.elasticOut,
-              ),
-              child: FloatingActionButton(
-                onPressed: _showCreateDialog,
-                backgroundColor: AppColors.brandSage600,
-                elevation: 4,
-                child: const Icon(
-                  Icons.add_rounded,
-                  color: AppColors.surfaceWhite,
-                  size: 28,
-                ),
-              ),
-            ),
+            bottom: 20,
+            right: 20,
+            child:
+                FloatingActionButton(
+                    backgroundColor: const Color(0xFF4CAF47),
+                    onPressed: _showCreateDialog,
+                    child: const Icon(Icons.add, size: 26, color: Colors.white),
+                  ).animate()
+                  ..scale(
+                    begin: const Offset(0.5, 0.5),
+                    end: const Offset(1, 1),
+                  ).fadeIn(),
           ),
 
           // Add Maintenance Task Dialog
@@ -179,3 +215,5 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
     );
   }
 }
+
+
