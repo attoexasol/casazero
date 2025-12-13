@@ -149,7 +149,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
           constraints: const BoxConstraints(maxWidth: 500),
           decoration: BoxDecoration(
-            color: AppColors.surfaceWhite,
+            color: AppColors.surfaceWarm100,
             borderRadius: BorderRadius.circular(20),
           ),
           child: Column(
@@ -200,8 +200,8 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.only(
-        top: 18, // 🔥 extra top padding (matches screenshot)
-        bottom: 14,
+        top: 5, // 🔥 extra top padding (matches screenshot)
+        bottom: 5,
         left: 5,
         right: 5,
       ),
@@ -213,48 +213,36 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
         ),
       ),
       child: Stack(
-        alignment: Alignment.center,
         children: [
           /// CENTERED TITLE + SUBTITLE
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'addDocument'.tr,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.neutralInk900,
-                ),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 48),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'addDocument'.tr,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.neutralInk900,
+                    ),
+                  ),
+                  const SizedBox(height: 4), // 🔥 exact spacing from screenshot
+                  Text(
+                    'Upload a personal document to your collection',
+                    style: TextStyle(fontSize: 12, color: AppColors.neutralInk500),
+                  ),
+                ],
               ),
-              const SizedBox(height: 6), // 🔥 exact spacing from screenshot
-              Text(
-                'Upload a personal document to your collection',
-                style: TextStyle(fontSize: 12, color: AppColors.neutralInk500),
-              ),
-            ],
+            ),
           ),
 
-          const Spacer(),
-
           /// CLOSE BUTTON — TOP RIGHT
-          // Positioned(
-          //   right: 0,
-          //   top: 0,
-          //   child: Transform.translate(
-          //     offset: const Offset(20, -20), // 🔥 responsive upward shift
-          //     child: IconButton(
-          //       padding: EdgeInsets.zero,
-          //       constraints: const BoxConstraints(),
-          //       onPressed: widget.onClose,
-          //       icon: Icon(Icons.close, color: AppColors.neutralInk500),
-          //       splashRadius: 22,
-          //     ),
-          //   ),
-          // ),
           Positioned(
-            right: 10,
-            top: 10,
+            right: 0,
+            top: 0,
             child: IconButton(
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),

@@ -13,10 +13,7 @@ import '../../controllers/maintenance_controller.dart';
 class AddMaintenanceTaskDialog extends StatefulWidget {
   final VoidCallback onClose;
 
-  const AddMaintenanceTaskDialog({
-    super.key,
-    required this.onClose,
-  });
+  const AddMaintenanceTaskDialog({super.key, required this.onClose});
 
   @override
   State<AddMaintenanceTaskDialog> createState() =>
@@ -160,7 +157,7 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
           constraints: const BoxConstraints(maxWidth: 500),
           decoration: BoxDecoration(
-            color: AppColors.surfaceWhite,
+            color: AppColors.surfaceWarm100,
             borderRadius: BorderRadius.circular(20),
           ),
           child: Column(
@@ -176,14 +173,6 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // File Upload Area
-                      _buildFileUploadArea(),
-                      const SizedBox(height: 16),
-
-                      // Supported Formats Info
-                      _buildSupportedFormatsInfo(),
-                      const SizedBox(height: 20),
-
                       // Title Field
                       _buildTitleField(),
                       const SizedBox(height: 16),
@@ -198,6 +187,10 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
 
                       // Notes Field
                       _buildNotesField(),
+                      const SizedBox(height: 16),
+
+                      // File Upload Area
+                      _buildFileUploadArea(),
                     ],
                   ),
                 ),
@@ -214,12 +207,7 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.only(
-        top: 18,
-        bottom: 14,
-        left: 5,
-        right: 5,
-      ),
+      padding: const EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 5),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
@@ -231,30 +219,36 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
         children: [
           /// CENTERED TITLE + SUBTITLE
           Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Add Maintenance Task',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.neutralInk900,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 48),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Add Maintenance Task',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.neutralInk900,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Create a personal maintenance task to track',
-                  style: TextStyle(fontSize: 12, color: AppColors.neutralInk500),
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  Text(
+                    'Create a personal maintenance task to track',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.neutralInk500,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
 
           /// CLOSE BUTTON — TOP RIGHT
           Positioned(
-            right: 10,
-            top: 10,
+            right: 0,
+            top: 0,
             child: IconButton(
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
@@ -269,34 +263,51 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
   }
 
   Widget _buildFileUploadArea() {
-    return GestureDetector(
-      onTap: _selectedFile == null ? _pickFile : null,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 100, maxHeight: 150),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: _selectedFile == null
-                ? AppColors.surfaceWarm50
-                : AppColors.brandSage50,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: _selectedFile == null
-                  ? AppColors.neutralLine200
-                  : AppColors.brandSage300,
-              width: 2,
-              style: BorderStyle.solid,
-            ),
-          ),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.center,
-            child: _selectedFile == null
-                ? _buildUploadPrompt()
-                : _buildSelectedFile(),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Attachment(Optional)',
+          style: AppTextStyles.label.copyWith(
+            color: AppColors.neutralInk700,
+            fontSize: 14,
           ),
         ),
-      ),
+        const SizedBox(height: 8),
+
+        GestureDetector(
+          onTap: _selectedFile == null ? _pickFile : null,
+          child: SizedBox(
+            width: double.infinity,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 100, maxHeight: 150),
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: _selectedFile == null
+                      ? AppColors.surfaceWarm50
+                      : AppColors.brandSage50,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: _selectedFile == null
+                        ? AppColors.neutralLine200
+                        : AppColors.brandSage300,
+                    width: 2,
+                    style: BorderStyle.solid,
+                  ),
+                ),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.center,
+                  child: _selectedFile == null
+                      ? _buildUploadPrompt()
+                      : _buildSelectedFile(),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -378,23 +389,6 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
           icon: const Icon(Icons.close, size: 20),
           color: AppColors.neutralInk400,
           splashRadius: 20,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSupportedFormatsInfo() {
-    return Row(
-      children: [
-        Icon(Icons.info_outline, size: 16, color: AppColors.neutralInk400),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Text(
-            'Supported formats: PDF, JPG, JPEG, PNG',
-            style: AppTextStyles.caption.copyWith(
-              color: AppColors.neutralInk500,
-            ),
-          ),
         ),
       ],
     );
