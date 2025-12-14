@@ -67,6 +67,7 @@ class MainScaffold extends GetView<HomeController> {
   PreferredSizeWidget _buildAppBar() {
     String? title;
     bool showNotification = true;
+    bool showSearch = false;
     bool showResidenceSwitcher = false;
     bool canGoBack = false;
     bool canGoForward = false;
@@ -78,6 +79,7 @@ class MainScaffold extends GetView<HomeController> {
             controller.selectedResidence.value?.residenceName ??
             'AttoExa Solutions';
         showNotification = true;
+        showSearch = false;
         showResidenceSwitcher =
             controller.permissions.canManageBuildings &&
             controller.residences.isNotEmpty;
@@ -89,6 +91,7 @@ class MainScaffold extends GetView<HomeController> {
       case AppScreen.documents:
         title = 'Documents';
         showNotification = true;
+        showSearch = true; // Show search on Documents screen
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
         canGoForward = controller.canGoForward;
@@ -97,6 +100,7 @@ class MainScaffold extends GetView<HomeController> {
       case AppScreen.hubScreen:
         title = 'AI Assistant';
         showNotification = false;
+        showSearch = false;
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
         canGoForward = controller.canGoForward;
@@ -105,6 +109,7 @@ class MainScaffold extends GetView<HomeController> {
       case AppScreen.maintenance:
         title = 'Maintenance';
         showNotification = true;
+        showSearch = true; // Show search on Maintenance screen
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
         canGoForward = controller.canGoForward;
@@ -113,6 +118,7 @@ class MainScaffold extends GetView<HomeController> {
       case AppScreen.profile:
         title = 'Profile';
         showNotification = false;
+        showSearch = false;
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
         canGoForward = controller.canGoForward;
@@ -121,6 +127,7 @@ class MainScaffold extends GetView<HomeController> {
       case AppScreen.smartHome:
         title = 'Smart Home';
         showNotification = true;
+        showSearch = false;
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
         canGoForward = controller.canGoForward;
@@ -129,6 +136,7 @@ class MainScaffold extends GetView<HomeController> {
       case AppScreen.changePassword:
         title = 'Change Password';
         showNotification = false;
+        showSearch = false;
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
         canGoForward = controller.canGoForward;
@@ -136,6 +144,7 @@ class MainScaffold extends GetView<HomeController> {
       case AppScreen.ai:
         title = 'AI Assistant';
         showNotification = false;
+        showSearch = false;
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
         canGoForward = controller.canGoForward;
@@ -143,6 +152,7 @@ class MainScaffold extends GetView<HomeController> {
       case AppScreen.trustedDevices:
         title = 'trusted_devices'.tr;
         showNotification = false;
+        showSearch = false;
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
         canGoForward = controller.canGoForward;
@@ -155,99 +165,124 @@ class MainScaffold extends GetView<HomeController> {
 
     return PreferredSize(
       preferredSize: Size.fromHeight(64.h + statusBarHeight),
-      child: Container(
-        height: 45.h + statusBarHeight,
-        //padding: EdgeInsets.only(top: statusBarHeight),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceWhite.withOpacity(0.95),
-          border: Border(
-            bottom: BorderSide(
-              color: AppColors.neutralLine200.withOpacity(0.5),
-              width: 1,
-            ),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 15,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-            child: Center(
-              child: Container(
-                constraints: BoxConstraints(maxWidth: 448.w),
-                margin: EdgeInsets.symmetric(horizontal: 24.w),
-                child: Row(
-                  children: [
-                    // Left section
-                    Expanded(
-                      child: Row(
-                        children: [
-                          // Navigation Controls (Back/Forward)
-                          if (showNavigationControls) ...[
-                            _buildNavButton(
-                              icon: Icons.arrow_back,
-                              enabled: canGoBack,
-                              onTap: canGoBack ? () => controller.goBack() : null,
-                              tooltip: 'Go back (Alt+←)',
-                            ),
-                            SizedBox(width: 6.w),
-                            _buildNavButton(
-                              icon: Icons.arrow_forward,
-                              enabled: canGoForward,
-                              onTap: canGoForward ? () => controller.goForward() : null,
-                              tooltip: 'Go forward (Alt+→)',
-                            ),
-                            SizedBox(width: 8.w),
-                          ],
-
-                          // Logo/Title Section
-                          Expanded(
-                            child: _buildTitleSection(
-                              title: title,
-                              showNavigationControls: showNavigationControls,
-                              variant: variant,
-                              showResidenceSwitcher: showResidenceSwitcher,
-                              currentResidence: showResidenceSwitcher
-                                  ? (controller.selectedResidence.value?.residenceName ??
-                                      'Select Residence')
-                                  : null,
-                              onResidenceSwitch: showResidenceSwitcher
-                                  ? () => _showResidenceSelectorDialog()
-                                  : null,
-                            ),
-                          ),
-                        ],
-                      ),
+      child:
+          Container(
+                height: 50.h + statusBarHeight,
+                //padding: EdgeInsets.only(top: statusBarHeight),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceWhite.withOpacity(0.95),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: AppColors.neutralLine200.withOpacity(0.5),
+                      width: 1,
                     ),
-
-                    // Right section
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (showNotification)
-                          _buildNotificationButton(
-                            count: notificationCount,
-                            onTap: () {
-                              // TODO: Navigate to notifications screen
-                            },
-                          ),
-                      ],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 15,
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
-              ),
-            ),
-          ),
-        ),
-      )
-          .animate()
-          .slideY(begin: -0.05, end: 0, duration: 500.ms, curve: Curves.easeOut)
-          .fadeIn(duration: 500.ms),
+                child: ClipRect(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+                    child: Center(
+                      child: Container(
+                        constraints: BoxConstraints(maxWidth: 448.w),
+                        margin: EdgeInsets.symmetric(horizontal: 24.w),
+                        child: Row(
+                          children: [
+                            // Left section
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  // Navigation Controls (Back/Forward)
+                                  if (showNavigationControls) ...[
+                                    _buildNavButton(
+                                      icon: Icons.arrow_back,
+                                      enabled: canGoBack,
+                                      onTap: canGoBack
+                                          ? () => controller.goBack()
+                                          : null,
+                                      tooltip: 'Go back (Alt+←)',
+                                    ),
+                                    SizedBox(width: 6.w),
+                                    _buildNavButton(
+                                      icon: Icons.arrow_forward,
+                                      enabled: canGoForward,
+                                      onTap: canGoForward
+                                          ? () => controller.goForward()
+                                          : null,
+                                      tooltip: 'Go forward (Alt+→)',
+                                    ),
+                                    SizedBox(width: 8.w),
+                                  ],
+
+                                  // Logo/Title Section
+                                  Expanded(
+                                    child: _buildTitleSection(
+                                      title: title,
+                                      showNavigationControls:
+                                          showNavigationControls,
+                                      variant: variant,
+                                      showResidenceSwitcher:
+                                          showResidenceSwitcher,
+                                      currentResidence: showResidenceSwitcher
+                                          ? (controller
+                                                    .selectedResidence
+                                                    .value
+                                                    ?.residenceName ??
+                                                'Select Residence')
+                                          : null,
+                                      onResidenceSwitch: showResidenceSwitcher
+                                          ? () => _showResidenceSelectorDialog()
+                                          : null,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // Right section
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Search button - shown only on Documents and Maintenance screens
+                                if (showSearch) ...[
+                                  _buildSearchButton(
+                                    onTap: () {
+                                      // TODO: Implement search functionality
+                                    },
+                                  ),
+                                  SizedBox(width: 8.w),
+                                ],
+                                // Notification button - shown on ALL screens
+                                if (showNotification)
+                                  _buildNotificationButton(
+                                    count: notificationCount,
+                                    onTap: () {
+                                      // TODO: Navigate to notifications screen
+                                    },
+                                  ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              )
+              .animate()
+              .slideY(
+                begin: -0.05,
+                end: 0,
+                duration: 500.ms,
+                curve: Curves.easeOut,
+              )
+              .fadeIn(duration: 500.ms),
     );
   }
 
@@ -260,6 +295,16 @@ class MainScaffold extends GetView<HomeController> {
     return Tooltip(
       message: enabled ? tooltip : '',
       waitDuration: const Duration(milliseconds: 300),
+      textStyle: TextStyle(
+        color: AppColors.surfaceWhite,
+        fontSize: 12.sp,
+        fontWeight: FontWeight.w500,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.neutralInk900,
+        borderRadius: BorderRadius.circular(20.r),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
       child: MouseRegion(
         cursor: enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
         child: GestureDetector(
@@ -302,10 +347,10 @@ class MainScaffold extends GetView<HomeController> {
     // Branded variant with logo
     if (!showNavigationControls && variant == 'branded') {
       return Image.asset(
-        'assets/images/logo_green.png',
-        height: 24.h,
-        fit: BoxFit.contain,
-      )
+            'assets/images/logo_green.png',
+            height: 24.h,
+            fit: BoxFit.contain,
+          )
           .animate()
           .fadeIn(delay: 200.ms, duration: 400.ms)
           .slideX(begin: -0.1, end: 0, duration: 400.ms);
@@ -377,6 +422,49 @@ class MainScaffold extends GetView<HomeController> {
     return const SizedBox.shrink();
   }
 
+  Widget _buildSearchButton({required VoidCallback onTap}) {
+    return Tooltip(
+      message: 'Search',
+      waitDuration: const Duration(milliseconds: 300),
+      textStyle: TextStyle(
+        color: AppColors.surfaceWhite,
+        fontSize: 12.sp,
+        fontWeight: FontWeight.w500,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.neutralInk900,
+        borderRadius: BorderRadius.circular(20.r),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            padding: EdgeInsets.all(10.w),
+            decoration: BoxDecoration(
+              color: AppColors.brandSage50,
+              borderRadius: BorderRadius.circular(12.r),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.search,
+              size: 20.sp,
+              color: AppColors.brandSage600,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildNotificationButton({
     required int count,
     required VoidCallback onTap,
@@ -384,6 +472,16 @@ class MainScaffold extends GetView<HomeController> {
     return Tooltip(
       message: 'Notifications',
       waitDuration: const Duration(milliseconds: 300),
+      textStyle: TextStyle(
+        color: AppColors.surfaceWhite,
+        fontSize: 12.sp,
+        fontWeight: FontWeight.w500,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.neutralInk900,
+        borderRadius: BorderRadius.circular(20.r),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         child: GestureDetector(
@@ -416,36 +514,44 @@ class MainScaffold extends GetView<HomeController> {
                 Positioned(
                   right: -4.w,
                   top: -4.h,
-                  child: Container(
-                    constraints: BoxConstraints(minWidth: 20.w, minHeight: 20.h),
-                    padding: EdgeInsets.symmetric(horizontal: 6.w),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [AppColors.danger, AppColors.danger.withOpacity(0.9)],
-                      ),
-                      borderRadius: BorderRadius.circular(10.r),
-                      border: Border.all(color: AppColors.surfaceWhite, width: 2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
+                  child:
+                      Container(
+                        constraints: BoxConstraints(
+                          minWidth: 20.w,
+                          minHeight: 20.h,
                         ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Text(
-                        count > 9 ? '9+' : count.toString(),
-                        style: TextStyle(
-                          color: AppColors.surfaceWhite,
-                          fontSize: 11.sp,
-                          fontWeight: FontWeight.bold,
+                        padding: EdgeInsets.symmetric(horizontal: 6.w),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.danger,
+                              AppColors.danger.withOpacity(0.9),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(10.r),
+                          border: Border.all(
+                            color: AppColors.surfaceWhite,
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                      ),
-                    ),
-                  )
-                      .animate()
-                      .scale(
+                        child: Center(
+                          child: Text(
+                            count > 9 ? '9+' : count.toString(),
+                            style: TextStyle(
+                              color: AppColors.surfaceWhite,
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ).animate().scale(
                         begin: const Offset(0, 0),
                         end: const Offset(1, 1),
                         duration: 300.ms,
@@ -457,41 +563,42 @@ class MainScaffold extends GetView<HomeController> {
                 Positioned(
                   right: -4.w,
                   top: -4.h,
-                  child: Container(
-                    width: 20.w,
-                    height: 20.h,
-                    decoration: BoxDecoration(
-                      color: AppColors.danger,
-                      shape: BoxShape.circle,
-                    ),
-                  )
-                      .animate(onPlay: (controller) => controller.repeat())
-                      .scale(
-                        begin: const Offset(1, 1),
-                        end: const Offset(1.3, 1.3),
-                        duration: 2000.ms,
-                        curve: Curves.easeInOut,
-                      )
-                      .then()
-                      .scale(
-                        begin: const Offset(1.3, 1.3),
-                        end: const Offset(1, 1),
-                        duration: 2000.ms,
-                        curve: Curves.easeInOut,
-                      )
-                      .fade(
-                        begin: 0.5,
-                        end: 0,
-                        duration: 2000.ms,
-                        curve: Curves.easeInOut,
-                      )
-                      .then(delay: 0.ms)
-                      .fade(
-                        begin: 0,
-                        end: 0.5,
-                        duration: 2000.ms,
-                        curve: Curves.easeInOut,
-                      ),
+                  child:
+                      Container(
+                            width: 20.w,
+                            height: 20.h,
+                            decoration: BoxDecoration(
+                              color: AppColors.danger,
+                              shape: BoxShape.circle,
+                            ),
+                          )
+                          .animate(onPlay: (controller) => controller.repeat())
+                          .scale(
+                            begin: const Offset(1, 1),
+                            end: const Offset(1.3, 1.3),
+                            duration: 2000.ms,
+                            curve: Curves.easeInOut,
+                          )
+                          .then()
+                          .scale(
+                            begin: const Offset(1.3, 1.3),
+                            end: const Offset(1, 1),
+                            duration: 2000.ms,
+                            curve: Curves.easeInOut,
+                          )
+                          .fade(
+                            begin: 0.5,
+                            end: 0,
+                            duration: 2000.ms,
+                            curve: Curves.easeInOut,
+                          )
+                          .then(delay: 0.ms)
+                          .fade(
+                            begin: 0,
+                            end: 0.5,
+                            duration: 2000.ms,
+                            curve: Curves.easeInOut,
+                          ),
                 ),
             ],
           ),
