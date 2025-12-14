@@ -32,6 +32,7 @@ class HomeController extends GetxController {
   // Screen navigation
   final currentScreen = AppScreen.home.obs;
   final screenHistory = <AppScreen>[].obs;
+  final forwardHistory = <AppScreen>[].obs;
 
   // Computed properties
   Permissions get permissions =>
@@ -291,6 +292,8 @@ class HomeController extends GetxController {
   void navigateToScreen(AppScreen screen, {bool addToHistory = true}) {
     if (addToHistory && currentScreen.value != screen) {
       screenHistory.add(currentScreen.value);
+      // Clear forward history when navigating to a new screen
+      forwardHistory.clear();
     }
     currentScreen.value = screen;
   }
@@ -341,12 +344,33 @@ class HomeController extends GetxController {
   void goBack() {
     if (screenHistory.isNotEmpty) {
       final previousScreen = screenHistory.removeLast();
+      // Add current screen to forward history
+      forwardHistory.add(currentScreen.value);
       currentScreen.value = previousScreen;
     } else {
       // If no history, go to home
-      currentScreen.value = AppScreen.home;
+      if (currentScreen.value != AppScreen.home) {
+        forwardHistory.add(currentScreen.value);
+        currentScreen.value = AppScreen.home;
+      }
     }
   }
+
+  /// Go forward to next screen
+  void goForward() {
+    if (forwardHistory.isNotEmpty) {
+      final nextScreen = forwardHistory.removeLast();
+      // Add current screen to back history
+      screenHistory.add(currentScreen.value);
+      currentScreen.value = nextScreen;
+    }
+  }
+
+  /// Check if can go back
+  bool get canGoBack => screenHistory.isNotEmpty || currentScreen.value != AppScreen.home;
+
+  /// Check if can go forward
+  bool get canGoForward => forwardHistory.isNotEmpty;
 
   /// Handle system back button
   Future<bool> handleBackNavigation() async {
@@ -370,6 +394,7 @@ class HomeController extends GetxController {
   // Clear navigation history
   void clearHistory() {
     screenHistory.clear();
+    forwardHistory.clear();
   }
 
   // LOGOUT

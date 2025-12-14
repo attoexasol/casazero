@@ -4,7 +4,10 @@ import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../app/theme/app_colors.dart';
-import '../../core/widgets/cz_app_bar.dart';
+import '../../app/theme/app_text_styles.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'dart:ui';
 import '../ai/viwes/ai_screen.dart';
 import '../documents/viwes/documents_screen.dart';
 import '../home/views/home_screen.dart';
@@ -62,88 +65,438 @@ class MainScaffold extends GetView<HomeController> {
 
   // BUILD APP BAR - PERSISTENT ACROSS ALL SCREENS
   PreferredSizeWidget _buildAppBar() {
-    String title = 'CasaZero';
+    String? title;
     bool showNotification = true;
-    bool showBuildingSelector = false;
-    bool showBackButton = false;
+    bool showResidenceSwitcher = false;
+    bool canGoBack = false;
+    bool canGoForward = false;
+    String variant = 'default';
 
     switch (controller.currentScreen.value) {
       case AppScreen.home:
-        // Show selected residence name or default
         title =
             controller.selectedResidence.value?.residenceName ??
             'AttoExa Solutions';
         showNotification = true;
-        showBuildingSelector =
+        showResidenceSwitcher =
             controller.permissions.canManageBuildings &&
             controller.residences.isNotEmpty;
-        showBackButton = false;
+        canGoBack = controller.canGoBack;
+        canGoForward = controller.canGoForward;
+        variant = 'branded';
         break;
 
       case AppScreen.documents:
         title = 'Documents';
         showNotification = true;
-        showBuildingSelector = false;
-        showBackButton = false;
+        showResidenceSwitcher = false;
+        canGoBack = controller.canGoBack;
+        canGoForward = controller.canGoForward;
         break;
 
       case AppScreen.hubScreen:
         title = 'AI Assistant';
         showNotification = false;
-        showBuildingSelector = false;
-        showBackButton = false;
+        showResidenceSwitcher = false;
+        canGoBack = controller.canGoBack;
+        canGoForward = controller.canGoForward;
         break;
 
       case AppScreen.maintenance:
         title = 'Maintenance';
         showNotification = true;
-        showBuildingSelector = false;
-        showBackButton = false;
+        showResidenceSwitcher = false;
+        canGoBack = controller.canGoBack;
+        canGoForward = controller.canGoForward;
         break;
 
       case AppScreen.profile:
         title = 'Profile';
         showNotification = false;
-        showBuildingSelector = false;
-        showBackButton = false;
+        showResidenceSwitcher = false;
+        canGoBack = controller.canGoBack;
+        canGoForward = controller.canGoForward;
         break;
 
       case AppScreen.smartHome:
         title = 'Smart Home';
         showNotification = true;
-        showBuildingSelector = false;
-        showBackButton = true; // Show back button for sub-screens
+        showResidenceSwitcher = false;
+        canGoBack = controller.canGoBack;
+        canGoForward = controller.canGoForward;
         break;
 
       case AppScreen.changePassword:
         title = 'Change Password';
         showNotification = false;
-        showBuildingSelector = false;
-        showBackButton = true;
+        showResidenceSwitcher = false;
+        canGoBack = controller.canGoBack;
+        canGoForward = controller.canGoForward;
         break;
       case AppScreen.ai:
-        title = 'Change Password';
+        title = 'AI Assistant';
         showNotification = false;
-        showBuildingSelector = false;
-        showBackButton = true;
+        showResidenceSwitcher = false;
+        canGoBack = controller.canGoBack;
+        canGoForward = controller.canGoForward;
         break;
       case AppScreen.trustedDevices:
         title = 'trusted_devices'.tr;
         showNotification = false;
-        showBuildingSelector = false;
-        showBackButton = true;
+        showResidenceSwitcher = false;
+        canGoBack = controller.canGoBack;
+        canGoForward = controller.canGoForward;
         break;
     }
 
-    return CZAppBar(
-      title: title,
-      showNotification: showNotification,
-      showBuildingSelector: showBuildingSelector,
-      showBackButton: showBackButton,
-      onBackPressed: showBackButton ? () => controller.goBack() : null,
-      onBuildingTap: showBuildingSelector
-          ? () => _showResidenceSelectorDialog()
-          : null,
+    final showNavigationControls = canGoBack || canGoForward;
+    final statusBarHeight = MediaQuery.of(Get.context!).padding.top;
+    const notificationCount = 2; // TODO: Get from notification service
+
+    return PreferredSize(
+      preferredSize: Size.fromHeight(64.h + statusBarHeight),
+      child: Container(
+        height: 45.h + statusBarHeight,
+        //padding: EdgeInsets.only(top: statusBarHeight),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceWhite.withOpacity(0.95),
+          border: Border(
+            bottom: BorderSide(
+              color: AppColors.neutralLine200.withOpacity(0.5),
+              width: 1,
+            ),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 15,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+            child: Center(
+              child: Container(
+                constraints: BoxConstraints(maxWidth: 448.w),
+                margin: EdgeInsets.symmetric(horizontal: 24.w),
+                child: Row(
+                  children: [
+                    // Left section
+                    Expanded(
+                      child: Row(
+                        children: [
+                          // Navigation Controls (Back/Forward)
+                          if (showNavigationControls) ...[
+                            _buildNavButton(
+                              icon: Icons.arrow_back,
+                              enabled: canGoBack,
+                              onTap: canGoBack ? () => controller.goBack() : null,
+                              tooltip: 'Go back (Alt+←)',
+                            ),
+                            SizedBox(width: 6.w),
+                            _buildNavButton(
+                              icon: Icons.arrow_forward,
+                              enabled: canGoForward,
+                              onTap: canGoForward ? () => controller.goForward() : null,
+                              tooltip: 'Go forward (Alt+→)',
+                            ),
+                            SizedBox(width: 8.w),
+                          ],
+
+                          // Logo/Title Section
+                          Expanded(
+                            child: _buildTitleSection(
+                              title: title,
+                              showNavigationControls: showNavigationControls,
+                              variant: variant,
+                              showResidenceSwitcher: showResidenceSwitcher,
+                              currentResidence: showResidenceSwitcher
+                                  ? (controller.selectedResidence.value?.residenceName ??
+                                      'Select Residence')
+                                  : null,
+                              onResidenceSwitch: showResidenceSwitcher
+                                  ? () => _showResidenceSelectorDialog()
+                                  : null,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Right section
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (showNotification)
+                          _buildNotificationButton(
+                            count: notificationCount,
+                            onTap: () {
+                              // TODO: Navigate to notifications screen
+                            },
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      )
+          .animate()
+          .slideY(begin: -0.05, end: 0, duration: 500.ms, curve: Curves.easeOut)
+          .fadeIn(duration: 500.ms),
+    );
+  }
+
+  Widget _buildNavButton({
+    required IconData icon,
+    required bool enabled,
+    required VoidCallback? onTap,
+    required String tooltip,
+  }) {
+    return Tooltip(
+      message: enabled ? tooltip : '',
+      waitDuration: const Duration(milliseconds: 300),
+      child: MouseRegion(
+        cursor: enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+        child: GestureDetector(
+          onTap: enabled ? onTap : null,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            padding: EdgeInsets.all(10.w),
+            decoration: BoxDecoration(
+              color: enabled ? AppColors.brandSage50 : AppColors.neutralLine100,
+              borderRadius: BorderRadius.circular(12.r),
+              boxShadow: enabled
+                  ? [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : [],
+            ),
+            child: Icon(
+              icon,
+              size: 20.sp,
+              color: enabled ? AppColors.brandSage600 : AppColors.neutralInk300,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTitleSection({
+    String? title,
+    required bool showNavigationControls,
+    required String variant,
+    required bool showResidenceSwitcher,
+    String? currentResidence,
+    VoidCallback? onResidenceSwitch,
+  }) {
+    // Branded variant with logo
+    if (!showNavigationControls && variant == 'branded') {
+      return Image.asset(
+        'assets/images/logo_green.png',
+        height: 24.h,
+        fit: BoxFit.contain,
+      )
+          .animate()
+          .fadeIn(delay: 200.ms, duration: 400.ms)
+          .slideX(begin: -0.1, end: 0, duration: 400.ms);
+    }
+
+    // Residence Switcher
+    if (showResidenceSwitcher && currentResidence != null) {
+      return GestureDetector(
+        onTap: onResidenceSwitch,
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+            decoration: BoxDecoration(
+              color: AppColors.brandSage50.withOpacity(0.8),
+              borderRadius: BorderRadius.circular(12.r),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(
+                    currentResidence,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.neutralInk900,
+                    ),
+                  ),
+                ),
+                SizedBox(width: 8.w),
+                Icon(
+                  LucideIcons.chevronDown,
+                  size: 16.sp,
+                  color: AppColors.neutralInk500,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Title
+    if (title != null) {
+      return Text(
+        title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: AppTextStyles.bodyMedium.copyWith(
+          fontSize: 16.sp,
+          fontWeight: FontWeight.w500,
+          color: AppColors.neutralInk900,
+          letterSpacing: -0.3,
+        ),
+      ).animate().fadeIn(delay: 200.ms, duration: 400.ms);
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildNotificationButton({
+    required int count,
+    required VoidCallback onTap,
+  }) {
+    return Tooltip(
+      message: 'Notifications',
+      waitDuration: const Duration(milliseconds: 300),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: onTap,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                padding: EdgeInsets.all(10.w),
+                decoration: BoxDecoration(
+                  color: AppColors.brandSage50,
+                  borderRadius: BorderRadius.circular(12.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  Icons.notifications,
+                  size: 20.sp,
+                  color: AppColors.brandSage600,
+                ),
+              ),
+              // Notification Badge
+              if (count > 0)
+                Positioned(
+                  right: -4.w,
+                  top: -4.h,
+                  child: Container(
+                    constraints: BoxConstraints(minWidth: 20.w, minHeight: 20.h),
+                    padding: EdgeInsets.symmetric(horizontal: 6.w),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AppColors.danger, AppColors.danger.withOpacity(0.9)],
+                      ),
+                      borderRadius: BorderRadius.circular(10.r),
+                      border: Border.all(color: AppColors.surfaceWhite, width: 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        count > 9 ? '9+' : count.toString(),
+                        style: TextStyle(
+                          color: AppColors.surfaceWhite,
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  )
+                      .animate()
+                      .scale(
+                        begin: const Offset(0, 0),
+                        end: const Offset(1, 1),
+                        duration: 300.ms,
+                        curve: Curves.elasticOut,
+                      ),
+                ),
+              // Pulsing indicator
+              if (count > 0)
+                Positioned(
+                  right: -4.w,
+                  top: -4.h,
+                  child: Container(
+                    width: 20.w,
+                    height: 20.h,
+                    decoration: BoxDecoration(
+                      color: AppColors.danger,
+                      shape: BoxShape.circle,
+                    ),
+                  )
+                      .animate(onPlay: (controller) => controller.repeat())
+                      .scale(
+                        begin: const Offset(1, 1),
+                        end: const Offset(1.3, 1.3),
+                        duration: 2000.ms,
+                        curve: Curves.easeInOut,
+                      )
+                      .then()
+                      .scale(
+                        begin: const Offset(1.3, 1.3),
+                        end: const Offset(1, 1),
+                        duration: 2000.ms,
+                        curve: Curves.easeInOut,
+                      )
+                      .fade(
+                        begin: 0.5,
+                        end: 0,
+                        duration: 2000.ms,
+                        curve: Curves.easeInOut,
+                      )
+                      .then(delay: 0.ms)
+                      .fade(
+                        begin: 0,
+                        end: 0.5,
+                        duration: 2000.ms,
+                        curve: Curves.easeInOut,
+                      ),
+                ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
