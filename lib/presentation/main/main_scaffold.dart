@@ -98,8 +98,8 @@ class MainScaffold extends GetView<HomeController> {
         break;
 
       case AppScreen.hubScreen:
-        title = 'AI Assistant';
-        showNotification = false;
+        title = 'Ecosystem Hub';
+        showNotification = true; // Show notification on all screens
         showSearch = false;
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
@@ -108,7 +108,7 @@ class MainScaffold extends GetView<HomeController> {
 
       case AppScreen.maintenance:
         title = 'Maintenance';
-        showNotification = true;
+        showNotification = true; // Show notification on all screens
         showSearch = true; // Show search on Maintenance screen
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
@@ -117,7 +117,7 @@ class MainScaffold extends GetView<HomeController> {
 
       case AppScreen.profile:
         title = 'Profile';
-        showNotification = false;
+        showNotification = true; // Show notification on all screens
         showSearch = false;
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
@@ -126,7 +126,7 @@ class MainScaffold extends GetView<HomeController> {
 
       case AppScreen.smartHome:
         title = 'Smart Home';
-        showNotification = true;
+        showNotification = true; // Show notification on all screens
         showSearch = false;
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
@@ -135,7 +135,7 @@ class MainScaffold extends GetView<HomeController> {
 
       case AppScreen.changePassword:
         title = 'Change Password';
-        showNotification = false;
+        showNotification = true; // Show notification on all screens
         showSearch = false;
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
@@ -143,7 +143,7 @@ class MainScaffold extends GetView<HomeController> {
         break;
       case AppScreen.ai:
         title = 'AI Assistant';
-        showNotification = false;
+        showNotification = true; // Show notification on all screens
         showSearch = false;
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
@@ -151,7 +151,7 @@ class MainScaffold extends GetView<HomeController> {
         break;
       case AppScreen.trustedDevices:
         title = 'trusted_devices'.tr;
-        showNotification = false;
+        showNotification = true; // Show notification on all screens
         showSearch = false;
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
@@ -311,10 +311,11 @@ class MainScaffold extends GetView<HomeController> {
           onTap: enabled ? onTap : null,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 300),
-            padding: EdgeInsets.all(10.w),
+            width: 43.w,
+            height: 43.w,
             decoration: BoxDecoration(
               color: enabled ? AppColors.brandSage50 : AppColors.neutralLine100,
-              borderRadius: BorderRadius.circular(12.r),
+              shape: BoxShape.circle,
               boxShadow: enabled
                   ? [
                       BoxShadow(
@@ -442,10 +443,11 @@ class MainScaffold extends GetView<HomeController> {
           onTap: onTap,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 300),
-            padding: EdgeInsets.all(10.w),
+            width: 43.w,
+            height: 43.w,
             decoration: BoxDecoration(
               color: AppColors.brandSage50,
-              borderRadius: BorderRadius.circular(12.r),
+              shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.05),
@@ -456,7 +458,7 @@ class MainScaffold extends GetView<HomeController> {
             ),
             child: Icon(
               Icons.search,
-              size: 20.sp,
+              size: 25.sp,
               color: AppColors.brandSage600,
             ),
           ),
@@ -491,10 +493,11 @@ class MainScaffold extends GetView<HomeController> {
             children: [
               AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
-                padding: EdgeInsets.all(10.w),
+                width: 43.w,
+                height: 43.w,
                 decoration: BoxDecoration(
                   color: AppColors.brandSage50,
-                  borderRadius: BorderRadius.circular(12.r),
+                  shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.05),
@@ -505,7 +508,7 @@ class MainScaffold extends GetView<HomeController> {
                 ),
                 child: Icon(
                   Icons.notifications,
-                  size: 20.sp,
+                  size: 25.sp,
                   color: AppColors.brandSage600,
                 ),
               ),

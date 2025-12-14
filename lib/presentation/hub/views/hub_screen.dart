@@ -56,28 +56,34 @@ class HubScreen extends StatelessWidget {
         shadowColor: const Color(0x4D4CAF47),
         hoverColor: const Color(0xFF4CAF47),
         show: permissions.canAccessAI,
+        wrapIconInContainer: false,
+        
       ),
       HubCard(
         id: 'smarthome',
         screen: 'smarthome',
         title: "Domotica",
+        //icon: Icons.home_outlined,
         imagePath: "assets/images/home.svg",
         gradient: const [Color(0xFFA855F7), Color(0xFF9333EA)],
         bgGradient: const [Color(0xFFF3E8FF), Color(0xFFE9D5FF)],
         shadowColor: const Color(0x4DA855F7),
         hoverColor: const Color(0xFF9333EA),
         show: permissions.canAccessSmartHome,
+        wrapIconInContainer: true,
       ),
       HubCard(
         id: 'chat',
         screen: 'chat',
         title: "Chat Condominio",
-        imagePath: "assets/images/chat.png",
+        //icon: Icons.chat_outlined,
+        imagePath: "assets/images/Chat_icon.svg",
         gradient: const [Color(0xFF3B82F6), Color(0xFF2563EB)],
         bgGradient: const [Color(0xFFEFF6FF), Color(0xFFDBEAFE)],
         shadowColor: const Color(0x4D3B82F6),
         hoverColor: const Color(0xFF3B82F6),
         show: permissions.canAccessChat,
+        wrapIconInContainer: true,
       ),
       HubCard(
         id: 'assistenza',
@@ -89,6 +95,7 @@ class HubScreen extends StatelessWidget {
         shadowColor: const Color(0x4DF59E0B),
         hoverColor: const Color(0xFFF59E0B),
         show: permissions.canCreateTickets,
+        wrapIconInContainer: true,
       ),
     ].where((c) => c.show).toList();
 
@@ -115,7 +122,7 @@ class HubScreen extends StatelessWidget {
                 )
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 10),
 
               // RESPONSIVE GRID
               Padding(
@@ -135,6 +142,7 @@ class HubScreen extends StatelessWidget {
                       card: hubCards[index],
                       index: index,
                       onTap: () => onNavigate(hubCards[index].screen),
+                      wrapIconInContainer: hubCards[index].wrapIconInContainer,
                     );
                   },
                 ),
@@ -249,6 +257,4 @@ class HubScreen extends StatelessWidget {
     ).animate().fadeIn().slideY(begin: 0.2);
   }
 }
-
-
 

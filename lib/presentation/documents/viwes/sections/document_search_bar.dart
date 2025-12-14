@@ -32,19 +32,22 @@ class DocumentSearchBar extends StatelessWidget {
               ),
             ],
           ),
-          child: TextField(
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: Colors.transparent,
-              prefixIcon: const Icon(Icons.search, color: Colors.grey),
-              hintText: "searchDocuments".tr,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide.none,
+          child: SizedBox(
+            height: 48,
+            child: TextField(
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.transparent,
+                prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                hintText: "searchDocuments".tr,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 14),
               ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 14),
+              onChanged: onChanged,
             ),
-            onChanged: onChanged,
           ),
         ),
       ),

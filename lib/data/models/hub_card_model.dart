@@ -12,6 +12,7 @@ class HubCard {
   final Color shadowColor;
   final Color hoverColor;
   final bool show;
+  final bool wrapIconInContainer;
 
   HubCard({
     required this.id,
@@ -25,5 +26,6 @@ class HubCard {
     required this.shadowColor,
     required this.hoverColor,
     required this.show,
+    this.wrapIconInContainer = true,
   });
 }
