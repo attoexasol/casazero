@@ -6,8 +6,7 @@ class BuildingSelectorCapsule extends StatelessWidget {
   final String label;
   final VoidCallback? onTap;
 
-  const BuildingSelectorCapsule({Key? key, required this.label, this.onTap})
-    : super(key: key);
+  const BuildingSelectorCapsule({super.key, required this.label, this.onTap});
 
   @override
   Widget build(BuildContext context) {

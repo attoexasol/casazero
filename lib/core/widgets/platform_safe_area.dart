@@ -27,14 +27,14 @@ class PlatformSafeArea extends StatelessWidget {
   final EdgeInsets minimum;
 
   const PlatformSafeArea({
-    Key? key,
+    super.key,
     required this.child,
     this.top = true,
     this.bottom = true,
     this.left = false,
     this.right = false,
     this.minimum = EdgeInsets.zero,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -70,10 +70,10 @@ class PlatformSafeAreaTop extends StatelessWidget {
   final EdgeInsets minimum;
 
   const PlatformSafeAreaTop({
-    Key? key,
+    super.key,
     required this.child,
     this.minimum = EdgeInsets.zero,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -106,10 +106,10 @@ class PlatformSafeAreaBottom extends StatelessWidget {
   final EdgeInsets minimum;
 
   const PlatformSafeAreaBottom({
-    Key? key,
+    super.key,
     required this.child,
     this.minimum = EdgeInsets.zero,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

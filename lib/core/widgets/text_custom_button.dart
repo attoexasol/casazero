@@ -10,13 +10,13 @@ class TextCustomButton extends StatelessWidget {
   final IconData? icon;
 
   const TextCustomButton({
-    Key? key,
+    super.key,
     required this.text,
     this.onPressed,
     this.isLoading = false,
     this.textColor,
     this.icon,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

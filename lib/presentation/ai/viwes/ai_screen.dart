@@ -44,7 +44,7 @@ class SuggestedPrompt {
 }
 
 class AIScreen extends StatefulWidget {
-  const AIScreen({Key? key}) : super(key: key);
+  const AIScreen({super.key});
 
   @override
   State<AIScreen> createState() => _AIScreenState();
@@ -759,7 +759,7 @@ class _AIScreenState extends State<AIScreen> with TickerProviderStateMixin {
                 .animate()
                 .fadeIn(delay: (200 + idx * 100).ms)
                 .slideY(begin: 0.2, end: 0);
-          }).toList(),
+          }),
           const SizedBox(height: 24),
         ],
 
@@ -856,7 +856,7 @@ class _AIScreenState extends State<AIScreen> with TickerProviderStateMixin {
               .animate()
               .fadeIn(delay: (400 + idx * 100).ms)
               .slideY(begin: 0.1, end: 0);
-        }).toList(),
+        }),
       ],
     ).animate().fadeIn(delay: 600.ms);
   }

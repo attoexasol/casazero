@@ -13,7 +13,7 @@ class PremiumCard extends StatefulWidget {
   final bool enableHoverEffect;
 
   const PremiumCard({
-    Key? key,
+    super.key,
     required this.child,
     this.padding,
     this.margin,
@@ -22,7 +22,7 @@ class PremiumCard extends StatefulWidget {
     this.onTap,
     this.showShadow = true,
     this.enableHoverEffect = true,
-  }) : super(key: key);
+  });
 
   @override
   State<PremiumCard> createState() => _PremiumCardState();

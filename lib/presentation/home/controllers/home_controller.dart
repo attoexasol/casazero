@@ -105,10 +105,10 @@ class HomeController extends GetxController {
     // Call in background - don't await
     Future.microtask(() async {
       try {
-        print('📄 Pre-loading documents in HomeController...');
+        print('Pre-loading documents in HomeController...');
         final documentRepository = DocumentRepository();
         final result = await documentRepository.getDocumentsByUnit();
-        
+
         if (result['success'] == true) {
           // Initialize DocumentsController with pre-loaded data
           if (!Get.isRegistered<DocumentsController>()) {
@@ -116,9 +116,14 @@ class HomeController extends GetxController {
             // Update documents list with pre-loaded data
             final documentsData = result['data'] as List<dynamic>;
             documentsController.documents.value = documentsData
-                .map((item) => DocumentModel.fromJson(item as Map<String, dynamic>))
+                .map(
+                  (item) =>
+                      DocumentModel.fromJson(item as Map<String, dynamic>),
+                )
                 .toList();
-            print('✅ Documents pre-loaded in HomeController: ${documentsData.length} documents');
+            print(
+              '✅ Documents pre-loaded in HomeController: ${documentsData.length} documents',
+            );
           } else {
             // If controller exists, just refresh
             final documentsController = Get.find<DocumentsController>();
@@ -155,15 +160,15 @@ class HomeController extends GetxController {
         if (residences.isNotEmpty && selectedResidence.value == null) {
           selectedResidence.value = residences.first;
           print(
-            'âœ… Auto-selected residence: ${selectedResidence.value?.residenceName}',
+            'Auto-selected residence: ${selectedResidence.value?.residenceName}',
           );
 
           Get.find<DocumentsController>().fetchDocuments();
         }
 
-        print('âœ… Loaded ${residences.length} residences');
+        print('Loaded ${residences.length} residences');
       } else {
-        print('âŒ Failed to fetch residences: ${result['error']}');
+        print('Failed to fetch residences: ${result['error']}');
         Get.snackbar(
           'error'.tr,
           result['error'] ?? 'Failed to load residences',
@@ -173,7 +178,7 @@ class HomeController extends GetxController {
         );
       }
     } catch (e) {
-      print('âŒ Error fetching residences: $e');
+      print('Error fetching residences: $e');
     } finally {
       isLoadingResidences.value = false;
     }
@@ -367,7 +372,8 @@ class HomeController extends GetxController {
   }
 
   /// Check if can go back
-  bool get canGoBack => screenHistory.isNotEmpty || currentScreen.value != AppScreen.home;
+  bool get canGoBack =>
+      screenHistory.isNotEmpty || currentScreen.value != AppScreen.home;
 
   /// Check if can go forward
   bool get canGoForward => forwardHistory.isNotEmpty;

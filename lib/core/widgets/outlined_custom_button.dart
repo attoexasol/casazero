@@ -14,7 +14,7 @@ class OutlinedCustomButton extends StatelessWidget {
   final double borderRadius;
 
   const OutlinedCustomButton({
-    Key? key,
+    super.key,
     required this.text,
     this.onPressed,
     this.isLoading = false,
@@ -24,7 +24,7 @@ class OutlinedCustomButton extends StatelessWidget {
     this.height = 48,
     this.icon,
     this.borderRadius = 12,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -42,7 +42,7 @@ enum AppScreen {
 }
 
 class MainScaffold extends GetView<HomeController> {
-  const MainScaffold({Key? key}) : super(key: key);
+  const MainScaffold({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +57,14 @@ class MainScaffold extends GetView<HomeController> {
           // SINGLE PERSISTENT APP BAR FOR ALL SCREENS
           appBar: _buildAppBar(),
           // BODY - Contains all screens dynamically
-          body: _buildBody(),
+          // SafeArea applied here for Android devices (removed from main.dart to allow snackbars)
+          body: SafeArea(
+            top: false, // AppBar handles top safe area
+            bottom: true,
+            left: false,
+            right: false,
+            child: _buildBody(),
+          ),
           // SINGLE PERSISTENT BOTTOM NAV BAR (show/hide based on screen)
           bottomNavigationBar: _buildBottomNavBar(),
         ),
@@ -734,18 +741,16 @@ class MainScaffold extends GetView<HomeController> {
           Get.put(ProfileController());
         }
         final profileController = Get.find<ProfileController>();
-        
+
         // Sync user data from HomeController to ProfileController
         if (controller.currentUser.value != null) {
           profileController.syncUserData(controller.currentUser.value!);
         }
-        
+
         // Ensure user is loaded before showing profile screen
         if (controller.currentUser.value == null) {
           return const Center(
-            child: CircularProgressIndicator(
-              color: AppColors.brandSage500,
-            ),
+            child: CircularProgressIndicator(color: AppColors.brandSage500),
           );
         }
         return ProfileScreen(
@@ -792,12 +797,10 @@ class MainScaffold extends GetView<HomeController> {
       final user = controller.currentUser.value;
       if (user == null) {
         return const Center(
-          child: CircularProgressIndicator(
-            color: AppColors.brandSage500,
-          ),
+          child: CircularProgressIndicator(color: AppColors.brandSage500),
         );
       }
-      
+
       if (user.residenceStatus == ResidenceStatus.completed) {
         return HubScreen(
           role: user.role ?? Role.client,

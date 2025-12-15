@@ -10,12 +10,12 @@ class HubCardWidget extends StatefulWidget {
   final bool wrapIconInContainer;
 
   const HubCardWidget({
-    Key? key,
+    super.key,
     required this.card,
     required this.index,
     required this.onTap,
     required this.wrapIconInContainer,
-  }) : super(key: key);
+  });
 
   @override
   State<HubCardWidget> createState() => _HubCardWidgetState();

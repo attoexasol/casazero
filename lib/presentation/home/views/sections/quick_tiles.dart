@@ -19,29 +19,32 @@ class QuickTiles extends StatelessWidget {
   Widget build(BuildContext context) {
     final tiles = <Map<String, dynamic>>[];
 
-    if (permissions.canAccessAnalytics)
+    if (permissions.canAccessAnalytics) {
       tiles.add({
         'icon': Icons.bar_chart,
         'title': 'analytics'.tr,
         'label': 'residence_insights_desc'.tr,
         'screen': 'analytics'
       });
+    }
 
-    if (permissions.canViewUserList)
+    if (permissions.canViewUserList) {
       tiles.add({
         'icon': Icons.people,
         'title': 'residents'.tr,
         'label': 'manage_community_desc'.tr,
         'screen': 'users'
       });
+    }
 
-    if (permissions.canManageBuildings)
+    if (permissions.canManageBuildings) {
       tiles.add({
         'icon': Icons.business,
         'title': 'building'.tr,
         'label': 'manage_buildings_desc'.tr,
         'screen': 'buildings'
       });
+    }
 
     if (tiles.isEmpty) return const SizedBox.shrink();
 

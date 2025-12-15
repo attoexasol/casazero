@@ -33,9 +33,9 @@ class SmartHomeScreen extends StatefulWidget {
   final String role; // 'client', 'admin', 'super-admin'
 
   const SmartHomeScreen({
-    Key? key,
+    super.key,
     required this.role,
-  }) : super(key: key);
+  });
 
   @override
   State<SmartHomeScreen> createState() => _SmartHomeScreenState();
@@ -564,7 +564,7 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
                 onChanged: _canControlDevices
                     ? (value) => _toggleDevice(device.id)
                     : null,
-                activeColor: const Color(0xFF6B8E23),
+                activeThumbColor: const Color(0xFF6B8E23),
               ),
             ],
           ),

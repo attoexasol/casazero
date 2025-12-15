@@ -9,11 +9,11 @@ class LanguageSwitcher extends StatelessWidget {
   final Color? inactiveColor;
 
   const LanguageSwitcher({
-    Key? key,
+    super.key,
     this.showLabel = true,
     this.activeColor,
     this.inactiveColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

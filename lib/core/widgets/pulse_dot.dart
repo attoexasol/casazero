@@ -5,10 +5,10 @@ class PulseDot extends StatefulWidget {
   final double size;
 
   const PulseDot({
-    Key? key,
+    super.key,
     required this.color,
     this.size = 8,
-  }) : super(key: key);
+  });
 
   @override
   State<PulseDot> createState() => _PulseDotState();

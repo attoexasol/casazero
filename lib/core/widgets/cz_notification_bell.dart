@@ -7,10 +7,10 @@ class CZNotificationBell extends StatelessWidget {
   final VoidCallback? onTap;
 
   const CZNotificationBell({
-    Key? key,
+    super.key,
     required this.count,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

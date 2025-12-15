@@ -10,12 +10,12 @@ class StatusBadge extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
 
   const StatusBadge({
-    Key? key,
+    super.key,
     required this.text,
     this.type = BadgeType.neutral,
     this.fontSize,
     this.padding,
-  }) : super(key: key);
+  });
 
   Color get _backgroundColor {
     switch (type) {

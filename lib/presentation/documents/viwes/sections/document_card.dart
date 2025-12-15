@@ -194,40 +194,46 @@ class _DocumentCardState extends State<DocumentCard> {
                             SizedBox(height: 10 * scale),
 
                             /// ACTION BUTTONS
-                            Row(
-                              children: [
-                                // Download Button
-                                if (widget.onDownload != null)
-                                  _actionBtn(
-                                    "assets/images/download.svg",
-                                    widget.onDownload!,
-                                    scale,
-                                  ),
-
-                                // Share Button
-                                if (widget.onShare != null)
-                                  Padding(
-                                    padding: EdgeInsets.only(left: 15 * scale),
-                                    child: _actionIconBtn(
-                                      Icons.share_outlined,
-                                      widget.onShare!,
+                            Listener(
+                              // Stop pointer events from propagating to parent GestureDetector
+                              onPointerDown: (event) {
+                                // Consume the pointer event to prevent parent from receiving it
+                              },
+                              child: Row(
+                                children: [
+                                  // Download Button
+                                  if (widget.onDownload != null)
+                                    _actionBtn(
+                                      "assets/images/download.svg",
+                                      widget.onDownload!,
                                       scale,
                                     ),
-                                  ),
 
-                                // Chat Button
-                                if (widget.onChat != null)
-                                  Padding(
-                                    padding: EdgeInsets.only(left: 15 * scale),
-                                    child: _actionBtn(
-                                      "assets/images/chat.svg",
-                                      widget.onChat!,
-                                      scale,
+                                  // Share Button
+                                  if (widget.onShare != null)
+                                    Padding(
+                                      padding: EdgeInsets.only(left: 15 * scale),
+                                      child: _actionIconBtn(
+                                        Icons.share_outlined,
+                                        widget.onShare!,
+                                        scale,
+                                      ),
                                     ),
-                                  ),
 
-                                const Spacer(),
-                              ],
+                                  // Chat Button
+                                  if (widget.onChat != null)
+                                    Padding(
+                                      padding: EdgeInsets.only(left: 15 * scale),
+                                      child: _actionBtn(
+                                        "assets/images/chat.svg",
+                                        widget.onChat!,
+                                        scale,
+                                      ),
+                                    ),
+
+                                  const Spacer(),
+                                ],
+                              ),
                             ),
                           ],
                         ),
@@ -248,7 +254,15 @@ class _DocumentCardState extends State<DocumentCard> {
     return Padding(
       padding: EdgeInsets.only(right: 8 * scale),
       child: GestureDetector(
-        onTap: onTap,
+        onTap: () {
+          print('🔘 [DocumentCard] Action button tapped: $asset');
+          onTap();
+        },
+        onTapDown: (_) {
+          // Consume the tap event to prevent parent GestureDetector from handling it
+          print('🔘 [DocumentCard] Action button tap down: $asset');
+        },
+        behavior: HitTestBehavior.opaque,
         child: SvgPicture.asset(asset, width: 20 * scale, height: 20 * scale),
       ),
     );
@@ -258,9 +272,17 @@ class _DocumentCardState extends State<DocumentCard> {
   Widget _actionIconBtn(IconData icon, VoidCallback onTap, double scale) {
     return Padding(
       padding: EdgeInsets.only(right: 8 * scale),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Icon(icon, size: 20 * scale, color: Colors.grey.shade700),
+      child: Listener(
+        onPointerDown: (_) {
+          // Stop event propagation to prevent parent GestureDetector from handling the tap
+        },
+        child: GestureDetector(
+          onTap: () {
+            onTap();
+          },
+          behavior: HitTestBehavior.opaque,
+          child: Icon(icon, size: 20 * scale, color: Colors.grey.shade700),
+        ),
       ),
     );
   }

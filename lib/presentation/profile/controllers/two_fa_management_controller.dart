@@ -251,11 +251,11 @@ class TwoFAManagementController extends GetxController {
       isProcessing.value = false;
       return;
     }
-    final result;
+    final Map<String, dynamic> result;
     // Update profile via API
-    if(method!="none")
-         result = await _authRepository.update2FAStatus(userId: userId, status: 1);
-    else
+    if(method!="none") {
+      result = await _authRepository.update2FAStatus(userId: userId, status: 1);
+    } else
       {
          result = await _authRepository.update2FAStatus(userId: userId, status: 0);
       }

@@ -9,7 +9,7 @@ import 'custom_button.dart';
 import 'outlined_custom_button.dart';
 
 class EditProfileDialog extends StatefulWidget {
-  const EditProfileDialog({Key? key}) : super(key: key);
+  const EditProfileDialog({super.key});
 
   @override
   State<EditProfileDialog> createState() => _EditProfileDialogState();

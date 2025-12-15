@@ -7,9 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 
-import '../../../app/theme/app_colors.dart';
 import '../../../core/utils/permissions.dart';
-import '../../../data/models/document_model.dart';
 import '../controllers/documents_controller.dart';
 
 class DocumentsScreen extends StatefulWidget {

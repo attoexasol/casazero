@@ -15,7 +15,7 @@ import '../controllers/two_fa_management_controller.dart';
 enum DeactivationStep { warning, verify, success }
 
 class TwoFADeactivationVerificationScreen extends GetView<TwoFAManagementController> {
-  const TwoFADeactivationVerificationScreen({Key? key}) : super(key: key);
+  const TwoFADeactivationVerificationScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

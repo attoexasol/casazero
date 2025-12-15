@@ -843,7 +843,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
 
   Widget _buildTitleField() {
     return CustomTextField(
-      label: '${'title'.tr}',
+      label: 'title'.tr,
       hint: 'documentTitlePlaceholder'.tr,
       controller: _titleController,
       keyboardType: TextInputType.text,

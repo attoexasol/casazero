@@ -12,14 +12,14 @@ class PremiumIconContainer extends StatelessWidget {
   final bool showShadow;
 
   const PremiumIconContainer({
-    Key? key,
+    super.key,
     required this.icon,
     this.size = 48,
     this.iconColor,
     this.gradient,
     this.borderRadius = 12,
     this.showShadow = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

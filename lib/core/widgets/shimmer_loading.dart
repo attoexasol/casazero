@@ -7,11 +7,11 @@ class ShimmerLoading extends StatefulWidget {
   final double borderRadius;
 
   const ShimmerLoading({
-    Key? key,
+    super.key,
     required this.width,
     required this.height,
     this.borderRadius = 8,
-  }) : super(key: key);
+  });
 
   @override
   State<ShimmerLoading> createState() => _ShimmerLoadingState();

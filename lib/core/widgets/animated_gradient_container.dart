@@ -9,13 +9,13 @@ class AnimatedGradientContainer extends StatefulWidget {
   final double borderRadius;
 
   const AnimatedGradientContainer({
-    Key? key,
+    super.key,
     required this.child,
     this.width,
     this.height,
     this.padding,
     this.borderRadius = 16,
-  }) : super(key: key);
+  });
 
   @override
   State<AnimatedGradientContainer> createState() =>

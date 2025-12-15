@@ -11,7 +11,7 @@ import '../../../data/models/trusted_device_model.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 class TrustedDevicesScreen extends GetView<TrustedDevicesController> {
-  const TrustedDevicesScreen({Key? key}) : super(key: key);
+  const TrustedDevicesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

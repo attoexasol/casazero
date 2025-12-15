@@ -15,7 +15,7 @@ import '../../../app/theme/app_colors.dart';
 import 'package:flutter_svg/flutter_svg.dart';   //
 
 class FirstLoginSetupScreen extends GetView<FirstLoginController> {
-  FirstLoginSetupScreen({Key? key}) : super(key: key);
+  const FirstLoginSetupScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -660,7 +660,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'manual_entry_key'.tr + ':',
+                    '${'manual_entry_key'.tr}:',
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.9),
                       fontSize: 12,
@@ -782,7 +782,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
           if (controller.verificationCountdown.value > 0)
             Center(
               child: Text(
-                'resend_in'.tr + ' ${controller.verificationCountdown.value}s',
+                '${'resend_in'.tr} ${controller.verificationCountdown.value}s',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.7),
                   fontSize: 12,
@@ -848,7 +848,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
           if (controller.verificationCountdown.value > 0)
             Center(
               child: Text(
-                'resend_in'.tr + ' ${controller.verificationCountdown.value}s',
+                '${'resend_in'.tr} ${controller.verificationCountdown.value}s',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.7),
                   fontSize: 12,
@@ -937,7 +937,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'password_requirements'.tr + ':',
+                  '${'password_requirements'.tr}:',
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.9),
                     fontSize: 14,
@@ -995,7 +995,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                   ],
                 ),
               );
-            }).toList(),
+            }),
           ],
         ),
       );

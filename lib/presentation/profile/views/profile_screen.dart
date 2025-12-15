@@ -14,11 +14,11 @@ class ProfileScreen extends StatelessWidget {
   final Function(String) onNavigate;
 
   const ProfileScreen({
-    Key? key,
+    super.key,
     required this.user,
     required this.onLogout,
     required this.onNavigate,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

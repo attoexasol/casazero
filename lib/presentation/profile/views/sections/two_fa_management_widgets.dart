@@ -1,7 +1,6 @@
 // presentation/profile/views/two_fa_management_widgets.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'dart:convert';
 import 'package:qr_flutter/qr_flutter.dart';

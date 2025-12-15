@@ -309,7 +309,7 @@ class SecurityCard extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 12),
                   child: _buildMethodTile(method, controller),
                 );
-              }).toList(),
+              }),
             ],
           ),
         ),

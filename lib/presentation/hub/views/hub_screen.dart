@@ -11,10 +11,10 @@ class HubScreen extends StatelessWidget {
   final Function(String) onNavigate;
 
   const HubScreen({
-    Key? key,
+    super.key,
     required this.role,
     required this.onNavigate,
-  }) : super(key: key);
+  });
 
   // -------------------------------
   // RESPONSIVE BREAKPOINTS

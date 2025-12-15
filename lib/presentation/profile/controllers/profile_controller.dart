@@ -39,10 +39,12 @@ class ProfileController extends GetxController {
         print('📥 [ProfileController] User loaded from storage');
       }
     } else {
-      print('⚠️ [ProfileController] loadUser() called but user.value is already set - skipping to preserve reactive state');
+      print(
+        '⚠️ [ProfileController] loadUser() called but user.value is already set - skipping to preserve reactive state',
+      );
     }
   }
-  
+
   /// Force reload user from storage (use with caution - will overwrite reactive state)
   void forceReloadUser() {
     final data = _storage.getUserData();
@@ -59,16 +61,22 @@ class ProfileController extends GetxController {
     // Only sync if user is null or it's a different user
     // This prevents overwriting reactive updates with stale data
     if (user.value == null) {
-      print('📥 [ProfileController] syncUserData: User is null, syncing from external source');
+      print(
+        '📥 [ProfileController] syncUserData: User is null, syncing from external source',
+      );
       user.value = updatedUser;
       _saveUserToStorage();
     } else if (user.value!.id != updatedUser.id) {
-      print('📥 [ProfileController] syncUserData: Different user ID, syncing from external source');
+      print(
+        '📥 [ProfileController] syncUserData: Different user ID, syncing from external source',
+      );
       user.value = updatedUser;
       _saveUserToStorage();
     } else {
       // Same user - don't overwrite reactive state with potentially stale data
-      print('⚠️ [ProfileController] syncUserData: Same user detected, skipping sync to preserve reactive state');
+      print(
+        '⚠️ [ProfileController] syncUserData: Same user detected, skipping sync to preserve reactive state',
+      );
       print('   Current user hash: ${user.value!.hashCode}');
       print('   Incoming user hash: ${updatedUser.hashCode}');
     }
@@ -159,7 +167,7 @@ class ProfileController extends GetxController {
   /// Update notification setting and save
   Future<void> updateNotification(String key, bool value) async {
     print('🔄 [ProfileController] updateNotification called: $key = $value');
-    
+
     if (user.value == null) {
       print('❌ [ProfileController] User is null, cannot update notification');
       return;
@@ -174,11 +182,13 @@ class ProfileController extends GetxController {
     print('   isMaintenanceNotify: ${currentUser.isMaintenanceNotify}');
     print('   isChatNotify: ${currentUser.isChatNotify}');
     print('   isSupportTicketNotify: ${currentUser.isSupportTicketNotify}');
-    
+
     // Double-check: Read from reactive value again to ensure it hasn't changed
     final doubleCheckUser = user.value!;
     if (currentUser.hashCode != doubleCheckUser.hashCode) {
-      print('⚠️ [ProfileController] WARNING: user.value changed during updateNotification!');
+      print(
+        '⚠️ [ProfileController] WARNING: user.value changed during updateNotification!',
+      );
       print('   Original hash: ${currentUser.hashCode}');
       print('   New hash: ${doubleCheckUser.hashCode}');
     }
@@ -206,20 +216,20 @@ class ProfileController extends GetxController {
     // Update the reactive value FIRST to trigger UI update
     // Assigning a new object reference will trigger GetX observers
     user.value = updatedUser;
-    
+
     print('✅ [ProfileController] User updated in reactive state:');
     print('   isDocumentNotify: ${user.value!.isDocumentNotify}');
     print('   isMaintenanceNotify: ${user.value!.isMaintenanceNotify}');
     print('   isChatNotify: ${user.value!.isChatNotify}');
     print('   isSupportTicketNotify: ${user.value!.isSupportTicketNotify}');
     print('   User object hash after update: ${user.value!.hashCode}');
-    
+
     // Save to storage AFTER updating reactive value
     await _saveUserToStorage();
-    
+
     // Trigger GetX update for GetBuilder widgets (though Obx should auto-update)
     update();
-    
+
     print('💾 [ProfileController] User saved to storage and UI updated');
   }
 
@@ -270,14 +280,16 @@ class ProfileController extends GetxController {
   /// Ensures all settings are validated, persisted locally, and synced to server
   Future<void> saveSettings() async {
     print('🔵 [ProfileController] saveSettings() called');
-    
+
     if (user.value == null) {
       print('❌ [ProfileController] User is null, cannot save settings');
       _showError('no_user_data'.tr);
       return;
     }
 
-    print('✅ [ProfileController] User found: ${user.value!.id} - ${user.value!.userName}');
+    print(
+      '✅ [ProfileController] User found: ${user.value!.id} - ${user.value!.userName}',
+    );
     isSaving.value = true;
 
     try {
@@ -285,10 +297,12 @@ class ProfileController extends GetxController {
       // This ensures the language setting matches what's currently active in the app
       final localeController = Get.find<LocaleController>();
       final currentLanguage = localeController.currentLanguageCode;
-      
+
       // Update user's language if it differs from LocaleController
       if (user.value!.language != currentLanguage) {
-        print('🔄 [ProfileController] Syncing language from LocaleController: $currentLanguage');
+        print(
+          '🔄 [ProfileController] Syncing language from LocaleController: $currentLanguage',
+        );
         user.value = user.value!.copyWith(language: currentLanguage);
       }
 
@@ -298,12 +312,18 @@ class ProfileController extends GetxController {
 
       // Step 3: Get current user from reactive state (has latest changes)
       final currentUser = user.value!;
-      print('👤 [ProfileController] Preparing to save settings for user: ${currentUser.id}');
+      print(
+        '👤 [ProfileController] Preparing to save settings for user: ${currentUser.id}',
+      );
       print('   Language: ${currentUser.language}');
       print('   Notifications - Documents: ${currentUser.isDocumentNotify}');
-      print('   Notifications - Maintenance: ${currentUser.isMaintenanceNotify}');
+      print(
+        '   Notifications - Maintenance: ${currentUser.isMaintenanceNotify}',
+      );
       print('   Notifications - Chat: ${currentUser.isChatNotify}');
-      print('   Notifications - Support Tickets: ${currentUser.isSupportTicketNotify}');
+      print(
+        '   Notifications - Support Tickets: ${currentUser.isSupportTicketNotify}',
+      );
 
       // Step 4: Save all settings to API
       print('📡 [ProfileController] Calling updateProfile() API...');
@@ -324,20 +344,22 @@ class ProfileController extends GetxController {
       print('📥 [ProfileController] Received result from updateProfile()');
       print('   Success: ${result['success']}');
       print('   Message: ${result['message'] ?? result['error']}');
-      
+
       if (result['success'] == true) {
         // Step 5: Force reload user data from storage (updated by repository after API success)
         // This ensures we have the latest data from the server
         forceReloadUser();
-        
+
         // Step 6: Ensure UI updates immediately
         update();
-        
+
         print('✅ [ProfileController] All settings saved successfully');
         print('   Settings persisted to: Local storage + Server API');
         _showSuccess(result['message'] ?? 'settings_saved_successfully'.tr);
       } else {
-        print('❌ [ProfileController] Failed to save settings: ${result['error']}');
+        print(
+          '❌ [ProfileController] Failed to save settings: ${result['error']}',
+        );
         _showError(result['error'] ?? 'failed_to_save_settings'.tr);
       }
     } catch (e, stackTrace) {
@@ -398,36 +420,60 @@ class ProfileController extends GetxController {
   // -------------------------------------------------------------------------
 
   void _showError(String message) {
-    Get.snackbar(
-      'error'.tr,
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.red.shade600,
-      colorText: Colors.white,
-      margin: const EdgeInsets.all(16),
-      borderRadius: 12,
-      duration: const Duration(seconds: 3),
-    );
+    // Close any existing snackbars first
+    if (Get.isSnackbarOpen) {
+      Get.closeAllSnackbars();
+    }
+
+    // Use Future.microtask to ensure snackbar shows after current frame
+    Future.microtask(() {
+      Get.snackbar(
+        'error'.tr,
+        message,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.shade600,
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 12,
+        duration: const Duration(seconds: 3),
+        snackStyle: SnackStyle.FLOATING,
+        isDismissible: true,
+        dismissDirection: DismissDirection.horizontal,
+        forwardAnimationCurve: Curves.easeOutBack,
+        reverseAnimationCurve: Curves.easeInBack,
+        animationDuration: const Duration(milliseconds: 300),
+        maxWidth: 500,
+      );
+    });
   }
 
   void _showSuccess(String message) {
-    Get.snackbar(
-      '', // No title for toast-like appearance
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: AppColors.brandSage600,
-      colorText: Colors.white,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-      borderRadius: 12,
-      duration: const Duration(seconds: 2), // Shorter duration for toast
-      icon: const Icon(
-        Icons.check_circle,
-        color: Colors.white,
-        size: 20,
-      ),
-      shouldIconPulse: false,
-      isDismissible: true,
-      dismissDirection: DismissDirection.horizontal,
-    );
+    // Close any existing snackbars first
+    if (Get.isSnackbarOpen) {
+      Get.closeAllSnackbars();
+    }
+
+    // Use Future.microtask to ensure snackbar shows after current frame
+    Future.microtask(() {
+      Get.snackbar(
+        '', // No title for toast-like appearance
+        message,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppColors.brandSage600,
+        colorText: Colors.white,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        borderRadius: 12,
+        duration: const Duration(seconds: 2), // Shorter duration for toast
+        icon: const Icon(Icons.check_circle, color: Colors.white, size: 20),
+        shouldIconPulse: false,
+        isDismissible: true,
+        dismissDirection: DismissDirection.horizontal,
+        snackStyle: SnackStyle.FLOATING,
+        forwardAnimationCurve: Curves.easeOutBack,
+        reverseAnimationCurve: Curves.easeInBack,
+        animationDuration: const Duration(milliseconds: 300),
+        maxWidth: 500,
+      );
+    });
   }
 }

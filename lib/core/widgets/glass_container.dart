@@ -15,7 +15,7 @@ class GlassContainer extends StatelessWidget {
   final double blur;
 
   const GlassContainer({
-    Key? key,
+    super.key,
     required this.child,
     this.width,
     this.height,
@@ -25,7 +25,7 @@ class GlassContainer extends StatelessWidget {
     this.backgroundColor,
     this.borderColor,
     this.blur = 20,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

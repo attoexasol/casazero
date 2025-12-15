@@ -267,7 +267,7 @@ void setupFCMListeners() async {
 }
 
 class CasaZeroApp extends StatelessWidget {
-  const CasaZeroApp({Key? key}) : super(key: key);
+  const CasaZeroApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -302,35 +302,18 @@ class CasaZeroApp extends StatelessWidget {
             defaultTransition: Transition.fade,
             transitionDuration: const Duration(milliseconds: 300),
 
-            // PLATFORM-SPECIFIC SAFE AREA + TEXT SCALER FIX
+            // PLATFORM-SPECIFIC TEXT SCALER FIX
+            // Note: SafeArea removed from builder to allow GetX snackbars to display properly
+            // SafeArea should be applied at individual screen/widget level if needed
             builder: (context, widget) {
-              // Check if platform is Android
-              final isAndroid =
-                  !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
-
-              Widget child = MediaQuery(
+              // Ensure GetX has proper context for overlays
+              return MediaQuery(
                 data: MediaQuery.of(
                   context,
                 ).copyWith(textScaler: const TextScaler.linear(1.0)),
                 child: widget!,
               );
-
-              // Apply SafeArea ONLY for Android
-              if (isAndroid) {
-                return SafeArea(
-                  top: true,
-                  bottom: true,
-                  left: false,
-                  right: false,
-                  child: child,
-                );
-              }
-
-              // iOS - No SafeArea wrapper
-              return child;
             },
-
-            home: child,
           ),
         );
       },

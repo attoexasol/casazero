@@ -8,7 +8,7 @@ import '../../../core/widgets/custom_button.dart';
 import '../../../app/theme/app_colors.dart';
 
 class OtpVerificationScreen extends GetView<OtpVerificationController> {
-  const OtpVerificationScreen({Key? key}) : super(key: key);
+  const OtpVerificationScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -9,7 +9,7 @@ import '../../../app/theme/app_colors.dart';
 import '../../../core/localization/locale_controller.dart';
 
 class AuthScreen extends GetView<AuthController> {
-  const AuthScreen({Key? key}) : super(key: key);
+  const AuthScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

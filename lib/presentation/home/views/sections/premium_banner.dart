@@ -28,7 +28,7 @@ class PremiumBanner extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Container(
+            SizedBox(
               width: 40,
               height: 40,
               // decoration: BoxDecoration(

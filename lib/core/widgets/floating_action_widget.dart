@@ -5,7 +5,7 @@ import '../../app/theme/app_shadows.dart';
 class FloatingActionWidget extends StatefulWidget {
   final Widget child;
 
-  const FloatingActionWidget({Key? key, required this.child}) : super(key: key);
+  const FloatingActionWidget({super.key, required this.child});
 
   @override
   State<FloatingActionWidget> createState() => _FloatingActionWidgetState();

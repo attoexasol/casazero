@@ -3,7 +3,6 @@ import '../../../data/models/document_category_model.dart';
 import '../../../data/models/document_model.dart';
 import '../../../data/repositories/document_repository.dart';
 import '../../../core/services/download_service.dart';
-import '../../../app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:open_filex/open_filex.dart';
@@ -155,36 +154,22 @@ class DocumentsController extends GetxController {
       if (result['success'] == true) {
         final filePath = result['filePath'] as String;
 
-        // Download successful - Show snackbar with Open button
+        // Download successful - Show success snackbar
         Get.snackbar(
           'downloadSuccess'.tr,
           '${'downloadComplete'.tr}: ${result['fileName']}',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.green[700],
           colorText: Colors.white,
-          duration: const Duration(
-            seconds: 5,
-          ), // Longer duration for user to tap Open
+          duration: const Duration(seconds: 2),
           icon: const Icon(Icons.check_circle, color: Colors.white),
-          mainButton: TextButton(
-            onPressed: () {
-              // Close the snackbar first
-              Get.closeCurrentSnackbar();
-              // Open the file
-              openFile(filePath, document.title);
-            },
-            child: Text(
-              'openFile'.tr,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
-            ),
-          ),
         );
 
         print('✅ Download successful: $filePath');
+        
+        // Show native bottom sheet with available apps to open the file
+        await Future.delayed(const Duration(milliseconds: 500));
+        await _showOpenFileBottomSheet(filePath, document.title);
       } else {
         Get.snackbar(
           'downloadFailed'.tr,
@@ -202,6 +187,66 @@ class DocumentsController extends GetxController {
       Get.snackbar(
         'downloadFailed'.tr,
         'downloadError'.tr,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red[700],
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+        icon: const Icon(Icons.error, color: Colors.white),
+      );
+    }
+  }
+
+  /// Show native "Open with" chooser with available apps to open the file
+  /// Uses open_filex which shows native Android chooser or iOS share sheet
+  Future<void> _showOpenFileBottomSheet(String filePath, String fileName) async {
+    try {
+      final file = File(filePath);
+      if (!await file.exists()) {
+        Get.snackbar(
+          'openFileFailed'.tr,
+          'fileNotFound'.tr,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red[700],
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+        return;
+      }
+
+      // Use open_filex to show native "Open with" chooser
+      // This will show all available apps that can open the file type
+      print('📂 Opening native "Open with" chooser for file: $fileName');
+      final result = await OpenFilex.open(filePath);
+      
+      print('📂 Open file result: ${result.type} - ${result.message}');
+      
+      // Handle the result
+      if (result.type == ResultType.noAppToOpen) {
+        Get.snackbar(
+          'openFileFailed'.tr,
+          'noAppToOpen'.tr,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange[700],
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+          icon: const Icon(Icons.warning, color: Colors.white),
+        );
+      } else if (result.type == ResultType.error || result.type == ResultType.fileNotFound) {
+        Get.snackbar(
+          'openFileFailed'.tr,
+          result.message.isNotEmpty ? result.message : 'openFileError'.tr,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red[700],
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+          icon: const Icon(Icons.error, color: Colors.white),
+        );
+      }
+    } catch (e) {
+      print('❌ Error showing file chooser: $e');
+      Get.snackbar(
+        'openFileFailed'.tr,
+        'openFileError'.tr,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red[700],
         colorText: Colors.white,

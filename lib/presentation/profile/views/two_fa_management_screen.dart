@@ -17,7 +17,7 @@ import '../../../core/widgets/custom_text_field.dart';
 import '../controllers/two_fa_management_controller.dart';
 
 class TwoFAManagementScreen extends GetView<TwoFAManagementController> {
-  const TwoFAManagementScreen({Key? key}) : super(key: key);
+  const TwoFAManagementScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -311,7 +311,7 @@ class TwoFAManagementScreen extends GetView<TwoFAManagementController> {
                       .animate()
                       .fadeIn(duration: 400.ms, delay: (100 + index * 50).ms)
                       .slideX(begin: 0.2, delay: (100 + index * 50).ms);
-                }).toList(),
+                }),
 
                 SizedBox(height: 80.h), // Bottom padding
               ],
