@@ -35,6 +35,20 @@ class ProfileController extends GetxController {
     }
   }
 
+  /// Sync user data from external source (e.g., HomeController)
+  /// Ensures ProfileController has the latest user data
+  void syncUserData(UserModel updatedUser) {
+    if (user.value == null || user.value!.id != updatedUser.id) {
+      // User changed or not loaded, update completely
+      user.value = updatedUser;
+      _saveUserToStorage();
+    } else {
+      // Same user, merge any new data
+      user.value = updatedUser;
+      _saveUserToStorage();
+    }
+  }
+
   /// Pick and upload profile image
   Future<void> pickAndUploadProfileImage() async {
     if (user.value == null) {
@@ -182,7 +196,8 @@ class ProfileController extends GetxController {
     }
   }
 
-  /// Save settings to server
+  /// Save all settings to server
+  /// Saves: Language, Notification preferences, Profile info
   Future<void> saveSettings() async {
     if (user.value == null) {
       _showError('no_user_data'.tr);
@@ -192,16 +207,40 @@ class ProfileController extends GetxController {
     isSaving.value = true;
 
     try {
-      final result = await _profileRepository.updateProfileFromStorage();
+      // Ensure all local changes are saved to storage first
+      _saveUserToStorage();
+
+      // Get current user from reactive state (has latest changes)
+      final currentUser = user.value!;
+
+      // Save all settings to API
+      final result = await _profileRepository.updateProfile(
+        userId: currentUser.id,
+        userName: currentUser.userName,
+        email: currentUser.email,
+        phone: currentUser.phone,
+        language: currentUser.language,
+        profileImage: currentUser.profileImage,
+        isDocumentNotify: currentUser.isDocumentNotify,
+        isMaintenanceNotify: currentUser.isMaintenanceNotify,
+        isChatNotify: currentUser.isChatNotify,
+        isSupportTicketNotify: currentUser.isSupportTicketNotify,
+        twoFaMethod: currentUser.twoFaMethod,
+      );
 
       if (result['success'] == true) {
         // Reload user data from storage (updated by repository)
         loadUser();
+        
+        // Ensure UI updates
+        update();
+        
         _showSuccess(result['message'] ?? 'settings_saved_successfully'.tr);
       } else {
         _showError(result['error'] ?? 'failed_to_save_settings'.tr);
       }
     } catch (e) {
+      print('❌ Error saving settings: $e');
       _showError('error_saving_settings'.tr);
     } finally {
       isSaving.value = false;

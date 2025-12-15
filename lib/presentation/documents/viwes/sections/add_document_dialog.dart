@@ -124,10 +124,12 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
   Future<void> _handleUpload() async {
     print('🔵 [AddDocumentDialog] _handleUpload() called');
     print('🔵 [AddDocumentDialog] _canUpload: $_canUpload');
-    print('🔵 [AddDocumentDialog] File: ${_selectedFile != null ? _selectedFile!.path : "null"}');
+    print(
+      '🔵 [AddDocumentDialog] File: ${_selectedFile != null ? _selectedFile!.path : "null"}',
+    );
     print('🔵 [AddDocumentDialog] Type: $_selectedDocumentType');
     print('🔵 [AddDocumentDialog] Title: ${_titleController.text.trim()}');
-    
+
     if (!_canUpload) {
       print('❌ [AddDocumentDialog] Cannot upload - validation failed');
       return;
@@ -167,11 +169,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
             borderRadius: 12,
             duration: const Duration(seconds: 2),
-            icon: const Icon(
-              Icons.check_circle,
-              color: Colors.white,
-              size: 20,
-            ),
+            icon: const Icon(Icons.check_circle, color: Colors.white, size: 20),
             shouldIconPulse: false,
             isDismissible: true,
           );
@@ -308,7 +306,10 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
                   const SizedBox(height: 4), // 🔥 exact spacing from screenshot
                   Text(
                     'Upload a personal document to your collection',
-                    style: TextStyle(fontSize: 12, color: AppColors.neutralInk500),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.neutralInk500,
+                    ),
                   ),
                 ],
               ),
@@ -371,13 +372,11 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
         // Calculate available height (accounting for padding)
         final availableHeight = constraints.maxHeight;
         final isCompact = availableHeight < 120;
-        
+
         return SingleChildScrollView(
           physics: const NeverScrollableScrollPhysics(),
           child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: constraints.maxHeight,
-            ),
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
@@ -450,9 +449,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
           return SingleChildScrollView(
             physics: const NeverScrollableScrollPhysics(),
             child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: constraints.maxHeight,
-              ),
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -486,7 +483,11 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
                             ),
                             child: IconButton(
                               onPressed: _removeFile,
-                              icon: const Icon(Icons.close, size: 18, color: Colors.white),
+                              icon: const Icon(
+                                Icons.close,
+                                size: 18,
+                                color: Colors.white,
+                              ),
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(
                                 minWidth: 32,
@@ -529,9 +530,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
                 ),
               ),
               const SizedBox(width: 12),
-              Expanded(
-                child: _buildFileInfoRow(),
-              ),
+              Expanded(child: _buildFileInfoRow()),
               IconButton(
                 onPressed: _removeFile,
                 icon: const Icon(Icons.close, size: 20),
@@ -586,11 +585,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            _getFileIcon(fileType),
-            color: AppColors.brandSage500,
-            size: 48,
-          ),
+          Icon(_getFileIcon(fileType), color: AppColors.brandSage500, size: 48),
           const SizedBox(height: 12),
           _buildFileInfoRow(),
         ],
@@ -667,7 +662,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'documentType'.tr,
+          'Document Categories'.tr,
           style: AppTextStyles.label.copyWith(
             color: AppColors.neutralInk700,
             fontSize: 14,

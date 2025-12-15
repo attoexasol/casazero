@@ -729,6 +729,17 @@ class MainScaffold extends GetView<HomeController> {
         );
 
       case AppScreen.profile:
+        // Ensure ProfileController is initialized
+        if (!Get.isRegistered<ProfileController>()) {
+          Get.put(ProfileController());
+        }
+        final profileController = Get.find<ProfileController>();
+        
+        // Sync user data from HomeController to ProfileController
+        if (controller.currentUser.value != null) {
+          profileController.syncUserData(controller.currentUser.value!);
+        }
+        
         // Ensure user is loaded before showing profile screen
         if (controller.currentUser.value == null) {
           return const Center(
@@ -741,7 +752,6 @@ class MainScaffold extends GetView<HomeController> {
           user: controller.currentUser.value!,
           onLogout: () {
             // Use ProfileController's logout method which calls the API
-            final profileController = Get.find<ProfileController>();
             profileController.logout();
           },
           onNavigate: (destination) =>
