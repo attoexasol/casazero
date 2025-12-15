@@ -7,6 +7,7 @@ import '../../../../app/theme/app_text_styles.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_button.dart';
 import '../../../../core/widgets/outlined_custom_button.dart';
+import '../../../../data/models/document_category_model.dart';
 import '../../controllers/documents_controller.dart';
 
 class AddDocumentDialog extends StatefulWidget {
@@ -22,24 +23,13 @@ class AddDocumentDialog extends StatefulWidget {
 class _AddDocumentDialogState extends State<AddDocumentDialog> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  final DocumentsController _controller = Get.find<DocumentsController>();
 
   File? _selectedFile;
   String? _selectedFileName;
   String? _selectedFileSize;
-  String? _selectedDocumentType;
+  int? _selectedCategoryId; // Changed from String to int (category ID)
   bool _isUploading = false;
-
-  // Document types matching React version
-  final List<Map<String, String>> _documentTypes = [
-    {'value': 'ownership_legal', 'label': 'ownershipLegal'},
-    {'value': 'technical_building', 'label': 'technicalBuilding'},
-    {'value': 'energy_environmental', 'label': 'energyEnvironmental'},
-    {'value': 'compliance_safety', 'label': 'complianceSafety'},
-    {
-      'value': 'administrative_maintenance',
-      'label': 'administrativeMaintenance',
-    },
-  ];
 
   @override
   void initState() {
@@ -48,6 +38,26 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
     _titleController.addListener(() {
       setState(() {}); // Rebuild to update _canUpload state
     });
+    
+    // Ensure categories are loaded when dialog opens
+    _ensureCategoriesLoaded();
+  }
+
+  /// Ensure categories are loaded from API
+  /// Uses cached categories if already loaded, otherwise fetches
+  Future<void> _ensureCategoriesLoaded() async {
+    // If categories are already loaded, no need to fetch again
+    if (_controller.categories.isNotEmpty) {
+      return;
+    }
+    
+    // If already loading, wait for it
+    if (_controller.isLoadingCategories.value) {
+      return;
+    }
+    
+    // Fetch categories from API
+    await _controller.fetchDocumentCategories();
   }
 
   @override
@@ -117,7 +127,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
 
   bool get _canUpload =>
       _selectedFile != null &&
-      _selectedDocumentType != null &&
+      _selectedCategoryId != null &&
       _titleController.text.trim().isNotEmpty &&
       !_isUploading;
 
@@ -127,7 +137,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
     print(
       '🔵 [AddDocumentDialog] File: ${_selectedFile != null ? _selectedFile!.path : "null"}',
     );
-    print('🔵 [AddDocumentDialog] Type: $_selectedDocumentType');
+    print('🔵 [AddDocumentDialog] Category ID: $_selectedCategoryId');
     print('🔵 [AddDocumentDialog] Title: ${_titleController.text.trim()}');
 
     if (!_canUpload) {
@@ -147,11 +157,11 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
       final documentsController = Get.find<DocumentsController>();
       print('✅ [AddDocumentDialog] DocumentsController found');
 
-      // Call the upload method
+      // Call the upload method with category ID
       final result = await documentsController.uploadDocument(
         documentFile: _selectedFile!,
         documentTitle: title,
-        documentType: _selectedDocumentType!,
+        documentCategoryId: _selectedCategoryId!,
         documentDescription: _descriptionController.text.trim().isEmpty
             ? null
             : _descriptionController.text.trim(),
@@ -183,7 +193,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
               'file': _selectedFile,
               'fileName': _selectedFileName,
               'fileSize': _selectedFileSize,
-              'type': _selectedDocumentType,
+              'categoryId': _selectedCategoryId,
               'title': title,
               'description': _descriptionController.text.trim(),
             });
@@ -658,55 +668,188 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
   }
 
   Widget _buildDocumentTypeDropdown() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Document Categories'.tr,
-          style: AppTextStyles.label.copyWith(
-            color: AppColors.neutralInk700,
-            fontSize: 14,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: AppColors.neutralLine100,
-            borderRadius: BorderRadius.circular(25),
-            border: Border.all(color: AppColors.neutralLine200),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: _selectedDocumentType,
-              isExpanded: true,
-              hint: Text(
-                'selectType'.tr,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.neutralInk400,
+    return Obx(() {
+      // Show loading state
+      if (_controller.isLoadingCategories.value) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Document Categories'.tr,
+              style: AppTextStyles.label.copyWith(
+                color: AppColors.neutralInk700,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppColors.neutralLine100,
+                borderRadius: BorderRadius.circular(25),
+                border: Border.all(color: AppColors.neutralLine200),
+              ),
+              child: const Center(
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.brandSage600),
+                  ),
                 ),
               ),
-              icon: const Icon(Icons.keyboard_arrow_down),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              borderRadius: BorderRadius.circular(25),
-              items: _documentTypes.map((type) {
-                return DropdownMenuItem<String>(
-                  value: type['value'],
-                  child: Text(
-                    type['label']!.tr,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.neutralInk900,
+            ),
+          ],
+        );
+      }
+
+      // Show error state
+      if (_controller.categories.isEmpty && 
+          _controller.errorMessage.value.isNotEmpty) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Document Categories'.tr,
+              style: AppTextStyles.label.copyWith(
+                color: AppColors.neutralInk700,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.danger.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(25),
+                border: Border.all(color: AppColors.danger.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.error_outline, 
+                    size: 16, 
+                    color: AppColors.danger,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Failed to load categories',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.danger,
+                      ),
                     ),
                   ),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() => _selectedDocumentType = value);
-              },
+                  TextButton(
+                    onPressed: () => _controller.fetchDocumentCategories(),
+                    child: Text(
+                      'Retry',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.danger,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      }
+
+      // Show empty state
+      if (_controller.categories.isEmpty) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Document Categories'.tr,
+              style: AppTextStyles.label.copyWith(
+                color: AppColors.neutralInk700,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.neutralLine100,
+                borderRadius: BorderRadius.circular(25),
+                border: Border.all(color: AppColors.neutralLine200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, 
+                    size: 16, 
+                    color: AppColors.neutralInk400,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'No categories available',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.neutralInk500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      }
+
+      // Show categories dropdown
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Document Categories'.tr,
+            style: AppTextStyles.label.copyWith(
+              color: AppColors.neutralInk700,
+              fontSize: 14,
             ),
           ),
-        ),
-      ],
-    );
+          const SizedBox(height: 8),
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.neutralLine100,
+              borderRadius: BorderRadius.circular(25),
+              border: Border.all(color: AppColors.neutralLine200),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<int>(
+                value: _selectedCategoryId,
+                isExpanded: true,
+                hint: Text(
+                  'selectType'.tr,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.neutralInk400,
+                  ),
+                ),
+                icon: const Icon(Icons.keyboard_arrow_down),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                borderRadius: BorderRadius.circular(25),
+                items: _controller.categories.map((category) {
+                  return DropdownMenuItem<int>(
+                    value: category.id,
+                    child: Text(
+                      category.categoryName,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.neutralInk900,
+                      ),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() => _selectedCategoryId = value);
+                },
+              ),
+            ),
+          ),
+        ],
+      );
+    });
   }
 
   Widget _buildTitleField() {

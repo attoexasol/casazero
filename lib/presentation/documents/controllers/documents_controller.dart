@@ -434,27 +434,32 @@ class DocumentsController extends GetxController {
   }
 
   /// Upload a document
-  /// Maps document type to category ID and calls repository
+  /// Accepts category ID directly (preferred) or document type string (legacy)
   Future<Map<String, dynamic>> uploadDocument({
     required File documentFile,
     required String documentTitle,
-    required String documentType, // e.g., 'ownership_legal', 'technical_building'
+    int? documentCategoryId, // Preferred: category ID from API
+    String? documentType, // Legacy: document type string (e.g., 'ownership_legal')
     String? documentDescription,
   }) async {
     try {
-      // Map document type to category ID
-      final categoryId = _mapDocumentTypeToCategoryId(documentType);
+      int? categoryId = documentCategoryId;
+      
+      // If category ID not provided, try to map from document type (legacy support)
+      if (categoryId == null && documentType != null) {
+        categoryId = _mapDocumentTypeToCategoryId(documentType);
+      }
       
       if (categoryId == null) {
         return {
           'success': false,
-          'error': 'Invalid document type selected',
+          'error': 'Invalid document category selected',
         };
       }
 
       print('📤 [DocumentsController] Uploading document');
       print('📤 [DocumentsController] Title: $documentTitle');
-      print('📤 [DocumentsController] Type: $documentType -> Category ID: $categoryId');
+      print('📤 [DocumentsController] Category ID: $categoryId');
 
       final result = await _repository.uploadDocument(
         documentFile: documentFile,
