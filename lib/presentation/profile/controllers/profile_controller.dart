@@ -28,24 +28,49 @@ class ProfileController extends GetxController {
   }
 
   /// Load user from storage
+  /// Only updates if user.value is null to avoid overwriting reactive changes
   void loadUser() {
+    // Only load from storage if user is not already set
+    // This prevents overwriting reactive updates with stale storage data
+    if (user.value == null) {
+      final data = _storage.getUserData();
+      if (data != null) {
+        user.value = UserModel.fromJson(data);
+        print('📥 [ProfileController] User loaded from storage');
+      }
+    } else {
+      print('⚠️ [ProfileController] loadUser() called but user.value is already set - skipping to preserve reactive state');
+    }
+  }
+  
+  /// Force reload user from storage (use with caution - will overwrite reactive state)
+  void forceReloadUser() {
     final data = _storage.getUserData();
     if (data != null) {
       user.value = UserModel.fromJson(data);
+      print('🔄 [ProfileController] User force-reloaded from storage');
     }
   }
 
   /// Sync user data from external source (e.g., HomeController)
   /// Ensures ProfileController has the latest user data
+  /// Only updates if user is null or user ID changed - preserves reactive updates
   void syncUserData(UserModel updatedUser) {
-    if (user.value == null || user.value!.id != updatedUser.id) {
-      // User changed or not loaded, update completely
+    // Only sync if user is null or it's a different user
+    // This prevents overwriting reactive updates with stale data
+    if (user.value == null) {
+      print('📥 [ProfileController] syncUserData: User is null, syncing from external source');
+      user.value = updatedUser;
+      _saveUserToStorage();
+    } else if (user.value!.id != updatedUser.id) {
+      print('📥 [ProfileController] syncUserData: Different user ID, syncing from external source');
       user.value = updatedUser;
       _saveUserToStorage();
     } else {
-      // Same user, merge any new data
-      user.value = updatedUser;
-      _saveUserToStorage();
+      // Same user - don't overwrite reactive state with potentially stale data
+      print('⚠️ [ProfileController] syncUserData: Same user detected, skipping sync to preserve reactive state');
+      print('   Current user hash: ${user.value!.hashCode}');
+      print('   Incoming user hash: ${updatedUser.hashCode}');
     }
   }
 
@@ -132,26 +157,70 @@ class ProfileController extends GetxController {
   }
 
   /// Update notification setting and save
-  void updateNotification(String key, bool value) {
-    if (user.value == null) return;
-
-    switch (key) {
-      case 'documents':
-        user.value = user.value!.copyWith(isDocumentNotify: value);
-        break;
-      case 'maintenance':
-        user.value = user.value!.copyWith(isMaintenanceNotify: value);
-        break;
-      case 'chat':
-        user.value = user.value!.copyWith(isChatNotify: value);
-        break;
-      case 'tickets':
-        user.value = user.value!.copyWith(isSupportTicketNotify: value);
-        break;
+  Future<void> updateNotification(String key, bool value) async {
+    print('🔄 [ProfileController] updateNotification called: $key = $value');
+    
+    if (user.value == null) {
+      print('❌ [ProfileController] User is null, cannot update notification');
+      return;
     }
 
-    _saveUserToStorage();
+    // Get current user state BEFORE any potential reloads
+    // Capture the reference to ensure we're working with the current reactive value
+    final currentUser = user.value!;
+    print('📝 [ProfileController] Current user state (from reactive value):');
+    print('   User object hash: ${currentUser.hashCode}');
+    print('   isDocumentNotify: ${currentUser.isDocumentNotify}');
+    print('   isMaintenanceNotify: ${currentUser.isMaintenanceNotify}');
+    print('   isChatNotify: ${currentUser.isChatNotify}');
+    print('   isSupportTicketNotify: ${currentUser.isSupportTicketNotify}');
+    
+    // Double-check: Read from reactive value again to ensure it hasn't changed
+    final doubleCheckUser = user.value!;
+    if (currentUser.hashCode != doubleCheckUser.hashCode) {
+      print('⚠️ [ProfileController] WARNING: user.value changed during updateNotification!');
+      print('   Original hash: ${currentUser.hashCode}');
+      print('   New hash: ${doubleCheckUser.hashCode}');
+    }
+
+    UserModel? updatedUser;
+    switch (key) {
+      case 'documents':
+        updatedUser = currentUser.copyWith(isDocumentNotify: value);
+        break;
+      case 'maintenance':
+        updatedUser = currentUser.copyWith(isMaintenanceNotify: value);
+        break;
+      case 'chat':
+        updatedUser = currentUser.copyWith(isChatNotify: value);
+        break;
+      case 'tickets':
+        updatedUser = currentUser.copyWith(isSupportTicketNotify: value);
+        break;
+      default:
+        print('⚠️ [ProfileController] Unknown notification key: $key');
+        return;
+    }
+
+    // updatedUser is guaranteed to be non-null here (default case returns early)
+    // Update the reactive value FIRST to trigger UI update
+    // Assigning a new object reference will trigger GetX observers
+    user.value = updatedUser;
+    
+    print('✅ [ProfileController] User updated in reactive state:');
+    print('   isDocumentNotify: ${user.value!.isDocumentNotify}');
+    print('   isMaintenanceNotify: ${user.value!.isMaintenanceNotify}');
+    print('   isChatNotify: ${user.value!.isChatNotify}');
+    print('   isSupportTicketNotify: ${user.value!.isSupportTicketNotify}');
+    print('   User object hash after update: ${user.value!.hashCode}');
+    
+    // Save to storage AFTER updating reactive value
+    await _saveUserToStorage();
+    
+    // Trigger GetX update for GetBuilder widgets (though Obx should auto-update)
     update();
+    
+    print('💾 [ProfileController] User saved to storage and UI updated');
   }
 
   /// Update user profile information (name, email, phone)
@@ -199,21 +268,28 @@ class ProfileController extends GetxController {
   /// Save all settings to server
   /// Saves: Language, Notification preferences, Profile info
   Future<void> saveSettings() async {
+    print('🔵 [ProfileController] saveSettings() called');
+    
     if (user.value == null) {
+      print('❌ [ProfileController] User is null, cannot save settings');
       _showError('no_user_data'.tr);
       return;
     }
 
+    print('✅ [ProfileController] User found: ${user.value!.id} - ${user.value!.userName}');
     isSaving.value = true;
 
     try {
       // Ensure all local changes are saved to storage first
       _saveUserToStorage();
+      print('💾 [ProfileController] User data saved to storage');
 
       // Get current user from reactive state (has latest changes)
       final currentUser = user.value!;
+      print('👤 [ProfileController] Preparing to update profile for user: ${currentUser.id}');
 
       // Save all settings to API
+      print('📡 [ProfileController] Calling updateProfile()...');
       final result = await _profileRepository.updateProfile(
         userId: currentUser.id,
         userName: currentUser.userName,
@@ -225,9 +301,13 @@ class ProfileController extends GetxController {
         isMaintenanceNotify: currentUser.isMaintenanceNotify,
         isChatNotify: currentUser.isChatNotify,
         isSupportTicketNotify: currentUser.isSupportTicketNotify,
-        twoFaMethod: currentUser.twoFaMethod,
+        // twoFaMethod is not included in Save Settings request
       );
 
+      print('📥 [ProfileController] Received result from updateProfile()');
+      print('   Success: ${result['success']}');
+      print('   Message: ${result['message'] ?? result['error']}');
+      
       if (result['success'] == true) {
         // Reload user data from storage (updated by repository)
         loadUser();
@@ -235,15 +315,19 @@ class ProfileController extends GetxController {
         // Ensure UI updates
         update();
         
+        print('✅ [ProfileController] Settings saved successfully');
         _showSuccess(result['message'] ?? 'settings_saved_successfully'.tr);
       } else {
+        print('❌ [ProfileController] Failed to save settings: ${result['error']}');
         _showError(result['error'] ?? 'failed_to_save_settings'.tr);
       }
-    } catch (e) {
-      print('❌ Error saving settings: $e');
+    } catch (e, stackTrace) {
+      print('❌ [ProfileController] Exception in saveSettings(): $e');
+      print('📚 [ProfileController] Stack trace: $stackTrace');
       _showError('error_saving_settings'.tr);
     } finally {
       isSaving.value = false;
+      print('🏁 [ProfileController] saveSettings() completed');
     }
   }
 
@@ -283,9 +367,10 @@ class ProfileController extends GetxController {
     }
   }
 
-  void _saveUserToStorage() {
+  Future<void> _saveUserToStorage() async {
     if (user.value != null) {
-      _storage.saveUserData(user.value!.toJson());
+      await _storage.saveUserData(user.value!.toJson());
+      print('💾 [ProfileController] User data saved to storage successfully');
     }
   }
 

@@ -20,6 +20,7 @@ class CustomTextField extends StatelessWidget {
   final Color? borderColor;
   final Color? textColor;
   final Color? labelColor;
+  final bool enabled;
 
   const CustomTextField({
     Key? key,
@@ -40,6 +41,7 @@ class CustomTextField extends StatelessWidget {
     this.borderColor,
     this.textColor,
     this.labelColor,
+    this.enabled = true,
   }) : super(key: key);
 
   @override
@@ -65,8 +67,12 @@ class CustomTextField extends StatelessWidget {
           maxLength: maxLength,
           maxLines: maxLines,
           textAlign: textAlign,
+          enabled: enabled,
+          readOnly: !enabled,
           style: AppTextStyles.bodyMedium.copyWith(
-            color: textColor ?? AppColors.neutralInk900,
+            color: enabled
+                ? (textColor ?? AppColors.neutralInk900)
+                : AppColors.neutralInk400,
           ),
           decoration: InputDecoration(
             hintText: hint,
@@ -77,8 +83,9 @@ class CustomTextField extends StatelessWidget {
             prefixIcon: prefixIcon,
             counterText: '',
             filled: true,
-            fillColor:
-                backgroundColor ?? AppColors.surfaceWhite.withOpacity(0.9),
+            fillColor: enabled
+                ? (backgroundColor ?? AppColors.surfaceWhite.withOpacity(0.9))
+                : AppColors.neutralLine100,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(25),
               borderSide: BorderSide.none,
@@ -86,7 +93,16 @@ class CustomTextField extends StatelessWidget {
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(25),
               borderSide: BorderSide(
-                color: borderColor ?? AppColors.surfaceWhite.withOpacity(0.4),
+                color: enabled
+                    ? (borderColor ?? AppColors.surfaceWhite.withOpacity(0.4))
+                    : AppColors.neutralLine200,
+                width: 1,
+              ),
+            ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(25),
+              borderSide: BorderSide(
+                color: AppColors.neutralLine200,
                 width: 1,
               ),
             ),

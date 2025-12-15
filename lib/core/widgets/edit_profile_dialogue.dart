@@ -63,7 +63,9 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
     final fullName =
         '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}'
             .trim();
-    final email = _emailController.text.trim();
+    // Email is disabled, so use the original email from user object
+    final user = _profileController.user.value;
+    final email = user?.email ?? _emailController.text.trim();
     final phone = _phoneController.text.trim();
 
     // Validate inputs
@@ -84,21 +86,6 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
       Get.snackbar(
         'error'.tr,
         'please_enter_email'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.shade600,
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(16),
-        borderRadius: 12,
-      );
-      return;
-    }
-
-    // Validate email format
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(email)) {
-      Get.snackbar(
-        'error'.tr,
-        'please_enter_valid_email'.tr,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red.shade600,
         colorText: Colors.white,
@@ -186,7 +173,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Email Field
+                    // Email Field (Disabled - cannot be changed)
                     CustomTextField(
                       label: 'email'.tr,
                       controller: _emailController,
@@ -195,6 +182,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
                       borderColor: AppColors.neutralLine200,
                       textColor: AppColors.neutralInk900,
                       labelColor: AppColors.neutralInk700,
+                      enabled: false, // Email field is disabled
                     ),
                     const SizedBox(height: 16),
 

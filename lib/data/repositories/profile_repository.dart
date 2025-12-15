@@ -1,5 +1,6 @@
 // data/repositories/profile_repository.dart
 
+import 'dart:convert' as convert;
 import 'package:casazero/core/constants/api_constants.dart';
 import 'package:get/get.dart';
 import '../../core/services/api_service.dart';
@@ -31,6 +32,7 @@ class ProfileRepository {
     double? longitude,
     String? description,
   }) async {
+    print('🟢 [ProfileRepository] updateProfile() called for userId: $userId');
     // try {
       // Prepare request body
       final Map<String, dynamic> requestBody = {};
@@ -52,14 +54,42 @@ class ProfileRepository {
       if (longitude != null) requestBody['longitude'] = longitude;
       if (description != null) requestBody['description'] = description;
 
-      print(requestBody.toString());
+      // Print detailed request information
+      final endpoint = "${ApiConstants.UPDATE_USER_PROFILE}/$userId";
+      final fullUrl = '${ApiConstants.BASE_URL}$endpoint';
+      
+      print('═══════════════════════════════════════════════════════════');
+      print('📤 [ProfileRepository] UPDATE PROFILE REQUEST');
+      print('═══════════════════════════════════════════════════════════');
+      print('🌐 Method: POST');
+      print('📍 Endpoint: $endpoint');
+      print('🔗 Full URL: $fullUrl');
+      print('👤 User ID: $userId');
+      print('📦 Request Body (JSON):');
+      try {
+        print(convert.JsonEncoder.withIndent('   ').convert(requestBody));
+      } catch (e) {
+        print('   ${requestBody.toString()}');
+      }
+      print('═══════════════════════════════════════════════════════════');
+
       // Make API call
       final response = await _apiService.post(
-        "${ApiConstants.UPDATE_USER_PROFILE}/$userId",
+        endpoint,
         data: requestBody,
       );
 
-      print(response.toString());
+      print('═══════════════════════════════════════════════════════════');
+      print('📥 [ProfileRepository] UPDATE PROFILE RESPONSE');
+      print('═══════════════════════════════════════════════════════════');
+      print('📊 Status Code: ${response.statusCode}');
+      print('📦 Response Data (JSON):');
+      try {
+        print(convert.JsonEncoder.withIndent('   ').convert(response.data));
+      } catch (e) {
+        print('   ${response.data.toString()}');
+      }
+      print('═══════════════════════════════════════════════════════════');
       // Handle success response
       if (response.statusCode == 200 && response.data['status'] == true) {
         // Update user data in storage
