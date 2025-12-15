@@ -93,6 +93,20 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
     return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 
+  /// Check if the selected file is an image
+  bool _isImageFile(String? fileName) {
+    if (fileName == null) return false;
+    final extension = fileName.toLowerCase().split('.').last;
+    return ['jpg', 'jpeg', 'png'].contains(extension);
+  }
+
+  /// Get file type from extension
+  String _getFileType(String? fileName) {
+    if (fileName == null) return 'Unknown';
+    final extension = fileName.toLowerCase().split('.').last;
+    return extension.toUpperCase();
+  }
+
   void _removeFile() {
     setState(() {
       _selectedFile = null;
@@ -322,7 +336,12 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
     return GestureDetector(
       onTap: _selectedFile == null ? _pickFile : null,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 100, maxHeight: 150),
+        constraints: BoxConstraints(
+          minHeight: 100,
+          maxHeight: _selectedFile != null && _isImageFile(_selectedFileName)
+              ? 300 // More height for image preview
+              : 150,
+        ),
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
@@ -338,98 +357,268 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
               style: BorderStyle.solid,
             ),
           ),
-          child: FittedBox(
-            fit: BoxFit.scaleDown, // 🔥 prevents overflow
-            alignment: Alignment.center,
-            child: _selectedFile == null
-                ? _buildUploadPrompt()
-                : _buildSelectedFile(),
-          ),
+          child: _selectedFile == null
+              ? _buildUploadPrompt()
+              : _buildSelectedFile(),
         ),
       ),
     );
   }
 
   Widget _buildUploadPrompt() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate available height (accounting for padding)
+        final availableHeight = constraints.maxHeight;
+        final isCompact = availableHeight < 120;
+        
+        return SingleChildScrollView(
+          physics: const NeverScrollableScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: isCompact ? 48 : 64,
+                  height: isCompact ? 48 : 64,
+                  decoration: BoxDecoration(
+                    color: AppColors.brandSage500.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.cloud_upload_outlined,
+                    size: isCompact ? 24 : 32,
+                    color: AppColors.brandSage500,
+                  ),
+                ),
+                SizedBox(height: isCompact ? 8 : 12),
+                Text(
+                  'clickToUpload'.tr,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.neutralInk700,
+                    fontWeight: FontWeight.w500,
+                    fontSize: isCompact ? 13 : null,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (!isCompact) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'dragDropHint'.tr,
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.neutralInk400,
+                      fontSize: 11,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSelectedFile() {
+    final isImage = _isImageFile(_selectedFileName);
+    final fileType = _getFileType(_selectedFileName);
+
+    if (isImage && _selectedFile != null) {
+      // Show image preview for image files
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Image preview with remove button
+          SizedBox(
+            width: double.infinity,
+            height: 200,
+            child: Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.file(
+                    _selectedFile!,
+                    width: double.infinity,
+                    height: 200,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      // Fallback if image fails to load
+                      return _buildFileDetails(fileType);
+                    },
+                  ),
+                ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.6),
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      onPressed: _removeFile,
+                      icon: const Icon(Icons.close, size: 18, color: Colors.white),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 32,
+                        minHeight: 32,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          // File details below image
+          _buildFileInfoRow(),
+        ],
+      );
+    } else {
+      // Show file details for non-image files
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: AppColors.brandSage500.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  _getFileIcon(fileType),
+                  color: AppColors.brandSage500,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildFileInfoRow(),
+              ),
+              IconButton(
+                onPressed: _removeFile,
+                icon: const Icon(Icons.close, size: 20),
+                color: AppColors.neutralInk400,
+                splashRadius: 20,
+              ),
+            ],
+          ),
+        ],
+      );
+    }
+  }
+
+  /// Build file info row with name, size, and type
+  Widget _buildFileInfoRow() {
+    final fileType = _getFileType(_selectedFileName);
     return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            color: AppColors.brandSage500.withOpacity(0.1),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.cloud_upload_outlined,
-            size: 32,
-            color: AppColors.brandSage500,
-          ),
-        ),
-        const SizedBox(height: 16),
         Text(
-          'clickToUpload'.tr,
+          _selectedFileName ?? '',
           style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.neutralInk700,
-            fontWeight: FontWeight.w500,
+            color: AppColors.neutralInk900,
+            fontWeight: FontWeight.w600,
           ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
         ),
-        const SizedBox(height: 4),
-        Text(
-          'dragDropHint'.tr,
-          style: AppTextStyles.caption.copyWith(color: AppColors.neutralInk400),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _buildInfoChip('Size', _selectedFileSize ?? ''),
+            _buildInfoChip('Type', fileType),
+          ],
         ),
       ],
     );
   }
 
-  Widget _buildSelectedFile() {
-    return Row(
-      children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: AppColors.brandSage500.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Icon(
-            Icons.insert_drive_file,
+  /// Build file details widget (fallback for non-image files)
+  Widget _buildFileDetails(String fileType) {
+    return Container(
+      width: double.infinity,
+      height: 200,
+      decoration: BoxDecoration(
+        color: AppColors.brandSage500.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            _getFileIcon(fileType),
             color: AppColors.brandSage500,
-            size: 24,
+            size: 48,
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                _selectedFileName ?? '',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.neutralInk900,
-                  fontWeight: FontWeight.w500,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 2),
-              Text(
-                _selectedFileSize ?? '',
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.neutralInk500,
-                ),
-              ),
-            ],
+          const SizedBox(height: 12),
+          _buildFileInfoRow(),
+        ],
+      ),
+    );
+  }
+
+  /// Get icon based on file type
+  IconData _getFileIcon(String fileType) {
+    switch (fileType.toLowerCase()) {
+      case 'pdf':
+        return Icons.picture_as_pdf;
+      case 'doc':
+      case 'docx':
+        return Icons.description;
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+        return Icons.image;
+      default:
+        return Icons.insert_drive_file;
+    }
+  }
+
+  /// Build info chip widget
+  Widget _buildInfoChip(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.neutralLine100,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '$label: ',
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.neutralInk500,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-        ),
-        IconButton(
-          onPressed: _removeFile,
-          icon: const Icon(Icons.close, size: 20),
-          color: AppColors.neutralInk400,
-          splashRadius: 20,
-        ),
-      ],
+          Text(
+            value,
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.neutralInk900,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
