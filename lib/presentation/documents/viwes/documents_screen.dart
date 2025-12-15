@@ -157,24 +157,9 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
           AddDocumentDialog(
             onClose: () => setState(() => showUploadDialog = false),
             onUpload: (documentData) async {
-              print('Uploading document: ${documentData['fileName']}');
-              print('Type: ${documentData['type']}');
-              print('Title: ${documentData['title']}');
-              print('Description: ${documentData['description']}');
-
-              await Future.delayed(const Duration(seconds: 2));
-              await _controller.fetchDocuments();
-
-              setState(() => showUploadDialog = false);
-
-              Get.snackbar(
-                'success'.tr,
-                'Document uploaded successfully',
-                snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: Colors.green[700],
-                colorText: Colors.white,
-                duration: const Duration(seconds: 2),
-              );
+              // The dialog already handles the upload and refresh
+              // This callback is optional and can be used for additional handling if needed
+              print('✅ Document upload completed: ${documentData['title']}');
             },
           ),
       ],

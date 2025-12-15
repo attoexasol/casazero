@@ -22,6 +22,15 @@ class ResidenceInfoCard extends StatelessWidget {
     // Get HomeController to access residences
     final homeController = Get.find<HomeController>();
 
+    // Refresh residences when the card is built (e.g., when profile screen is viewed)
+    // This ensures we always have fresh data when viewing the profile
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (homeController.residences.isEmpty && !homeController.isLoadingResidences.value) {
+        print('[ResidenceInfoCard] Residences empty, triggering fetchResidences()');
+        homeController.fetchResidences();
+      }
+    });
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surfaceWhite,

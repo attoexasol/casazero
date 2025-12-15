@@ -147,23 +147,25 @@ class ApiConstants {
   static const String GET_RESIDENCE_INFO = '/residences/{residenceId}';
 
   /// Get User Residences
-  /// GET /residences/{user_id}
+  /// PUT /residences/by-token
+  /// Request: { "token": "USER_AUTH_TOKEN_HERE" }
   /// Response: {
   ///   "status": true,
-  ///   "user_id": "1",
+  ///   "user_id": 17,
   ///   "data": [
   ///     {
-  ///       "id": 1,
-  ///       "residence_name": "Skyline Tower",
-  ///       "residence_address": "Sector 9, Dhaka",
-  ///       "residence_type": "Condominium",
-  ///       "residence_admin": 1,
-  ///       "created_at": "2025-11-17T00:30:03.000000Z",
-  ///       "updated_at": "2025-11-17T00:55:44.000000Z"
+  ///       "id": 3,
+  ///       "residence_name": "Casa Zero Residency",
+  ///       "residence_address": "Block A, Road 12, Dhaka"
+  ///     },
+  ///     {
+  ///       "id": 5,
+  ///       "residence_name": "Green View Apartments",
+  ///       "residence_address": "Sector 10, Uttara, Dhaka"
   ///     }
   ///   ]
   /// }
-  static const String GET_USER_RESIDENCES = '/residences';
+  static const String GET_USER_RESIDENCES = '/residences/by-token';
 
   static const String GET_FEED_ITEMS = '/feed';
   static const String GET_CONSTRUCTION_PHASES =
@@ -228,6 +230,22 @@ class ApiConstants {
   ///   "data": [ ... ]
   /// }
   static const String GET_DOCUMENTS_BY_UNIT = '/documents/by_unit';
+
+  /// Upload User Document
+  /// POST /user_document_upload
+  /// Request: {
+  ///   "token": "user_token",
+  ///   "document_file": "file",
+  ///   "document_title": "Passport Copy",
+  ///   "document_category": 2,
+  ///   "document_description": "User passport front page"
+  /// }
+  /// Response: {
+  ///   "status": true,
+  ///   "message": "Document uploaded successfully",
+  ///   "data": { ... }
+  /// }
+  static const String UPLOAD_USER_DOCUMENT = '/user_document_upload';
 
   // ============================================================================
   // ENDPOINT HELPER METHODS

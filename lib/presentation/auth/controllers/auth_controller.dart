@@ -18,7 +18,9 @@ class AuthController extends GetxController {
   final LocaleController _localeController = Get.find();
 
   // For development - remove in production
-  final emailController = TextEditingController(text: 'rajibduet02@gmail.com');
+  final emailController = TextEditingController(
+    text: 'attoexasolutions@gmail.com',
+  );
   final passwordController = TextEditingController(text: 'CasaZero@024017');
   final phoneController = TextEditingController(); // Add phone controller
 
@@ -162,7 +164,7 @@ class AuthController extends GetxController {
         print('📄 Pre-loading documents after login...');
         final documentRepository = DocumentRepository();
         final result = await documentRepository.getDocumentsByUnit();
-        
+
         if (result['success'] == true) {
           // Initialize DocumentsController with pre-loaded data
           if (!Get.isRegistered<DocumentsController>()) {
@@ -170,7 +172,10 @@ class AuthController extends GetxController {
             // Update documents list with pre-loaded data
             final documentsData = result['data'] as List<dynamic>;
             documentsController.documents.value = documentsData
-                .map((item) => DocumentModel.fromJson(item as Map<String, dynamic>))
+                .map(
+                  (item) =>
+                      DocumentModel.fromJson(item as Map<String, dynamic>),
+                )
                 .toList();
             print('✅ Documents pre-loaded: ${documentsData.length} documents');
           } else {

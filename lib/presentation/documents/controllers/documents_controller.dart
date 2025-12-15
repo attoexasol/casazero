@@ -433,6 +433,99 @@ class DocumentsController extends GetxController {
     await Future.wait([fetchDocumentCategories(), fetchDocuments()]);
   }
 
+  /// Upload a document
+  /// Maps document type to category ID and calls repository
+  Future<Map<String, dynamic>> uploadDocument({
+    required File documentFile,
+    required String documentTitle,
+    required String documentType, // e.g., 'ownership_legal', 'technical_building'
+    String? documentDescription,
+  }) async {
+    try {
+      // Map document type to category ID
+      final categoryId = _mapDocumentTypeToCategoryId(documentType);
+      
+      if (categoryId == null) {
+        return {
+          'success': false,
+          'error': 'Invalid document type selected',
+        };
+      }
+
+      print('📤 [DocumentsController] Uploading document');
+      print('📤 [DocumentsController] Title: $documentTitle');
+      print('📤 [DocumentsController] Type: $documentType -> Category ID: $categoryId');
+
+      final result = await _repository.uploadDocument(
+        documentFile: documentFile,
+        documentTitle: documentTitle,
+        documentCategory: categoryId,
+        documentDescription: documentDescription,
+      );
+
+      if (result['success'] == true) {
+        // Refresh documents after successful upload
+        await fetchDocuments();
+        return result;
+      } else {
+        return result;
+      }
+    } catch (e) {
+      print('❌ [DocumentsController] Error uploading document: $e');
+      return {
+        'success': false,
+        'error': 'Upload failed: ${e.toString()}',
+      };
+    }
+  }
+
+  /// Map document type string to category ID
+  /// Uses the categories list to find matching category
+  int? _mapDocumentTypeToCategoryId(String documentType) {
+    // Map document type values to category names
+    final Map<String, String> typeToCategoryName = {
+      'ownership_legal': 'Ownership & Legal',
+      'technical_building': 'Technical Building',
+      'energy_environmental': 'Energy & Environmental',
+      'compliance_safety': 'Compliance & Safety',
+      'administrative_maintenance': 'Administrative & Maintenance',
+    };
+
+    final categoryName = typeToCategoryName[documentType];
+    if (categoryName == null) {
+      print('⚠️ [DocumentsController] Unknown document type: $documentType');
+      return null;
+    }
+
+    // Find category ID from categories list
+    try {
+      final category = categories.firstWhere(
+        (cat) => cat.categoryName.toLowerCase().trim() == 
+                 categoryName.toLowerCase().trim(),
+      );
+
+      print('✅ [DocumentsController] Mapped "$documentType" to category "${category.categoryName}" (ID: ${category.id})');
+      return category.id;
+    } catch (e) {
+      // Try fallback: match by partial name
+      try {
+        final fallbackCategory = categories.firstWhere(
+          (cat) => cat.categoryName.toLowerCase().contains(
+            categoryName.toLowerCase().split(' ').first,
+          ),
+        );
+
+        print('✅ [DocumentsController] Mapped "$documentType" to category "${fallbackCategory.categoryName}" (ID: ${fallbackCategory.id}) - fallback match');
+        return fallbackCategory.id;
+      } catch (e2) {
+        // No match found
+      }
+    }
+
+    print('⚠️ [DocumentsController] Could not find category for type: $documentType');
+    return null;
+  }
+
   /// Update category counts based on loaded documents
   void _updateCategoryCounts(List<DocumentModel> documents) {
     // Create a map to count documents per category (case-insensitive)

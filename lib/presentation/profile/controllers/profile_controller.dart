@@ -165,6 +165,8 @@ class ProfileController extends GetxController {
       if (result['success'] == true) {
         // Reload user data from storage (updated by repository)
         loadUser();
+        // Ensure the UI updates immediately by triggering a rebuild
+        update();
         _showSuccess(result['message'] ?? 'profile_updated_successfully'.tr);
         return true;
       } else {
@@ -267,14 +269,22 @@ class ProfileController extends GetxController {
 
   void _showSuccess(String message) {
     Get.snackbar(
-      'success'.tr,
+      '', // No title for toast-like appearance
       message,
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: AppColors.brandSage600,
       colorText: Colors.white,
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       borderRadius: 12,
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 2), // Shorter duration for toast
+      icon: const Icon(
+        Icons.check_circle,
+        color: Colors.white,
+        size: 20,
+      ),
+      shouldIconPulse: false,
+      isDismissible: true,
+      dismissDirection: DismissDirection.horizontal,
     );
   }
 }
