@@ -165,7 +165,7 @@ class AppTranslations extends Translations {
     "first_name": "First Name",
     "last_name": "Last Name",
     "update_personal_info": "Update your personal information",
-    "save_changes": "Save Changes",
+    "save_changes": "Save",
     "please_enter_your_name": "Please enter your name",
     "please_enter_phone_number": "Please enter your phone number",
 
@@ -612,7 +612,7 @@ class AppTranslations extends Translations {
     "first_name": "Nome",
     "last_name": "Cognome",
     "update_personal_info": "Aggiorna le tue informazioni personali",
-    "save_changes": "Salva Modifiche",
+    "save_changes": "Salva",
     "please_enter_your_name": "Inserisci il tuo nome",
     "please_enter_phone_number": "Inserisci il tuo numero di telefono",
 

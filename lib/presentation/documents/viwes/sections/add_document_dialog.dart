@@ -7,6 +7,7 @@ import '../../../../app/theme/app_text_styles.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_button.dart';
 import '../../../../core/widgets/outlined_custom_button.dart';
+import '../../controllers/documents_controller.dart';
 
 class AddDocumentDialog extends StatefulWidget {
   final VoidCallback onClose;
@@ -39,6 +40,15 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
       'label': 'administrativeMaintenance',
     },
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Add listener to title controller to update button state
+    _titleController.addListener(() {
+      setState(() {}); // Rebuild to update _canUpload state
+    });
+  }
 
   @override
   void dispose() {
@@ -92,39 +102,91 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
   }
 
   bool get _canUpload =>
-      _selectedFile != null && _selectedDocumentType != null && !_isUploading;
+      _selectedFile != null &&
+      _selectedDocumentType != null &&
+      _titleController.text.trim().isNotEmpty &&
+      !_isUploading;
 
   Future<void> _handleUpload() async {
-    if (!_canUpload) return;
+    print('🔵 [AddDocumentDialog] _handleUpload() called');
+    print('🔵 [AddDocumentDialog] _canUpload: $_canUpload');
+    print('🔵 [AddDocumentDialog] File: ${_selectedFile != null ? _selectedFile!.path : "null"}');
+    print('🔵 [AddDocumentDialog] Type: $_selectedDocumentType');
+    print('🔵 [AddDocumentDialog] Title: ${_titleController.text.trim()}');
+    
+    if (!_canUpload) {
+      print('❌ [AddDocumentDialog] Cannot upload - validation failed');
+      return;
+    }
 
     setState(() => _isUploading = true);
+    print('⏳ [AddDocumentDialog] Starting upload...');
 
     try {
-      // Prepare document data
-      final documentData = {
-        'file': _selectedFile,
-        'fileName': _selectedFileName,
-        'fileSize': _selectedFileSize,
-        'type': _selectedDocumentType,
-        'title': _titleController.text.trim(),
-        'description': _descriptionController.text.trim(),
-      };
+      // Get the document title (already validated by _canUpload)
+      final title = _titleController.text.trim();
 
-      // Call the upload callback
-      if (widget.onUpload != null) {
-        await widget.onUpload!(documentData);
-      }
+      // Get DocumentsController
+      print('📞 [AddDocumentDialog] Getting DocumentsController...');
+      final documentsController = Get.find<DocumentsController>();
+      print('✅ [AddDocumentDialog] DocumentsController found');
+
+      // Call the upload method
+      final result = await documentsController.uploadDocument(
+        documentFile: _selectedFile!,
+        documentTitle: title,
+        documentType: _selectedDocumentType!,
+        documentDescription: _descriptionController.text.trim().isEmpty
+            ? null
+            : _descriptionController.text.trim(),
+      );
 
       if (mounted) {
-        Get.snackbar(
-          'success'.tr,
-          'documentUploadSuccess'.tr,
-          backgroundColor: AppColors.success,
-          colorText: AppColors.surfaceWhite,
-        );
-        widget.onClose();
+        if (result['success'] == true) {
+          // Show success toast
+          Get.snackbar(
+            '',
+            result['message'] ?? 'documentUploadSuccess'.tr,
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: AppColors.brandSage600,
+            colorText: AppColors.surfaceWhite,
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            borderRadius: 12,
+            duration: const Duration(seconds: 2),
+            icon: const Icon(
+              Icons.check_circle,
+              color: Colors.white,
+              size: 20,
+            ),
+            shouldIconPulse: false,
+            isDismissible: true,
+          );
+
+          // Close dialog on success
+          widget.onClose();
+
+          // Call the upload callback if provided (for any additional handling)
+          if (widget.onUpload != null) {
+            await widget.onUpload!({
+              'file': _selectedFile,
+              'fileName': _selectedFileName,
+              'fileSize': _selectedFileSize,
+              'type': _selectedDocumentType,
+              'title': title,
+              'description': _descriptionController.text.trim(),
+            });
+          }
+        } else {
+          Get.snackbar(
+            'error'.tr,
+            result['error'] ?? 'documentUploadError'.tr,
+            backgroundColor: AppColors.danger,
+            colorText: AppColors.surfaceWhite,
+          );
+        }
       }
     } catch (e) {
+      print('❌ [AddDocumentDialog] Error uploading: $e');
       if (mounted) {
         Get.snackbar(
           'error'.tr,
@@ -491,22 +553,11 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
           const SizedBox(width: 12),
           Expanded(
             child: GradientButton(
-              text: _isUploading ? '' : 'upload'.tr, // hide text if needed
-              icon: _isUploading ? null : Icons.upload,
+              text: 'upload'.tr,
+              icon: Icons.upload,
               onPressed: _canUpload ? _handleUpload : null,
+              isLoading: _isUploading,
               width: 140,
-              child: _isUploading
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          AppColors.surfaceWhite,
-                        ),
-                      ),
-                    )
-                  : null,
             ),
           ),
         ],

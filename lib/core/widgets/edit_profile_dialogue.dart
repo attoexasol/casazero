@@ -33,7 +33,9 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
       // Split the userName into first and last name
       final nameParts = user.userName.split(' ');
       final firstName = nameParts.isNotEmpty ? nameParts[0] : '';
-      final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+      final lastName = nameParts.length > 1
+          ? nameParts.sublist(1).join(' ')
+          : '';
 
       _firstNameController = TextEditingController(text: firstName);
       _lastNameController = TextEditingController(text: lastName);
@@ -58,7 +60,9 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
 
   Future<void> _handleSave() async {
     // Combine first and last name
-    final fullName = '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}'.trim();
+    final fullName =
+        '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}'
+            .trim();
     final email = _emailController.text.trim();
     final phone = _phoneController.text.trim();
 
@@ -124,9 +128,11 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
       phone: phone,
     );
 
-    // Close dialog on success
+    // Close dialog immediately on success
     if (success) {
-      Navigator.of(context).pop();
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
     }
   }
 
@@ -220,10 +226,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
       padding: const EdgeInsets.all(24),
       decoration: const BoxDecoration(
         border: Border(
-          bottom: BorderSide(
-            color: AppColors.neutralLine100,
-            width: 1,
-          ),
+          bottom: BorderSide(color: AppColors.neutralLine100, width: 1),
         ),
       ),
       child: Column(
@@ -231,9 +234,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
         children: [
           Text(
             'edit_profile'.tr,
-            style: AppTextStyles.h4.copyWith(
-              color: AppColors.neutralInk900,
-            ),
+            style: AppTextStyles.h4.copyWith(color: AppColors.neutralInk900),
           ),
           const SizedBox(height: 4),
           Text(
@@ -252,10 +253,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
       padding: const EdgeInsets.all(24),
       decoration: const BoxDecoration(
         border: Border(
-          top: BorderSide(
-            color: AppColors.neutralLine100,
-            width: 1,
-          ),
+          top: BorderSide(color: AppColors.neutralLine100, width: 1),
         ),
       ),
       child: Row(
@@ -283,7 +281,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
                 backgroundColor: AppColors.brandSage500,
                 textColor: AppColors.surfaceWhite,
                 height: 44,
-
+                width: 10,
               );
             }),
           ),

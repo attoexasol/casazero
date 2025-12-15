@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:get/get.dart';
+import 'package:dio/dio.dart' as dio;
 import '../../core/services/api_service.dart';
 import '../../core/services/storage_service.dart';
 import '../../core/constants/api_constants.dart';
@@ -284,6 +286,85 @@ class DocumentRepository {
       return {
         'success': false,
         'error': 'Failed to fetch documents. Please try again.',
+      };
+    }
+  }
+
+  /// Upload User Document
+  /// POST /user_document_upload
+  /// Request: {
+  ///   "token": "user_token",
+  ///   "document_file": "file",
+  ///   "document_title": "Passport Copy",
+  ///   "document_category": 2,
+  ///   "document_description": "User passport front page"
+  /// }
+  /// Response: {
+  ///   "status": true,
+  ///   "message": "Document uploaded successfully",
+  ///   "data": { ... }
+  /// }
+  Future<Map<String, dynamic>> uploadDocument({
+    required File documentFile,
+    required String documentTitle,
+    required int documentCategory,
+    String? documentDescription,
+  }) async {
+    try {
+      final storageService = Get.find<StorageService>();
+      final token = storageService.getAccessToken();
+
+      if (token == null || token.isEmpty) {
+        return {
+          'success': false,
+          'error': 'User token is missing. Please login again.',
+        };
+      }
+
+      // Create FormData for file upload
+      final formData = dio.FormData.fromMap({
+        'token': token,
+        'document_file': await dio.MultipartFile.fromFile(
+          documentFile.path,
+          filename: documentFile.path.split('/').last,
+        ),
+        'document_title': documentTitle,
+        'document_category': documentCategory,
+        if (documentDescription != null && documentDescription.isNotEmpty)
+          'document_description': documentDescription,
+      });
+
+      print('📤 [DocumentRepository] Uploading document: $documentTitle');
+      print('📤 [DocumentRepository] Category ID: $documentCategory');
+      print('📤 [DocumentRepository] File: ${documentFile.path}');
+
+      // Make API call
+      final response = await _apiService.post(
+        ApiConstants.UPLOAD_USER_DOCUMENT,
+        data: formData,
+      );
+
+      print('✅ [DocumentRepository] Upload response: ${response.statusCode}');
+      print('📊 [DocumentRepository] Response data: ${response.data}');
+
+      // Handle success response
+      if (response.statusCode == 200 && response.data['status'] == true) {
+        return {
+          'success': true,
+          'message': response.data['message'] ?? 'Document uploaded successfully',
+          'data': response.data['data'],
+        };
+      } else {
+        return {
+          'success': false,
+          'error': response.data['message'] ?? 'Failed to upload document',
+        };
+      }
+    } catch (e) {
+      print('❌ [DocumentRepository] Error uploading document: $e');
+      return {
+        'success': false,
+        'error': 'Upload failed: ${e.toString()}',
       };
     }
   }
