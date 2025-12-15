@@ -267,6 +267,7 @@ class ProfileController extends GetxController {
 
   /// Save all settings to server
   /// Saves: Language, Notification preferences, Profile info
+  /// Ensures all settings are validated, persisted locally, and synced to server
   Future<void> saveSettings() async {
     print('🔵 [ProfileController] saveSettings() called');
     
@@ -280,16 +281,32 @@ class ProfileController extends GetxController {
     isSaving.value = true;
 
     try {
-      // Ensure all local changes are saved to storage first
-      _saveUserToStorage();
-      print('💾 [ProfileController] User data saved to storage');
+      // Step 1: Sync language from LocaleController (single source of truth)
+      // This ensures the language setting matches what's currently active in the app
+      final localeController = Get.find<LocaleController>();
+      final currentLanguage = localeController.currentLanguageCode;
+      
+      // Update user's language if it differs from LocaleController
+      if (user.value!.language != currentLanguage) {
+        print('🔄 [ProfileController] Syncing language from LocaleController: $currentLanguage');
+        user.value = user.value!.copyWith(language: currentLanguage);
+      }
 
-      // Get current user from reactive state (has latest changes)
+      // Step 2: Ensure all local changes are saved to storage first
+      await _saveUserToStorage();
+      print('💾 [ProfileController] User data saved to local storage');
+
+      // Step 3: Get current user from reactive state (has latest changes)
       final currentUser = user.value!;
-      print('👤 [ProfileController] Preparing to update profile for user: ${currentUser.id}');
+      print('👤 [ProfileController] Preparing to save settings for user: ${currentUser.id}');
+      print('   Language: ${currentUser.language}');
+      print('   Notifications - Documents: ${currentUser.isDocumentNotify}');
+      print('   Notifications - Maintenance: ${currentUser.isMaintenanceNotify}');
+      print('   Notifications - Chat: ${currentUser.isChatNotify}');
+      print('   Notifications - Support Tickets: ${currentUser.isSupportTicketNotify}');
 
-      // Save all settings to API
-      print('📡 [ProfileController] Calling updateProfile()...');
+      // Step 4: Save all settings to API
+      print('📡 [ProfileController] Calling updateProfile() API...');
       final result = await _profileRepository.updateProfile(
         userId: currentUser.id,
         userName: currentUser.userName,
@@ -301,7 +318,7 @@ class ProfileController extends GetxController {
         isMaintenanceNotify: currentUser.isMaintenanceNotify,
         isChatNotify: currentUser.isChatNotify,
         isSupportTicketNotify: currentUser.isSupportTicketNotify,
-        // twoFaMethod is not included in Save Settings request
+        // Note: twoFaMethod is not included in Save Settings request
       );
 
       print('📥 [ProfileController] Received result from updateProfile()');
@@ -309,13 +326,15 @@ class ProfileController extends GetxController {
       print('   Message: ${result['message'] ?? result['error']}');
       
       if (result['success'] == true) {
-        // Reload user data from storage (updated by repository)
-        loadUser();
+        // Step 5: Force reload user data from storage (updated by repository after API success)
+        // This ensures we have the latest data from the server
+        forceReloadUser();
         
-        // Ensure UI updates
+        // Step 6: Ensure UI updates immediately
         update();
         
-        print('✅ [ProfileController] Settings saved successfully');
+        print('✅ [ProfileController] All settings saved successfully');
+        print('   Settings persisted to: Local storage + Server API');
         _showSuccess(result['message'] ?? 'settings_saved_successfully'.tr);
       } else {
         print('❌ [ProfileController] Failed to save settings: ${result['error']}');
