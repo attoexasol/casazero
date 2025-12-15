@@ -434,55 +434,78 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
 
     if (isImage && _selectedFile != null) {
       // Show image preview for image files
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image preview with remove button
-          SizedBox(
-            width: double.infinity,
-            height: 200,
-            child: Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.file(
-                    _selectedFile!,
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          // Calculate available height (accounting for padding: 24px top + 24px bottom = 48px)
+          final availableHeight = constraints.maxHeight;
+          // Reserve space for file info row (approximately 50-60px) and spacing (12px)
+          final fileInfoHeight = 60.0;
+          final spacing = 12.0;
+          final maxImageHeight = availableHeight - fileInfoHeight - spacing;
+          // Use adaptive height: prefer 200px, but reduce if needed, minimum 120px
+          final imageHeight = maxImageHeight > 200
+              ? 200.0
+              : (maxImageHeight > 120 ? maxImageHeight : 120.0);
+
+          return SingleChildScrollView(
+            physics: const NeverScrollableScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: constraints.maxHeight,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Image preview with remove button
+                  SizedBox(
                     width: double.infinity,
-                    height: 200,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      // Fallback if image fails to load
-                      return _buildFileDetails(fileType);
-                    },
-                  ),
-                ),
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.6),
-                      shape: BoxShape.circle,
+                    height: imageHeight,
+                    child: Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(
+                            _selectedFile!,
+                            width: double.infinity,
+                            height: imageHeight,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              // Fallback if image fails to load
+                              return _buildFileDetails(fileType);
+                            },
+                          ),
+                        ),
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.6),
+                              shape: BoxShape.circle,
+                            ),
+                            child: IconButton(
+                              onPressed: _removeFile,
+                              icon: const Icon(Icons.close, size: 18, color: Colors.white),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(
+                                minWidth: 32,
+                                minHeight: 32,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    child: IconButton(
-                      onPressed: _removeFile,
-                      icon: const Icon(Icons.close, size: 18, color: Colors.white),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(
-                        minWidth: 32,
-                        minHeight: 32,
-                      ),
-                    ),
                   ),
-                ),
-              ],
+                  SizedBox(height: imageHeight < 150 ? 8 : 12),
+                  // File details below image
+                  _buildFileInfoRow(),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          // File details below image
-          _buildFileInfoRow(),
-        ],
+          );
+        },
       );
     } else {
       // Show file details for non-image files
