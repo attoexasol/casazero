@@ -3,10 +3,12 @@ import '../../../data/models/document_category_model.dart';
 import '../../../data/models/document_model.dart';
 import '../../../data/repositories/document_repository.dart';
 import '../../../core/services/download_service.dart';
+import '../../../app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:open_filex/open_filex.dart';
 import 'dart:io';
+import '../models/upload_result.dart';
 
 class DocumentsController extends GetxController {
   final DocumentRepository _repository = DocumentRepository();
@@ -25,6 +27,11 @@ class DocumentsController extends GetxController {
   
   // Document counts per category
   final RxInt totalDocumentCount = 0.obs;
+
+  // Upload state
+  final RxBool isUploading = false.obs;
+  final RxBool uploadSuccess = false.obs;
+  final RxString uploadErrorMessage = ''.obs;
 
   @override
   void onInit() {
@@ -434,27 +441,27 @@ class DocumentsController extends GetxController {
   }
 
   /// Upload a document
-  /// Maps document type to category ID and calls repository
-  Future<Map<String, dynamic>> uploadDocument({
+  /// Returns UploadResult - NO side effects, NO snackbars, NO UI updates
+  /// UI layer must handle snackbars and dialog closing
+  Future<UploadResult> uploadDocument({
     required File documentFile,
     required String documentTitle,
-    required String documentType, // e.g., 'ownership_legal', 'technical_building'
+    int? documentCategoryId,
+    String? documentType,
     String? documentDescription,
   }) async {
-    try {
-      // Map document type to category ID
-      final categoryId = _mapDocumentTypeToCategoryId(documentType);
-      
-      if (categoryId == null) {
-        return {
-          'success': false,
-          'error': 'Invalid document type selected',
-        };
-      }
+    isUploading.value = true;
 
-      print('📤 [DocumentsController] Uploading document');
-      print('📤 [DocumentsController] Title: $documentTitle');
-      print('📤 [DocumentsController] Type: $documentType -> Category ID: $categoryId');
+    try {
+      int? categoryId = documentCategoryId ??
+          (documentType != null
+              ? _mapDocumentTypeToCategoryId(documentType)
+              : null);
+
+      if (categoryId == null) {
+        isUploading.value = false;
+        return const UploadResult.error('Invalid document category selected');
+      }
 
       final result = await _repository.uploadDocument(
         documentFile: documentFile,
@@ -463,19 +470,30 @@ class DocumentsController extends GetxController {
         documentDescription: documentDescription,
       );
 
-      if (result['success'] == true) {
-        // Refresh documents after successful upload
-        await fetchDocuments();
-        return result;
+      // Check if upload succeeded
+      final bool isSuccess = result['success'] == true;
+      
+      // Defensive check: if message contains "successfully", treat as success
+      // This prevents success messages from being routed to error snackbar
+      final String? message = result['message'] as String?;
+      final String? error = result['error'] as String?;
+      final String? checkMessage = error ?? message;
+      final bool hasSuccessMessage = checkMessage?.toLowerCase().contains('successfully') ?? false;
+
+      if (isSuccess || hasSuccessMessage) {
+        // Refresh documents silently (non-blocking)
+        fetchDocuments().catchError((_) {});
+        
+        isUploading.value = false;
+        return const UploadResult.success('Document uploaded successfully');
       } else {
-        return result;
+        final String errorMessage = error ?? 'Document upload failed';
+        isUploading.value = false;
+        return UploadResult.error(errorMessage);
       }
     } catch (e) {
-      print('❌ [DocumentsController] Error uploading document: $e');
-      return {
-        'success': false,
-        'error': 'Upload failed: ${e.toString()}',
-      };
+      isUploading.value = false;
+      return const UploadResult.error('Document upload failed');
     }
   }
 
@@ -565,4 +583,10 @@ class DocumentsController extends GetxController {
       print('  - ${cat.categoryName}: ${cat.count}');
     }
   }
+
+  // -------------------------------------------------------------------------
+  // UPLOAD SNACKBARS REMOVED
+  // -------------------------------------------------------------------------
+  // Snackbars are now handled ONLY in UI layer (AddDocumentDialog)
+  // Controller returns UploadResult - no side effects
 }

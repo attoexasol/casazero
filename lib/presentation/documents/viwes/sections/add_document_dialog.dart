@@ -7,7 +7,9 @@ import '../../../../app/theme/app_text_styles.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_button.dart';
 import '../../../../core/widgets/outlined_custom_button.dart';
+import '../../../../data/models/document_category_model.dart';
 import '../../controllers/documents_controller.dart';
+import '../../models/upload_result.dart';
 
 class AddDocumentDialog extends StatefulWidget {
   final VoidCallback onClose;
@@ -22,24 +24,12 @@ class AddDocumentDialog extends StatefulWidget {
 class _AddDocumentDialogState extends State<AddDocumentDialog> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  final DocumentsController _controller = Get.find<DocumentsController>();
 
   File? _selectedFile;
   String? _selectedFileName;
   String? _selectedFileSize;
-  String? _selectedDocumentType;
-  bool _isUploading = false;
-
-  // Document types matching React version
-  final List<Map<String, String>> _documentTypes = [
-    {'value': 'ownership_legal', 'label': 'ownershipLegal'},
-    {'value': 'technical_building', 'label': 'technicalBuilding'},
-    {'value': 'energy_environmental', 'label': 'energyEnvironmental'},
-    {'value': 'compliance_safety', 'label': 'complianceSafety'},
-    {
-      'value': 'administrative_maintenance',
-      'label': 'administrativeMaintenance',
-    },
-  ];
+  int? _selectedCategoryId; // Changed from String to int (category ID)
 
   @override
   void initState() {
@@ -48,6 +38,28 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
     _titleController.addListener(() {
       setState(() {}); // Rebuild to update _canUpload state
     });
+    
+    // Ensure categories are loaded when dialog opens
+    _ensureCategoriesLoaded();
+    
+    // Snackbar listeners removed - snackbars now handled directly in _handleUpload
+  }
+
+  /// Ensure categories are loaded from API
+  /// Uses cached categories if already loaded, otherwise fetches
+  Future<void> _ensureCategoriesLoaded() async {
+    // If categories are already loaded, no need to fetch again
+    if (_controller.categories.isNotEmpty) {
+      return;
+    }
+    
+    // If already loading, wait for it
+    if (_controller.isLoadingCategories.value) {
+      return;
+    }
+    
+    // Fetch categories from API
+    await _controller.fetchDocumentCategories();
   }
 
   @override
@@ -117,101 +129,88 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
 
   bool get _canUpload =>
       _selectedFile != null &&
-      _selectedDocumentType != null &&
+      _selectedCategoryId != null &&
       _titleController.text.trim().isNotEmpty &&
-      !_isUploading;
+      !_controller.isUploading.value;
 
   Future<void> _handleUpload() async {
-    print('🔵 [AddDocumentDialog] _handleUpload() called');
-    print('🔵 [AddDocumentDialog] _canUpload: $_canUpload');
-    print(
-      '🔵 [AddDocumentDialog] File: ${_selectedFile != null ? _selectedFile!.path : "null"}',
-    );
-    print('🔵 [AddDocumentDialog] Type: $_selectedDocumentType');
-    print('🔵 [AddDocumentDialog] Title: ${_titleController.text.trim()}');
-
     if (!_canUpload) {
-      print('❌ [AddDocumentDialog] Cannot upload - validation failed');
       return;
     }
 
-    setState(() => _isUploading = true);
-    print('⏳ [AddDocumentDialog] Starting upload...');
+    final title = _titleController.text.trim();
 
-    try {
-      // Get the document title (already validated by _canUpload)
-      final title = _titleController.text.trim();
+    // Call controller upload method - returns UploadResult (NO side effects)
+    final UploadResult result = await _controller.uploadDocument(
+      documentFile: _selectedFile!,
+      documentTitle: title,
+      documentCategoryId: _selectedCategoryId!,
+      documentDescription: _descriptionController.text.trim().isEmpty
+          ? null
+          : _descriptionController.text.trim(),
+    );
 
-      // Get DocumentsController
-      print('📞 [AddDocumentDialog] Getting DocumentsController...');
-      final documentsController = Get.find<DocumentsController>();
-      print('✅ [AddDocumentDialog] DocumentsController found');
-
-      // Call the upload method
-      final result = await documentsController.uploadDocument(
-        documentFile: _selectedFile!,
-        documentTitle: title,
-        documentType: _selectedDocumentType!,
-        documentDescription: _descriptionController.text.trim().isEmpty
-            ? null
-            : _descriptionController.text.trim(),
-      );
-
-      if (mounted) {
-        if (result['success'] == true) {
-          // Show success toast
-          Get.snackbar(
-            '',
-            result['message'] ?? 'documentUploadSuccess'.tr,
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: AppColors.brandSage600,
-            colorText: AppColors.surfaceWhite,
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-            borderRadius: 12,
-            duration: const Duration(seconds: 2),
-            icon: const Icon(Icons.check_circle, color: Colors.white, size: 20),
-            shouldIconPulse: false,
-            isDismissible: true,
-          );
-
-          // Close dialog on success
-          widget.onClose();
-
-          // Call the upload callback if provided (for any additional handling)
-          if (widget.onUpload != null) {
-            await widget.onUpload!({
-              'file': _selectedFile,
-              'fileName': _selectedFileName,
-              'fileSize': _selectedFileSize,
-              'type': _selectedDocumentType,
-              'title': title,
-              'description': _descriptionController.text.trim(),
-            });
-          }
-        } else {
-          Get.snackbar(
-            'error'.tr,
-            result['error'] ?? 'documentUploadError'.tr,
-            backgroundColor: AppColors.danger,
-            colorText: AppColors.surfaceWhite,
-          );
-        }
+    // Handle result - snackbars shown ONLY here in UI layer
+    if (result.status == UploadStatus.success) {
+      // ✅ SUCCESS - Show success snackbar and close dialog
+      _showSuccessSnackbar();
+      widget.onClose(); // Close dialog
+      
+      // Call upload callback if provided
+      if (widget.onUpload != null) {
+        await widget.onUpload!({
+          'file': _selectedFile,
+          'fileName': _selectedFileName,
+          'fileSize': _selectedFileSize,
+          'categoryId': _selectedCategoryId,
+          'title': title,
+          'description': _descriptionController.text.trim(),
+        });
       }
-    } catch (e) {
-      print('❌ [AddDocumentDialog] Error uploading: $e');
-      if (mounted) {
-        Get.snackbar(
-          'error'.tr,
-          'documentUploadError'.tr,
-          backgroundColor: AppColors.danger,
-          colorText: AppColors.surfaceWhite,
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isUploading = false);
-      }
+    } else {
+      // ❌ ERROR - Show error snackbar, keep dialog open
+      _showErrorSnackbar(result.message);
     }
+  }
+
+  /// Show success snackbar - ONLY place success snackbar is shown
+  void _showSuccessSnackbar() {
+    // Close any existing snackbars to prevent duplicates
+    if (Get.isSnackbarOpen ?? false) {
+      Get.closeAllSnackbars();
+    }
+    
+    Get.snackbar(
+      'Success',
+      'Document uploaded successfully',
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: const Color(0xFF2FB476),
+      colorText: Colors.white,
+      snackStyle: SnackStyle.FLOATING,
+    );
+  }
+
+  /// Show error snackbar - ONLY place error snackbar is shown
+  void _showErrorSnackbar(String message) {
+    // Close any existing snackbars to prevent duplicates
+    if (Get.isSnackbarOpen ?? false) {
+      Get.closeAllSnackbars();
+    }
+    
+    Get.snackbar(
+      'Error',
+      'Document upload failed',
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: AppColors.danger,
+      colorText: Colors.white,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      borderRadius: 12,
+      duration: const Duration(seconds: 3),
+      icon: const Icon(Icons.error, color: Colors.white, size: 20),
+      shouldIconPulse: false,
+      isDismissible: true,
+      dismissDirection: DismissDirection.horizontal,
+    );
   }
 
   @override
@@ -658,60 +657,193 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
   }
 
   Widget _buildDocumentTypeDropdown() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Document Categories'.tr,
-          style: AppTextStyles.label.copyWith(
-            color: AppColors.neutralInk700,
-            fontSize: 14,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: AppColors.neutralLine100,
-            borderRadius: BorderRadius.circular(25),
-            border: Border.all(color: AppColors.neutralLine200),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: _selectedDocumentType,
-              isExpanded: true,
-              hint: Text(
-                'selectType'.tr,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.neutralInk400,
+    return Obx(() {
+      // Show loading state
+      if (_controller.isLoadingCategories.value) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Document Categories'.tr,
+              style: AppTextStyles.label.copyWith(
+                color: AppColors.neutralInk700,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppColors.neutralLine100,
+                borderRadius: BorderRadius.circular(25),
+                border: Border.all(color: AppColors.neutralLine200),
+              ),
+              child: const Center(
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.brandSage600),
+                  ),
                 ),
               ),
-              icon: const Icon(Icons.keyboard_arrow_down),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              borderRadius: BorderRadius.circular(25),
-              items: _documentTypes.map((type) {
-                return DropdownMenuItem<String>(
-                  value: type['value'],
-                  child: Text(
-                    type['label']!.tr,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.neutralInk900,
+            ),
+          ],
+        );
+      }
+
+      // Show error state
+      if (_controller.categories.isEmpty && 
+          _controller.errorMessage.value.isNotEmpty) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Document Categories'.tr,
+              style: AppTextStyles.label.copyWith(
+                color: AppColors.neutralInk700,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.danger.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(25),
+                border: Border.all(color: AppColors.danger.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.error_outline, 
+                    size: 16, 
+                    color: AppColors.danger,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Failed to load categories',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.danger,
+                      ),
                     ),
                   ),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() => _selectedDocumentType = value);
-              },
+                  TextButton(
+                    onPressed: () => _controller.fetchDocumentCategories(),
+                    child: Text(
+                      'Retry',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.danger,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      }
+
+      // Show empty state
+      if (_controller.categories.isEmpty) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Document Categories'.tr,
+              style: AppTextStyles.label.copyWith(
+                color: AppColors.neutralInk700,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.neutralLine100,
+                borderRadius: BorderRadius.circular(25),
+                border: Border.all(color: AppColors.neutralLine200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, 
+                    size: 16, 
+                    color: AppColors.neutralInk400,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'No categories available',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.neutralInk500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      }
+
+      // Show categories dropdown
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Document Categories'.tr,
+            style: AppTextStyles.label.copyWith(
+              color: AppColors.neutralInk700,
+              fontSize: 14,
             ),
           ),
-        ),
-      ],
-    );
+          const SizedBox(height: 8),
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.neutralLine100,
+              borderRadius: BorderRadius.circular(25),
+              border: Border.all(color: AppColors.neutralLine200),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<int>(
+                value: _selectedCategoryId,
+                isExpanded: true,
+                hint: Text(
+                  'selectType'.tr,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.neutralInk400,
+                  ),
+                ),
+                icon: const Icon(Icons.keyboard_arrow_down),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                borderRadius: BorderRadius.circular(25),
+                items: _controller.categories.map((category) {
+                  return DropdownMenuItem<int>(
+                    value: category.id,
+                    child: Text(
+                      category.categoryName,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.neutralInk900,
+                      ),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() => _selectedCategoryId = value);
+                },
+              ),
+            ),
+          ),
+        ],
+      );
+    });
   }
 
   Widget _buildTitleField() {
     return CustomTextField(
-      label: '${'title'.tr} (${'optional'.tr})',
+      label: '${'title'.tr}',
       hint: 'documentTitlePlaceholder'.tr,
       controller: _titleController,
       keyboardType: TextInputType.text,
@@ -759,13 +891,13 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: GradientButton(
+            child: Obx(() => GradientButton(
               text: 'upload'.tr,
               icon: Icons.upload,
-              onPressed: _canUpload ? _handleUpload : null,
-              isLoading: _isUploading,
+              onPressed: _canUpload && !_controller.isUploading.value ? _handleUpload : null,
+              isLoading: _controller.isUploading.value,
               width: 140,
-            ),
+            )),
           ),
         ],
       ),

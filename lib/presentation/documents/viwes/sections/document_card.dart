@@ -88,7 +88,8 @@ class _DocumentCardState extends State<DocumentCard> {
             children: [
               /// LEFT ACCENT BORDER
               Container(
-                width: 6 * scale,
+                //height: double.,
+                width: 8 * scale,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [accentColor, accentColor.withOpacity(0.5)],
