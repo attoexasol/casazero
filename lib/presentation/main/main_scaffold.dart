@@ -19,6 +19,8 @@ import '../auth/views/change_password_screen.dart';
 
 import '../home/controllers/home_controller.dart';
 import '../profile/controllers/profile_controller.dart';
+import '../documents/controllers/documents_controller.dart';
+import '../maintenance/controllers/maintenance_controller.dart';
 import '../../data/models/user_model.dart';
 import '../../core/utils/permissions.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -700,6 +702,10 @@ class MainScaffold extends GetView<HomeController> {
         return _buildHomeScreen();
 
       case AppScreen.documents:
+        // Ensure DocumentsController is initialized
+        if (!Get.isRegistered<DocumentsController>()) {
+          Get.put(DocumentsController());
+        }
         return DocumentsScreen(
           role: controller.currentUser.value?.role ?? Role.client,
           onAskAI: () => controller.navigateToScreen(AppScreen.ai),
@@ -713,12 +719,24 @@ class MainScaffold extends GetView<HomeController> {
         );
 
       case AppScreen.maintenance:
+        // Ensure MaintenanceController is initialized
+        if (!Get.isRegistered<MaintenanceController>()) {
+          Get.put(MaintenanceController());
+        }
         return MaintenanceScreen(
           role: controller.currentUser.value?.role.toString() ?? 'client',
           onAskAI: () => controller.navigateToScreen(AppScreen.ai),
         );
 
       case AppScreen.profile:
+        // Ensure user is loaded before showing profile screen
+        if (controller.currentUser.value == null) {
+          return const Center(
+            child: CircularProgressIndicator(
+              color: AppColors.brandSage500,
+            ),
+          );
+        }
         return ProfileScreen(
           user: controller.currentUser.value!,
           onLogout: () {
@@ -760,15 +778,25 @@ class MainScaffold extends GetView<HomeController> {
 
   Widget _buildHomeScreen() {
     // Show Hub for completed residence, dashboard for under construction
-    if (controller.currentUser.value?.residenceStatus ==
-        ResidenceStatus.completed) {
-      return HubScreen(
-        role: controller.currentUser.value?.role ?? Role.client,
-        onNavigate: (destination) =>
-            controller.navigateToScreenByString(destination),
-      );
-    }
-    return const HomeScreen();
+    return Obx(() {
+      final user = controller.currentUser.value;
+      if (user == null) {
+        return const Center(
+          child: CircularProgressIndicator(
+            color: AppColors.brandSage500,
+          ),
+        );
+      }
+      
+      if (user.residenceStatus == ResidenceStatus.completed) {
+        return HubScreen(
+          role: user.role ?? Role.client,
+          onNavigate: (destination) =>
+              controller.navigateToScreenByString(destination),
+        );
+      }
+      return const HomeScreen();
+    });
   }
 
   Widget? _buildBottomNavBar() {

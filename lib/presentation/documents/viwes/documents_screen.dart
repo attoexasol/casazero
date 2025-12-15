@@ -26,7 +26,18 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
   String activeCategory = "all";
   bool showUploadDialog = false;
 
-  final DocumentsController _controller = Get.put(DocumentsController());
+  late final DocumentsController _controller;
+  
+  @override
+  void initState() {
+    super.initState();
+    // Ensure controller is initialized, reuse if exists
+    if (!Get.isRegistered<DocumentsController>()) {
+      _controller = Get.put(DocumentsController());
+    } else {
+      _controller = Get.find<DocumentsController>();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +69,52 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
             /// DOCUMENTS LIST
             Expanded(
               child: Obx(() {
+                // Show error state if there's an error
+                if (_controller.hasError.value && 
+                    _controller.documents.isEmpty &&
+                    !_controller.isLoadingDocuments.value) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Colors.red,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Error Loading Documents',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          child: Text(
+                            _controller.errorMessage.value.isNotEmpty
+                                ? _controller.errorMessage.value
+                                : 'Failed to load documents. Please try again.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton(
+                          onPressed: () => _controller.retryFetchDocuments(),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF4CAF47),
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
                 if (_controller.isLoadingDocuments.value &&
                     _controller.documents.isEmpty) {
                   return const Center(

@@ -76,7 +76,7 @@ class Permissions {
       default:
         return Permissions(
           canAccessAI: true,
-          canAccessSmartHome: false,
+          canAccessSmartHome: true, // Enable Smart Home for all users
           canAccessChat: true,
           canCreateTickets: true,
           canAccessAnalytics: false,
@@ -85,7 +85,7 @@ class Permissions {
           canAccessDocuments: true,
           canManageMaintenance: false,
           canDeleteDocuments: false,
-          canSharedDocuments: false,
+          canSharedDocuments: true, // Enable share and chat for all users
             canUploadDocuments:true
         );
     }

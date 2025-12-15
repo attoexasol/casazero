@@ -33,72 +33,77 @@ class _HubCardWidgetState extends State<HubCardWidget> {
         widget.onTap();
       },
       onTapCancel: () => setState(() => hovered = false),
-      child:
-          AnimatedContainer(
-                duration: 200.ms,
+      child: AnimatedContainer(
+        duration: 200.ms,
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: hovered
+                ? widget.card.hoverColor.withOpacity(0.4)
+                : Colors.grey.shade200,
+            width: hovered ? 2 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: widget.card.shadowColor,
+              blurRadius: hovered ? 16 : 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            /// HOVER BACKGROUND GRADIENT
+            AnimatedOpacity(
+              duration: 200.ms,
+              opacity: hovered ? 0.3 : 0,
+              child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: hovered
-                        ? widget.card.hoverColor.withOpacity(0.4)
-                        : Colors.grey.shade200,
-                    width: hovered ? 2 : 1,
+                  gradient: LinearGradient(
+                    colors: widget.card.bgGradient,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: widget.card.shadowColor,
-                      blurRadius: hovered ? 16 : 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                child: Stack(
+              ),
+            ),
+
+            /// MAIN CONTENT
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    /// HOVER BACKGROUND GRADIENT
-                    AnimatedOpacity(
-                      duration: 200.ms,
-                      opacity: hovered ? 0.3 : 0,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: widget.card.bgGradient,
-                          ),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                    ),
-
-                    /// MAIN CONTENT
-                    Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildIcon(),
-
-                          const SizedBox(height: 12),
-
-                          /// TITLE
-                          Text(
-                            widget.card.title,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                              color: hovered
-                                  ? widget.card.hoverColor
-                                  : Colors.black87,
-                            ),
-                          ),
-                        ],
+                    _buildIcon(),
+                    const SizedBox(height: 12),
+                    /// TITLE
+                    Text(
+                      widget.card.title,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: hovered
+                            ? widget.card.hoverColor
+                            : Colors.black87,
                       ),
                     ),
                   ],
                 ),
-              )
-              .animate()
-              .fadeIn(delay: (100 + widget.index * 80).ms)
-              .slideY(begin: 0.3),
+              ),
+            ),
+          ],
+        ),
+      )
+          .animate()
+          .fadeIn(delay: (100 + widget.index * 80).ms)
+          .slideY(begin: 0.3),
     );
   }
 
@@ -108,12 +113,12 @@ class _HubCardWidgetState extends State<HubCardWidget> {
   Widget _buildIcon() {
     final path = widget.card.imagePath?.toLowerCase();
 
-    // 🔹 FIRST CARD STYLE (no container)
+    // 🔹 FIRST CARD STYLE (no container) - larger icon
     if (!widget.card.wrapIconInContainer) {
-      return _buildRawIcon(path);
+      return _buildRawIcon(path, iconSize: 55);
     }
 
-    // 🔹 OTHER 3 CARDS (icon inside container)
+    // 🔹 OTHER CARDS (icon inside container) - smaller icon
     return Container(
       width: 56,
       height: 56,
@@ -121,21 +126,26 @@ class _HubCardWidgetState extends State<HubCardWidget> {
         gradient: LinearGradient(colors: widget.card.gradient),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Center(child: _buildRawIcon(path, forceWhite: true)),
+      child: Center(child: _buildRawIcon(path, forceWhite: true, iconSize: 25)),
     );
   }
 
-  Widget _buildRawIcon(String? path, {bool forceWhite = false}) {
+  Widget _buildRawIcon(String? path, {bool forceWhite = false, double iconSize = 28}) {
     // SVG
     if (path != null && path.endsWith('.svg')) {
       return SvgPicture.asset(
         widget.card.imagePath!,
-        width: 25,
-        height: 25,
+        width: iconSize,
+        height: iconSize,
         fit: BoxFit.contain,
         colorFilter: forceWhite
             ? const ColorFilter.mode(Colors.white, BlendMode.srcIn)
             : null,
+        placeholderBuilder: (context) => Icon(
+          widget.card.icon ?? Icons.home_outlined,
+          size: iconSize,
+          color: forceWhite ? Colors.white : Colors.black87,
+        ),
       );
     }
 
@@ -143,17 +153,25 @@ class _HubCardWidgetState extends State<HubCardWidget> {
     if (path != null) {
       return Image.asset(
         widget.card.imagePath!,
-        width: 55,
-        height: 55,
+        width: iconSize,
+        height: iconSize,
         fit: BoxFit.contain,
         color: forceWhite ? Colors.white : null,
+        errorBuilder: (context, error, stackTrace) {
+          // Fallback to icon if image fails to load
+          return Icon(
+            widget.card.icon ?? Icons.image_not_supported,
+            size: iconSize,
+            color: forceWhite ? Colors.white : Colors.black87,
+          );
+        },
       );
     }
 
     // IconData fallback
     return Icon(
-      widget.card.icon,
-      size: 28,
+      widget.card.icon ?? Icons.dashboard,
+      size: iconSize,
       color: forceWhite ? Colors.white : Colors.black87,
     );
   }

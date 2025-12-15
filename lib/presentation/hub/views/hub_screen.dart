@@ -20,10 +20,12 @@ class HubScreen extends StatelessWidget {
   // RESPONSIVE BREAKPOINTS
   // -------------------------------
   int _getGridCount(double width) {
-    if (width >= 1100) return 4; // Desktop
-    if (width >= 800) return 3;  // Tablet Landscape
-    if (width >= 600) return 2;  // Tablet Portrait
-    return 2;                    // Mobile
+    // For mobile, show 2 columns to ensure cards are visible
+    // For larger screens, show more columns
+    if (width >= 1100) return 4; // Desktop - show all 4 cards in one row
+    if (width >= 800) return 3;  // Tablet Landscape - 3 columns
+    if (width >= 600) return 2;  // Tablet Portrait - 2 columns
+    return 2;                    // Mobile - 2 columns (cards will wrap to 2 rows)
   }
 
   double _getCardHeight(double width) {
@@ -57,7 +59,6 @@ class HubScreen extends StatelessWidget {
         hoverColor: const Color(0xFF4CAF47),
         show: permissions.canAccessAI,
         wrapIconInContainer: false,
-        
       ),
       HubCard(
         id: 'smarthome',
@@ -69,7 +70,7 @@ class HubScreen extends StatelessWidget {
         bgGradient: const [Color(0xFFF3E8FF), Color(0xFFE9D5FF)],
         shadowColor: const Color(0x4DA855F7),
         hoverColor: const Color(0xFF9333EA),
-        show: permissions.canAccessSmartHome,
+        show: permissions.canAccessSmartHome, // Now true for all roles
         wrapIconInContainer: true,
       ),
       HubCard(
@@ -98,6 +99,45 @@ class HubScreen extends StatelessWidget {
         wrapIconInContainer: true,
       ),
     ].where((c) => c.show).toList();
+    
+    // Debug: Print card count
+    print('🔍 HubScreen: Showing ${hubCards.length} cards out of 4 total');
+    for (var card in hubCards) {
+      print('  - ${card.title} (${card.id})');
+    }
+
+    // Show empty state if no cards are available
+    if (hubCards.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.dashboard_outlined,
+                size: 64,
+                color: Colors.grey,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'No Services Available',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'You don\'t have access to any services at the moment.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -127,22 +167,33 @@ class HubScreen extends StatelessWidget {
               // RESPONSIVE GRID
               Padding(
                 padding: horizontalPadding,
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: hubCards.length,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: gridCount,
-                    crossAxisSpacing: 20,
-                    mainAxisSpacing: 20,
-                    childAspectRatio: (width / gridCount) / cardHeight,
-                  ),
-                  itemBuilder: (_, index) {
-                    return HubCardWidget(
-                      card: hubCards[index],
-                      index: index,
-                      onTap: () => onNavigate(hubCards[index].screen),
-                      wrapIconInContainer: hubCards[index].wrapIconInContainer,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    // Calculate available width after padding
+                    final availableWidth = constraints.maxWidth;
+                    // Calculate card width (accounting for spacing)
+                    final cardWidth = (availableWidth - (gridCount - 1) * 20) / gridCount;
+                    // Calculate aspect ratio: width / height
+                    final aspectRatio = cardWidth / cardHeight;
+                    
+                    return GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: hubCards.length,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: gridCount,
+                        crossAxisSpacing: 20,
+                        mainAxisSpacing: 20,
+                        childAspectRatio: aspectRatio,
+                      ),
+                      itemBuilder: (_, index) {
+                        return HubCardWidget(
+                          card: hubCards[index],
+                          index: index,
+                          onTap: () => onNavigate(hubCards[index].screen),
+                          wrapIconInContainer: hubCards[index].wrapIconInContainer,
+                        );
+                      },
                     );
                   },
                 ),

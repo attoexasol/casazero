@@ -32,11 +32,17 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
 
   late AnimationController _fabController;
 
-  final MaintenanceController _controller = Get.put(MaintenanceController());
-
+  late final MaintenanceController _controller;
+  
   @override
   void initState() {
     super.initState();
+    // Ensure controller is initialized, reuse if exists
+    if (!Get.isRegistered<MaintenanceController>()) {
+      _controller = Get.put(MaintenanceController());
+    } else {
+      _controller = Get.find<MaintenanceController>();
+    }
     _fabController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -45,6 +51,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
       if (mounted) _fabController.forward();
     });
   }
+
 
   @override
   void dispose() {
@@ -101,7 +108,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
     final permissions = Permissions.fromRole(roleEnum);
     // Allow all users to create personal maintenance tasks
     final canCreateTasks = true; // All users can create personal maintenance tasks
-    
+
     return Scaffold(
       backgroundColor: AppColors.surfaceWarm50,
       body: Stack(
@@ -112,15 +119,61 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
               MaintenanceFilterBar(
                 activeFilter: _activeFilter,
                 onFilterChanged: (filter) {
-                  setState(() {
+                    setState(() {
                     _activeFilter = filter;
-                  });
-                },
-              ),
+                    });
+                  },
+                ),
 
               // Tasks List
               Expanded(
                 child: Obx(() {
+                  // Show error state if there's an error
+                  if (_controller.hasError.value && 
+                      _controller.tasks.isEmpty &&
+                      !_controller.isLoadingTasks.value) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            size: 64,
+                            color: Colors.red,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Error Loading Tasks',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 32),
+                            child: Text(
+                              _controller.errorMessage.value.isNotEmpty
+                                  ? _controller.errorMessage.value
+                                  : 'Failed to load maintenance tasks. Please try again.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.grey.shade600),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton(
+                            onPressed: () => _controller.refreshData(),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.brandSage500,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
                   if (_controller.isLoadingTasks.value &&
                       _controller.tasks.isEmpty) {
                     return const Center(
@@ -205,15 +258,15 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
           if (_isCreateDialogVisible)
             AddMaintenanceTaskDialog(
               onClose: () {
-                setState(() {
+            setState(() {
                   _isCreateDialogVisible = false;
-                });
-              },
+            });
+          },
             ),
         ],
-      ),
-    );
+        ),
+      );
+    }
   }
-}
 
 
