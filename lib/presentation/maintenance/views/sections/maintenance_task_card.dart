@@ -311,7 +311,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        task.description,
+                        task.description ?? task.maintenanceNote ?? 'No description available',
                         style: AppTextStyles.bodyMedium.copyWith(
                           color: AppColors.neutralInk700,
                           height: 1.5,
@@ -512,8 +512,10 @@ class MaintenanceTaskCard extends StatelessWidget {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                               ),
                               child: Row(
+                                mainAxisSize: MainAxisSize.min,
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   const Icon(
@@ -522,10 +524,13 @@ class MaintenanceTaskCard extends StatelessWidget {
                                     color: AppColors.surfaceWhite,
                                   ),
                                   const SizedBox(width: 4),
-                                  Text(
-                                    'Programma',
-                                    style: AppTextStyles.bodySmall.copyWith(
-                                      color: AppColors.surfaceWhite,
+                                  Flexible(
+                                    child: Text(
+                                      'Programma',
+                                      style: AppTextStyles.bodySmall.copyWith(
+                                        color: AppColors.surfaceWhite,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ],
@@ -543,8 +548,10 @@ class MaintenanceTaskCard extends StatelessWidget {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                               ),
                               child: Row(
+                                mainAxisSize: MainAxisSize.min,
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   const Icon(
@@ -553,10 +560,13 @@ class MaintenanceTaskCard extends StatelessWidget {
                                     color: Color(0xFF6A8F7B),
                                   ),
                                   const SizedBox(width: 4),
-                                  Text(
-                                    'Chiedi AI',
-                                    style: AppTextStyles.bodySmall.copyWith(
-                                      color: const Color(0xFF6A8F7B),
+                                  Flexible(
+                                    child: Text(
+                                      'Chiedi AI',
+                                      style: AppTextStyles.bodySmall.copyWith(
+                                        color: const Color(0xFF6A8F7B),
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ],

@@ -248,7 +248,11 @@ class ApiConstants {
   static const String UPLOAD_USER_DOCUMENT = '/user_document_upload';
 
   // Maintenance Endpoints
-  /// Get Maintenance Categories
+  /// Get Maintenance Tasks
+  /// GET /maintenance/list - Fetch maintenance tasks
+  /// Headers: Authorization: Bearer {token} (automatically added by ApiService)
+  static const String GET_MAINTENANCE_TASKS = '/maintenance/list';
+
   /// GET /maintenance_categories/list
   /// Response: {
   ///   "status": true,

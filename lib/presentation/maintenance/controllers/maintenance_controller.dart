@@ -68,30 +68,71 @@ class MaintenanceController extends GetxController {
     fetchMaintenanceTasks();
   }
 
-  /// Fetch maintenance tasks from API or mock data
+  /// Fetch maintenance tasks from API
+  /// GET /maintenance/list
+  /// Authorization header is automatically added by ApiService interceptor
   Future<void> fetchMaintenanceTasks() async {
     try {
       isLoadingTasks.value = true;
       errorMessage.value = '';
       hasError.value = false;
 
-      // TODO: Replace with actual API call
-      // For now, using mock data
-      await Future.delayed(const Duration(milliseconds: 500));
+      print('📡 [MaintenanceController] Fetching maintenance tasks from API...');
+      print('🔗 [MaintenanceController] Endpoint: ${ApiConstants.GET_MAINTENANCE_TASKS}');
+      print('🔑 [MaintenanceController] Authorization: Bearer token (handled by ApiService)');
 
-      final mockTasks = _getMockTasks();
-      tasks.value = mockTasks;
-      totalTaskCount.value = mockTasks.length;
-      _updateFilterCounts(mockTasks);
-      _updateCategoryTaskCounts(); // Update category counts when tasks are loaded
-      _applyFilter(); // Apply current filter to update filteredTasks
+      // Call GET API endpoint
+      // Authorization header is automatically added by ApiService interceptor
+      // See: ApiService.onRequest() interceptor adds 'Authorization: Bearer {token}'
+      final response = await _apiService.get(
+        ApiConstants.GET_MAINTENANCE_TASKS,
+      );
 
-      print('✅ Loaded ${tasks.length} maintenance tasks');
-    } catch (e) {
-      print('❌ Error in fetchMaintenanceTasks: $e');
-      errorMessage.value = 'An error occurred while fetching tasks';
+      // Check response status
+      if (response.statusCode == 200 && response.data != null) {
+        final responseData = response.data as Map<String, dynamic>;
+        
+        if (responseData['status'] == true && responseData['data'] != null) {
+          final List<dynamic> dataList = responseData['data'] is List
+              ? responseData['data']
+              : [];
+
+          // Parse tasks from API response with nested objects
+          final List<MaintenanceTask> fetchedTasks = dataList
+              .map((item) {
+                try {
+                  return MaintenanceTask.fromJson(item as Map<String, dynamic>);
+                } catch (e) {
+                  print('⚠️ [MaintenanceController] Error parsing task: $e');
+                  print('⚠️ [MaintenanceController] Task data: $item');
+                  return null;
+                }
+              })
+              .whereType<MaintenanceTask>() // Filter out null values
+              .toList();
+
+          tasks.value = fetchedTasks;
+          totalTaskCount.value = fetchedTasks.length;
+          _updateFilterCounts(fetchedTasks);
+          _updateCategoryTaskCounts(); // Update category counts when tasks are loaded
+          _applyFilter(); // Apply current filter to update filteredTasks
+
+          print('✅ [MaintenanceController] Loaded ${tasks.length} maintenance tasks from API');
+        } else {
+          // API returned error or empty data
+          final message = responseData['message']?.toString() ?? 'Failed to fetch maintenance tasks';
+          throw Exception(message);
+        }
+      } else {
+        throw Exception('Invalid response status: ${response.statusCode}');
+      }
+    } catch (e, stackTrace) {
+      print('❌ [MaintenanceController] Error in fetchMaintenanceTasks: $e');
+      print('❌ [MaintenanceController] Stack trace: $stackTrace');
+      errorMessage.value = 'An error occurred while fetching tasks: ${e.toString()}';
       hasError.value = true;
       tasks.clear();
+      filteredTasks.clear();
     } finally {
       isLoadingTasks.value = false;
     }
@@ -305,9 +346,8 @@ class MaintenanceController extends GetxController {
     categoryTaskCounts.clear();
     
     for (final category in categories) {
-      // Count tasks that match this category by name
-      // Note: This assumes tasks have category names. If tasks have category IDs, update accordingly
-      final count = tasks.where((task) => task.category == category.name).length;
+      // Count tasks that match this category by ID (more accurate than name matching)
+      final count = tasks.where((task) => task.maintenanceCategoryId == category.id).length;
       categoryTaskCounts[category.id] = count;
     }
     
@@ -329,14 +369,8 @@ class MaintenanceController extends GetxController {
     } else {
       // Category selected - filter by category ID
       final categoryId = selectedCategoryId.value!;
-      try {
-        final category = categories.firstWhere((cat) => cat.id == categoryId);
-        // Filter tasks by category name (since MaintenanceTask stores category as String)
-        filteredTasks.value = tasks.where((task) => task.category == category.name).toList();
-      } catch (e) {
-        // Category not found, show empty list
-        filteredTasks.value = [];
-      }
+      // Filter tasks by maintenanceCategoryId (more accurate than name matching)
+      filteredTasks.value = tasks.where((task) => task.maintenanceCategoryId == categoryId).toList();
     }
   }
 
@@ -532,7 +566,7 @@ class MaintenanceController extends GetxController {
     overdueCount.value = tasks.where((t) => t.status == MaintenanceStatus.overdue).length;
   }
 
-  /// Get mock tasks (replace with API call)
+  /// Get mock tasks (kept for fallback/testing - not used when API is available)
   List<MaintenanceTask> _getMockTasks() {
     return [
       MaintenanceTask(
@@ -545,6 +579,10 @@ class MaintenanceController extends GetxController {
         frequency: 'Every 3 months',
         nextDue: '10 Nov 2025',
         lastCompleted: '10 Aug 2025',
+        maintenanceCategoryId: 1,
+        residenceId: 1,
+        dueDate: '2025-11-10',
+        lastMaintenanceDate: '2025-08-10',
       ),
       MaintenanceTask(
         id: 'p2',
@@ -555,6 +593,9 @@ class MaintenanceController extends GetxController {
         status: MaintenanceStatus.inProgress,
         frequency: 'Every 6 months',
         nextDue: '5 Dec 2025',
+        maintenanceCategoryId: 1,
+        residenceId: 1,
+        dueDate: '2025-12-05',
         attachments: [
           TaskAttachment(name: 'cleaning_guide.pdf', type: 'PDF', url: '#'),
         ],
@@ -569,6 +610,10 @@ class MaintenanceController extends GetxController {
         frequency: 'Annualmente',
         nextDue: '30 Ott 2025',
         lastCompleted: '28 Ott 2024',
+        maintenanceCategoryId: 1,
+        residenceId: 1,
+        dueDate: '2025-10-30',
+        lastMaintenanceDate: '2024-10-28',
         attachments: [
           TaskAttachment(name: 'Certificato_Ispezione_2024.pdf', type: 'PDF', url: '#'),
           TaskAttachment(name: 'Manuale_HVAC.pdf', type: 'PDF', url: '#'),
@@ -592,6 +637,10 @@ class MaintenanceController extends GetxController {
         frequency: 'Ogni 6 mesi',
         nextDue: '15 Nov 2025',
         lastCompleted: '10 Mag 2025',
+        maintenanceCategoryId: 1,
+        residenceId: 1,
+        dueDate: '2025-11-15',
+        lastMaintenanceDate: '2025-05-10',
       ),
       MaintenanceTask(
         id: '3',
@@ -602,6 +651,9 @@ class MaintenanceController extends GetxController {
         status: MaintenanceStatus.inProgress,
         frequency: 'Annualmente',
         nextDue: '8 Nov 2025',
+        maintenanceCategoryId: 1,
+        residenceId: 1,
+        dueDate: '2025-11-08',
         attachments: [
           TaskAttachment(name: 'Certificato_Sicurezza.pdf', type: 'PDF', url: '#'),
         ],
@@ -623,6 +675,10 @@ class MaintenanceController extends GetxController {
         frequency: 'Ogni 12 mesi',
         nextDue: '20 Nov 2025',
         lastCompleted: '18 Nov 2024',
+        maintenanceCategoryId: 1,
+        residenceId: 1,
+        dueDate: '2025-11-20',
+        lastMaintenanceDate: '2024-11-18',
       ),
       MaintenanceTask(
         id: '5',
@@ -634,6 +690,10 @@ class MaintenanceController extends GetxController {
         frequency: 'Ogni 18 mesi',
         nextDue: '1 Dic 2025',
         lastCompleted: '1 Giu 2024',
+        maintenanceCategoryId: 1,
+        residenceId: 1,
+        dueDate: '2025-12-01',
+        lastMaintenanceDate: '2024-06-01',
       ),
       MaintenanceTask(
         id: '6',
@@ -644,6 +704,9 @@ class MaintenanceController extends GetxController {
         status: MaintenanceStatus.pending,
         frequency: 'Annualmente',
         nextDue: '5 Nov 2025',
+        maintenanceCategoryId: 1,
+        residenceId: 1,
+        dueDate: '2025-11-05',
       ),
       MaintenanceTask(
         id: '7',
@@ -655,6 +718,10 @@ class MaintenanceController extends GetxController {
         frequency: 'Annualmente',
         nextDue: '12 Nov 2025',
         lastCompleted: '10 Nov 2024',
+        maintenanceCategoryId: 1,
+        residenceId: 1,
+        dueDate: '2025-11-12',
+        lastMaintenanceDate: '2024-11-10',
         contacts: [
           TaskContact(
             name: 'FireSafe Solutions',
@@ -671,6 +738,9 @@ class MaintenanceController extends GetxController {
         status: MaintenanceStatus.pending,
         frequency: 'Progetto una tantum',
         nextDue: '25 Nov 2025',
+        maintenanceCategoryId: 1,
+        residenceId: 1,
+        dueDate: '2025-11-25',
       ),
     ];
   }
