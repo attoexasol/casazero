@@ -212,7 +212,9 @@ class _DocumentCardState extends State<DocumentCard> {
                                   // Share Button
                                   if (widget.onShare != null)
                                     Padding(
-                                      padding: EdgeInsets.only(left: 15 * scale),
+                                      padding: EdgeInsets.only(
+                                        left: 15 * scale,
+                                      ),
                                       child: _actionIconBtn(
                                         Icons.share_outlined,
                                         widget.onShare!,
@@ -223,7 +225,9 @@ class _DocumentCardState extends State<DocumentCard> {
                                   // Chat Button
                                   if (widget.onChat != null)
                                     Padding(
-                                      padding: EdgeInsets.only(left: 15 * scale),
+                                      padding: EdgeInsets.only(
+                                        left: 15 * scale,
+                                      ),
                                       child: _actionBtn(
                                         "assets/images/chat.svg",
                                         widget.onChat!,
@@ -232,6 +236,21 @@ class _DocumentCardState extends State<DocumentCard> {
                                     ),
 
                                   const Spacer(),
+
+                                  // Delete Button (only for Personal documents: type.id === 1 OR type.type_name === "Personal")
+                                  // Positioned at bottom-right, after Spacer to align right
+                                  if (_shouldShowDeleteButton() &&
+                                      widget.onDelete != null)
+                                    Padding(
+                                      padding: EdgeInsets.only(
+                                        left: 15 * scale,
+                                      ),
+                                      child: _actionIconBtn(
+                                        Icons.delete_outline,
+                                        widget.onDelete!,
+                                        scale,
+                                      ),
+                                    ),
                                 ],
                               ),
                             ),
@@ -315,5 +334,26 @@ class _DocumentCardState extends State<DocumentCard> {
       default:
         return null;
     }
+  }
+
+  /// Check if delete button should be shown
+  /// Returns true if document.type.id === 1 OR document.type.type_name === "Personal"
+  /// Since type_name is stored in tags, we check tags for "Personal"
+  bool _shouldShowDeleteButton() {
+    // Check if typeId === 1
+    if (widget.document.typeId == 1) {
+      return true;
+    }
+
+    // Check if type_name is "Personal" (stored in tags)
+    // Check both exact match and substring match for robustness
+    final lowerTags = widget.document.tags
+        .map((t) => t.toLowerCase().trim())
+        .toList();
+    if (lowerTags.any((tag) => tag == 'personal' || tag.contains('personal'))) {
+      return true;
+    }
+
+    return false;
   }
 }
