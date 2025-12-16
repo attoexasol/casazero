@@ -6,6 +6,7 @@ import '../models/maintenance_task_model.dart';
 import '../models/maintenance_category_model.dart';
 import '../../../core/services/api_service.dart';
 import '../../../core/constants/api_constants.dart';
+import '../../home/controllers/home_controller.dart';
 
 class MaintenanceController extends GetxController {
   // API Service
@@ -79,57 +80,107 @@ class MaintenanceController extends GetxController {
     }
   }
 
-  /// Create a new maintenance task
-  Future<void> createMaintenanceTask({
+  /// Create a new maintenance task via API
+  /// Returns true on success, false on failure
+  Future<bool> createMaintenanceTask({
     required String title,
-    required String category,
+    required int categoryId,
     required String frequency,
+    required String dueDate, // Format: "YYYY-MM-DD"
     String? notes,
-    File? attachment,
+    String? lastMaintenanceDate, // Format: "YYYY-MM-DD", optional
+    int? maintenanceItemId, // Optional, defaults to 1 if not provided
+    required int residenceId,
   }) async {
     try {
       isLoadingTasks.value = true;
 
-      // TODO: Replace with actual API call
-      await Future.delayed(const Duration(milliseconds: 1000));
+      // Validate required fields
+      if (title.isEmpty) {
+        throw Exception('Title is required');
+      }
+      if (dueDate.isEmpty) {
+        throw Exception('Due date is required');
+      }
+      if (residenceId <= 0) {
+        throw Exception('Residence ID is required');
+      }
 
-      // Create new task
-      final newTask = MaintenanceTask(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        title: title,
-        category: category,
-        description: notes ?? '',
-        priority: MaintenancePriority.personal,
-        status: MaintenanceStatus.pending,
-        frequency: frequency,
+      // Build request body
+      final requestBody = <String, dynamic>{
+        'maintenance_title': title,
+        'maintenance_frequency': frequency,
+        'maintenance_status': 'pending',
+        'due_date': dueDate,
+        'maintenance_category_id': categoryId,
+        'maintenance_item_id': maintenanceItemId ?? 1,
+        'residence_id': residenceId,
+      };
+
+      // Add optional fields
+      if (notes != null && notes.isNotEmpty) {
+        requestBody['maintenance_note'] = notes;
+      }
+      if (lastMaintenanceDate != null && lastMaintenanceDate.isNotEmpty) {
+        requestBody['last_maintenance_date'] = lastMaintenanceDate;
+      }
+
+      print('📡 [MaintenanceController] Creating maintenance task...');
+      print('📦 [MaintenanceController] Request body: $requestBody');
+
+      // Call API
+      final response = await _apiService.post(
+        ApiConstants.CREATE_MAINTENANCE_TASK,
+        data: requestBody,
       );
 
-      tasks.add(newTask);
-      totalTaskCount.value = tasks.length;
-      _updateFilterCounts(tasks);
-      _updateCategoryTaskCounts(); // Update category counts
-      _applyFilter(); // Apply current filter to update filteredTasks
-
-      Get.snackbar(
-        'Success',
-        'Maintenance task created successfully',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: const Color(0xFF6A8F7B),
-        colorText: Colors.white,
-        duration: const Duration(seconds: 2),
-      );
-
-      print('✅ Created maintenance task: $title');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = response.data as Map<String, dynamic>;
+        
+        if (responseData['status'] == true) {
+          print('✅ [MaintenanceController] Maintenance task created successfully');
+          
+          // Refresh maintenance list to include the new task
+          await fetchMaintenanceTasks();
+          
+          // Show success snackbar (top positioned)
+          Get.snackbar(
+            'Success',
+            responseData['message'] ?? 'Maintenance created successfully',
+            snackPosition: SnackPosition.TOP,
+            backgroundColor: Colors.green[700],
+            colorText: Colors.white,
+            duration: const Duration(seconds: 2),
+          );
+          
+          return true;
+        } else {
+          throw Exception(responseData['message'] ?? 'Failed to create maintenance');
+        }
+      } else {
+        throw Exception('Invalid response status: ${response.statusCode}');
+      }
     } catch (e) {
-      print('❌ Error creating maintenance task: $e');
+      print('❌ [MaintenanceController] Error creating maintenance task: $e');
+      
+      // Show error snackbar (top positioned)
+      String errorMessage = 'Failed to create maintenance';
+      if (e.toString().contains('Exception:')) {
+        errorMessage = e.toString().replaceFirst('Exception: ', '');
+      } else if (e.toString().isNotEmpty) {
+        errorMessage = e.toString();
+      }
+      
       Get.snackbar(
         'Error',
-        'Failed to create maintenance task',
-        snackPosition: SnackPosition.BOTTOM,
+        errorMessage,
+        snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.red[700],
         colorText: Colors.white,
         duration: const Duration(seconds: 3),
       );
+      
+      return false;
     } finally {
       isLoadingTasks.value = false;
     }

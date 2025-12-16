@@ -265,6 +265,26 @@ class ApiConstants {
   /// }
   static const String GET_MAINTENANCE_CATEGORIES = '/maintenance_categories/list';
 
+  /// Create Maintenance Task
+  /// POST /maintenance/store
+  /// Request: {
+  ///   "maintenance_title": "Fridge Monthly Service",
+  ///   "maintenance_frequency": "Monthly",
+  ///   "maintenance_note": "Check filters and gas level",
+  ///   "maintenance_status": "pending",
+  ///   "due_date": "2025-01-20",
+  ///   "last_maintenance_date": "2024-12-20",
+  ///   "maintenance_category_id": 1,
+  ///   "maintenance_item_id": 1,
+  ///   "residence_id": 48
+  /// }
+  /// Response: {
+  ///   "status": true,
+  ///   "message": "Maintenance created successfully",
+  ///   "data": { ... }
+  /// }
+  static const String CREATE_MAINTENANCE_TASK = '/maintenance/store';
+
   // ============================================================================
   // ENDPOINT HELPER METHODS
   // ============================================================================

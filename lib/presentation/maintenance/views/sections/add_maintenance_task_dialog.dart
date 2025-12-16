@@ -5,10 +5,13 @@ import 'package:casazero/app/theme/app_text_styles.dart';
 import 'package:casazero/core/widgets/custom_text_field.dart';
 import 'package:casazero/core/widgets/gradient_button.dart';
 import 'package:casazero/core/widgets/outlined_custom_button.dart';
+import 'package:casazero/presentation/home/controllers/home_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import '../../controllers/maintenance_controller.dart';
+import '../../models/maintenance_category_model.dart';
 
 class AddMaintenanceTaskDialog extends StatefulWidget {
   final VoidCallback onClose;
@@ -21,43 +24,147 @@ class AddMaintenanceTaskDialog extends StatefulWidget {
 }
 
 class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
+  final TextEditingController _dueDateController = TextEditingController();
+  final TextEditingController _lastMaintenanceDateController = TextEditingController();
 
-  String _selectedCategory = '';
+  int? _selectedCategoryId; // Category ID from API
   String _selectedFrequency = '';
+  DateTime? _selectedDueDate;
+  DateTime? _selectedLastMaintenanceDate;
   File? _selectedFile;
   String? _selectedFileName;
   String? _selectedFileSize;
   bool _isCreating = false;
 
   final MaintenanceController _controller = Get.find<MaintenanceController>();
+  final HomeController _homeController = Get.find<HomeController>();
 
-  // Categories - Matching React exactly
-  final List<Map<String, String>> _maintenanceCategories = [
-    {'value': 'appliances', 'label': 'Appliances'},
-    {'value': 'hvac', 'label': 'HVAC'},
-    {'value': 'plumbing', 'label': 'Plumbing'},
-    {'value': 'electrical', 'label': 'Electrical'},
-    {'value': 'cleaning', 'label': 'Cleaning'},
-    {'value': 'other', 'label': 'Other'},
-  ];
-
-  // Frequency options - Matching React exactly
+  // Frequency options - Matching API format
   final List<Map<String, String>> _frequencyOptions = [
-    {'value': 'weekly', 'label': 'Weekly'},
-    {'value': 'monthly', 'label': 'Monthly'},
-    {'value': 'quarterly', 'label': 'Quarterly'},
-    {'value': 'biannually', 'label': 'Every 6 months'},
-    {'value': 'annually', 'label': 'Annually'},
-    {'value': 'custom', 'label': 'Custom'},
+    {'value': 'Weekly', 'label': 'Weekly'},
+    {'value': 'Monthly', 'label': 'Monthly'},
+    {'value': 'Quarterly', 'label': 'Quarterly'},
+    {'value': 'Every 6 months', 'label': 'Every 6 months'},
+    {'value': 'Annually', 'label': 'Annually'},
+    {'value': 'Custom', 'label': 'Custom'},
   ];
 
   @override
   void dispose() {
     _titleController.dispose();
     _notesController.dispose();
+    _dueDateController.dispose();
+    _lastMaintenanceDateController.dispose();
     super.dispose();
+  }
+
+  String _formatDate(DateTime date) {
+    return DateFormat('yyyy-MM-dd').format(date);
+  }
+
+  Future<void> _selectDueDate() async {
+    final DateTime today = DateTime.now();
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDueDate ?? today,
+      firstDate: today, // Due date must be >= today
+      lastDate: today.add(const Duration(days: 365 * 5)), // 5 years from now
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDueDate = picked;
+        _dueDateController.text = _formatDate(picked);
+        // If last maintenance date is after due date, clear it
+        if (_selectedLastMaintenanceDate != null &&
+            _selectedLastMaintenanceDate!.isAfter(picked)) {
+          _selectedLastMaintenanceDate = null;
+          _lastMaintenanceDateController.clear();
+        }
+        // Trigger validation
+        _formKey.currentState?.validate();
+      });
+    }
+  }
+
+  Future<void> _selectLastMaintenanceDate() async {
+    // Require due date to be selected first
+    if (_selectedDueDate == null) {
+      Get.snackbar(
+        'Info',
+        'Please select due date first',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.orange[700],
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
+      return;
+    }
+
+    final DateTime today = DateTime.now();
+    final DateTime maxDate = _selectedDueDate!; // Use due date as max date
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedLastMaintenanceDate ?? maxDate.subtract(const Duration(days: 30)),
+      firstDate: today.subtract(const Duration(days: 365 * 5)), // 5 years ago
+      lastDate: maxDate, // Last maintenance date must be <= due date
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedLastMaintenanceDate = picked;
+        _lastMaintenanceDateController.text = _formatDate(picked);
+        // Trigger validation
+        _formKey.currentState?.validate();
+      });
+    }
+  }
+
+  String? _validateDueDate(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Due date is required';
+    }
+    if (_selectedDueDate == null) {
+      return 'Please select a due date';
+    }
+    final DateTime today = DateTime.now();
+    final DateTime todayOnly = DateTime(today.year, today.month, today.day);
+    final DateTime selectedOnly = DateTime(
+      _selectedDueDate!.year,
+      _selectedDueDate!.month,
+      _selectedDueDate!.day,
+    );
+    if (selectedOnly.isBefore(todayOnly)) {
+      return 'Due date must be today or later';
+    }
+    return null;
+  }
+
+  String? _validateLastMaintenanceDate(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Last maintenance date is required';
+    }
+    if (_selectedLastMaintenanceDate == null) {
+      return 'Please select a last maintenance date';
+    }
+    if (_selectedDueDate == null) {
+      return 'Please select due date first';
+    }
+    final DateTime dueDateOnly = DateTime(
+      _selectedDueDate!.year,
+      _selectedDueDate!.month,
+      _selectedDueDate!.day,
+    );
+    final DateTime lastMaintenanceOnly = DateTime(
+      _selectedLastMaintenanceDate!.year,
+      _selectedLastMaintenanceDate!.month,
+      _selectedLastMaintenanceDate!.day,
+    );
+    if (lastMaintenanceOnly.isAfter(dueDateOnly)) {
+      return 'Last maintenance date must be before or equal to due date';
+    }
+    return null;
   }
 
   String _formatFileSize(int bytes) {
@@ -68,8 +175,11 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
 
   bool get _isFormValid =>
       _titleController.text.isNotEmpty &&
-      _selectedCategory.isNotEmpty &&
+      _selectedCategoryId != null &&
       _selectedFrequency.isNotEmpty &&
+      _selectedDueDate != null &&
+      _selectedLastMaintenanceDate != null &&
+      _homeController.selectedResidence.value != null &&
       !_isCreating;
 
   Future<void> _pickFile() async {
@@ -113,34 +223,47 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
   }
 
   Future<void> _handleCreate() async {
-    if (!_isFormValid) return;
+    // Validate form before submission
+    if (!_formKey.currentState!.validate()) {
+      return; // Form validation failed, don't proceed
+    }
+
+    // Get residence ID
+    final residence = _homeController.selectedResidence.value;
+    if (residence == null) {
+      Get.snackbar(
+        'Error',
+        'Please select a residence',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red[700],
+        colorText: Colors.white,
+      );
+      return;
+    }
 
     setState(() => _isCreating = true);
 
     try {
-      await _controller.createMaintenanceTask(
+      final success = await _controller.createMaintenanceTask(
         title: _titleController.text.trim(),
-        category: _selectedCategory,
+        categoryId: _selectedCategoryId!,
         frequency: _selectedFrequency,
+        dueDate: _formatDate(_selectedDueDate!),
         notes: _notesController.text.trim().isEmpty
             ? null
             : _notesController.text.trim(),
-        attachment: _selectedFile,
+        lastMaintenanceDate: _formatDate(_selectedLastMaintenanceDate!),
+        residenceId: residence.id,
       );
 
-      if (mounted) {
+      // Close dialog only on success (snackbar is shown in controller)
+      if (success && mounted) {
         widget.onClose();
       }
+      // On error, dialog stays open (snackbar shown in controller)
     } catch (e) {
-      if (mounted) {
-        Get.snackbar(
-          'Error',
-          'Failed to create maintenance task',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: AppColors.danger,
-          colorText: AppColors.surfaceWhite,
-        );
-      }
+      // Error handling is done in controller, but catch here to prevent crash
+      print('Error in dialog: $e');
     } finally {
       if (mounted) {
         setState(() => _isCreating = false);
@@ -170,28 +293,39 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Title Field
-                      _buildTitleField(),
-                      const SizedBox(height: 16),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Title Field
+                        _buildTitleField(),
+                        const SizedBox(height: 16),
 
-                      // Category Dropdown
-                      _buildCategoryDropdown(),
-                      const SizedBox(height: 16),
+                        // Category Dropdown
+                        _buildCategoryDropdown(),
+                        const SizedBox(height: 16),
 
-                      // Frequency Dropdown
-                      _buildFrequencyDropdown(),
-                      const SizedBox(height: 16),
+                        // Frequency Dropdown
+                        _buildFrequencyDropdown(),
+                        const SizedBox(height: 16),
 
-                      // Notes Field
-                      _buildNotesField(),
-                      const SizedBox(height: 16),
+                        // Due Date Field
+                        _buildDueDateField(),
+                        const SizedBox(height: 16),
 
-                      // File Upload Area
-                      _buildFileUploadArea(),
-                    ],
+                        // Last Maintenance Date Field (Required)
+                        _buildLastMaintenanceDateField(),
+                        const SizedBox(height: 16),
+
+                        // Notes Field
+                        _buildNotesField(),
+                        const SizedBox(height: 16),
+
+                        // File Upload Area
+                        _buildFileUploadArea(),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -409,57 +543,63 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
   }
 
   Widget _buildCategoryDropdown() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Category',
-          style: AppTextStyles.label.copyWith(
-            color: AppColors.neutralInk700,
-            fontSize: 14,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: AppColors.neutralLine100,
-            borderRadius: BorderRadius.circular(25),
-            border: Border.all(color: AppColors.neutralLine200),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: _selectedCategory.isEmpty ? null : _selectedCategory,
-              isExpanded: true,
-              hint: Text(
-                'Select category',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.neutralInk400,
-                ),
-              ),
-              icon: const Icon(Icons.keyboard_arrow_down),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              borderRadius: BorderRadius.circular(25),
-              items: _maintenanceCategories.map((category) {
-                return DropdownMenuItem<String>(
-                  value: category['value'],
-                  child: Text(
-                    category['label']!,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.neutralInk900,
-                    ),
-                  ),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedCategory = value ?? '';
-                });
-              },
+    return Obx(() {
+      final categories = _controller.categories;
+      
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Category',
+            style: AppTextStyles.label.copyWith(
+              color: AppColors.neutralInk700,
+              fontSize: 14,
             ),
           ),
-        ),
-      ],
-    );
+          const SizedBox(height: 8),
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.neutralLine100,
+              borderRadius: BorderRadius.circular(25),
+              border: Border.all(color: AppColors.neutralLine200),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<int>(
+                value: _selectedCategoryId,
+                isExpanded: true,
+                hint: Text(
+                  categories.isEmpty ? 'Loading categories...' : 'Select category',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.neutralInk400,
+                  ),
+                ),
+                icon: const Icon(Icons.keyboard_arrow_down),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                borderRadius: BorderRadius.circular(25),
+                items: categories.map((category) {
+                  return DropdownMenuItem<int>(
+                    value: category.id,
+                    child: Text(
+                      category.name,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.neutralInk900,
+                      ),
+                    ),
+                  );
+                }).toList(),
+                onChanged: categories.isEmpty
+                    ? null
+                    : (value) {
+                        setState(() {
+                          _selectedCategoryId = value;
+                        });
+                      },
+              ),
+            ),
+          ),
+        ],
+      );
+    });
   }
 
   Widget _buildFrequencyDropdown() {
@@ -511,6 +651,76 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
               },
             ),
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDueDateField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Due Date',
+          style: AppTextStyles.label.copyWith(
+            color: AppColors.neutralInk700,
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(height: 8),
+        CustomTextField(
+          label: '',
+          hint: 'Select due date',
+          controller: _dueDateController,
+          keyboardType: TextInputType.none,
+          backgroundColor: AppColors.neutralLine100,
+          borderColor: AppColors.neutralLine200,
+          textColor: AppColors.neutralInk900,
+          labelColor: AppColors.neutralInk700,
+          enabled: true,
+          readOnly: true,
+          onTap: _selectDueDate,
+          validator: _validateDueDate,
+          suffixIcon: IconButton(
+            icon: const Icon(Icons.calendar_today, color: AppColors.brandSage500),
+            onPressed: _selectDueDate,
+          ),
+          onChanged: (_) => setState(() {}),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLastMaintenanceDateField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Last Maintenance Date',
+          style: AppTextStyles.label.copyWith(
+            color: AppColors.neutralInk700,
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(height: 8),
+        CustomTextField(
+          label: '',
+          hint: 'Select last maintenance date',
+          controller: _lastMaintenanceDateController,
+          keyboardType: TextInputType.none,
+          backgroundColor: AppColors.neutralLine100,
+          borderColor: AppColors.neutralLine200,
+          textColor: AppColors.neutralInk900,
+          labelColor: AppColors.neutralInk700,
+          enabled: true,
+          readOnly: true,
+          onTap: _selectLastMaintenanceDate,
+          validator: _validateLastMaintenanceDate,
+          suffixIcon: IconButton(
+            icon: const Icon(Icons.calendar_today, color: AppColors.brandSage500),
+            onPressed: _selectLastMaintenanceDate,
+          ),
+          onChanged: (_) => setState(() {}),
         ),
       ],
     );

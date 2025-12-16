@@ -21,6 +21,8 @@ class CustomTextField extends StatelessWidget {
   final Color? textColor;
   final Color? labelColor;
   final bool enabled;
+  final bool readOnly;
+  final VoidCallback? onTap;
 
   const CustomTextField({
     super.key,
@@ -42,6 +44,8 @@ class CustomTextField extends StatelessWidget {
     this.textColor,
     this.labelColor,
     this.enabled = true,
+    this.readOnly = false,
+    this.onTap,
   });
 
   @override
@@ -68,7 +72,8 @@ class CustomTextField extends StatelessWidget {
           maxLines: maxLines,
           textAlign: textAlign,
           enabled: enabled,
-          readOnly: !enabled,
+          readOnly: readOnly || !enabled,
+          onTap: onTap,
           style: AppTextStyles.bodyMedium.copyWith(
             color: enabled
                 ? (textColor ?? AppColors.neutralInk900)
