@@ -12,7 +12,8 @@ class MaintenanceController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
 
   // Reactive variables for tasks
-  final RxList<MaintenanceTask> tasks = <MaintenanceTask>[].obs;
+  final RxList<MaintenanceTask> tasks = <MaintenanceTask>[].obs; // Unfiltered list
+  final RxList<MaintenanceTask> filteredTasks = <MaintenanceTask>[].obs; // Filtered list
   final RxBool isLoadingTasks = false.obs;
   final RxString errorMessage = ''.obs;
   final RxBool hasError = false.obs;
@@ -42,6 +43,9 @@ class MaintenanceController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    // Initialize filteredTasks with empty list (will be updated when tasks load)
+    filteredTasks.value = [];
+    selectedCategoryId.value = null; // Default to "All"
     fetchMaintenanceCategories();
     fetchMaintenanceTasks();
   }
@@ -62,6 +66,7 @@ class MaintenanceController extends GetxController {
       totalTaskCount.value = mockTasks.length;
       _updateFilterCounts(mockTasks);
       _updateCategoryTaskCounts(); // Update category counts when tasks are loaded
+      _applyFilter(); // Apply current filter to update filteredTasks
 
       print('✅ Loaded ${tasks.length} maintenance tasks');
     } catch (e) {
@@ -103,6 +108,7 @@ class MaintenanceController extends GetxController {
       totalTaskCount.value = tasks.length;
       _updateFilterCounts(tasks);
       _updateCategoryTaskCounts(); // Update category counts
+      _applyFilter(); // Apply current filter to update filteredTasks
 
       Get.snackbar(
         'Success',
@@ -206,6 +212,7 @@ class MaintenanceController extends GetxController {
           
           categories.value = fetchedCategories;
           _updateCategoryTaskCounts();
+          _applyFilter(); // Reapply filter in case category selection needs updating
           
           print('✅ [MaintenanceController] Loaded ${categories.length} maintenance categories');
         } else {
@@ -235,11 +242,62 @@ class MaintenanceController extends GetxController {
       final count = tasks.where((task) => task.category == category.name).length;
       categoryTaskCounts[category.id] = count;
     }
+    
+    // Trigger reactive update for filter list rebuild
+    categoryTaskCounts.refresh();
   }
 
   /// Set selected category ID for filtering
   void setSelectedCategoryId(int? categoryId) {
     selectedCategoryId.value = categoryId;
+    _applyFilter(); // Apply filter when category changes
+  }
+
+  /// Apply filter based on selectedCategoryId
+  void _applyFilter() {
+    if (selectedCategoryId.value == null) {
+      // "All" selected - show all tasks
+      filteredTasks.value = tasks.toList();
+    } else {
+      // Category selected - filter by category ID
+      final categoryId = selectedCategoryId.value!;
+      try {
+        final category = categories.firstWhere((cat) => cat.id == categoryId);
+        // Filter tasks by category name (since MaintenanceTask stores category as String)
+        filteredTasks.value = tasks.where((task) => task.category == category.name).toList();
+      } catch (e) {
+        // Category not found, show empty list
+        filteredTasks.value = [];
+      }
+    }
+  }
+
+  /// Build filter list: [All] + API categories
+  /// Returns list of filter items with id, label, and count
+  List<Map<String, dynamic>> buildFilterList() {
+    final filterList = <Map<String, dynamic>>[];
+    
+    // Always add "All" filter first
+    filterList.add({
+      'id': 'all',
+      'label': 'All',
+      'count': totalTaskCount.value,
+    });
+    
+    // Add category filters dynamically from API
+    if (categories.isNotEmpty) {
+      for (final category in categories) {
+        final count = categoryTaskCounts[category.id] ?? 0;
+        filterList.add({
+          'id': 'category_${category.id}',
+          'categoryId': category.id,
+          'label': category.name,
+          'count': count,
+        });
+      }
+    }
+    
+    return filterList;
   }
 
   /// Refresh all data (pull-to-refresh)

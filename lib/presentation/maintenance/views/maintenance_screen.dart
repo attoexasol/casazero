@@ -43,6 +43,9 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
     } else {
       _controller = Get.find<MaintenanceController>();
     }
+    // Ensure "All" filter is selected by default
+    _activeFilter = 'all';
+    _controller.setSelectedCategoryId(null); // null = "All"
     _fabController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -59,53 +62,8 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
     super.dispose();
   }
 
-  List<MaintenanceTask> _getFilteredTasks() {
-    final allTasks = _controller.tasks.toList();
-    if (_activeFilter == 'all') return allTasks;
-
-    // Handle category filtering by ID
-    if (_activeFilter.startsWith('category_')) {
-      final categoryIdStr = _activeFilter.replaceFirst('category_', '');
-      final categoryId = int.tryParse(categoryIdStr);
-      
-      if (categoryId != null) {
-        // Find category by ID to get its name
-        try {
-          final category = _controller.categories.firstWhere(
-            (cat) => cat.id == categoryId,
-            orElse: () => throw StateError('Category not found'),
-          );
-          
-          // Filter tasks by category name (since MaintenanceTask stores category as String)
-          return allTasks.where((task) => task.category == category.name).toList();
-        } catch (e) {
-          // Category not found, return empty list
-          return [];
-        }
-      }
-      return [];
-    }
-
-    // Handle legacy priority/status filters (fallback)
-    return allTasks.where((task) {
-      switch (_activeFilter) {
-        case 'personal':
-          return task.priority == MaintenancePriority.personal;
-        case 'facoltative':
-          return task.priority == MaintenancePriority.facoltative;
-        case 'obbligatorie':
-          return task.priority == MaintenancePriority.obbligatorie;
-        case 'condominiali':
-          return task.priority == MaintenancePriority.condominiali;
-        case 'pending':
-          return task.status == MaintenanceStatus.pending;
-        case 'overdue':
-          return task.status == MaintenanceStatus.overdue;
-        default:
-          return true;
-      }
-    }).toList();
-  }
+  // Removed _getFilteredTasks() - filtering now handled in controller
+  // Use _controller.filteredTasks instead
 
   void _showCreateDialog() {
     setState(() {
@@ -207,7 +165,8 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                     );
                   }
 
-                  final filteredTasks = _getFilteredTasks();
+                  // Use filtered tasks from controller (filtering logic is in controller)
+                  final filteredTasks = _controller.filteredTasks.toList();
 
                   if (filteredTasks.isEmpty) {
                     return MaintenanceEmptyState(
