@@ -1,7 +1,11 @@
 // presentation/maintenance/controllers/maintenance_controller.dart
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'; // For compute()
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:typed_data';
 import '../models/maintenance_task_model.dart';
 import '../models/maintenance_category_model.dart';
 import '../../../core/services/api_service.dart';
@@ -41,12 +45,25 @@ class MaintenanceController extends GetxController {
   // Expanded card state
   final Rxn<String> expandedCardId = Rxn<String>();
 
+  // File attachment state (for creating maintenance task)
+  final Rxn<File> selectedFile = Rxn<File>();
+  final RxString selectedFileName = ''.obs;
+  final RxString selectedFileSize = ''.obs;
+  final RxBool isPickingFile = false.obs; // Prevent multiple simultaneous picks
+  
+  // Maximum file size: 10MB (to prevent memory issues)
+  static const int maxFileSizeBytes = 10 * 1024 * 1024;
+
   @override
   void onInit() {
     super.onInit();
     // Initialize filteredTasks with empty list (will be updated when tasks load)
     filteredTasks.value = [];
     selectedCategoryId.value = null; // Default to "All"
+    // Initialize file state
+    selectedFile.value = null;
+    selectedFileName.value = '';
+    selectedFileSize.value = '';
     fetchMaintenanceCategories();
     fetchMaintenanceTasks();
   }
@@ -359,6 +376,152 @@ class MaintenanceController extends GetxController {
     ]);
   }
 
+  /// Pick a file for attachment (PDF, Images, DOC/DOCX)
+  /// Returns true on success, false on failure or cancel
+  /// Uses isolates for heavy file operations to prevent UI blocking
+  Future<bool> pickFile() async {
+    // Prevent multiple simultaneous file picks
+    if (isPickingFile.value) {
+      print('⚠️ [MaintenanceController] File picker already in progress');
+      return false;
+    }
+
+    try {
+      isPickingFile.value = true;
+      print('📁 [MaintenanceController] Opening file picker...');
+      
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'],
+        allowMultiple: false,
+      );
+
+      // User cancelled
+      if (result == null || result.files.isEmpty) {
+        print('📁 [MaintenanceController] File picker cancelled');
+        return false;
+      }
+
+      final pickedFile = result.files.single;
+      print('📁 [MaintenanceController] File selected: ${pickedFile.name}');
+
+      // Check file size before processing (prevent memory issues and Android killing app)
+      // This check happens BEFORE any heavy operations
+      final fileSize = pickedFile.size;
+      if (fileSize <= 0) {
+        throw Exception('Invalid file size: $fileSize bytes');
+      }
+      if (fileSize > maxFileSizeBytes) {
+        throw Exception('File size (${_formatFileSize(fileSize)}) exceeds maximum allowed size (${_formatFileSize(maxFileSizeBytes)})');
+      }
+      print('📁 [MaintenanceController] File size: ${_formatFileSize(fileSize)}');
+
+      // Get app documents directory for permanent storage (lightweight operation)
+      final appDocDir = await getApplicationDocumentsDirectory();
+      final attachmentsDir = Directory('${appDocDir.path}/maintenance_attachments');
+      
+      // Create directory if it doesn't exist (lightweight)
+      if (!await attachmentsDir.exists()) {
+        await attachmentsDir.create(recursive: true);
+      }
+
+      // Generate unique filename to avoid conflicts
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final fileName = pickedFile.name;
+      final fileExtension = fileName.contains('.') ? fileName.split('.').last : 'file';
+      final fileNameWithoutExt = fileName.contains('.') 
+          ? fileName.substring(0, fileName.lastIndexOf('.'))
+          : fileName;
+      final uniqueFileName = '${fileNameWithoutExt}_$timestamp.$fileExtension';
+      final permanentFilePath = '${attachmentsDir.path}/$uniqueFileName';
+
+      // Process file in isolate to prevent UI blocking
+      // This moves heavy file operations off the main thread
+      // Note: compute() requires a top-level function, so we use a lambda wrapper
+      final fileProcessResult = await compute(
+        _processFileInIsolate,
+        _FileProcessParams(
+          sourcePath: pickedFile.path,
+          sourceBytes: pickedFile.bytes,
+          destinationPath: permanentFilePath,
+          fileName: fileName,
+        ),
+      );
+
+      if (!fileProcessResult.success) {
+        throw Exception(fileProcessResult.error ?? 'Failed to process file');
+      }
+
+      // Verify file exists (lightweight check)
+      final permanentFile = File(permanentFilePath);
+      if (!await permanentFile.exists()) {
+        throw Exception('Failed to save file to permanent location');
+      }
+
+      // Update reactive state only after successful processing
+      // Check if controller is still valid before updating (prevents updates after disposal)
+      if (!isClosed) {
+        // Use microtask to ensure UI updates happen after current frame
+        // This prevents jank and ensures smooth UI updates
+        await Future.microtask(() {
+          if (!isClosed) {
+            selectedFile.value = permanentFile;
+            selectedFileName.value = fileName; // Keep original filename for display
+            selectedFileSize.value = _formatFileSize(fileProcessResult.fileSize);
+          }
+        });
+      }
+
+      print('✅ [MaintenanceController] File selected successfully: $fileName (${selectedFileSize.value})');
+      print('📁 [MaintenanceController] File saved to: $permanentFilePath');
+      return true;
+    } catch (e, stackTrace) {
+      print('❌ [MaintenanceController] Error picking file: $e');
+      print('❌ [MaintenanceController] Stack trace: $stackTrace');
+      
+      // Only show snackbar if controller is still valid
+      if (!isClosed) {
+        Get.snackbar(
+          'Error',
+          'Failed to pick file: ${e.toString()}',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red[700],
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+      }
+      return false;
+    } finally {
+      // Always reset picking state, even on error
+      if (!isClosed) {
+        isPickingFile.value = false;
+      }
+    }
+  }
+
+  /// Remove selected file
+  /// Cleans up file reference to prevent memory leaks
+  void removeSelectedFile() {
+    // Check if controller is still valid before updating (prevents updates after disposal)
+    if (isClosed) return;
+    
+    // Clear file reference first to allow GC
+    selectedFile.value = null;
+    selectedFileName.value = '';
+    selectedFileSize.value = '';
+    
+    print('🗑️ [MaintenanceController] File removed');
+  }
+
+  /// Format file size for display
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) {
+      return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    }
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+
   /// Update filter counts based on loaded tasks
   void _updateFilterCounts(List<MaintenanceTask> tasks) {
     personalCount.value = tasks.where((t) => t.priority == MaintenancePriority.personal).length;
@@ -510,6 +673,125 @@ class MaintenanceController extends GetxController {
         nextDue: '25 Nov 2025',
       ),
     ];
+  }
+}
+
+// ============================================================================
+// ISOLATE FUNCTIONS FOR HEAVY FILE OPERATIONS
+// ============================================================================
+
+/// Parameters for file processing in isolate
+/// Must be serializable (no File objects, only paths/bytes)
+class _FileProcessParams {
+  final String? sourcePath;
+  final Uint8List? sourceBytes;
+  final String destinationPath;
+  final String fileName;
+
+  _FileProcessParams({
+    this.sourcePath,
+    this.sourceBytes,
+    required this.destinationPath,
+    required this.fileName,
+  });
+}
+
+/// Result of file processing in isolate
+class _FileProcessResult {
+  final bool success;
+  final String? error;
+  final int fileSize;
+
+  _FileProcessResult({
+    required this.success,
+    this.error,
+    required this.fileSize,
+  });
+}
+
+/// Process file in isolate to prevent UI blocking
+/// This function runs in a separate isolate, so it can't access controller state
+/// It only performs file I/O operations
+/// Must be top-level function for compute() to work
+/// 
+/// IMPORTANT: All parameters must be serializable for isolate communication
+/// Uint8List is serializable, so this works correctly
+Future<_FileProcessResult> _processFileInIsolate(_FileProcessParams params) async {
+  try {
+    Uint8List? fileBytes;
+
+    // Read file bytes (heavy operation - done in isolate to prevent UI blocking)
+    // This prevents Android from killing the app due to main thread blocking
+    if (params.sourcePath != null && params.sourcePath!.isNotEmpty) {
+      // Android/Desktop - read from path
+      final sourceFile = File(params.sourcePath!);
+      if (!await sourceFile.exists()) {
+        return _FileProcessResult(
+          success: false,
+          error: 'Source file does not exist at path: ${params.sourcePath}',
+          fileSize: 0,
+        );
+      }
+      // Read file bytes (heavy operation moved to isolate)
+      fileBytes = await sourceFile.readAsBytes();
+    } else if (params.sourceBytes != null && params.sourceBytes!.isNotEmpty) {
+      // iOS/Web - use bytes directly (already in memory)
+      fileBytes = params.sourceBytes!;
+    } else {
+      return _FileProcessResult(
+        success: false,
+        error: 'File path and bytes are both null or empty',
+        fileSize: 0,
+      );
+    }
+
+    // Validate bytes were read successfully
+    if (fileBytes == null || fileBytes.isEmpty) {
+      return _FileProcessResult(
+        success: false,
+        error: 'Failed to read file bytes',
+        fileSize: 0,
+      );
+    }
+
+    // Write to permanent location (heavy operation - done in isolate)
+    // This prevents blocking the main thread during file write
+    final permanentFile = File(params.destinationPath);
+    
+    // Ensure parent directory exists
+    final parentDir = permanentFile.parent;
+    if (!await parentDir.exists()) {
+      await parentDir.create(recursive: true);
+    }
+    
+    // Write bytes to file
+    await permanentFile.writeAsBytes(fileBytes);
+
+    // Verify file exists and get size
+    if (!await permanentFile.exists()) {
+      return _FileProcessResult(
+        success: false,
+        error: 'Failed to save file to permanent location',
+        fileSize: 0,
+      );
+    }
+
+    // Get file size (lightweight operation)
+    final fileSize = await permanentFile.length();
+
+    return _FileProcessResult(
+      success: true,
+      fileSize: fileSize,
+    );
+  } catch (e, stackTrace) {
+    // Log error details for debugging
+    print('❌ [Isolate] Error processing file: $e');
+    print('❌ [Isolate] Stack trace: $stackTrace');
+    return _FileProcessResult(
+      success: false,
+      error: 'File processing failed: ${e.toString()}',
+      fileSize: 0,
+    );
   }
 }
 

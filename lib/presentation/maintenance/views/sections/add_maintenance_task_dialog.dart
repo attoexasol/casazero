@@ -6,8 +6,8 @@ import 'package:casazero/core/widgets/custom_text_field.dart';
 import 'package:casazero/core/widgets/gradient_button.dart';
 import 'package:casazero/core/widgets/outlined_custom_button.dart';
 import 'package:casazero/presentation/home/controllers/home_controller.dart';
-import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../controllers/maintenance_controller.dart';
@@ -34,10 +34,12 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
   String _selectedFrequency = '';
   DateTime? _selectedDueDate;
   DateTime? _selectedLastMaintenanceDate;
+  bool _isCreating = false;
+
+  // File upload state (stored locally in dialog, matching Document dialog pattern)
   File? _selectedFile;
   String? _selectedFileName;
   String? _selectedFileSize;
-  bool _isCreating = false;
 
   final MaintenanceController _controller = Get.find<MaintenanceController>();
   final HomeController _homeController = Get.find<HomeController>();
@@ -59,6 +61,54 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
     _dueDateController.dispose();
     _lastMaintenanceDateController.dispose();
     super.dispose();
+  }
+
+  /// Pick file using the same approach as Document dialog
+  /// This matches the working Document dialog implementation exactly
+  Future<void> _pickFile() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'],
+      );
+
+      if (result != null && result.files.single.path != null) {
+        final file = File(result.files.single.path!);
+        final fileName = result.files.single.name;
+        final fileSize = result.files.single.size;
+
+        setState(() {
+          _selectedFile = file;
+          _selectedFileName = fileName;
+          _selectedFileSize = _formatFileSize(fileSize);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        Get.snackbar(
+          'Error',
+          'Failed to pick file',
+          backgroundColor: AppColors.danger,
+          colorText: AppColors.surfaceWhite,
+        );
+      }
+    }
+  }
+
+  /// Format file size for display (matching Document dialog)
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+
+  /// Remove selected file (matching Document dialog)
+  void _removeFile() {
+    setState(() {
+      _selectedFile = null;
+      _selectedFileName = null;
+      _selectedFileSize = null;
+    });
   }
 
   String _formatDate(DateTime date) {
@@ -167,11 +217,6 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
     return null;
   }
 
-  String _formatFileSize(int bytes) {
-    if (bytes < 1024) return '$bytes B';
-    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
-  }
 
   bool get _isFormValid =>
       _titleController.text.isNotEmpty &&
@@ -182,45 +227,6 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
       _homeController.selectedResidence.value != null &&
       !_isCreating;
 
-  Future<void> _pickFile() async {
-    try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
-      );
-
-      if (result != null && result.files.single.path != null) {
-        final file = File(result.files.single.path!);
-        final fileName = result.files.single.name;
-        final fileSize = result.files.single.size;
-
-        setState(() {
-          _selectedFile = file;
-          _selectedFileName = fileName;
-          _selectedFileSize = _formatFileSize(fileSize);
-        });
-      }
-    } catch (e) {
-      print('Error picking file: $e');
-      if (mounted) {
-        Get.snackbar(
-          'Error',
-          'Failed to pick file',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: AppColors.danger,
-          colorText: AppColors.surfaceWhite,
-        );
-      }
-    }
-  }
-
-  void _removeFile() {
-    setState(() {
-      _selectedFile = null;
-      _selectedFileName = null;
-      _selectedFileSize = null;
-    });
-  }
 
   Future<void> _handleCreate() async {
     // Validate form before submission
@@ -261,10 +267,13 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
         widget.onClose();
       }
       // On error, dialog stays open (snackbar shown in controller)
-    } catch (e) {
+    } catch (e, stackTrace) {
       // Error handling is done in controller, but catch here to prevent crash
-      print('Error in dialog: $e');
+      print('❌ Error in dialog: $e');
+      print('❌ Stack trace: $stackTrace');
     } finally {
+      // Always reset creating state, even on error
+      // Check mounted to prevent setState after disposal
       if (mounted) {
         setState(() => _isCreating = false);
       }
@@ -409,12 +418,15 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
         ),
         const SizedBox(height: 8),
 
-        GestureDetector(
-          onTap: _selectedFile == null ? _pickFile : null,
-          child: SizedBox(
-            width: double.infinity,
+        SizedBox(
+          width: double.infinity,
+          child: GestureDetector(
+            onTap: _selectedFile == null ? _pickFile : null,
             child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 100, maxHeight: 150),
+              constraints: const BoxConstraints(
+                minHeight: 100,
+                maxHeight: 150,
+              ),
               child: Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
@@ -430,13 +442,9 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
                     style: BorderStyle.solid,
                   ),
                 ),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.center,
-                  child: _selectedFile == null
-                      ? _buildUploadPrompt()
-                      : _buildSelectedFile(),
-                ),
+                child: _selectedFile == null
+                    ? _buildUploadPrompt()
+                    : Center(child: _buildSelectedFile()),
               ),
             ),
           ),
@@ -446,37 +454,59 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
   }
 
   Widget _buildUploadPrompt() {
-    return Column(
-      children: [
-        Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            color: AppColors.brandSage500.withOpacity(0.1),
-            shape: BoxShape.circle,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate available height (accounting for container padding: 24px top + 24px bottom = 48px)
+        // Container has minHeight: 100, so available content height is 100 - 48 = 52px minimum
+        final availableHeight = constraints.maxHeight;
+        final isCompact = availableHeight < 120;
+        
+        return SingleChildScrollView(
+          physics: const NeverScrollableScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Icon size adjusts based on available space
+                Container(
+                  width: isCompact ? 48 : 64,
+                  height: isCompact ? 48 : 64,
+                  decoration: BoxDecoration(
+                    color: AppColors.brandSage500.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.cloud_upload_outlined,
+                    size: isCompact ? 24 : 32,
+                    color: AppColors.brandSage500,
+                  ),
+                ),
+                SizedBox(height: isCompact ? 8 : 12),
+                Text(
+                  'Click to upload',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.neutralInk700,
+                    fontWeight: FontWeight.w500,
+                    fontSize: isCompact ? 13 : null,
+                  ),
+                ),
+                if (!isCompact) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Drag and drop file here',
+                    style: AppTextStyles.caption.copyWith(color: AppColors.neutralInk400),
+                  ),
+                ],
+              ],
+            ),
           ),
-          child: const Icon(
-            Icons.cloud_upload_outlined,
-            size: 32,
-            color: AppColors.brandSage500,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'Click to upload',
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.neutralInk700,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Drag and drop file here',
-          style: AppTextStyles.caption.copyWith(color: AppColors.neutralInk400),
-        ),
-      ],
+        );
+      },
     );
   }
+
 
   Widget _buildSelectedFile() {
     return Row(
