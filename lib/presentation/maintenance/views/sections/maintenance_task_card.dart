@@ -67,30 +67,71 @@ class MaintenanceTaskCard extends StatelessWidget {
     }
   }
 
+  /// Get localized status label using translation keys
+  /// Maps MaintenanceStatus enum to translation keys
   String _getStatusLabel(MaintenanceStatus status) {
     switch (status) {
       case MaintenanceStatus.pending:
-        return 'In Attesa';
+        return 'pendingStatus'.tr;
       case MaintenanceStatus.inProgress:
-        return 'In Corso';
+        return 'inProgressStatus'.tr;
       case MaintenanceStatus.completed:
-        return 'Completato';
+        return 'completedStatus'.tr;
       case MaintenanceStatus.overdue:
-        return 'Scaduto';
+        return 'overdueStatus'.tr;
     }
   }
 
+  /// Get localized priority label using translation keys
+  /// Maps MaintenancePriority enum to translation keys
   String _getPriorityLabel(MaintenancePriority priority) {
     switch (priority) {
       case MaintenancePriority.facoltative:
-        return 'Facoltative';
+        return 'facoltative'.tr;
       case MaintenancePriority.obbligatorie:
-        return 'Obbligatorie';
+        return 'obbligatorie'.tr;
       case MaintenancePriority.condominiali:
-        return 'Condominiali';
+        return 'condominiali'.tr;
       case MaintenancePriority.personal:
-        return 'Personal';
+        return 'personal'.tr;
     }
+  }
+
+  /// Map API frequency value to translation key
+  /// Handles various frequency formats from API
+  String _getFrequencyLabel(String? frequency) {
+    if (frequency == null || frequency.isEmpty) {
+      return frequency ?? '';
+    }
+    
+    // Normalize frequency string for comparison
+    final normalized = frequency.toLowerCase().trim();
+    
+    // Map common API frequency values to translation keys
+    if (normalized.contains('weekly') || normalized.contains('settimanale')) {
+      return 'frequencyWeekly'.tr;
+    } else if (normalized.contains('monthly') || normalized.contains('mensile')) {
+      return 'frequencyMonthly'.tr;
+    } else if (normalized.contains('quarterly') || normalized.contains('trimestrale')) {
+      return 'frequencyQuarterly'.tr;
+    } else if (normalized.contains('6 months') || normalized.contains('6 mesi')) {
+      return 'frequencyEvery6Months'.tr;
+    } else if (normalized.contains('3 months') || normalized.contains('3 mesi')) {
+      return 'frequencyEvery3Months'.tr;
+    } else if (normalized.contains('12 months') || normalized.contains('12 mesi') || 
+               normalized.contains('annually') || normalized.contains('annuale') ||
+               normalized.contains('annualmente')) {
+      return 'frequencyAnnually'.tr;
+    } else if (normalized.contains('18 months') || normalized.contains('18 mesi')) {
+      return 'frequencyEvery18Months'.tr;
+    } else if (normalized.contains('one-time') || normalized.contains('una tantum') ||
+               normalized.contains('progetto una tantum')) {
+      return 'frequencyOneTime'.tr;
+    }
+    
+    // If no match found, return original value (might be custom frequency)
+    // This handles edge cases where API returns custom frequencies
+    return frequency;
   }
 
   @override
@@ -229,7 +270,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          task.frequency,
+                          _getFrequencyLabel(task.frequency),
                           style: AppTextStyles.bodySmall.copyWith(
                             color: AppColors.neutralInk700,
                           ),
@@ -256,7 +297,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                'Scadenza: ${task.nextDue}',
+                                '${'dueDateLabel'.tr}: ${task.nextDue}',
                                 style: AppTextStyles.bodySmall.copyWith(
                                   color: isOverdue
                                       ? Colors.red.shade600
@@ -279,7 +320,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                'Ultima: ${task.lastCompleted}',
+                                '${'lastMaintenanceLabel'.tr}: ${task.lastCompleted}',
                                 style: AppTextStyles.bodySmall.copyWith(
                                   color: AppColors.neutralInk700,
                                 ),
@@ -303,7 +344,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                     children: [
                       // Full Description
                       Text(
-                        'Descrizione Completa',
+                        'fullDescription'.tr,
                         style: AppTextStyles.bodySmall.copyWith(
                           fontWeight: FontWeight.w600,
                           color: AppColors.neutralInk700,
@@ -311,7 +352,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        task.description ?? task.maintenanceNote ?? 'No description available',
+                        task.description ?? task.maintenanceNote ?? 'noDescriptionAvailable'.tr,
                         style: AppTextStyles.bodyMedium.copyWith(
                           color: AppColors.neutralInk700,
                           height: 1.5,
@@ -323,7 +364,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                           task.attachments!.isNotEmpty) ...[
                         const SizedBox(height: 16),
                         Text(
-                          'Allegati',
+                          'attachments'.tr,
                           style: AppTextStyles.bodySmall.copyWith(
                             fontWeight: FontWeight.w600,
                             color: AppColors.neutralInk700,
@@ -399,7 +440,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                           task.contacts!.isNotEmpty) ...[
                         const SizedBox(height: 16),
                         Text(
-                          'Contatti',
+                          'contacts'.tr,
                           style: AppTextStyles.bodySmall.copyWith(
                             fontWeight: FontWeight.w600,
                             color: AppColors.neutralInk700,
@@ -494,7 +535,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                 ),
                               ),
                               child: Text(
-                                'Segna Completato',
+                                'markComplete'.tr,
                                 style: AppTextStyles.bodySmall.copyWith(
                                   color: const Color(0xFF6A8F7B),
                                 ),
@@ -526,7 +567,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                   const SizedBox(width: 4),
                                   Flexible(
                                     child: Text(
-                                      'Programma',
+                                      'scheduleVisit'.tr,
                                       style: AppTextStyles.bodySmall.copyWith(
                                         color: AppColors.surfaceWhite,
                                       ),
@@ -562,7 +603,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                   const SizedBox(width: 4),
                                   Flexible(
                                     child: Text(
-                                      'Chiedi AI',
+                                      'askAI'.tr,
                                       style: AppTextStyles.bodySmall.copyWith(
                                         color: const Color(0xFF6A8F7B),
                                       ),
