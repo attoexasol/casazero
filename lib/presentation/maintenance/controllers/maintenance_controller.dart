@@ -3,13 +3,26 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import '../models/maintenance_task_model.dart';
+import '../models/maintenance_category_model.dart';
+import '../../../core/services/api_service.dart';
+import '../../../core/constants/api_constants.dart';
 
 class MaintenanceController extends GetxController {
+  // API Service
+  final ApiService _apiService = Get.find<ApiService>();
+
   // Reactive variables for tasks
   final RxList<MaintenanceTask> tasks = <MaintenanceTask>[].obs;
   final RxBool isLoadingTasks = false.obs;
   final RxString errorMessage = ''.obs;
   final RxBool hasError = false.obs;
+
+  // Reactive variables for categories
+  final RxList<MaintenanceCategory> categories = <MaintenanceCategory>[].obs;
+  final RxBool isLoadingCategories = false.obs;
+  final RxString categoriesErrorMessage = ''.obs;
+  final RxBool hasCategoriesError = false.obs;
+  final Rxn<int> selectedCategoryId = Rxn<int>(); // null means "all"
 
   // Task counts per filter
   final RxInt totalTaskCount = 0.obs;
@@ -20,12 +33,16 @@ class MaintenanceController extends GetxController {
   final RxInt pendingCount = 0.obs;
   final RxInt overdueCount = 0.obs;
 
+  // Category task counts (dynamically calculated)
+  final RxMap<int, int> categoryTaskCounts = <int, int>{}.obs;
+
   // Expanded card state
   final Rxn<String> expandedCardId = Rxn<String>();
 
   @override
   void onInit() {
     super.onInit();
+    fetchMaintenanceCategories();
     fetchMaintenanceTasks();
   }
 
@@ -44,6 +61,7 @@ class MaintenanceController extends GetxController {
       tasks.value = mockTasks;
       totalTaskCount.value = mockTasks.length;
       _updateFilterCounts(mockTasks);
+      _updateCategoryTaskCounts(); // Update category counts when tasks are loaded
 
       print('✅ Loaded ${tasks.length} maintenance tasks');
     } catch (e) {
@@ -84,6 +102,7 @@ class MaintenanceController extends GetxController {
       tasks.add(newTask);
       totalTaskCount.value = tasks.length;
       _updateFilterCounts(tasks);
+      _updateCategoryTaskCounts(); // Update category counts
 
       Get.snackbar(
         'Success',
@@ -161,9 +180,74 @@ class MaintenanceController extends GetxController {
     }
   }
 
+  /// Fetch maintenance categories from API
+  Future<void> fetchMaintenanceCategories() async {
+    // Don't refetch if already loaded
+    if (categories.isNotEmpty && !hasCategoriesError.value) {
+      return;
+    }
+
+    try {
+      isLoadingCategories.value = true;
+      categoriesErrorMessage.value = '';
+      hasCategoriesError.value = false;
+
+      print('📡 [MaintenanceController] Fetching maintenance categories...');
+      final response = await _apiService.get(ApiConstants.GET_MAINTENANCE_CATEGORIES);
+
+      if (response.statusCode == 200 && response.data != null) {
+        final responseData = response.data as Map<String, dynamic>;
+        
+        if (responseData['status'] == true && responseData['data'] != null) {
+          final List<dynamic> categoriesData = responseData['data'] as List<dynamic>;
+          final List<MaintenanceCategory> fetchedCategories = categoriesData
+              .map((json) => MaintenanceCategory.fromJson(json as Map<String, dynamic>))
+              .toList();
+          
+          categories.value = fetchedCategories;
+          _updateCategoryTaskCounts();
+          
+          print('✅ [MaintenanceController] Loaded ${categories.length} maintenance categories');
+        } else {
+          throw Exception(responseData['message'] ?? 'Failed to fetch categories');
+        }
+      } else {
+        throw Exception('Invalid response format');
+      }
+    } catch (e) {
+      print('❌ [MaintenanceController] Error fetching categories: $e');
+      categoriesErrorMessage.value = 'Failed to load categories';
+      hasCategoriesError.value = true;
+      categories.clear();
+      // Don't crash - continue with empty categories
+    } finally {
+      isLoadingCategories.value = false;
+    }
+  }
+
+  /// Update category task counts based on loaded tasks
+  void _updateCategoryTaskCounts() {
+    categoryTaskCounts.clear();
+    
+    for (final category in categories) {
+      // Count tasks that match this category by name
+      // Note: This assumes tasks have category names. If tasks have category IDs, update accordingly
+      final count = tasks.where((task) => task.category == category.name).length;
+      categoryTaskCounts[category.id] = count;
+    }
+  }
+
+  /// Set selected category ID for filtering
+  void setSelectedCategoryId(int? categoryId) {
+    selectedCategoryId.value = categoryId;
+  }
+
   /// Refresh all data (pull-to-refresh)
   Future<void> refreshData() async {
-    await fetchMaintenanceTasks();
+    await Future.wait([
+      fetchMaintenanceCategories(),
+      fetchMaintenanceTasks(),
+    ]);
   }
 
   /// Update filter counts based on loaded tasks

@@ -63,6 +63,30 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
     final allTasks = _controller.tasks.toList();
     if (_activeFilter == 'all') return allTasks;
 
+    // Handle category filtering by ID
+    if (_activeFilter.startsWith('category_')) {
+      final categoryIdStr = _activeFilter.replaceFirst('category_', '');
+      final categoryId = int.tryParse(categoryIdStr);
+      
+      if (categoryId != null) {
+        // Find category by ID to get its name
+        try {
+          final category = _controller.categories.firstWhere(
+            (cat) => cat.id == categoryId,
+            orElse: () => throw StateError('Category not found'),
+          );
+          
+          // Filter tasks by category name (since MaintenanceTask stores category as String)
+          return allTasks.where((task) => task.category == category.name).toList();
+        } catch (e) {
+          // Category not found, return empty list
+          return [];
+        }
+      }
+      return [];
+    }
+
+    // Handle legacy priority/status filters (fallback)
     return allTasks.where((task) {
       switch (_activeFilter) {
         case 'personal':

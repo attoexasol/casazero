@@ -20,43 +20,61 @@ class MaintenanceFilterBar extends StatelessWidget {
     final controller = Get.find<MaintenanceController>();
 
     return Obx(() {
-      final filters = [
+      // Build filters list starting with "All"
+      final filters = <Map<String, dynamic>>[
         {
           'id': 'all',
           'label': 'Tutte',
           'count': controller.totalTaskCount.value,
         },
-        {
-          'id': 'personal',
-          'label': 'Personal',
-          'count': controller.personalCount.value,
-        },
-        {
-          'id': 'facoltative',
-          'label': 'Facoltative',
-          'count': controller.facoltativeCount.value,
-        },
-        {
-          'id': 'obbligatorie',
-          'label': 'Obbligatorie',
-          'count': controller.obbligatorieCount.value,
-        },
-        {
-          'id': 'condominiali',
-          'label': 'Condominiali',
-          'count': controller.condominialiCount.value,
-        },
-        {
-          'id': 'pending',
-          'label': 'Pending',
-          'count': controller.pendingCount.value,
-        },
-        {
-          'id': 'overdue',
-          'label': 'Scadute',
-          'count': controller.overdueCount.value,
-        },
       ];
+
+      // Add category filters dynamically from API
+      if (controller.categories.isNotEmpty) {
+        for (final category in controller.categories) {
+          final count = controller.categoryTaskCounts[category.id] ?? 0;
+          filters.add({
+            'id': 'category_${category.id}',
+            'categoryId': category.id,
+            'label': category.name,
+            'count': count,
+          });
+        }
+      } else {
+        // Fallback to priority/status filters if categories are not loaded yet
+        filters.addAll([
+          {
+            'id': 'personal',
+            'label': 'Personal',
+            'count': controller.personalCount.value,
+          },
+          {
+            'id': 'facoltative',
+            'label': 'Facoltative',
+            'count': controller.facoltativeCount.value,
+          },
+          {
+            'id': 'obbligatorie',
+            'label': 'Obbligatorie',
+            'count': controller.obbligatorieCount.value,
+          },
+          {
+            'id': 'condominiali',
+            'label': 'Condominiali',
+            'count': controller.condominialiCount.value,
+          },
+          {
+            'id': 'pending',
+            'label': 'Pending',
+            'count': controller.pendingCount.value,
+          },
+          {
+            'id': 'overdue',
+            'label': 'Scadute',
+            'count': controller.overdueCount.value,
+          },
+        ]);
+      }
 
       return Container(
         decoration: BoxDecoration(
@@ -128,7 +146,15 @@ class MaintenanceFilterBar extends StatelessWidget {
                           : AppColors.neutralLine200,
                     ),
                     onSelected: (selected) {
-                      onFilterChanged(filter['id'] as String);
+                      final filterId = filter['id'] as String;
+                      // Update controller's selected category ID
+                      if (filterId.startsWith('category_')) {
+                        final categoryId = filter['categoryId'] as int?;
+                        controller.setSelectedCategoryId(categoryId);
+                      } else {
+                        controller.setSelectedCategoryId(null); // "all" or other filters
+                      }
+                      onFilterChanged(filterId);
                     },
                   ),
                 );

@@ -247,6 +247,24 @@ class ApiConstants {
   /// }
   static const String UPLOAD_USER_DOCUMENT = '/user_document_upload';
 
+  // Maintenance Endpoints
+  /// Get Maintenance Categories
+  /// GET /maintenance_categories/list
+  /// Response: {
+  ///   "status": true,
+  ///   "message": "Maintenance categories retrieved successfully",
+  ///   "data": [
+  ///     {
+  ///       "id": 1,
+  ///       "name": "Electrical",
+  ///       "description": "All electrical maintenance related work",
+  ///       "created_at": "2025-12-15T01:40:08.000000Z",
+  ///       "updated_at": "2025-12-15T01:40:08.000000Z"
+  ///     }
+  ///   ]
+  /// }
+  static const String GET_MAINTENANCE_CATEGORIES = '/maintenance_categories/list';
+
   // ============================================================================
   // ENDPOINT HELPER METHODS
   // ============================================================================
