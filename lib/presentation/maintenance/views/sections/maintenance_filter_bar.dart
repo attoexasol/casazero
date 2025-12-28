@@ -53,7 +53,7 @@ class MaintenanceFilterBar extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          filter['label'] as String,
+                          (filter['label'] as String? ?? '').toString(),
                           style: AppTextStyles.bodySmall.copyWith(
                             fontWeight: FontWeight.w500,
                             color: isActive

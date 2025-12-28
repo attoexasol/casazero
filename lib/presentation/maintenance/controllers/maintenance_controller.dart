@@ -316,10 +316,19 @@ class MaintenanceController extends GetxController {
         if (responseData['status'] == true && responseData['data'] != null) {
           final List<dynamic> categoriesData = responseData['data'] as List<dynamic>;
           final List<MaintenanceCategory> fetchedCategories = categoriesData
-              .map((json) => MaintenanceCategory.fromJson(json as Map<String, dynamic>))
+              .map((json) {
+                // Debug: Log raw category data to verify API response structure
+                print('🔍 [MaintenanceController] Raw category JSON: $json');
+                return MaintenanceCategory.fromJson(json as Map<String, dynamic>);
+              })
               .toList();
           
           categories.value = fetchedCategories;
+          
+          // Debug: Log parsed categories to verify name_en field is populated
+          for (final category in fetchedCategories) {
+            print('🔍 [MaintenanceController] Parsed category - ID: ${category.id}, Name: "${category.name}", Name_EN: "${category.nameEn}", Description: "${category.description}"');
+          }
           _updateCategoryTaskCounts();
           _applyFilter(); // Reapply filter in case category selection needs updating
           
@@ -387,10 +396,12 @@ class MaintenanceController extends GetxController {
     if (categories.isNotEmpty) {
       for (final category in categories) {
         final count = categoryTaskCounts[category.id] ?? 0;
+        // Use name_en for display label
+        final label = category.nameEn.isNotEmpty ? category.nameEn : (category.name.isNotEmpty ? category.name : 'Category ${category.id}');
         filterList.add({
           'id': 'category_${category.id}',
           'categoryId': category.id,
-          'label': category.name,
+          'label': label,
           'count': count,
         });
       }
