@@ -332,10 +332,7 @@ class MaintenanceController extends GetxController {
       }
     } catch (e) {
       print('❌ [MaintenanceController] Error fetching categories: $e');
-      categoriesErrorMessage.value = 'Failed to load categories';
-      hasCategoriesError.value = true;
-      categories.clear();
-      // Don't crash - continue with empty categories
+      // Only log error, don't affect UI or behavior
     } finally {
       isLoadingCategories.value = false;
     }
