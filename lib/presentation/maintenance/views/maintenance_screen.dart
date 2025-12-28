@@ -221,31 +221,31 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
           // ),
 
           /// FLOATING ACTION BUTTON
-        if (canCreateTasks)
-          Positioned(
-            bottom: 20,
-            right: 20,
-            child:
-                FloatingActionButton(
-                    backgroundColor: const Color(0xFF4CAF47),
-                    onPressed: _showCreateDialog,
-                    child: const Icon(Icons.add, size: 26, color: Colors.white),
-                  ).animate()
-                  ..scale(
-                    begin: const Offset(0.5, 0.5),
-                    end: const Offset(1, 1),
-                  ).fadeIn(),
-          ),
+        // if (canCreateTasks)
+        //   Positioned(
+        //     bottom: 20,
+        //     right: 20,
+        //     child:
+        //         FloatingActionButton(
+        //             backgroundColor: const Color(0xFF4CAF47),
+        //             onPressed: _showCreateDialog,
+        //             child: const Icon(Icons.add, size: 26, color: Colors.white),
+        //           ).animate()
+        //           ..scale(
+        //             begin: const Offset(0.5, 0.5),
+        //             end: const Offset(1, 1),
+        //           ).fadeIn(),
+        //   ),
 
-          // Add Maintenance Task Dialog
-          if (_isCreateDialogVisible)
-            AddMaintenanceTaskDialog(
-              onClose: () {
-            setState(() {
-                  _isCreateDialogVisible = false;
-            });
-          },
-            ),
+        //   // Add Maintenance Task Dialog
+        //   if (_isCreateDialogVisible)
+        //     AddMaintenanceTaskDialog(
+        //       onClose: () {
+        //     setState(() {
+        //           _isCreateDialogVisible = false;
+        //     });
+        //   },
+        //     ),
         ],
         ),
       );
