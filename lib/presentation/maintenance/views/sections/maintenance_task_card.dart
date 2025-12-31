@@ -257,7 +257,9 @@ class MaintenanceTaskCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
-                            task.category,
+                            task.categoryObj?.nameEn.isNotEmpty == true
+                                ? task.categoryObj!.nameEn
+                                : task.category,
                             style: AppTextStyles.bodySmall.copyWith(
                               color: AppColors.neutralInk700,
                             ),
@@ -270,7 +272,9 @@ class MaintenanceTaskCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          _getFrequencyLabel(task.frequency),
+                          task.frequency.isNotEmpty 
+                              ? _getFrequencyLabel(task.frequency)
+                              : '',
                           style: AppTextStyles.bodySmall.copyWith(
                             color: AppColors.neutralInk700,
                           ),
@@ -358,6 +362,46 @@ class MaintenanceTaskCard extends StatelessWidget {
                           height: 1.5,
                         ),
                       ),
+
+                      // Item Name
+                      if (task.itemObj != null) ...[
+                        const SizedBox(height: 16),
+                        Text(
+                          'Item name',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.neutralInk700,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          task.itemObj!.nameEn.isNotEmpty 
+                              ? task.itemObj!.nameEn 
+                              : task.itemObj!.name,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: AppColors.neutralInk700,
+                          ),
+                        ),
+                      ],
+
+                      // Residence Name
+                      if (task.residenceObj != null) ...[
+                        const SizedBox(height: 16),
+                        Text(
+                          'Residence',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.neutralInk700,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          task.residenceObj!.residenceName,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: AppColors.neutralInk700,
+                          ),
+                        ),
+                      ],
 
                       // Attachments
                       if (task.attachments != null &&
@@ -533,6 +577,8 @@ class MaintenanceTaskCard extends StatelessWidget {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                                minimumSize: const Size(0, 44),
                               ),
                               child: Text(
                                 'markComplete'.tr,
@@ -554,6 +600,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                                minimumSize: const Size(0, 44),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -590,6 +637,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                                minimumSize: const Size(0, 44),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,

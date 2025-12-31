@@ -79,8 +79,10 @@ class MaintenanceTask {
       residenceObj = MaintenanceResidence.fromJson(json['residence']);
     }
 
-    // Get category name from nested object or fallback
-    final categoryName = categoryObj?.name ?? 'Unknown';
+    // Get category name from nested object or fallback (use name_en if available)
+    final categoryName = categoryObj?.nameEn.isNotEmpty == true 
+        ? categoryObj!.nameEn 
+        : (categoryObj?.name ?? 'Unknown');
 
     // Parse status (API returns string like "pending")
     final statusString = json['maintenance_status']?.toString().toLowerCase() ?? 'pending';
@@ -108,6 +110,20 @@ class MaintenanceTask {
     // This can be enhanced based on business logic
     MaintenancePriority priority = MaintenancePriority.personal;
 
+    // Parse maintenance_frequency (can be object with name_en or string)
+    String frequencyStr = '';
+    if (json['maintenance_frequency'] != null) {
+      if (json['maintenance_frequency'] is Map) {
+        // It's an object, extract name_en
+        final freqObj = json['maintenance_frequency'] as Map<String, dynamic>;
+        frequencyStr = freqObj['name_en']?.toString() ?? 
+                      freqObj['name']?.toString() ?? '';
+      } else {
+        // It's a string
+        frequencyStr = json['maintenance_frequency'].toString();
+      }
+    }
+
     // Format dates
     final dueDateStr = json['due_date']?.toString() ?? '';
     final lastMaintenanceDateStr = json['last_maintenance_date']?.toString();
@@ -133,7 +149,7 @@ class MaintenanceTask {
       description: json['maintenance_note']?.toString(),
       priority: priority,
       status: status,
-      frequency: json['maintenance_frequency']?.toString() ?? '',
+      frequency: frequencyStr,
       nextDue: dueDateStr.isNotEmpty ? dueDateStr : null,
       lastCompleted: lastMaintenanceDateStr,
       maintenanceCategoryId: json['maintenance_category_id'] ?? 0,
@@ -155,16 +171,19 @@ class MaintenanceTask {
 class MaintenanceItem {
   final int id;
   final String name;
+  final String nameEn;
 
   MaintenanceItem({
     required this.id,
     required this.name,
+    required this.nameEn,
   });
 
   factory MaintenanceItem.fromJson(Map<String, dynamic> json) {
     return MaintenanceItem(
       id: json['id'] ?? 0,
       name: json['name']?.toString() ?? '',
+      nameEn: json['item_name_en']?.toString() ?? json['name_en']?.toString() ?? '',
     );
   }
 }
