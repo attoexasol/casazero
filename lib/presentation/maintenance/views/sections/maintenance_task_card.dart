@@ -634,32 +634,28 @@ class MaintenanceTaskCard extends StatelessWidget {
                         const SizedBox(height: 16),
                         Row(
                           children: [
-                            SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: Expanded(
-                                child: OutlinedButton(
-                                  onPressed: () {
-                                    controller.markTaskCompleted(task.id);
-                                  },
-                                  style: OutlinedButton.styleFrom(
-                                    side: const BorderSide(
-                                      color: Color(0xFF6A8F7B),
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 12,
-                                    ),
-                                    minimumSize: const Size(0, 44),
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () {
+                                  controller.markTaskCompleted(task.id);
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(
+                                    color: Color(0xFF6A8F7B),
                                   ),
-                                  child: Text(
-                                    'markComplete'.tr,
-                                    style: AppTextStyles.bodySmall.copyWith(
-                                      color: const Color(0xFF6A8F7B),
-                                    ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 12,
+                                  ),
+                                  minimumSize: const Size(0, 44),
+                                ),
+                                child: Text(
+                                  'markComplete'.tr,
+                                  style: AppTextStyles.bodySmall.copyWith(
+                                    color: const Color(0xFF6A8F7B),
                                   ),
                                 ),
                               ),
