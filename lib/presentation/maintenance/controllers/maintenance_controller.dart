@@ -101,7 +101,15 @@ class MaintenanceController extends GetxController {
           final List<MaintenanceTask> fetchedTasks = dataList
               .map((item) {
                 try {
-                  return MaintenanceTask.fromJson(item as Map<String, dynamic>);
+                  // DEBUG: Log full task JSON to find priority field
+                  final taskMap = item as Map<String, dynamic>;
+                  print('🔍 [MaintenanceController] Full task JSON for ID ${taskMap['id']}:');
+                  print('   All keys: ${taskMap.keys.toList()}');
+                  // Log the entire task structure (first task only to avoid spam)
+                  if (dataList.indexOf(item) == 0) {
+                    print('   Full task JSON: $taskMap');
+                  }
+                  return MaintenanceTask.fromJson(taskMap);
                 } catch (e) {
                   print('⚠️ [MaintenanceController] Error parsing task: $e');
                   print('⚠️ [MaintenanceController] Task data: $item');
@@ -292,6 +300,78 @@ class MaintenanceController extends GetxController {
       );
     } catch (e) {
       print('❌ Error scheduling visit: $e');
+    }
+  }
+
+  /// Delete a maintenance task
+  /// Immediately updates UI after successful deletion
+  Future<bool> deleteMaintenanceTask(String taskId) async {
+    try {
+      print('🗑️ [MaintenanceController] Deleting maintenance task: $taskId');
+      
+      // Call DELETE API endpoint
+      final response = await _apiService.delete(
+        '${ApiConstants.DELETE_MAINTENANCE_TASK}/$taskId',
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        final responseData = response.data as Map<String, dynamic>;
+        
+        if (responseData['status'] == true) {
+          print('✅ [MaintenanceController] Delete success, updating UI immediately');
+          
+          // OPTIMISTIC UPDATE: Remove from tasks list immediately
+          tasks.removeWhere((task) => task.id == taskId);
+          
+          // Update filtered tasks
+          _applyFilter();
+          
+          // Update counts
+          totalTaskCount.value = tasks.length;
+          _updateFilterCounts(tasks.toList());
+          _updateCategoryTaskCounts();
+          
+          // Also refresh from API to ensure consistency
+          await fetchMaintenanceTasks();
+          
+          // Show success snackbar
+          Get.snackbar(
+            'Success',
+            responseData['message'] ?? 'Maintenance deleted successfully',
+            snackPosition: SnackPosition.TOP,
+            backgroundColor: Colors.green[700],
+            colorText: Colors.white,
+            duration: const Duration(seconds: 2),
+          );
+          
+          return true;
+        } else {
+          throw Exception(responseData['message'] ?? 'Failed to delete maintenance');
+        }
+      } else {
+        throw Exception('Invalid response status: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ [MaintenanceController] Error deleting maintenance task: $e');
+      
+      // Show error snackbar
+      String errorMessage = 'Failed to delete maintenance';
+      if (e.toString().contains('Exception:')) {
+        errorMessage = e.toString().replaceFirst('Exception: ', '');
+      } else if (e.toString().isNotEmpty) {
+        errorMessage = e.toString();
+      }
+      
+      Get.snackbar(
+        'Error',
+        errorMessage,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red[700],
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+      );
+      
+      return false;
     }
   }
 

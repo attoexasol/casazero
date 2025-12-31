@@ -289,6 +289,14 @@ class ApiConstants {
   /// }
   static const String CREATE_MAINTENANCE_TASK = '/maintenance/store';
 
+  /// Delete Maintenance Task
+  /// DELETE /maintenance/delete/{id}
+  /// Response: {
+  ///   "status": true,
+  ///   "message": "Maintenance deleted successfully"
+  /// }
+  static const String DELETE_MAINTENANCE_TASK = '/maintenance/delete';
+
   // ============================================================================
   // ENDPOINT HELPER METHODS
   // ============================================================================

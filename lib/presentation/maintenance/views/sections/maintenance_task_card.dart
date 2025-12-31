@@ -40,19 +40,19 @@ class MaintenanceTaskCard extends StatelessWidget {
           'border': const Color(0xFF6A8F7B),
         },
         MaintenancePriority.n1: {
-          'bg': const Color(0xFFFFE6E6),
-          'text': const Color(0xFFCC0000),
-          'border': const Color(0xFFFF9999),
+          'bg': const Color(0xFFF3F4F6), // gray-100
+          'text': const Color(0xFF374151), // gray-700
+          'border': const Color(0xFFD1D5DB), // gray-300
         },
         MaintenancePriority.n2: {
-          'bg': const Color(0xFFFFF4E6),
-          'text': const Color(0xFFCC6600),
-          'border': const Color(0xFFFFCC99),
+          'bg': const Color(0xFFFEF3C7), // yellow-100
+          'text': const Color(0xFF92400E), // yellow-700
+          'border': const Color(0xFFFDE68A), // yellow-300
         },
         MaintenancePriority.n3: {
-          'bg': const Color(0xFFE6F3FF),
-          'text': const Color(0xFF0066CC),
-          'border': const Color(0xFF99CCFF),
+          'bg': const Color(0xFFFEE2E2), // red-100
+          'text': const Color(0xFF991B1B), // red-700
+          'border': const Color(0xFFFCA5A5), // red-300
         },
       };
 
@@ -160,6 +160,13 @@ class MaintenanceTaskCard extends StatelessWidget {
     final controller = Get.find<MaintenanceController>();
     final isOverdue = task.status == MaintenanceStatus.overdue;
     final priorityStyle = priorityColors[task.priority]!;
+    
+    // DEBUG: Log priority display data
+    final priorityDisplayText = task.priorityRaw?.toString() ?? 
+                                (task.priority == MaintenancePriority.n1 ? 'N1' :
+                                 task.priority == MaintenancePriority.n2 ? 'N2' :
+                                 task.priority == MaintenancePriority.n3 ? 'N3' : '');
+    print('🎨 [MaintenanceTaskCard] Task ID: ${task.id}, Priority enum: ${task.priority}, PriorityRaw: ${task.priorityRaw}, Display: "$priorityDisplayText"');
 
     return Obx(() {
       final isExpanded = controller.expandedCardId.value != null &&
@@ -211,10 +218,16 @@ class MaintenanceTaskCard extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
-                                  task.priorityRaw ?? '',
-                                  style: AppTextStyles.caption.copyWith(
+                                  task.priorityRaw?.toString() ?? 
+                                  (task.priority == MaintenancePriority.n1 ? 'N1' :
+                                   task.priority == MaintenancePriority.n2 ? 'N2' :
+                                   task.priority == MaintenancePriority.n3 ? 'N3' : ''),
+                                  style: TextStyle(
+                                    fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color: priorityStyle['text'],
+                                    color: (priorityStyle['text'] as Color?) ?? const Color(0xFF000000),
+                                    height: 1.2,
+                                    letterSpacing: 0,
                                   ),
                                 ),
                               ),

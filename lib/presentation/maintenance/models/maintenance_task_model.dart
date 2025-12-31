@@ -63,6 +63,20 @@ class MaintenanceTask {
 
   /// Factory constructor to parse from API JSON
   factory MaintenanceTask.fromJson(Map<String, dynamic> json) {
+    // DEBUG: Log full task JSON to find priority field
+    print('🔍 [MaintenanceTask] Full task JSON for ID ${json['id']}:');
+    print('   All keys: ${json.keys.toList()}');
+    // Log all fields that might contain priority
+    json.forEach((key, value) {
+      if (key.toLowerCase().contains('priority') || 
+          key.toLowerCase().contains('priorita') ||
+          key.toLowerCase().contains('n1') ||
+          key.toLowerCase().contains('n2') ||
+          key.toLowerCase().contains('n3')) {
+        print('   🔑 Found potential priority field: $key = $value (type: ${value.runtimeType})');
+      }
+    });
+    
     // Parse nested category object (using existing MaintenanceCategory model)
     MaintenanceCategory? categoryObj;
     if (json['category'] != null && json['category'] is Map) {
@@ -113,10 +127,45 @@ class MaintenanceTask {
     String? priorityRawValue; // Store raw value from API for direct display
     
     // Try multiple possible field names for priority
-    dynamic priorityValue = json['priority'] ?? 
-                           json['maintenance_priority'] ?? 
-                           json['priority_id'] ?? 
-                           json['maintenance_priority_id'];
+    // Check all possible variations including nested objects
+    dynamic priorityValue;
+    
+    // First check direct fields
+    priorityValue = json['priority'] ?? 
+                   json['maintenance_priority'] ?? 
+                   json['priority_id'] ?? 
+                   json['maintenance_priority_id'] ??
+                   json['priorityId'] ??
+                   json['maintenancePriority'] ??
+                   json['maintenancePriorityId'] ??
+                   json['priority_name'] ??
+                   json['priorityName'] ??
+                   json['priority_level'] ??
+                   json['priorityLevel'];
+    
+    // If not found, check for nested priority object
+    if (priorityValue == null && json['priority'] is Map) {
+      final priorityObj = json['priority'] as Map<String, dynamic>;
+      priorityValue = priorityObj['id'] ?? 
+                     priorityObj['name'] ?? 
+                     priorityObj['value'] ??
+                     priorityObj['name_en'] ??
+                     priorityObj['priority'];
+    }
+    
+    // Check for maintenance_priority nested object
+    if (priorityValue == null && json['maintenance_priority'] is Map) {
+      final priorityObj = json['maintenance_priority'] as Map<String, dynamic>;
+      priorityValue = priorityObj['id'] ?? 
+                     priorityObj['name'] ?? 
+                     priorityObj['value'] ??
+                     priorityObj['name_en'] ??
+                     priorityObj['priority'];
+    }
+    
+    // DEBUG: Log priority data from API
+    print('🔍 [MaintenanceTask] Priority field check for task ID: ${json['id']}');
+    print('🔍 [MaintenanceTask] priorityValue found: $priorityValue (type: ${priorityValue != null ? priorityValue.runtimeType : 'null'})');
     
     if (priorityValue != null) {
       String priorityStr = '';
@@ -160,9 +209,8 @@ class MaintenanceTask {
         // String value - store directly if it's N1/N2/N3
         priorityStr = priorityValue.toString().toUpperCase().trim();
         final originalValue = priorityValue.toString().trim().toUpperCase();
-        if (originalValue == 'N1' || originalValue == 'N2' || originalValue == 'N3') {
-          priorityRawValue = originalValue;
-        }
+        // Store the value for display (even if not N1/N2/N3, so we can see what API returns)
+        priorityRawValue = originalValue;
       }
       
       // Map priority string to enum
@@ -199,9 +247,33 @@ class MaintenanceTask {
           priority = MaintenancePriority.personal;
           break;
         default:
-          // If not recognized, don't default to personal - leave as null
-          priority = MaintenancePriority.personal;
+          // If not recognized, try to use the raw value if it looks like N1/N2/N3
+          if (priorityRawValue != null && 
+              (priorityRawValue.contains('N1') || 
+               priorityRawValue.contains('N2') || 
+               priorityRawValue.contains('N3'))) {
+            // Extract N1, N2, or N3 from the string
+            if (priorityRawValue.contains('N1')) {
+              priority = MaintenancePriority.n1;
+              priorityRawValue = 'N1';
+            } else if (priorityRawValue.contains('N2')) {
+              priority = MaintenancePriority.n2;
+              priorityRawValue = 'N2';
+            } else if (priorityRawValue.contains('N3')) {
+              priority = MaintenancePriority.n3;
+              priorityRawValue = 'N3';
+            } else {
+              priority = MaintenancePriority.personal;
+            }
+          } else {
+            priority = MaintenancePriority.personal;
+          }
       }
+      
+      // DEBUG: Log parsed priority
+      print('🔍 [MaintenanceTask] Parsed priority: enum=$priority, raw=$priorityRawValue');
+    } else {
+      print('⚠️ [MaintenanceTask] No priority value found in API response, using default: personal');
     }
 
     // Parse maintenance_frequency (can be object with name_en or string)
