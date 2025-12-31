@@ -39,6 +39,21 @@ class MaintenanceTaskCard extends StatelessWidget {
           'text': const Color(0xFF6A8F7B),
           'border': const Color(0xFF6A8F7B),
         },
+        MaintenancePriority.n1: {
+          'bg': const Color(0xFFFFE6E6),
+          'text': const Color(0xFFCC0000),
+          'border': const Color(0xFFFF9999),
+        },
+        MaintenancePriority.n2: {
+          'bg': const Color(0xFFFFF4E6),
+          'text': const Color(0xFFCC6600),
+          'border': const Color(0xFFFFCC99),
+        },
+        MaintenancePriority.n3: {
+          'bg': const Color(0xFFE6F3FF),
+          'text': const Color(0xFF0066CC),
+          'border': const Color(0xFF99CCFF),
+        },
       };
 
   Color _getStatusColor(MaintenanceStatus status) {
@@ -94,6 +109,12 @@ class MaintenanceTaskCard extends StatelessWidget {
         return 'condominiali'.tr;
       case MaintenancePriority.personal:
         return 'personal'.tr;
+      case MaintenancePriority.n1:
+        return 'N1';
+      case MaintenancePriority.n2:
+        return 'N2';
+      case MaintenancePriority.n3:
+        return 'N3';
     }
   }
 
@@ -190,7 +211,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
-                                  _getPriorityLabel(task.priority),
+                                  task.priorityRaw ?? '',
                                   style: AppTextStyles.caption.copyWith(
                                     fontWeight: FontWeight.w600,
                                     color: priorityStyle['text'],

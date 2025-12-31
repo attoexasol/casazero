@@ -3,7 +3,7 @@
 
 import 'maintenance_category_model.dart';
 
-enum MaintenancePriority { facoltative, obbligatorie, condominiali, personal }
+enum MaintenancePriority { facoltative, obbligatorie, condominiali, personal, n1, n2, n3 }
 
 enum MaintenanceStatus { pending, inProgress, completed, overdue }
 
@@ -14,6 +14,7 @@ class MaintenanceTask {
   final String category; // category.name (from nested object)
   final String? description; // maintenance_note (optional)
   final MaintenancePriority priority; // Derived from category or default
+  final String? priorityRaw; // Raw priority value from API (N1, N2, N3)
   final MaintenanceStatus status; // maintenance_status
   final String frequency; // maintenance_frequency
   final String? nextDue; // due_date formatted
@@ -40,6 +41,7 @@ class MaintenanceTask {
     required this.category,
     this.description,
     required this.priority,
+    this.priorityRaw,
     required this.status,
     required this.frequency,
     this.nextDue,
@@ -106,9 +108,101 @@ class MaintenanceTask {
         status = MaintenanceStatus.pending;
     }
 
-    // Determine priority (default to personal if not specified)
-    // This can be enhanced based on business logic
-    MaintenancePriority priority = MaintenancePriority.personal;
+    // Parse priority from API (can be N1, N2, N3 or other values)
+    MaintenancePriority priority = MaintenancePriority.personal; // Default fallback
+    String? priorityRawValue; // Store raw value from API for direct display
+    
+    // Try multiple possible field names for priority
+    dynamic priorityValue = json['priority'] ?? 
+                           json['maintenance_priority'] ?? 
+                           json['priority_id'] ?? 
+                           json['maintenance_priority_id'];
+    
+    if (priorityValue != null) {
+      String priorityStr = '';
+      
+      // Handle different data types
+      if (priorityValue is Map) {
+        // Nested object: try common keys
+        final priorityObj = priorityValue as Map<String, dynamic>;
+        final extractedValue = priorityObj['name'] ?? 
+                              priorityObj['priority'] ?? 
+                              priorityObj['value'] ?? 
+                              priorityObj['name_en'] ?? 
+                              '';
+        priorityStr = extractedValue.toString().toUpperCase().trim();
+        // Store original extracted value if it's N1/N2/N3
+        final originalExtracted = extractedValue.toString().trim().toUpperCase();
+        if (originalExtracted == 'N1' || originalExtracted == 'N2' || originalExtracted == 'N3') {
+          priorityRawValue = originalExtracted;
+        }
+      } else if (priorityValue is num) {
+        // Numeric ID: map 1=N1, 2=N2, 3=N3
+        final priorityNum = priorityValue.toInt();
+        switch (priorityNum) {
+          case 1:
+            priorityStr = 'N1';
+            priorityRawValue = 'N1';
+            break;
+          case 2:
+            priorityStr = 'N2';
+            priorityRawValue = 'N2';
+            break;
+          case 3:
+            priorityStr = 'N3';
+            priorityRawValue = 'N3';
+            break;
+          default:
+            priorityStr = priorityValue.toString().toUpperCase().trim();
+            priorityRawValue = null;
+        }
+      } else {
+        // String value - store directly if it's N1/N2/N3
+        priorityStr = priorityValue.toString().toUpperCase().trim();
+        final originalValue = priorityValue.toString().trim().toUpperCase();
+        if (originalValue == 'N1' || originalValue == 'N2' || originalValue == 'N3') {
+          priorityRawValue = originalValue;
+        }
+      }
+      
+      // Map priority string to enum
+      switch (priorityStr) {
+        case 'N1':
+        case '1':
+          priority = MaintenancePriority.n1;
+          if (priorityRawValue == null) priorityRawValue = 'N1';
+          break;
+        case 'N2':
+        case '2':
+          priority = MaintenancePriority.n2;
+          if (priorityRawValue == null) priorityRawValue = 'N2';
+          break;
+        case 'N3':
+        case '3':
+          priority = MaintenancePriority.n3;
+          if (priorityRawValue == null) priorityRawValue = 'N3';
+          break;
+        case 'FACOLTATIVE':
+        case 'FACOLTATIVA':
+          priority = MaintenancePriority.facoltative;
+          break;
+        case 'OBBLIGATORIE':
+        case 'OBBLIGATORIA':
+          priority = MaintenancePriority.obbligatorie;
+          break;
+        case 'CONDOMINIALI':
+        case 'CONDOMINIALE':
+          priority = MaintenancePriority.condominiali;
+          break;
+        case 'PERSONAL':
+        case 'PERSONALE':
+          priority = MaintenancePriority.personal;
+          break;
+        default:
+          // If not recognized, don't default to personal - leave as null
+          priority = MaintenancePriority.personal;
+      }
+    }
 
     // Parse maintenance_frequency (can be object with name_en or string)
     String frequencyStr = '';
@@ -148,6 +242,7 @@ class MaintenanceTask {
       category: categoryName,
       description: json['maintenance_note']?.toString(),
       priority: priority,
+      priorityRaw: priorityRawValue,
       status: status,
       frequency: frequencyStr,
       nextDue: dueDateStr.isNotEmpty ? dueDateStr : null,
