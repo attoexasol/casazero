@@ -8,6 +8,8 @@ class ResidenceModel {
   final int residenceAdmin;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? residencePhoto;
+  final String? residenceStatus;
 
   ResidenceModel({
     required this.id,
@@ -17,6 +19,8 @@ class ResidenceModel {
     required this.residenceAdmin,
     required this.createdAt,
     required this.updatedAt,
+    this.residencePhoto,
+    this.residenceStatus,
   });
 
   factory ResidenceModel.fromJson(Map<String, dynamic> json) {
@@ -32,6 +36,8 @@ class ResidenceModel {
       updatedAt: json['updated_at'] != null
           ? DateTime.parse(json['updated_at'])
           : DateTime.now(),
+      residencePhoto: json['residence_photo'],
+      residenceStatus: json['residence_status'],
     );
   }
 
@@ -44,6 +50,8 @@ class ResidenceModel {
       'residence_admin': residenceAdmin,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'residence_photo': residencePhoto,
+      'residence_status': residenceStatus,
     };
   }
 
@@ -64,6 +72,8 @@ class ResidenceModel {
     int? residenceAdmin,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? residencePhoto,
+    String? residenceStatus,
   }) {
     return ResidenceModel(
       id: id ?? this.id,
@@ -73,6 +83,8 @@ class ResidenceModel {
       residenceAdmin: residenceAdmin ?? this.residenceAdmin,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      residencePhoto: residencePhoto ?? this.residencePhoto,
+      residenceStatus: residenceStatus ?? this.residenceStatus,
     );
   }
 

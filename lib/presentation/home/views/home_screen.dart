@@ -59,8 +59,25 @@ class HomeScreen extends GetView<HomeController> {
               .animate()
               .fadeIn(duration: 500.ms)
               .scale(begin: const Offset(0.9, 0.9)),
-
-
+          
+          // Residence Status
+          Obx(() {
+            final residenceStatus = controller.residenceData.value?['residence_status'];
+            if (residenceStatus != null && residenceStatus.toString().isNotEmpty) {
+              return Padding(
+                padding: const EdgeInsets.only(top: 16, left: 24, right: 24),
+                child: Text(
+                  residenceStatus.toString(),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              );
+            }
+            return const SizedBox.shrink();
+          }),
 
           // const HeroImage()
           //     .animate()

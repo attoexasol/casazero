@@ -28,6 +28,9 @@ class HomeController extends GetxController {
   final residences = <ResidenceModel>[].obs;
   final selectedResidence = Rx<ResidenceModel?>(null);
   final isLoadingResidences = false.obs;
+  
+  // Residence data for Home Screen (from API)
+  final residenceData = Rx<Map<String, dynamic>?>(null);
 
   // Screen navigation
   final currentScreen = AppScreen.home.obs;
@@ -95,6 +98,7 @@ class HomeController extends GetxController {
   void onReady() {
     super.onReady();
     fetchHomeData();
+    fetchResidenceData();
     // Pre-load documents in background after login
     _preloadDocuments();
   }
@@ -289,6 +293,26 @@ class HomeController extends GetxController {
 
   Future<void> refreshData() async {
     await fetchHomeData();
+    await fetchResidenceData();
+  }
+
+  /// Fetch residence data for Home Screen
+  Future<void> fetchResidenceData() async {
+    try {
+      print('🏠 [HomeController] Fetching residence data...');
+      final result = await _homeRepository.getResidenceByToken();
+
+      if (result['success'] == true) {
+        residenceData.value = result['data'] as Map<String, dynamic>;
+        print('✅ [HomeController] Residence data loaded: ${residenceData.value}');
+      } else {
+        print('❌ [HomeController] Failed to fetch residence data: ${result['error']}');
+        // Log error but don't show UI - as per requirements
+      }
+    } catch (e) {
+      print('❌ [HomeController] Error fetching residence data: $e');
+      // Log error but don't show UI - as per requirements
+    }
   }
 
   // SCREEN NAVIGATION METHODS
