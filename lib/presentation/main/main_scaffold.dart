@@ -177,7 +177,7 @@ class MainScaffold extends GetView<HomeController> {
       child:
           Container(
                 height: 50.h + statusBarHeight,
-                //padding: EdgeInsets.only(top: statusBarHeight),
+                padding: EdgeInsets.only(top: statusBarHeight),
                 decoration: BoxDecoration(
                   color: AppColors.surfaceWhite.withOpacity(0.95),
                   border: Border(
