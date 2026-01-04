@@ -432,8 +432,8 @@ class MaintenanceController extends GetxController {
     categoryTaskCounts.clear();
     
     for (final category in categories) {
-      // Count tasks that match this category by ID (more accurate than name matching)
-      final count = tasks.where((task) => task.maintenanceCategoryId == category.id).length;
+      // Count tasks that match this category by category.id (from nested category object)
+      final count = tasks.where((task) => task.categoryObj?.id == category.id).length;
       categoryTaskCounts[category.id] = count;
     }
     
@@ -453,10 +453,10 @@ class MaintenanceController extends GetxController {
       // "All" selected - show all tasks
       filteredTasks.value = tasks.toList();
     } else {
-      // Category selected - filter by category ID
+      // Category selected - filter by category.id (from nested category object)
       final categoryId = selectedCategoryId.value!;
-      // Filter tasks by maintenanceCategoryId (more accurate than name matching)
-      filteredTasks.value = tasks.where((task) => task.maintenanceCategoryId == categoryId).toList();
+      // Filter tasks by category.id (matching requirement: maintenance.category.id == selectedCategory.id)
+      filteredTasks.value = tasks.where((task) => task.categoryObj?.id == categoryId).toList();
     }
   }
 
