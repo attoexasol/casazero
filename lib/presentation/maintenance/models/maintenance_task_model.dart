@@ -127,40 +127,51 @@ class MaintenanceTask {
     String? priorityRawValue; // Store raw value from API for direct display
     
     // Try multiple possible field names for priority
-    // Check all possible variations including nested objects
+    // Check new API structure first (maintenance_priority object)
     dynamic priorityValue;
     
-    // First check direct fields
-    priorityValue = json['priority'] ?? 
-                   json['maintenance_priority'] ?? 
-                   json['priority_id'] ?? 
-                   json['maintenance_priority_id'] ??
-                   json['priorityId'] ??
-                   json['maintenancePriority'] ??
-                   json['maintenancePriorityId'] ??
-                   json['priority_name'] ??
-                   json['priorityName'] ??
-                   json['priority_level'] ??
-                   json['priorityLevel'];
-    
-    // If not found, check for nested priority object
-    if (priorityValue == null && json['priority'] is Map) {
-      final priorityObj = json['priority'] as Map<String, dynamic>;
-      priorityValue = priorityObj['id'] ?? 
-                     priorityObj['name'] ?? 
-                     priorityObj['value'] ??
-                     priorityObj['name_en'] ??
-                     priorityObj['priority'];
-    }
-    
-    // Check for maintenance_priority nested object
-    if (priorityValue == null && json['maintenance_priority'] is Map) {
+    // Check for maintenance_priority nested object (new API structure) FIRST
+    if (json['maintenance_priority'] != null && json['maintenance_priority'] is Map) {
       final priorityObj = json['maintenance_priority'] as Map<String, dynamic>;
-      priorityValue = priorityObj['id'] ?? 
-                     priorityObj['name'] ?? 
-                     priorityObj['value'] ??
-                     priorityObj['name_en'] ??
-                     priorityObj['priority'];
+      // New API structure: { "name": "N2", "priority_type": "Mandatory" }
+      final priorityName = priorityObj['name']?.toString() ?? '';
+      final priorityType = priorityObj['priority_type']?.toString() ?? '';
+      // Combine as "N2-Mandatory" format
+      if (priorityName.isNotEmpty && priorityType.isNotEmpty) {
+        priorityRawValue = '$priorityName-$priorityType';
+        print('✅ [MaintenanceTask] Combined priority: $priorityRawValue');
+        priorityValue = priorityName; // Use name for enum mapping
+      } else if (priorityName.isNotEmpty) {
+        priorityRawValue = priorityName;
+        priorityValue = priorityName;
+      } else {
+        priorityValue = priorityObj['id'] ?? 
+                        priorityObj['value'] ??
+                        priorityObj['name_en'] ??
+                        priorityObj['priority'];
+      }
+    } else {
+      // Fallback to old structure or direct fields
+      priorityValue = json['priority'] ?? 
+                     json['priority_id'] ?? 
+                     json['maintenance_priority_id'] ??
+                     json['priorityId'] ??
+                     json['maintenancePriority'] ??
+                     json['maintenancePriorityId'] ??
+                     json['priority_name'] ??
+                     json['priorityName'] ??
+                     json['priority_level'] ??
+                     json['priorityLevel'];
+      
+      // If not found, check for nested priority object
+      if (priorityValue == null && json['priority'] is Map) {
+        final priorityObj = json['priority'] as Map<String, dynamic>;
+        priorityValue = priorityObj['id'] ?? 
+                       priorityObj['name'] ?? 
+                       priorityObj['value'] ??
+                       priorityObj['name_en'] ??
+                       priorityObj['priority'];
+      }
     }
     
     // DEBUG: Log priority data from API
@@ -180,11 +191,8 @@ class MaintenanceTask {
                               priorityObj['name_en'] ?? 
                               '';
         priorityStr = extractedValue.toString().toUpperCase().trim();
-        // Store original extracted value if it's N1/N2/N3
-        final originalExtracted = extractedValue.toString().trim().toUpperCase();
-        if (originalExtracted == 'N1' || originalExtracted == 'N2' || originalExtracted == 'N3') {
-          priorityRawValue = originalExtracted;
-        }
+        // Store original extracted value (preserve full string for display)
+        priorityRawValue = extractedValue.toString().trim();
       } else if (priorityValue is num) {
         // Numeric ID: map 1=N1, 2=N2, 3=N3
         final priorityNum = priorityValue.toInt();
@@ -206,11 +214,12 @@ class MaintenanceTask {
             priorityRawValue = null;
         }
       } else {
-        // String value - store directly if it's N1/N2/N3
+        // String value - store original value for display (preserve full string like "N1-optional")
         priorityStr = priorityValue.toString().toUpperCase().trim();
-        final originalValue = priorityValue.toString().trim().toUpperCase();
-        // Store the value for display (even if not N1/N2/N3, so we can see what API returns)
-        priorityRawValue = originalValue;
+        // Only overwrite priorityRawValue if it's not already set (preserve combined format like "N2-Mandatory")
+        if (priorityRawValue == null || !priorityRawValue.contains('-')) {
+          priorityRawValue = priorityValue.toString().trim();
+        }
       }
       
       // Map priority string to enum
@@ -249,19 +258,19 @@ class MaintenanceTask {
         default:
           // If not recognized, try to use the raw value if it looks like N1/N2/N3
           if (priorityRawValue != null && 
-              (priorityRawValue.contains('N1') || 
-               priorityRawValue.contains('N2') || 
-               priorityRawValue.contains('N3'))) {
-            // Extract N1, N2, or N3 from the string
-            if (priorityRawValue.contains('N1')) {
+              (priorityRawValue.toUpperCase().contains('N1') || 
+               priorityRawValue.toUpperCase().contains('N2') || 
+               priorityRawValue.toUpperCase().contains('N3'))) {
+            // Map to enum based on which priority is found, but preserve original value for display
+            if (priorityRawValue.toUpperCase().contains('N1')) {
               priority = MaintenancePriority.n1;
-              priorityRawValue = 'N1';
-            } else if (priorityRawValue.contains('N2')) {
+              // Keep original priorityRawValue (don't overwrite)
+            } else if (priorityRawValue.toUpperCase().contains('N2')) {
               priority = MaintenancePriority.n2;
-              priorityRawValue = 'N2';
-            } else if (priorityRawValue.contains('N3')) {
+              // Keep original priorityRawValue (don't overwrite)
+            } else if (priorityRawValue.toUpperCase().contains('N3')) {
               priority = MaintenancePriority.n3;
-              priorityRawValue = 'N3';
+              // Keep original priorityRawValue (don't overwrite)
             } else {
               priority = MaintenancePriority.personal;
             }
@@ -308,6 +317,11 @@ class MaintenanceTask {
       print('Error parsing dates: $e');
     }
 
+    // Get IDs from nested objects if not present directly
+    final maintenanceCategoryId = json['maintenance_category_id'] ?? categoryObj?.id ?? 0;
+    final residenceId = json['residence_id'] ?? residenceObj?.id ?? 0;
+    final maintenanceItemId = json['maintenance_item_id'] ?? itemObj?.id;
+
     return MaintenanceTask(
       id: (json['id'] ?? 0).toString(), // Convert to String for UI compatibility
       title: json['maintenance_title']?.toString() ?? '',
@@ -319,9 +333,9 @@ class MaintenanceTask {
       frequency: frequencyStr,
       nextDue: dueDateStr.isNotEmpty ? dueDateStr : null,
       lastCompleted: lastMaintenanceDateStr,
-      maintenanceCategoryId: json['maintenance_category_id'] ?? 0,
-      maintenanceItemId: json['maintenance_item_id'],
-      residenceId: json['residence_id'] ?? 0,
+      maintenanceCategoryId: maintenanceCategoryId,
+      maintenanceItemId: maintenanceItemId,
+      residenceId: residenceId,
       categoryObj: categoryObj,
       itemObj: itemObj,
       residenceObj: residenceObj,
@@ -349,7 +363,7 @@ class MaintenanceItem {
   factory MaintenanceItem.fromJson(Map<String, dynamic> json) {
     return MaintenanceItem(
       id: json['id'] ?? 0,
-      name: json['name']?.toString() ?? '',
+      name: json['item_name_it']?.toString() ?? json['name']?.toString() ?? '',
       nameEn: json['item_name_en']?.toString() ?? json['name_en']?.toString() ?? '',
     );
   }

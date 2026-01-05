@@ -18,8 +18,8 @@ class MaintenanceCategory {
   factory MaintenanceCategory.fromJson(Map<String, dynamic> json) {
     return MaintenanceCategory(
       id: json['id'] as int? ?? 0,
-      // Check both 'name' and 'category_name' keys to handle different API response formats
-      name: (json['name'] as String? ?? json['category_name'] as String? ?? '').toString(),
+      // New API structure: use name_it, fallback to name or category_name
+      name: (json['name_it'] as String? ?? json['name'] as String? ?? json['category_name'] as String? ?? '').toString(),
       // Parse name_en from API response
       nameEn: (json['name_en'] as String? ?? '').toString(),
       // Check both 'description' and 'category_description' keys

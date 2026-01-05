@@ -162,11 +162,7 @@ class MaintenanceTaskCard extends StatelessWidget {
     final priorityStyle = priorityColors[task.priority]!;
     
     // DEBUG: Log priority display data
-    final priorityDisplayText = task.priorityRaw?.toString() ?? 
-                                (task.priority == MaintenancePriority.n1 ? 'N1' :
-                                 task.priority == MaintenancePriority.n2 ? 'N2' :
-                                 task.priority == MaintenancePriority.n3 ? 'N3' : '');
-    print('🎨 [MaintenanceTaskCard] Task ID: ${task.id}, Priority enum: ${task.priority}, PriorityRaw: ${task.priorityRaw}, Display: "$priorityDisplayText"');
+    print('PRIORITY => ${task.priorityRaw}');
 
     return Obx(() {
       final isExpanded = controller.expandedCardId.value != null &&
@@ -218,10 +214,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
-                                  task.priorityRaw?.toString() ?? 
-                                  (task.priority == MaintenancePriority.n1 ? 'N1' :
-                                   task.priority == MaintenancePriority.n2 ? 'N2' :
-                                   task.priority == MaintenancePriority.n3 ? 'N3' : ''),
+                                  task.priorityRaw?.toString() ?? '',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
