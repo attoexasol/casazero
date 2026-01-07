@@ -827,6 +827,10 @@ class MainScaffold extends GetView<HomeController> {
 
     return Container(
       decoration: BoxDecoration(
+        // borderRadius: BorderRadius.only(
+        //   topLeft: Radius.circular(20),
+        //   topRight: Radius.circular(20),
+        // ),
         color: AppColors.surfaceWhite,
         border: Border(
           top: BorderSide(color: AppColors.neutralLine200, width: 1.w),
