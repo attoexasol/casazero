@@ -305,6 +305,9 @@ class HomeController extends GetxController {
       if (result['success'] == true) {
         residenceData.value = result['data'] as Map<String, dynamic>;
         print('✅ [HomeController] Residence data loaded: ${residenceData.value}');
+        // Temporary log: Confirm residence_photo is available
+        final photo = residenceData.value?['residence_photo'];
+        print('🏠 [HomeController] Residence image URL from data: $photo');
       } else {
         print('❌ [HomeController] Failed to fetch residence data: ${result['error']}');
         // Log error but don't show UI - as per requirements

@@ -630,7 +630,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
+                                    horizontal: 5,
                                     vertical: 14,
                                   ),
                                   minimumSize: const Size(

@@ -181,9 +181,13 @@ class HomeRepository {
         };
       }
 
+      // Verify token format (should be 64 characters for this API)
+      print('🔑 [HomeRepository] Token verification: ${token.length} chars');
+      print('🔑 [HomeRepository] Token preview: ${token.substring(0, token.length > 20 ? 20 : token.length)}...');
+
       final endpoint = ApiConstants.GET_USER_RESIDENCES;
       print('📡 [HomeRepository] Making POST request to: $endpoint');
-      print('📦 [HomeRepository] Token: ${token.substring(0, token.length > 20 ? 20 : token.length)}...');
+      print('📦 [HomeRepository] Request body: {"token": "${token.substring(0, token.length > 20 ? 20 : token.length)}..."}');
 
       // Use POST with request body for token (as per API specification)
       final response = await _apiService.post(
@@ -194,6 +198,9 @@ class HomeRepository {
       print('✅ [HomeRepository] API Response received');
       print('📊 [HomeRepository] Status Code: ${response.statusCode}');
       print('📊 [HomeRepository] Response Data: ${response.data}');
+      
+      // Success log as requested
+      print('✅ Residence API SUCCESS → ${response.data}');
 
       // Response structure:
       // {
@@ -214,8 +221,21 @@ class HomeRepository {
       //   ]
       // }
 
+      // Verify response status code and API status field
       if (response.statusCode == 200) {
         dynamic responseData = response.data;
+        
+        // Check API status field if present
+        if (responseData is Map && responseData.containsKey('status')) {
+          final apiStatus = responseData['status'];
+          if (apiStatus != true) {
+            final errorMessage = responseData['message'] ?? 
+                               responseData['error'] ?? 
+                               'API returned status: false';
+            print('❌ [HomeRepository] API status is false: $errorMessage');
+            return {'success': false, 'error': errorMessage};
+          }
+        }
         
         // Handle both array and object responses
         Map<String, dynamic> residenceData;
@@ -237,6 +257,12 @@ class HomeRepository {
         }
 
         print('✅ [HomeRepository] Successfully extracted residence data');
+        print('📋 [HomeRepository] Residence name: ${residenceData['residence_name']}');
+        print('📋 [HomeRepository] Residence address: ${residenceData['residence_address']}');
+        print('📋 [HomeRepository] Residence status: ${residenceData['residence_status']}');
+        // Temporary log: Residence image URL
+        final residencePhoto = residenceData['residence_photo'];
+        print('🏠 [HomeRepository] Residence image URL: $residencePhoto');
         return {
           'success': true,
           'data': residenceData,
