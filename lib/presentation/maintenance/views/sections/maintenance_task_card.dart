@@ -223,7 +223,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
-                                    task.priorityRaw?.toString() ?? '',
+                                    task.priorityRaw?.toString().split('-').first ?? '',
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
