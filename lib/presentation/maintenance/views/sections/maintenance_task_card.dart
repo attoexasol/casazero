@@ -693,162 +693,136 @@ class MaintenanceTaskCard extends StatelessWidget {
 
                                 // Action Buttons
                                 const SizedBox(height: 16),
-                                Row(
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
                                   children: [
                                     // Primary Action: Mark Complete (dominant)
                                     // Primary Action: Mark Complete (same style, green)
                                     // Primary Action: Mark Complete (green, same height)
-                                    Expanded(
-                                      flex: 1,
-                                      child: ElevatedButton(
-                                        onPressed: () {
-                                          controller.markTaskCompleted(task.id);
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor:
-                                              AppColors.brandSage400, // ✅ green
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                          ),
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 5,
-                                            vertical: 14,
-                                          ),
-                                          minimumSize: const Size(
-                                            0,
-                                            45,
-                                          ), // ✅ SAME HEIGHT
-                                          elevation: 0,
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        controller.markTaskCompleted(task.id);
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            AppColors.brandSage400, // ✅ green
+                                        shape: const StadiumBorder(),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 18,
+                                          vertical: 10,
                                         ),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.start,
-                                          children: [
-                                            const Icon(
-                                              Icons.check_circle_outline,
-                                              size: 14,
-                                              color: AppColors.surfaceWhite,
-                                            ),
-                                            const SizedBox(width: 3),
-                                            Flexible(
-                                              child: Text(
-                                                'markComplete'.tr,
-                                                style: AppTextStyles.bodySmall
-                                                    .copyWith(
-                                                      color: AppColors
-                                                          .surfaceWhite,
-                                                      fontSize: 11,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                    ),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                        minimumSize: const Size(0, 42),
+                                        elevation: 0,
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(
+                                            Icons.check_circle_outline,
+                                            size: 17,
+                                            color: AppColors.surfaceWhite,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'markComplete'.tr,
+                                            style: AppTextStyles.bodySmall
+                                                .copyWith(
+                                                  color: AppColors.surfaceWhite,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-
-                                    const SizedBox(width: 70),
+                                    SizedBox(width: 15),
                                     // Secondary Action: Schedule Visit
-                                    Expanded(
-                                      //flex: 1,
-                                      child: OutlinedButton(
-                                        onPressed: () {
-                                          controller.scheduleVisit(task.id);
-                                        },
-                                        style: OutlinedButton.styleFrom(
-                                          side: const BorderSide(
+                                    OutlinedButton(
+                                      onPressed: () {
+                                        controller.scheduleVisit(task.id);
+                                      },
+                                      style: OutlinedButton.styleFrom(
+                                        side: const BorderSide(
+                                          color: Color(0xFF6A8F7B),
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 10,
+                                        ),
+                                        minimumSize: const Size(0, 40),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(
+                                            Icons.calendar_today,
+                                            size: 14,
                                             color: Color(0xFF6A8F7B),
                                           ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            'scheduleVisit'.tr,
+                                            style: AppTextStyles.bodySmall
+                                                .copyWith(
+                                                  color: const Color(
+                                                    0xFF6A8F7B,
+                                                  ),
+                                                  fontSize: 11,
+                                                ),
                                           ),
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 6,
-                                            vertical: 10,
-                                          ),
-                                          minimumSize: const Size(0, 40),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            const Icon(
-                                              Icons.calendar_today,
-                                              size: 14,
-                                              color: Color(0xFF6A8F7B),
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Flexible(
-                                              child: Text(
-                                                'scheduleVisit'.tr,
-                                                style: AppTextStyles.bodySmall
-                                                    .copyWith(
-                                                      color: const Color(
-                                                        0xFF6A8F7B,
-                                                      ),
-                                                      fontSize: 11,
-                                                    ),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                        ],
                                       ),
                                     ),
-                                    const SizedBox(width: 8),
                                     // Secondary Action: Ask AI
-                                    Expanded(
-                                      //flex: 1,
-                                      child: OutlinedButton(
-                                        onPressed: onAskAI,
-                                        style: OutlinedButton.styleFrom(
-                                          side: const BorderSide(
+                                    OutlinedButton(
+                                      onPressed: onAskAI,
+                                      style: OutlinedButton.styleFrom(
+                                        side: const BorderSide(
+                                          color: Color(0xFF6A8F7B),
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 10,
+                                        ),
+                                        minimumSize: const Size(0, 40),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(
+                                            Icons.chat_bubble_outline,
+                                            size: 14,
                                             color: Color(0xFF6A8F7B),
                                           ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            'askAI'.tr,
+                                            style: AppTextStyles.bodySmall
+                                                .copyWith(
+                                                  color: const Color(
+                                                    0xFF6A8F7B,
+                                                  ),
+                                                  fontSize: 11,
+                                                ),
                                           ),
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 6,
-                                            vertical: 10,
-                                          ),
-                                          minimumSize: const Size(0, 40),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            const Icon(
-                                              Icons.chat_bubble_outline,
-                                              size: 14,
-                                              color: Color(0xFF6A8F7B),
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Flexible(
-                                              child: Text(
-                                                'askAI'.tr,
-                                                style: AppTextStyles.bodySmall
-                                                    .copyWith(
-                                                      color: const Color(
-                                                        0xFF6A8F7B,
-                                                      ),
-                                                      fontSize: 11,
-                                                    ),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                        ],
                                       ),
                                     ),
                                   ],

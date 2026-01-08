@@ -863,6 +863,7 @@ class MainScaffold extends GetView<HomeController> {
                     curve: Curves.easeOutBack,
                     padding: EdgeInsets.only(top: 10.h),
                     child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         BounceGlowWidget(
@@ -870,7 +871,7 @@ class MainScaffold extends GetView<HomeController> {
                           child: _buildIcon(tab, isActive),
                         ),
 
-                        SizedBox(height: 10.h),
+                        SizedBox(height: 8.h),
                         // Active indicator dot
                         AnimatedOpacity(
                           opacity: isActive ? 1 : 0,
