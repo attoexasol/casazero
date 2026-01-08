@@ -166,23 +166,25 @@ class MaintenanceTaskCard extends StatelessWidget {
   /// Get priority border color based on priority type from API
   /// Maps priority type to color following Document card pattern
   Color _getPriorityBorderColor() {
-    // Extract priority_type from priorityRaw if it contains a dash (format: "name-type")
-    String? priorityType;
+    // Extract priority name from priorityRaw if it contains a dash (format: "name-type")
+    String? priorityName;
     if (task.priorityRaw != null && task.priorityRaw!.contains('-')) {
       final parts = task.priorityRaw!.split('-');
-      if (parts.length > 1) {
-        priorityType = parts[1].trim();
+      if (parts.isNotEmpty) {
+        priorityName = parts[0].trim();
       }
+    } else if (task.priorityRaw != null) {
+      priorityName = task.priorityRaw!.trim();
     }
 
-    // Map priority type to color (case-sensitive matching as per requirements)
-    switch (priorityType) {
+    // Map priority name to color (case-sensitive matching as per requirements)
+    switch (priorityName) {
       case 'Facoltativa':
-        return Colors.yellowAccent;
+        return Colors.yellow.shade600;
       case 'Obbligatoria':
-        return Colors.redAccent;
+        return Colors.red.shade600;
       case 'Condominiale':
-        return Colors.blueAccent;
+        return Colors.blue.shade600;
       default:
         return Colors.transparent;
     }
