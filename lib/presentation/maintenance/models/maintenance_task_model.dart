@@ -1,6 +1,8 @@
 // presentation/maintenance/models/maintenance_task_model.dart
 // Maintenance Task Models
 
+import 'package:get/get.dart';
+import '../../../core/localization/locale_controller.dart';
 import 'maintenance_category_model.dart';
 
 enum MaintenancePriority { facoltative, obbligatorie, condominiali, personal, n1, n2, n3 }
@@ -16,7 +18,8 @@ class MaintenanceTask {
   final MaintenancePriority priority; // Derived from category or default
   final String? priorityRaw; // Raw priority value from API (N1, N2, N3)
   final MaintenanceStatus status; // maintenance_status
-  final String frequency; // maintenance_frequency
+  final String frequency; // maintenance_frequency (deprecated - use getFrequency() for reactive updates)
+  final Map<String, dynamic>? frequencyObj; // Raw frequency object from API (for reactive language updates)
   final String? nextDue; // due_date formatted
   final String? lastCompleted; // last_maintenance_date formatted
   final List<TaskAttachment>? attachments;
@@ -45,6 +48,7 @@ class MaintenanceTask {
     this.priorityRaw,
     required this.status,
     required this.frequency,
+    this.frequencyObj,
     this.nextDue,
     this.lastCompleted,
     this.attachments,
@@ -62,6 +66,132 @@ class MaintenanceTask {
     this.createdAt,
     this.updatedAt,
   });
+
+  /// Get frequency based on current language settings (reactive)
+  /// Returns name_en for English, name_it for Italian
+  String getFrequency() {
+    // If frequencyObj exists, use it to get language-specific value
+    if (frequencyObj != null) {
+      try {
+        final localeController = Get.find<LocaleController>();
+        final isEnglish = localeController.isEnglish;
+        
+        if (isEnglish) {
+          // English: use name_en, fallback to name
+          return frequencyObj!['name_en']?.toString().trim() ?? 
+                 frequencyObj!['name']?.toString().trim() ?? 
+                 frequency;
+        } else {
+          // Italian: use name_it, fallback to name_en, then name
+          return frequencyObj!['name_it']?.toString().trim() ?? 
+                 frequencyObj!['name_en']?.toString().trim() ?? 
+                 frequencyObj!['name']?.toString().trim() ?? 
+                 frequency;
+        }
+      } catch (e) {
+        // Fallback if LocaleController not available
+        return frequencyObj!['name_en']?.toString().trim() ?? 
+               frequencyObj!['name']?.toString().trim() ?? 
+               frequency;
+      }
+    }
+    // If no frequencyObj, return the stored frequency string
+    return frequency;
+  }
+
+  /// Get category name based on current language settings (reactive)
+  /// Returns name_en for English, name (name_it) for Italian
+  String getCategory() {
+    // If categoryObj exists, use it to get language-specific value
+    if (categoryObj != null) {
+      try {
+        final localeController = Get.find<LocaleController>();
+        final isEnglish = localeController.isEnglish;
+        
+        if (isEnglish) {
+          // English: use nameEn, fallback to name
+          return categoryObj!.nameEn.isNotEmpty 
+              ? categoryObj!.nameEn 
+              : (categoryObj!.name.isNotEmpty ? categoryObj!.name : category);
+        } else {
+          // Italian: use name (which is mapped from name_it), fallback to nameEn
+          return categoryObj!.name.isNotEmpty 
+              ? categoryObj!.name 
+              : (categoryObj!.nameEn.isNotEmpty ? categoryObj!.nameEn : category);
+        }
+      } catch (e) {
+        // Fallback if LocaleController not available
+        return categoryObj!.nameEn.isNotEmpty 
+            ? categoryObj!.nameEn 
+            : (categoryObj!.name.isNotEmpty ? categoryObj!.name : category);
+      }
+    }
+    // If no categoryObj, return the stored category string
+    return category;
+  }
+
+  /// Get item name based on current language settings (reactive)
+  /// Returns nameEn for English, name (item_name_it) for Italian
+  String? getItemName() {
+    // If itemObj exists, use it to get language-specific value
+    if (itemObj != null) {
+      try {
+        final localeController = Get.find<LocaleController>();
+        final isEnglish = localeController.isEnglish;
+        
+        if (isEnglish) {
+          // English: use nameEn, fallback to name
+          return itemObj!.nameEn.isNotEmpty 
+              ? itemObj!.nameEn 
+              : (itemObj!.name.isNotEmpty ? itemObj!.name : null);
+        } else {
+          // Italian: use name (which is mapped from item_name_it), fallback to nameEn
+          return itemObj!.name.isNotEmpty 
+              ? itemObj!.name 
+              : (itemObj!.nameEn.isNotEmpty ? itemObj!.nameEn : null);
+        }
+      } catch (e) {
+        // Fallback if LocaleController not available
+        return itemObj!.nameEn.isNotEmpty 
+            ? itemObj!.nameEn 
+            : (itemObj!.name.isNotEmpty ? itemObj!.name : null);
+      }
+    }
+    // If no itemObj, return null
+    return null;
+  }
+
+  /// Get title based on current language settings (reactive)
+  /// Uses item_name_en for English, item_name_it for Italian
+  /// Falls back to maintenance_title if item is not available
+  String getTitle() {
+    // If itemObj exists, use it as title (item_name_en/item_name_it)
+    if (itemObj != null) {
+      try {
+        final localeController = Get.find<LocaleController>();
+        final isEnglish = localeController.isEnglish;
+        
+        if (isEnglish) {
+          // English: use nameEn (item_name_en), fallback to name, then title
+          return itemObj!.nameEn.isNotEmpty 
+              ? itemObj!.nameEn 
+              : (itemObj!.name.isNotEmpty ? itemObj!.name : title);
+        } else {
+          // Italian: use name (item_name_it), fallback to nameEn, then title
+          return itemObj!.name.isNotEmpty 
+              ? itemObj!.name 
+              : (itemObj!.nameEn.isNotEmpty ? itemObj!.nameEn : title);
+        }
+      } catch (e) {
+        // Fallback if LocaleController not available
+        return itemObj!.nameEn.isNotEmpty 
+            ? itemObj!.nameEn 
+            : (itemObj!.name.isNotEmpty ? itemObj!.name : title);
+      }
+    }
+    // If no itemObj, return the stored title (maintenance_title)
+    return title;
+  }
 
   /// Factory constructor to parse from API JSON
   factory MaintenanceTask.fromJson(Map<String, dynamic> json) {
@@ -105,10 +235,31 @@ class MaintenanceTask {
       print('📞 [MaintenanceTask] Company phone: ${companyObj.phone}');
     }
 
-    // Get category name from nested object or fallback (use name_en if available)
-    final categoryName = categoryObj?.nameEn.isNotEmpty == true 
-        ? categoryObj!.nameEn 
-        : (categoryObj?.name ?? 'Unknown');
+    // Get category name from nested object based on user's language settings
+    String categoryName = 'Unknown';
+    try {
+      final localeController = Get.find<LocaleController>();
+      final isEnglish = localeController.isEnglish;
+      
+      if (categoryObj != null) {
+        if (isEnglish) {
+          // English: use name_en, fallback to name
+          categoryName = categoryObj.nameEn.isNotEmpty 
+              ? categoryObj.nameEn 
+              : (categoryObj.name.isNotEmpty ? categoryObj.name : 'Unknown');
+        } else {
+          // Italian: use name (name_it), fallback to name_en
+          categoryName = categoryObj.name.isNotEmpty 
+              ? categoryObj.name 
+              : (categoryObj.nameEn.isNotEmpty ? categoryObj.nameEn : 'Unknown');
+        }
+      }
+    } catch (e) {
+      // Fallback if LocaleController not available
+      categoryName = categoryObj?.nameEn.isNotEmpty == true 
+          ? categoryObj!.nameEn 
+          : (categoryObj?.name ?? 'Unknown');
+    }
 
     // Parse status (API returns string like "pending")
     final statusString = json['maintenance_status']?.toString().toLowerCase() ?? 'pending';
@@ -295,19 +446,50 @@ class MaintenanceTask {
       print('⚠️ [MaintenanceTask] No priority value found in API response, using default: personal');
     }
 
-    // Parse maintenance_frequency (can be object with name_en or string)
+    // Parse maintenance_frequency (can be object with name_en/name_it or string)
     String frequencyStr = '';
+    Map<String, dynamic>? frequencyObj;
+    
     if (json['maintenance_frequency'] != null) {
       if (json['maintenance_frequency'] is Map) {
-        // It's an object, extract name_en
-        final freqObj = json['maintenance_frequency'] as Map<String, dynamic>;
-        frequencyStr = freqObj['name_en']?.toString() ?? 
-                      freqObj['name']?.toString() ?? '';
+        // It's an object, store it for reactive language updates
+        frequencyObj = Map<String, dynamic>.from(json['maintenance_frequency'] as Map);
+        print('🔍 [MaintenanceTask] Frequency object: $frequencyObj');
+        print('🔍 [MaintenanceTask] Frequency keys: ${frequencyObj.keys.toList()}');
+        
+        // Also set initial frequency based on current language
+        try {
+          final localeController = Get.find<LocaleController>();
+          final isEnglish = localeController.isEnglish;
+          
+          print('🌐 [MaintenanceTask] User language - isEnglish: $isEnglish');
+          
+          if (isEnglish) {
+            // English: use name_en, fallback to name
+            frequencyStr = frequencyObj['name_en']?.toString().trim() ?? 
+                          frequencyObj['name']?.toString().trim() ?? '';
+            print('🌐 [MaintenanceTask] Selected frequency (EN): "$frequencyStr"');
+          } else {
+            // Italian: use name_it, fallback to name_en, then name
+            frequencyStr = frequencyObj['name_it']?.toString().trim() ?? 
+                          frequencyObj['name_en']?.toString().trim() ?? 
+                          frequencyObj['name']?.toString().trim() ?? '';
+            print('🌐 [MaintenanceTask] Selected frequency (IT): "$frequencyStr"');
+          }
+        } catch (e) {
+          print('⚠️ [MaintenanceTask] LocaleController not found, defaulting to English');
+          // Fallback if LocaleController not available
+          frequencyStr = frequencyObj['name_en']?.toString().trim() ?? 
+                        frequencyObj['name']?.toString().trim() ?? '';
+        }
       } else {
-        // It's a string
-        frequencyStr = json['maintenance_frequency'].toString();
+        // It's a string - store as is
+        frequencyStr = json['maintenance_frequency'].toString().trim();
+        print('🔍 [MaintenanceTask] Frequency is string: "$frequencyStr"');
       }
     }
+    
+    print('✅ [MaintenanceTask] Final frequency value: "$frequencyStr"');
 
     // Format dates
     final dueDateStr = json['due_date']?.toString() ?? '';
@@ -332,15 +514,49 @@ class MaintenanceTask {
     final residenceId = json['residence_id'] ?? residenceObj?.id ?? 0;
     final maintenanceItemId = json['maintenance_item_id'] ?? itemObj?.id;
 
+    // Title will be populated from item_name_en/item_name_it (reactive via getTitle())
+    // Fallback to maintenance_title if item is not available
+    // Use item name as title if available, otherwise use maintenance_title
+    String maintenanceTitle = '';
+    
+    if (itemObj != null) {
+      // Use item name as title (item_name_en/item_name_it)
+      try {
+        final localeController = Get.find<LocaleController>();
+        final isEnglish = localeController.isEnglish;
+        
+        if (isEnglish) {
+          // English: use item_name_en, fallback to item name, then maintenance_title
+          maintenanceTitle = itemObj.nameEn.isNotEmpty 
+              ? itemObj.nameEn 
+              : (itemObj.name.isNotEmpty ? itemObj.name : (json['maintenance_title']?.toString() ?? ''));
+        } else {
+          // Italian: use item_name_it, fallback to item_name_en, then maintenance_title
+          maintenanceTitle = itemObj.name.isNotEmpty 
+              ? itemObj.name 
+              : (itemObj.nameEn.isNotEmpty ? itemObj.nameEn : (json['maintenance_title']?.toString() ?? ''));
+        }
+      } catch (e) {
+        // Fallback if LocaleController not available
+        maintenanceTitle = itemObj.nameEn.isNotEmpty 
+            ? itemObj.nameEn 
+            : (itemObj.name.isNotEmpty ? itemObj.name : (json['maintenance_title']?.toString() ?? ''));
+      }
+    } else {
+      // If no item, use maintenance_title as fallback
+      maintenanceTitle = json['maintenance_title']?.toString() ?? '';
+    }
+    
     return MaintenanceTask(
       id: (json['id'] ?? 0).toString(), // Convert to String for UI compatibility
-      title: json['maintenance_title']?.toString() ?? '',
+      title: maintenanceTitle,
       category: categoryName,
       description: json['maintenance_note']?.toString(),
       priority: priority,
       priorityRaw: priorityRawValue,
       status: status,
       frequency: frequencyStr,
+      frequencyObj: frequencyObj, // Store raw object for reactive language updates
       nextDue: dueDateStr.isNotEmpty ? dueDateStr : null,
       lastCompleted: lastMaintenanceDateStr,
       maintenanceCategoryId: maintenanceCategoryId,
@@ -372,10 +588,43 @@ class MaintenanceItem {
   });
 
   factory MaintenanceItem.fromJson(Map<String, dynamic> json) {
+    // Get item name based on user's language settings
+    String itemName = '';
+    String itemNameEn = '';
+    
+    try {
+      final localeController = Get.find<LocaleController>();
+      final isEnglish = localeController.isEnglish;
+      
+      // Always store both language versions
+      itemNameEn = json['item_name_en']?.toString() ?? 
+                   json['name_en']?.toString() ?? '';
+      
+      // For name field, use the appropriate language
+      if (isEnglish) {
+        // English: use item_name_en, fallback to name
+        itemName = json['item_name_en']?.toString() ?? 
+                  json['name_en']?.toString() ?? 
+                  json['name']?.toString() ?? '';
+      } else {
+        // Italian: use item_name_it, fallback to name
+        itemName = json['item_name_it']?.toString() ?? 
+                  json['name']?.toString() ?? 
+                  json['item_name_en']?.toString() ?? 
+                  json['name_en']?.toString() ?? '';
+      }
+    } catch (e) {
+      // Fallback if LocaleController not available
+      itemName = json['item_name_it']?.toString() ?? 
+                json['name']?.toString() ?? '';
+      itemNameEn = json['item_name_en']?.toString() ?? 
+                   json['name_en']?.toString() ?? '';
+    }
+    
     return MaintenanceItem(
       id: json['id'] ?? 0,
-      name: json['item_name_it']?.toString() ?? json['name']?.toString() ?? '',
-      nameEn: json['item_name_en']?.toString() ?? json['name_en']?.toString() ?? '',
+      name: itemName,
+      nameEn: itemNameEn,
     );
   }
 }

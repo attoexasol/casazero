@@ -12,7 +12,7 @@ import '../models/maintenance_category_model.dart';
 import '../../../core/services/api_service.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../app/theme/app_colors.dart';
-import '../../home/controllers/home_controller.dart';
+import '../../../core/localization/locale_controller.dart';
 
 class MaintenanceController extends GetxController {
   // API Service
@@ -98,9 +98,40 @@ class MaintenanceController extends GetxController {
         ApiConstants.GET_MAINTENANCE_TASKS,
       );
 
+      // Print full API response for debugging
+      print('');
+      print('═══════════════════════════════════════════════════════════════════════════════');
+      print('📥 [MaintenanceController] GET_MAINTENANCE_TASKS API RESPONSE');
+      print('═══════════════════════════════════════════════════════════════════════════════');
+      print('📥 [MaintenanceController] Status Code: ${response.statusCode}');
+      print('📥 [MaintenanceController] Response Headers: ${response.headers}');
+      print('');
+      print('📥 [MaintenanceController] FULL RESPONSE DATA:');
+      print('───────────────────────────────────────────────────────────────────────────────');
+      // Print the full response data in a readable format
+      try {
+        // Convert to JSON string for better readability
+        final jsonString = response.data.toString();
+        print('📥 [MaintenanceController] $jsonString');
+      } catch (e) {
+        print('📥 [MaintenanceController] ${response.data}');
+      }
+      print('───────────────────────────────────────────────────────────────────────────────');
+      print('═══════════════════════════════════════════════════════════════════════════════');
+      print('');
+
       // Check response status
       if (response.statusCode == 200 && response.data != null) {
         final responseData = response.data as Map<String, dynamic>;
+        
+        // Print parsed response structure
+        print('📋 [MaintenanceController] Parsed Response Structure:');
+        print('📋 [MaintenanceController] - status: ${responseData['status']}');
+        print('📋 [MaintenanceController] - message: ${responseData['message']}');
+        print('📋 [MaintenanceController] - data type: ${responseData['data']?.runtimeType}');
+        if (responseData['data'] is List) {
+          print('📋 [MaintenanceController] - data length: ${(responseData['data'] as List).length}');
+        }
 
         if (responseData['status'] == true && responseData['data'] != null) {
           final List<dynamic> dataList = responseData['data'] is List
@@ -137,9 +168,11 @@ class MaintenanceController extends GetxController {
           _updateCategoryTaskCounts(); // Update category counts when tasks are loaded
           _applyFilter(); // Apply current filter to update filteredTasks
 
-          print(
-            '✅ [MaintenanceController] Loaded ${tasks.length} maintenance tasks from API',
-          );
+          print('');
+          print('✅ [MaintenanceController] Successfully parsed ${tasks.length} maintenance tasks from API');
+          print('✅ [MaintenanceController] Total task count: ${totalTaskCount.value}');
+          print('✅ [MaintenanceController] Filtered task count: ${filteredTasks.length}');
+          print('');
         } else {
           // API returned error or empty data
           final message =
@@ -285,25 +318,87 @@ class MaintenanceController extends GetxController {
   /// Mark task as completed
   Future<void> markTaskCompleted(String taskId) async {
     try {
-      // TODO: Replace with actual API call
-      final taskIndex = tasks.indexWhere((t) => t.id == taskId);
-      if (taskIndex != -1) {
-        final task = tasks[taskIndex];
-        // Update task status
-        // Note: Since MaintenanceTask is immutable, we'd need to create a new instance
-        // For now, just show a message
-        Get.snackbar(
-          'Success',
-          'Task marked as completed',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 2),
+      isLoadingTasks.value = true;
+
+      print(
+        '✅ [MaintenanceController] Marking task as completed: $taskId',
+      );
+
+      // Prepare request body
+      final requestBody = <String, dynamic>{
+        'maintenance_id': int.parse(taskId),
+      };
+
+      print(
+        '📤 [MaintenanceController] Request body: $requestBody',
+      );
+
+      // Call API to update maintenance status
+      final response = await _apiService.post(
+        '/change/mantenance_status',
+        data: requestBody,
+      );
+
+      print(
+        '📥 [MaintenanceController] Response status: ${response.statusCode}',
+      );
+      print(
+        '📥 [MaintenanceController] Response data: ${response.data}',
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = response.data as Map<String, dynamic>;
+
+        if (responseData['status'] == true) {
+          print(
+            '✅ [MaintenanceController] Task marked as completed successfully',
+          );
+
+          // Refresh maintenance list to get updated task with new status
+          await fetchMaintenanceTasks();
+
+          // Show success snackbar
+          Get.snackbar(
+            'Success',
+            responseData['message'] ??
+                'Task marked as completed successfully',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.green[700],
+            colorText: Colors.white,
+            duration: const Duration(seconds: 2),
+            snackStyle: SnackStyle.FLOATING,
+            animationDuration: const Duration(milliseconds: 300),
+            forwardAnimationCurve: Curves.easeOut,
+            reverseAnimationCurve: Curves.easeIn,
+            maxWidth: 400,
+          );
+        } else {
+          throw Exception(
+            responseData['message'] ?? 'Failed to mark task as completed',
+          );
+        }
+      } else {
+        throw Exception(
+          'Invalid response status: ${response.statusCode}',
         );
-        await fetchMaintenanceTasks(); // Refresh
       }
     } catch (e) {
-      print('❌ Error marking task as completed: $e');
+      print('❌ [MaintenanceController] Error marking task as completed: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to mark task as completed: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red[700],
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+        snackStyle: SnackStyle.FLOATING,
+        animationDuration: const Duration(milliseconds: 300),
+        forwardAnimationCurve: Curves.easeOut,
+        reverseAnimationCurve: Curves.easeIn,
+        maxWidth: 400,
+      );
+    } finally {
+      isLoadingTasks.value = false;
     }
   }
 
@@ -635,12 +730,44 @@ class MaintenanceController extends GetxController {
       hasCategoriesError.value = false;
 
       print('📡 [MaintenanceController] Fetching maintenance categories...');
+      print('🔗 [MaintenanceController] Endpoint: ${ApiConstants.GET_MAINTENANCE_CATEGORIES}');
       final response = await _apiService.get(
         ApiConstants.GET_MAINTENANCE_CATEGORIES,
       );
 
+      // Print full API response for debugging
+      print('');
+      print('═══════════════════════════════════════════════════════════════════════════════');
+      print('📥 [MaintenanceController] GET_MAINTENANCE_CATEGORIES API RESPONSE');
+      print('═══════════════════════════════════════════════════════════════════════════════');
+      print('📥 [MaintenanceController] Status Code: ${response.statusCode}');
+      print('📥 [MaintenanceController] Response Headers: ${response.headers}');
+      print('');
+      print('📥 [MaintenanceController] FULL RESPONSE DATA:');
+      print('───────────────────────────────────────────────────────────────────────────────');
+      // Print the full response data in a readable format
+      try {
+        // Convert to JSON string for better readability
+        final jsonString = response.data.toString();
+        print('📥 [MaintenanceController] $jsonString');
+      } catch (e) {
+        print('📥 [MaintenanceController] ${response.data}');
+      }
+      print('───────────────────────────────────────────────────────────────────────────────');
+      print('═══════════════════════════════════════════════════════════════════════════════');
+      print('');
+
       if (response.statusCode == 200 && response.data != null) {
         final responseData = response.data as Map<String, dynamic>;
+        
+        // Print parsed response structure
+        print('📋 [MaintenanceController] Parsed Response Structure:');
+        print('📋 [MaintenanceController] - status: ${responseData['status']}');
+        print('📋 [MaintenanceController] - message: ${responseData['message']}');
+        print('📋 [MaintenanceController] - data type: ${responseData['data']?.runtimeType}');
+        if (responseData['data'] is List) {
+          print('📋 [MaintenanceController] - data length: ${(responseData['data'] as List).length}');
+        }
 
         if (responseData['status'] == true && responseData['data'] != null) {
           final List<dynamic> categoriesData =
@@ -657,18 +784,21 @@ class MaintenanceController extends GetxController {
 
           categories.value = fetchedCategories;
 
-          // Debug: Log parsed categories to verify name_en field is populated
+          // Debug: Log parsed categories to verify name_en and name_it fields are populated
+          print('');
+          print('📋 [MaintenanceController] Parsed Categories:');
           for (final category in fetchedCategories) {
             print(
-              '🔍 [MaintenanceController] Parsed category - ID: ${category.id}, Name: "${category.name}", Name_EN: "${category.nameEn}", Description: "${category.description}"',
+              '   📁 ID: ${category.id} | Name (IT): "${category.name}" | Name (EN): "${category.nameEn}" | Description: "${category.description}"',
             );
           }
+          print('');
+          
           _updateCategoryTaskCounts();
           _applyFilter(); // Reapply filter in case category selection needs updating
 
-          print(
-            '✅ [MaintenanceController] Loaded ${categories.length} maintenance categories',
-          );
+          print('✅ [MaintenanceController] Successfully loaded ${categories.length} maintenance categories');
+          print('');
         } else {
           throw Exception(
             responseData['message'] ?? 'Failed to fetch categories',
@@ -724,26 +854,67 @@ class MaintenanceController extends GetxController {
 
   /// Build filter list: [All] + API categories
   /// Returns list of filter items with id, label, and count
+  /// Uses localized category names based on user's language settings
   List<Map<String, dynamic>> buildFilterList() {
     final filterList = <Map<String, dynamic>>[];
 
-    // Always add "All" filter first
+    // Get user's language settings from LocaleController
+    String categoryLabel;
+    try {
+      final localeController = Get.find<LocaleController>();
+      final isEnglish = localeController.isEnglish;
+      final isItalian = localeController.isItalian;
+      
+      print('🌐 [MaintenanceController] User language - isEnglish: $isEnglish, isItalian: $isItalian');
+      
+      // Always add "All" filter first (localized using translation system)
+      categoryLabel = 'all'.tr; // Uses GetX translation: 'All' (EN) or 'Tutto' (IT)
+    } catch (e) {
+      print('⚠️ [MaintenanceController] LocaleController not found, defaulting to English');
+      categoryLabel = 'All';
+    }
+
     filterList.add({
       'id': 'all',
-      'label': 'All',
+      'label': categoryLabel,
       'count': totalTaskCount.value,
     });
 
     // Add category filters dynamically from API
     if (categories.isNotEmpty) {
+      // Get user's language settings
+      bool useEnglish = true; // Default to English
+      try {
+        final localeController = Get.find<LocaleController>();
+        useEnglish = localeController.isEnglish;
+        print('🌐 [MaintenanceController] Using ${useEnglish ? "English" : "Italian"} category names');
+      } catch (e) {
+        print('⚠️ [MaintenanceController] LocaleController not found, defaulting to English');
+      }
+
       for (final category in categories) {
         final count = categoryTaskCounts[category.id] ?? 0;
-        // Use name_en for display label
-        final label = category.nameEn.isNotEmpty
-            ? category.nameEn
-            : (category.name.isNotEmpty
-                  ? category.name
-                  : 'Category ${category.id}');
+        
+        // Use name_en for English, name (name_it) for Italian
+        String label;
+        if (useEnglish) {
+          // English: use name_en
+          label = category.nameEn.isNotEmpty
+              ? category.nameEn
+              : (category.name.isNotEmpty
+                    ? category.name
+                    : 'Category ${category.id}');
+        } else {
+          // Italian: use name (which is mapped from name_it)
+          label = category.name.isNotEmpty
+              ? category.name
+              : (category.nameEn.isNotEmpty
+                    ? category.nameEn
+                    : 'Categoria ${category.id}');
+        }
+        
+        print('🏷️ [MaintenanceController] Category ${category.id} - Label: "$label" (${useEnglish ? "EN" : "IT"})');
+        
         filterList.add({
           'id': 'category_${category.id}',
           'categoryId': category.id,

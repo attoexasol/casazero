@@ -5,6 +5,8 @@ import 'package:casazero/app/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl.dart';
+import '../../../../core/localization/locale_controller.dart';
 import '../../models/maintenance_task_model.dart';
 import '../../controllers/maintenance_controller.dart';
 
@@ -191,11 +193,123 @@ class MaintenanceTaskCard extends StatelessWidget {
     }
   }
 
+  /// Get priority badge background color to match left border color
+  /// Returns the same color as the border for consistency
+  Color _getPriorityBadgeBackgroundColor() {
+    final borderColor = _getPriorityBorderColor();
+    // If border is transparent, use default priority style
+    if (borderColor == Colors.transparent) {
+      return priorityColors[task.priority]!['bg']!;
+    }
+    // Return border color with slight opacity for badge background
+    return borderColor.withOpacity(0.2);
+  }
+
+  /// Get priority badge border color to match left border color
+  Color _getPriorityBadgeBorderColor() {
+    final borderColor = _getPriorityBorderColor();
+    // If border is transparent, use default priority style
+    if (borderColor == Colors.transparent) {
+      return priorityColors[task.priority]!['border']!;
+    }
+    // Return the same border color
+    return borderColor;
+  }
+
+  /// Get priority badge text color based on background
+  Color _getPriorityBadgeTextColor() {
+    final borderColor = _getPriorityBorderColor();
+    // If border is transparent, use default priority style
+    if (borderColor == Colors.transparent) {
+      return priorityColors[task.priority]!['text']!;
+    }
+    // Use darker shade of border color for text
+    if (borderColor == Colors.yellow.shade600) {
+      return Colors.yellow.shade800; // Darker yellow for text
+    } else if (borderColor == Colors.red.shade600) {
+      return Colors.red.shade800; // Darker red for text
+    } else if (borderColor == Colors.blue.shade600) {
+      return Colors.blue.shade800; // Darker blue for text
+    }
+    return Colors.black;
+  }
+
+  /// Format date to DD MMM YYYY format (e.g., "15 Jan 2025")
+  String _formatDate(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) {
+      return '';
+    }
+
+    try {
+      // Try parsing different date formats from API
+      DateTime? date;
+
+      // Try parsing "yyyy-MM-dd HH:mm:ss" format
+      if (dateStr.contains(' ')) {
+        date = DateTime.parse(dateStr.split(' ')[0]);
+      } else {
+        // Try parsing "yyyy-MM-dd" format
+        date = DateTime.parse(dateStr);
+      }
+
+      // Format to DD MMM YYYY (e.g., "15 Jan 2025")
+      return DateFormat('dd MMM yyyy').format(date);
+    } catch (e) {
+      // If parsing fails, return original string
+      print('⚠️ [MaintenanceTaskCard] Error parsing date: $dateStr - $e');
+      return dateStr;
+    }
+  }
+
+  /// Get localized priority label from API response
+  /// For Italian: shows API value as-is (Obbligatoria, Facoltativa)
+  /// For English: translates Facoltativa → Optional, Obbligatoria → Mandatory
+  String _getLocalizedPriorityLabel() {
+    // Extract priority name from priorityRaw
+    String? priorityName;
+    if (task.priorityRaw != null && task.priorityRaw!.contains('-')) {
+      final parts = task.priorityRaw!.split('-');
+      if (parts.isNotEmpty) {
+        priorityName = parts[0].trim();
+      }
+    } else if (task.priorityRaw != null) {
+      priorityName = task.priorityRaw!.trim();
+    }
+
+    if (priorityName == null || priorityName.isEmpty) {
+      return '';
+    }
+
+    try {
+      final localeController = Get.find<LocaleController>();
+      final isEnglish = localeController.isEnglish;
+
+      if (isEnglish) {
+        // English: translate Italian terms to English
+        if (priorityName.toLowerCase() == 'facoltativa' ||
+            priorityName.toLowerCase() == 'facoltative') {
+          return 'Optional';
+        } else if (priorityName.toLowerCase() == 'obbligatoria' ||
+            priorityName.toLowerCase() == 'obbligatorie') {
+          return 'Mandatory';
+        } else {
+          // For other values, return as-is
+          return priorityName;
+        }
+      } else {
+        // Italian: return API value as-is
+        return priorityName;
+      }
+    } catch (e) {
+      // Fallback: return as-is if LocaleController not available
+      return priorityName;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<MaintenanceController>();
     final isOverdue = task.status == MaintenanceStatus.overdue;
-    final priorityStyle = priorityColors[task.priority]!;
 
     // DEBUG: Log priority display data
     print('PRIORITY => ${task.priorityRaw}');
@@ -264,39 +378,43 @@ class MaintenanceTaskCard extends StatelessWidget {
                                       spacing: 8,
                                       runSpacing: 8,
                                       children: [
-                                        // Priority Badge
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                            vertical: 4,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: priorityStyle['bg'],
-                                            border: Border.all(
-                                              color: priorityStyle['border']!,
+                                        // Priority Badge (background matches left border color)
+                                        Obx(() {
+                                          final localeController =
+                                              Get.find<LocaleController>();
+                                          // Access locale to trigger reactivity
+                                          final _ = localeController.locale;
+
+                                          final priorityLabel =
+                                              _getLocalizedPriorityLabel();
+                                          return Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 4,
                                             ),
-                                            borderRadius: BorderRadius.circular(
-                                              6,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            task.priorityRaw
-                                                    ?.toString()
-                                                    .split('-')
-                                                    .first ??
-                                                '',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w600,
+                                            decoration: BoxDecoration(
                                               color:
-                                                  (priorityStyle['text']
-                                                      as Color?) ??
-                                                  const Color(0xFF000000),
-                                              height: 1.2,
-                                              letterSpacing: 0,
+                                                  _getPriorityBadgeBackgroundColor(),
+                                              border: Border.all(
+                                                color:
+                                                    _getPriorityBadgeBorderColor(),
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
                                             ),
-                                          ),
-                                        ),
+                                            child: Text(
+                                              priorityLabel,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                                color:
+                                                    _getPriorityBadgeTextColor(),
+                                                height: 1.2,
+                                                letterSpacing: 0,
+                                              ),
+                                            ),
+                                          );
+                                        }),
                                         // Status Badge
                                         Container(
                                           padding: const EdgeInsets.symmetric(
@@ -316,13 +434,15 @@ class MaintenanceTaskCard extends StatelessWidget {
                                           ),
                                           child: Text(
                                             _getStatusLabel(task.status),
-                                            style: AppTextStyles.caption
-                                                .copyWith(
-                                                  fontWeight: FontWeight.w600,
-                                                  color: _getStatusTextColor(
-                                                    task.status,
-                                                  ),
-                                                ),
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                              color: _getStatusTextColor(
+                                                task.status,
+                                              ),
+                                              height: 1.2,
+                                              letterSpacing: 0,
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -340,56 +460,153 @@ class MaintenanceTaskCard extends StatelessWidget {
                               ),
                               const SizedBox(height: 12),
 
-                              // Title
-                              Text(
-                                task.title,
-                                style: AppTextStyles.bodyMedium.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.neutralInk900,
-                                ),
-                              ),
+                              // Title (uses item_name_en/item_name_it, reactive to language changes)
+                              Obx(() {
+                                final localeController =
+                                    Get.find<LocaleController>();
+                                // Access locale to trigger reactivity
+                                final _ = localeController.locale;
+
+                                final title = task.getTitle();
+                                return Text(
+                                  title,
+                                  style: AppTextStyles.bodyMedium.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.neutralInk900,
+                                  ),
+                                );
+                              }),
                               const SizedBox(height: 8),
 
                               // Category and Frequency
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
+                              isExpanded
+                                  ? Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.surfaceWarm50,
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
+                                          ),
+                                          child: Obx(() {
+                                            final localeController =
+                                                Get.find<LocaleController>();
+                                            // Access locale to trigger reactivity
+                                            final _ = localeController.locale;
+
+                                            final categoryName = task
+                                                .getCategory();
+                                            return Text(
+                                              categoryName,
+                                              style: AppTextStyles.bodySmall
+                                                  .copyWith(
+                                                    color:
+                                                        AppColors.neutralInk700,
+                                                  ),
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 1,
+                                            );
+                                          }),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        // Use Obx to make frequency reactive to language changes
+                                        Obx(() {
+                                          final localeController =
+                                              Get.find<LocaleController>();
+                                          // Access locale to trigger reactivity
+                                          final _ = localeController.locale;
+
+                                          final frequency = task.getFrequency();
+                                          return Text(
+                                            frequency.isNotEmpty
+                                                ? frequency
+                                                : '',
+                                            style: AppTextStyles.bodySmall
+                                                .copyWith(
+                                                  color:
+                                                      AppColors.neutralInk700,
+                                                ),
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
+                                          );
+                                        }),
+                                      ],
+                                    )
+                                  : Row(
+                                      children: [
+                                        Flexible(
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: AppColors.surfaceWarm50,
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
+                                            child: Obx(() {
+                                              final localeController =
+                                                  Get.find<LocaleController>();
+                                              // Access locale to trigger reactivity
+                                              final _ = localeController.locale;
+
+                                              final categoryName = task
+                                                  .getCategory();
+                                              return Text(
+                                                categoryName,
+                                                style: AppTextStyles.bodySmall
+                                                    .copyWith(
+                                                      color: AppColors
+                                                          .neutralInk700,
+                                                    ),
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 1,
+                                              );
+                                            }),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          '•',
+                                          style: TextStyle(
+                                            color: AppColors.neutralInk400,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        // Use Obx to make frequency reactive to language changes
+                                        Flexible(
+                                          child: Obx(() {
+                                            final localeController =
+                                                Get.find<LocaleController>();
+                                            // Access locale to trigger reactivity
+                                            final _ = localeController.locale;
+
+                                            final frequency = task
+                                                .getFrequency();
+                                            return Text(
+                                              frequency.isNotEmpty
+                                                  ? frequency
+                                                  : '',
+                                              style: AppTextStyles.bodySmall
+                                                  .copyWith(
+                                                    color:
+                                                        AppColors.neutralInk700,
+                                                  ),
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 1,
+                                            );
+                                          }),
+                                        ),
+                                      ],
                                     ),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.surfaceWarm50,
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Text(
-                                      task.categoryObj?.nameEn.isNotEmpty ==
-                                              true
-                                          ? task.categoryObj!.nameEn
-                                          : task.category,
-                                      style: AppTextStyles.bodySmall.copyWith(
-                                        color: AppColors.neutralInk700,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    '•',
-                                    style: TextStyle(
-                                      color: AppColors.neutralInk400,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    task.frequency.isNotEmpty
-                                        ? _getFrequencyLabel(task.frequency)
-                                        : '',
-                                    style: AppTextStyles.bodySmall.copyWith(
-                                      color: AppColors.neutralInk700,
-                                    ),
-                                  ),
-                                ],
-                              ),
                               const SizedBox(height: 12),
 
                               // Dates
@@ -410,7 +627,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
-                                          '${'dueDateLabel'.tr}: ${task.nextDue}',
+                                          '${'due'.tr}: ${_formatDate(task.nextDue)}',
                                           style: AppTextStyles.bodySmall
                                               .copyWith(
                                                 color: isOverdue
@@ -423,18 +640,22 @@ class MaintenanceTaskCard extends StatelessWidget {
                                         ),
                                       ],
                                     ),
-                                  if (task.lastCompleted != null)
+                                  // Show "Last" field only if status is completed and lastMaintenanceDate exists
+                                  if (task.status ==
+                                          MaintenanceStatus.completed &&
+                                      (task.lastMaintenanceDate != null &&
+                                          task.lastMaintenanceDate!.isNotEmpty))
                                     Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Icon(
-                                          Icons.check_circle_outline,
+                                          Icons.check_circle,
                                           size: 14,
                                           color: AppColors.neutralInk500,
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
-                                          '${'lastMaintenanceLabel'.tr}: ${task.lastCompleted}',
+                                          '${'lastMaintenanceLabel'.tr}: ${_formatDate(task.lastMaintenanceDate)}',
                                           style: AppTextStyles.bodySmall
                                               .copyWith(
                                                 color: AppColors.neutralInk700,
@@ -476,32 +697,11 @@ class MaintenanceTaskCard extends StatelessWidget {
                                 //   ),
                                 // ),
 
-                                // Item Name
-                                if (task.itemObj != null) ...[
-                                  //const SizedBox(height: 16),
-                                  Text(
-                                    'Item name',
-                                    style: AppTextStyles.bodySmall.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.neutralInk700,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    task.itemObj!.nameEn.isNotEmpty
-                                        ? task.itemObj!.nameEn
-                                        : task.itemObj!.name,
-                                    style: AppTextStyles.bodyMedium.copyWith(
-                                      color: AppColors.neutralInk700,
-                                    ),
-                                  ),
-                                ],
-
                                 // Residence Name
                                 if (task.residenceObj != null) ...[
                                   const SizedBox(height: 16),
                                   Text(
-                                    'Residence',
+                                    'residence_title'.tr,
                                     style: AppTextStyles.bodySmall.copyWith(
                                       fontWeight: FontWeight.w600,
                                       color: AppColors.neutralInk700,
@@ -516,27 +716,40 @@ class MaintenanceTaskCard extends StatelessWidget {
                                   ),
                                 ],
 
-                                // Company Phone
+                                // Company Name and Phone
                                 if (task.companyObj != null &&
                                     task.companyObj!.phone != null &&
                                     task.companyObj!.phone!.isNotEmpty) ...[
                                   const SizedBox(height: 16),
                                   Text(
-                                    'Company',
+                                    'company'.tr,
                                     style: AppTextStyles.bodySmall.copyWith(
                                       fontWeight: FontWeight.w600,
                                       color: AppColors.neutralInk700,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
+                                  // Company Name
+                                  if (task.companyObj!.name.isNotEmpty) ...[
+                                    Text(
+                                      task.companyObj!.name,
+                                      style: AppTextStyles.bodyMedium.copyWith(
+                                        color: AppColors.neutralInk700,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                  ],
+                                  // Company Phone
                                   Row(
                                     children: [
                                       Expanded(
                                         child: Text(
                                           task.companyObj!.phone!,
-                                          style: AppTextStyles.bodyMedium.copyWith(
-                                            color: AppColors.neutralInk700,
-                                          ),
+                                          style: AppTextStyles.bodyMedium
+                                              .copyWith(
+                                                color: AppColors.neutralInk700,
+                                              ),
                                         ),
                                       ),
                                       IconButton(
@@ -548,31 +761,46 @@ class MaintenanceTaskCard extends StatelessWidget {
                                         padding: EdgeInsets.zero,
                                         constraints: const BoxConstraints(),
                                         onPressed: () async {
-                                          final phoneNumber = task.companyObj!.phone!;
+                                          final phoneNumber =
+                                              task.companyObj!.phone!;
                                           // Clean phone number (remove spaces, dashes, etc.)
-                                          final cleanedNumber = phoneNumber.replaceAll(RegExp(r'[\s\-\(\)]'), '');
-                                          final uri = Uri.parse('tel:$cleanedNumber');
-                                          
+                                          final cleanedNumber = phoneNumber
+                                              .replaceAll(
+                                                RegExp(r'[\s\-\(\)]'),
+                                                '',
+                                              );
+                                          final uri = Uri.parse(
+                                            'tel:$cleanedNumber',
+                                          );
+
                                           try {
                                             // For tel: scheme, launch directly without canLaunchUrl check
                                             // This avoids platform channel issues and is more reliable for phone calls
                                             final launched = await launchUrl(
                                               uri,
-                                              mode: LaunchMode.externalApplication,
+                                              mode: LaunchMode
+                                                  .externalApplication,
                                             );
-                                            
+
                                             if (!launched) {
-                                              throw Exception('Failed to launch dialer');
+                                              throw Exception(
+                                                'Failed to launch dialer',
+                                              );
                                             }
                                           } catch (e) {
-                                            print('❌ Error launching phone call: $e');
+                                            print(
+                                              '❌ Error launching phone call: $e',
+                                            );
                                             Get.snackbar(
                                               'Error',
                                               'Failed to open dialer. Please call ${task.companyObj!.phone} manually.',
-                                              snackPosition: SnackPosition.BOTTOM,
+                                              snackPosition:
+                                                  SnackPosition.BOTTOM,
                                               backgroundColor: Colors.red[700],
                                               colorText: Colors.white,
-                                              duration: const Duration(seconds: 3),
+                                              duration: const Duration(
+                                                seconds: 3,
+                                              ),
                                             );
                                           }
                                         },
@@ -759,137 +987,133 @@ class MaintenanceTaskCard extends StatelessWidget {
 
                                 // Action Buttons
                                 const SizedBox(height: 16),
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    // Primary Action: Mark Complete (dominant)
-                                    // Primary Action: Mark Complete (same style, green)
-                                    // Primary Action: Mark Complete (green, same height)
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        controller.markTaskCompleted(task.id);
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            AppColors.brandSage400, // ✅ green
-                                        shape: const StadiumBorder(),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 18,
-                                          vertical: 10,
+                                    // Primary Action: Mark Complete (stays as is)
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          controller.markTaskCompleted(task.id);
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor:
+                                              AppColors.brandSage400, // ✅ green
+                                          shape: const StadiumBorder(),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 10,
+                                          ),
+                                          minimumSize: const Size(0, 48),
+                                          elevation: 0,
                                         ),
-                                        minimumSize: const Size(0, 42),
-                                        elevation: 0,
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          const Icon(
-                                            Icons.check_circle_outline,
-                                            size: 17,
-                                            color: AppColors.surfaceWhite,
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            'markComplete'.tr,
-                                            style: AppTextStyles.bodySmall
-                                                .copyWith(
-                                                  color: AppColors.surfaceWhite,
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                          ),
-                                        ],
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            const Icon(
+                                              Icons.check_circle_outline,
+                                              size: 17,
+                                              color: AppColors.surfaceWhite,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Flexible(
+                                              child: Text(
+                                                'markComplete'.tr,
+                                                style: AppTextStyles.bodySmall
+                                                    .copyWith(
+                                                      color: AppColors
+                                                          .surfaceWhite,
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 1,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                    SizedBox(width: 15),
-                                    // Secondary Action: Schedule Visit
-                                    OutlinedButton(
-                                      onPressed: () {
-                                        controller.scheduleVisit(task.id);
-                                      },
-                                      style: OutlinedButton.styleFrom(
-                                        side: const BorderSide(
-                                          color: Color(0xFF6A8F7B),
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            12,
+                                    const SizedBox(width: 12),
+                                    // Secondary Action: Schedule Visit (icon only with text below)
+                                    Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        TextButton(
+                                          onPressed: () {
+                                            controller.scheduleVisit(task.id);
+                                          },
+                                          style: TextButton.styleFrom(
+                                            backgroundColor: Colors.transparent,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            padding: const EdgeInsets.all(12),
+                                            minimumSize: const Size(48, 48),
+                                            maximumSize: const Size(48, 48),
+                                            tapTargetSize: MaterialTapTargetSize
+                                                .shrinkWrap,
                                           ),
-                                        ),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 10,
-                                        ),
-                                        minimumSize: const Size(0, 40),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          const Icon(
+                                          child: const Icon(
                                             Icons.calendar_today,
-                                            size: 14,
+                                            size: 20,
                                             color: Color(0xFF6A8F7B),
                                           ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            'scheduleVisit'.tr,
-                                            style: AppTextStyles.bodySmall
-                                                .copyWith(
-                                                  color: const Color(
-                                                    0xFF6A8F7B,
-                                                  ),
-                                                  fontSize: 11,
-                                                ),
-                                          ),
-                                        ],
-                                      ),
+                                        ),
+                                        //const SizedBox(height: 2),
+                                        Text(
+                                          'scheduleVisit'.tr,
+                                          style: AppTextStyles.bodySmall
+                                              .copyWith(
+                                                color: const Color(0xFF6A8F7B),
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
                                     ),
-                                    // Secondary Action: Ask AI
-                                    OutlinedButton(
-                                      onPressed: onAskAI,
-                                      style: OutlinedButton.styleFrom(
-                                        side: const BorderSide(
-                                          color: Color(0xFF6A8F7B),
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            12,
+                                    const SizedBox(width: 12),
+                                    // Secondary Action: Ask AI (icon only with text below)
+                                    Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        TextButton(
+                                          onPressed: onAskAI,
+                                          style: TextButton.styleFrom(
+                                            backgroundColor: Colors.transparent,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            padding: const EdgeInsets.all(12),
+                                            minimumSize: const Size(48, 48),
+                                            maximumSize: const Size(48, 48),
+                                            tapTargetSize: MaterialTapTargetSize
+                                                .shrinkWrap,
                                           ),
-                                        ),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 10,
-                                        ),
-                                        minimumSize: const Size(0, 40),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          const Icon(
+                                          child: const Icon(
                                             Icons.chat_bubble_outline,
-                                            size: 14,
+                                            size: 20,
                                             color: Color(0xFF6A8F7B),
                                           ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            'askAI'.tr,
-                                            style: AppTextStyles.bodySmall
-                                                .copyWith(
-                                                  color: const Color(
-                                                    0xFF6A8F7B,
-                                                  ),
-                                                  fontSize: 11,
-                                                ),
-                                          ),
-                                        ],
-                                      ),
+                                        ),
+                                        //const SizedBox(height: 2),
+                                        Text(
+                                          'askAI'.tr,
+                                          style: AppTextStyles.bodySmall
+                                              .copyWith(
+                                                color: const Color(0xFF6A8F7B),
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),

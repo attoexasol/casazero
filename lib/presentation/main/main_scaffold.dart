@@ -98,7 +98,7 @@ class MainScaffold extends GetView<HomeController> {
         break;
 
       case AppScreen.documents:
-        title = 'Documents';
+        title = 'documents'.tr;
         showNotification = true;
         showSearch = true; // Show search on Documents screen
         showResidenceSwitcher = false;
@@ -116,7 +116,7 @@ class MainScaffold extends GetView<HomeController> {
         break;
 
       case AppScreen.maintenance:
-        title = 'Maintenance';
+        title = 'maintenance'.tr;
         showNotification = true; // Show notification on all screens
         showSearch = true; // Show search on Maintenance screen
         showResidenceSwitcher = false;

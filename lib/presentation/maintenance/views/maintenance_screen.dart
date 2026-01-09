@@ -33,7 +33,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
   late AnimationController _fabController;
 
   late final MaintenanceController _controller;
-  
+
   @override
   void initState() {
     super.initState();
@@ -55,7 +55,6 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
     });
   }
 
-
   @override
   void dispose() {
     _fabController.dispose();
@@ -70,7 +69,6 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
       _isCreateDialogVisible = true;
     });
   }
-
 
   Role _getRoleFromString(String roleString) {
     switch (roleString.toLowerCase()) {
@@ -89,7 +87,8 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
     final roleEnum = _getRoleFromString(widget.role);
     final permissions = Permissions.fromRole(roleEnum);
     // Allow all users to create personal maintenance tasks
-    final canCreateTasks = true; // All users can create personal maintenance tasks
+    final canCreateTasks =
+        true; // All users can create personal maintenance tasks
 
     return Scaffold(
       backgroundColor: AppColors.surfaceWarm50,
@@ -101,17 +100,17 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
               MaintenanceFilterBar(
                 activeFilter: _activeFilter,
                 onFilterChanged: (filter) {
-                    setState(() {
+                  setState(() {
                     _activeFilter = filter;
-                    });
-                  },
-                ),
+                  });
+                },
+              ),
 
               // Tasks List
               Expanded(
                 child: Obx(() {
                   // Show error state if there's an error
-                  if (_controller.hasError.value && 
+                  if (_controller.hasError.value &&
                       _controller.tasks.isEmpty &&
                       !_controller.isLoadingTasks.value) {
                     return Center(
@@ -171,7 +170,8 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                   if (filteredTasks.isEmpty) {
                     return MaintenanceEmptyState(
                       title: 'No Maintenance Tasks',
-                      description: 'Create your first maintenance task to get started',
+                      description:
+                          'Create your first maintenance task to get started',
                     );
                   }
 
@@ -183,10 +183,15 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                       itemCount: filteredTasks.length,
                       itemBuilder: (context, index) {
                         final task = filteredTasks[index];
+                        // Note: Task frequency is already localized based on user's language settings
+                        // The MaintenanceTask model parses frequency from API response:
+                        // - For English: uses maintenance_frequency.name_en
+                        // - For Italian: uses maintenance_frequency.name_it
+                        // The MaintenanceTaskCard displays task.frequency directly (already localized)
                         return MaintenanceTaskCard(
-                          task: task,
-                          onAskAI: widget.onAskAI,
-                        )
+                              task: task,
+                              onAskAI: widget.onAskAI,
+                            )
                             .animate()
                             .fadeIn(delay: Duration(milliseconds: 50 * index))
                             .slideY(begin: 0.1, end: 0);
@@ -221,35 +226,33 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
           // ),
 
           /// FLOATING ACTION BUTTON
-        // if (canCreateTasks)
-        //   Positioned(
-        //     bottom: 20,
-        //     right: 20,
-        //     child:
-        //         FloatingActionButton(
-        //             backgroundColor: const Color(0xFF4CAF47),
-        //             onPressed: _showCreateDialog,
-        //             child: const Icon(Icons.add, size: 26, color: Colors.white),
-        //           ).animate()
-        //           ..scale(
-        //             begin: const Offset(0.5, 0.5),
-        //             end: const Offset(1, 1),
-        //           ).fadeIn(),
-        //   ),
+          // if (canCreateTasks)
+          //   Positioned(
+          //     bottom: 20,
+          //     right: 20,
+          //     child:
+          //         FloatingActionButton(
+          //             backgroundColor: const Color(0xFF4CAF47),
+          //             onPressed: _showCreateDialog,
+          //             child: const Icon(Icons.add, size: 26, color: Colors.white),
+          //           ).animate()
+          //           ..scale(
+          //             begin: const Offset(0.5, 0.5),
+          //             end: const Offset(1, 1),
+          //           ).fadeIn(),
+          //   ),
 
-        //   // Add Maintenance Task Dialog
-        //   if (_isCreateDialogVisible)
-        //     AddMaintenanceTaskDialog(
-        //       onClose: () {
-        //     setState(() {
-        //           _isCreateDialogVisible = false;
-        //     });
-        //   },
-        //     ),
+          //   // Add Maintenance Task Dialog
+          //   if (_isCreateDialogVisible)
+          //     AddMaintenanceTaskDialog(
+          //       onClose: () {
+          //     setState(() {
+          //           _isCreateDialogVisible = false;
+          //     });
+          //   },
+          //     ),
         ],
-        ),
-      );
-    }
+      ),
+    );
   }
-
-
+}
