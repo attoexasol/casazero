@@ -2,6 +2,7 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart'; // For compute()
+import 'package:dio/dio.dart' as dio;
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -10,6 +11,7 @@ import '../models/maintenance_task_model.dart';
 import '../models/maintenance_category_model.dart';
 import '../../../core/services/api_service.dart';
 import '../../../core/constants/api_constants.dart';
+import '../../../app/theme/app_colors.dart';
 import '../../home/controllers/home_controller.dart';
 
 class MaintenanceController extends GetxController {
@@ -287,19 +289,216 @@ class MaintenanceController extends GetxController {
   }
 
   /// Schedule a visit for a task
+  /// Opens date picker and updates task due_date
   Future<void> scheduleVisit(String taskId) async {
     try {
-      // TODO: Implement scheduling logic
-      Get.snackbar(
-        'Info',
-        'Schedule visit functionality coming soon',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.blue[700],
-        colorText: Colors.white,
-        duration: const Duration(seconds: 2),
+      // Find the task to get current due date
+      MaintenanceTask? task;
+      try {
+        task = tasks.firstWhere((t) => t.id == taskId);
+      } catch (e) {
+        task = null;
+      }
+      
+      // Parse existing due_date if available
+      DateTime? initialDate;
+      if (task != null && task.dueDate.isNotEmpty) {
+        try {
+          // Parse date from format "yyyy-MM-dd HH:mm:ss" or "yyyy-MM-dd"
+          if (task.dueDate.contains(' ')) {
+            initialDate = DateTime.parse(task.dueDate.split(' ')[0]);
+          } else {
+            initialDate = DateTime.parse(task.dueDate);
+          }
+        } catch (e) {
+          print('⚠️ [MaintenanceController] Could not parse existing due_date: ${task.dueDate}');
+          initialDate = DateTime.now();
+        }
+      }
+      
+      initialDate ??= DateTime.now();
+      
+      // Show date picker
+      final DateTime? selectedDate = await showDatePicker(
+        context: Get.context!,
+        initialDate: initialDate,
+        firstDate: DateTime.now(),
+        lastDate: DateTime.now().add(const Duration(days: 365 * 5)), // 5 years from now
+        builder: (context, child) {
+          return Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: const ColorScheme.light(
+                primary: AppColors.brandSage500,
+                onPrimary: Colors.white,
+                surface: Colors.white,
+                onSurface: Colors.black,
+              ),
+            ),
+            child: child!,
+          );
+        },
       );
+      
+      if (selectedDate == null) {
+        // User cancelled
+        return;
+      }
+      
+      // Format date as "yyyy-MM-dd" to match API format (same as CREATE endpoint)
+      final formattedDate = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
+      
+      // Update task via API
+      await _updateTaskSchedule(taskId, formattedDate);
+      
     } catch (e) {
       print('❌ Error scheduling visit: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to schedule visit: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red[700],
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+  
+  /// Update task schedule (due_date) via API
+  Future<void> _updateTaskSchedule(String taskId, String dueDate) async {
+    try {
+      isLoadingTasks.value = true;
+      
+      print('📅 [MaintenanceController] Updating task schedule: $taskId with date: $dueDate');
+      
+      // Find task to get all required fields
+      MaintenanceTask? task;
+      try {
+        task = tasks.firstWhere((t) => t.id == taskId);
+      } catch (e) {
+        task = null;
+      }
+      if (task == null) {
+        throw Exception('Task not found');
+      }
+      
+      // Build request body - include all required fields from create pattern
+      // Map status enum to API format (snake_case for in_progress)
+      String statusString;
+      switch (task.status) {
+        case MaintenanceStatus.pending:
+          statusString = 'pending';
+          break;
+        case MaintenanceStatus.inProgress:
+          statusString = 'in_progress';
+          break;
+        case MaintenanceStatus.completed:
+          statusString = 'completed';
+          break;
+        case MaintenanceStatus.overdue:
+          statusString = 'overdue';
+          break;
+      }
+      
+      final requestBody = <String, dynamic>{
+        'maintenance_title': task.title,
+        'maintenance_frequency': task.frequency,
+        'maintenance_status': statusString,
+        'due_date': dueDate,
+        'maintenance_category_id': task.maintenanceCategoryId,
+        'maintenance_item_id': task.maintenanceItemId ?? 1,
+        'residence_id': task.residenceId,
+      };
+      
+      // Add optional fields
+      if (task.maintenanceNote != null && task.maintenanceNote!.isNotEmpty) {
+        requestBody['maintenance_note'] = task.maintenanceNote;
+      }
+      if (task.lastMaintenanceDate != null && task.lastMaintenanceDate!.isNotEmpty) {
+        requestBody['last_maintenance_date'] = task.lastMaintenanceDate;
+      }
+      
+      // Try PUT to /maintenance/update/{id} or /maintenance/{id}
+      // If that doesn't work, try PUT to /maintenance/store/{id}
+      dio.Response? response;
+      String? errorMessage;
+      
+      try {
+        // Try RESTful PUT to /maintenance/{id}
+        print('🔄 [MaintenanceController] Trying PUT /maintenance/$taskId');
+        response = await _apiService.put(
+          '/maintenance/$taskId',
+          data: requestBody,
+        );
+        print('✅ [MaintenanceController] PUT /maintenance/$taskId succeeded');
+      } catch (e) {
+        print('⚠️ [MaintenanceController] PUT /maintenance/{id} failed: $e');
+        print('⚠️ [MaintenanceController] Trying alternative endpoint...');
+        try {
+          // Try PUT to /maintenance/update/{id}
+          print('🔄 [MaintenanceController] Trying PUT /maintenance/update/$taskId');
+          response = await _apiService.put(
+            '/maintenance/update/$taskId',
+            data: requestBody,
+          );
+          print('✅ [MaintenanceController] PUT /maintenance/update/$taskId succeeded');
+        } catch (e2) {
+          print('⚠️ [MaintenanceController] PUT /maintenance/update/{id} failed: $e2');
+          print('⚠️ [MaintenanceController] Trying POST as last resort...');
+          try {
+            // Try POST to /maintenance/update with ID (Laravel-style update)
+            requestBody['id'] = int.parse(taskId);
+            print('🔄 [MaintenanceController] Trying POST /maintenance/update with id: $taskId');
+            response = await _apiService.post(
+              '/maintenance/update',
+              data: requestBody,
+            );
+            print('✅ [MaintenanceController] POST /maintenance/update succeeded');
+          } catch (e3) {
+            print('❌ [MaintenanceController] POST /maintenance/update failed: $e3');
+            errorMessage = 'Failed to update task. Please ensure the API endpoint is available.';
+          }
+        }
+      }
+      
+      if (response != null && (response.statusCode == 200 || response.statusCode == 201)) {
+        final responseData = response.data as Map<String, dynamic>;
+        
+        if (responseData['status'] == true) {
+          print('✅ [MaintenanceController] Task schedule updated successfully');
+          
+          // Refresh maintenance list to get updated task
+          await fetchMaintenanceTasks();
+          
+          // Show success snackbar
+          Get.snackbar(
+            'Success',
+            responseData['message'] ?? 'Schedule updated successfully',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.green[700],
+            colorText: Colors.white,
+            duration: const Duration(seconds: 2),
+          );
+        } else {
+          throw Exception(responseData['message'] ?? 'Failed to update schedule');
+        }
+      } else if (errorMessage != null) {
+        throw Exception(errorMessage);
+      } else {
+        throw Exception('Invalid response status: ${response?.statusCode ?? 'unknown'}');
+      }
+    } catch (e) {
+      print('❌ [MaintenanceController] Error updating task schedule: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to update schedule: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red[700],
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+      );
+      rethrow;
+    } finally {
+      isLoadingTasks.value = false;
     }
   }
 
