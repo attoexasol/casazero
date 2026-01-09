@@ -29,6 +29,7 @@ class MaintenanceTask {
   final MaintenanceCategory? categoryObj; // Nested category object (using existing model)
   final MaintenanceItem? itemObj; // Nested item object
   final MaintenanceResidence? residenceObj; // Nested residence object
+  final MaintenanceCompany? companyObj; // Nested company object
   final String? maintenanceNote;
   final String dueDate; // Raw due_date from API
   final String? lastMaintenanceDate; // Raw last_maintenance_date from API
@@ -54,6 +55,7 @@ class MaintenanceTask {
     this.categoryObj,
     this.itemObj,
     this.residenceObj,
+    this.companyObj,
     this.maintenanceNote,
     required this.dueDate,
     this.lastMaintenanceDate,
@@ -93,6 +95,14 @@ class MaintenanceTask {
     MaintenanceResidence? residenceObj;
     if (json['residence'] != null && json['residence'] is Map) {
       residenceObj = MaintenanceResidence.fromJson(json['residence']);
+    }
+
+    // Parse nested company object
+    MaintenanceCompany? companyObj;
+    if (json['company'] != null && json['company'] is Map) {
+      companyObj = MaintenanceCompany.fromJson(json['company']);
+      // DEBUG: Log company phone for verification
+      print('📞 [MaintenanceTask] Company phone: ${companyObj.phone}');
     }
 
     // Get category name from nested object or fallback (use name_en if available)
@@ -339,6 +349,7 @@ class MaintenanceTask {
       categoryObj: categoryObj,
       itemObj: itemObj,
       residenceObj: residenceObj,
+      companyObj: companyObj,
       maintenanceNote: json['maintenance_note']?.toString(),
       dueDate: dueDateStr,
       lastMaintenanceDate: lastMaintenanceDateStr,
@@ -386,6 +397,27 @@ class MaintenanceResidence {
       id: json['id'] ?? 0,
       residenceName: json['residence_name']?.toString() ?? '',
       residencePhoto: json['residence_photo']?.toString(),
+    );
+  }
+}
+
+/// Nested Company model from API
+class MaintenanceCompany {
+  final int id;
+  final String name;
+  final String? phone;
+
+  MaintenanceCompany({
+    required this.id,
+    required this.name,
+    this.phone,
+  });
+
+  factory MaintenanceCompany.fromJson(Map<String, dynamic> json) {
+    return MaintenanceCompany(
+      id: json['id'] ?? 0,
+      name: json['name']?.toString() ?? '',
+      phone: json['phone']?.toString(),
     );
   }
 }

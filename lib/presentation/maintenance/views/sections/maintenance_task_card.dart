@@ -4,6 +4,7 @@ import 'package:casazero/app/theme/app_shadows.dart';
 import 'package:casazero/app/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/maintenance_task_model.dart';
 import '../../controllers/maintenance_controller.dart';
 
@@ -512,6 +513,71 @@ class MaintenanceTaskCard extends StatelessWidget {
                                     style: AppTextStyles.bodyMedium.copyWith(
                                       color: AppColors.neutralInk700,
                                     ),
+                                  ),
+                                ],
+
+                                // Company Phone
+                                if (task.companyObj != null &&
+                                    task.companyObj!.phone != null &&
+                                    task.companyObj!.phone!.isNotEmpty) ...[
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Company',
+                                    style: AppTextStyles.bodySmall.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.neutralInk700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          task.companyObj!.phone!,
+                                          style: AppTextStyles.bodyMedium.copyWith(
+                                            color: AppColors.neutralInk700,
+                                          ),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.call,
+                                          size: 20,
+                                          color: AppColors.brandSage400,
+                                        ),
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                        onPressed: () async {
+                                          final phoneNumber = task.companyObj!.phone!;
+                                          // Clean phone number (remove spaces, dashes, etc.)
+                                          final cleanedNumber = phoneNumber.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+                                          final uri = Uri.parse('tel:$cleanedNumber');
+                                          
+                                          try {
+                                            // For tel: scheme, launch directly without canLaunchUrl check
+                                            // This avoids platform channel issues and is more reliable for phone calls
+                                            final launched = await launchUrl(
+                                              uri,
+                                              mode: LaunchMode.externalApplication,
+                                            );
+                                            
+                                            if (!launched) {
+                                              throw Exception('Failed to launch dialer');
+                                            }
+                                          } catch (e) {
+                                            print('❌ Error launching phone call: $e');
+                                            Get.snackbar(
+                                              'Error',
+                                              'Failed to open dialer. Please call ${task.companyObj!.phone} manually.',
+                                              snackPosition: SnackPosition.BOTTOM,
+                                              backgroundColor: Colors.red[700],
+                                              colorText: Colors.white,
+                                              duration: const Duration(seconds: 3),
+                                            );
+                                          }
+                                        },
+                                      ),
+                                    ],
                                   ),
                                 ],
 
