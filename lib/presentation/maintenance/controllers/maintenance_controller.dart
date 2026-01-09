@@ -19,8 +19,10 @@ class MaintenanceController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
 
   // Reactive variables for tasks
-  final RxList<MaintenanceTask> tasks = <MaintenanceTask>[].obs; // Unfiltered list
-  final RxList<MaintenanceTask> filteredTasks = <MaintenanceTask>[].obs; // Filtered list
+  final RxList<MaintenanceTask> tasks =
+      <MaintenanceTask>[].obs; // Unfiltered list
+  final RxList<MaintenanceTask> filteredTasks =
+      <MaintenanceTask>[].obs; // Filtered list
   final RxBool isLoadingTasks = false.obs;
   final RxString errorMessage = ''.obs;
   final RxBool hasError = false.obs;
@@ -52,7 +54,7 @@ class MaintenanceController extends GetxController {
   final RxString selectedFileName = ''.obs;
   final RxString selectedFileSize = ''.obs;
   final RxBool isPickingFile = false.obs; // Prevent multiple simultaneous picks
-  
+
   // Maximum file size: 10MB (to prevent memory issues)
   static const int maxFileSizeBytes = 10 * 1024 * 1024;
 
@@ -79,9 +81,15 @@ class MaintenanceController extends GetxController {
       errorMessage.value = '';
       hasError.value = false;
 
-      print('📡 [MaintenanceController] Fetching maintenance tasks from API...');
-      print('🔗 [MaintenanceController] Endpoint: ${ApiConstants.GET_MAINTENANCE_TASKS}');
-      print('🔑 [MaintenanceController] Authorization: Bearer token (handled by ApiService)');
+      print(
+        '📡 [MaintenanceController] Fetching maintenance tasks from API...',
+      );
+      print(
+        '🔗 [MaintenanceController] Endpoint: ${ApiConstants.GET_MAINTENANCE_TASKS}',
+      );
+      print(
+        '🔑 [MaintenanceController] Authorization: Bearer token (handled by ApiService)',
+      );
 
       // Call GET API endpoint
       // Authorization header is automatically added by ApiService interceptor
@@ -93,7 +101,7 @@ class MaintenanceController extends GetxController {
       // Check response status
       if (response.statusCode == 200 && response.data != null) {
         final responseData = response.data as Map<String, dynamic>;
-        
+
         if (responseData['status'] == true && responseData['data'] != null) {
           final List<dynamic> dataList = responseData['data'] is List
               ? responseData['data']
@@ -105,7 +113,9 @@ class MaintenanceController extends GetxController {
                 try {
                   // DEBUG: Log full task JSON to find priority field
                   final taskMap = item as Map<String, dynamic>;
-                  print('🔍 [MaintenanceController] Full task JSON for ID ${taskMap['id']}:');
+                  print(
+                    '🔍 [MaintenanceController] Full task JSON for ID ${taskMap['id']}:',
+                  );
                   print('   All keys: ${taskMap.keys.toList()}');
                   // Log the entire task structure (first task only to avoid spam)
                   if (dataList.indexOf(item) == 0) {
@@ -127,10 +137,14 @@ class MaintenanceController extends GetxController {
           _updateCategoryTaskCounts(); // Update category counts when tasks are loaded
           _applyFilter(); // Apply current filter to update filteredTasks
 
-          print('✅ [MaintenanceController] Loaded ${tasks.length} maintenance tasks from API');
+          print(
+            '✅ [MaintenanceController] Loaded ${tasks.length} maintenance tasks from API',
+          );
         } else {
           // API returned error or empty data
-          final message = responseData['message']?.toString() ?? 'Failed to fetch maintenance tasks';
+          final message =
+              responseData['message']?.toString() ??
+              'Failed to fetch maintenance tasks';
           throw Exception(message);
         }
       } else {
@@ -139,7 +153,8 @@ class MaintenanceController extends GetxController {
     } catch (e, stackTrace) {
       print('❌ [MaintenanceController] Error in fetchMaintenanceTasks: $e');
       print('❌ [MaintenanceController] Stack trace: $stackTrace');
-      errorMessage.value = 'An error occurred while fetching tasks: ${e.toString()}';
+      errorMessage.value =
+          'An error occurred while fetching tasks: ${e.toString()}';
       hasError.value = true;
       tasks.clear();
       filteredTasks.clear();
@@ -204,13 +219,15 @@ class MaintenanceController extends GetxController {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = response.data as Map<String, dynamic>;
-        
+
         if (responseData['status'] == true) {
-          print('✅ [MaintenanceController] Maintenance task created successfully');
-          
+          print(
+            '✅ [MaintenanceController] Maintenance task created successfully',
+          );
+
           // Refresh maintenance list to include the new task
           await fetchMaintenanceTasks();
-          
+
           // Show success snackbar (top positioned)
           Get.snackbar(
             'Success',
@@ -220,17 +237,19 @@ class MaintenanceController extends GetxController {
             colorText: Colors.white,
             duration: const Duration(seconds: 2),
           );
-          
+
           return true;
         } else {
-          throw Exception(responseData['message'] ?? 'Failed to create maintenance');
+          throw Exception(
+            responseData['message'] ?? 'Failed to create maintenance',
+          );
         }
       } else {
         throw Exception('Invalid response status: ${response.statusCode}');
       }
     } catch (e) {
       print('❌ [MaintenanceController] Error creating maintenance task: $e');
-      
+
       // Show error snackbar (top positioned)
       String errorMessage = 'Failed to create maintenance';
       if (e.toString().contains('Exception:')) {
@@ -238,7 +257,7 @@ class MaintenanceController extends GetxController {
       } else if (e.toString().isNotEmpty) {
         errorMessage = e.toString();
       }
-      
+
       Get.snackbar(
         'Error',
         errorMessage,
@@ -247,7 +266,7 @@ class MaintenanceController extends GetxController {
         colorText: Colors.white,
         duration: const Duration(seconds: 3),
       );
-      
+
       return false;
     } finally {
       isLoadingTasks.value = false;
@@ -299,7 +318,7 @@ class MaintenanceController extends GetxController {
       } catch (e) {
         task = null;
       }
-      
+
       // Parse existing due_date if available
       DateTime? initialDate;
       if (task != null && task.dueDate.isNotEmpty) {
@@ -311,19 +330,23 @@ class MaintenanceController extends GetxController {
             initialDate = DateTime.parse(task.dueDate);
           }
         } catch (e) {
-          print('⚠️ [MaintenanceController] Could not parse existing due_date: ${task.dueDate}');
+          print(
+            '⚠️ [MaintenanceController] Could not parse existing due_date: ${task.dueDate}',
+          );
           initialDate = DateTime.now();
         }
       }
-      
+
       initialDate ??= DateTime.now();
-      
+
       // Show date picker
       final DateTime? selectedDate = await showDatePicker(
         context: Get.context!,
         initialDate: initialDate,
         firstDate: DateTime.now(),
-        lastDate: DateTime.now().add(const Duration(days: 365 * 5)), // 5 years from now
+        lastDate: DateTime.now().add(
+          const Duration(days: 365 * 5),
+        ), // 5 years from now
         builder: (context, child) {
           return Theme(
             data: Theme.of(context).copyWith(
@@ -338,18 +361,18 @@ class MaintenanceController extends GetxController {
           );
         },
       );
-      
+
       if (selectedDate == null) {
         // User cancelled
         return;
       }
-      
+
       // Format date as "yyyy-MM-dd" to match API format (same as CREATE endpoint)
-      final formattedDate = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
-      
+      final formattedDate =
+          '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
+
       // Update task via API
       await _updateTaskSchedule(taskId, formattedDate);
-      
     } catch (e) {
       print('❌ Error scheduling visit: $e');
       Get.snackbar(
@@ -362,14 +385,16 @@ class MaintenanceController extends GetxController {
       );
     }
   }
-  
+
   /// Update task schedule (due_date) via API
   Future<void> _updateTaskSchedule(String taskId, String dueDate) async {
     try {
       isLoadingTasks.value = true;
-      
-      print('📅 [MaintenanceController] Updating task schedule: $taskId with date: $dueDate');
-      
+
+      print(
+        '📅 [MaintenanceController] Updating task schedule: $taskId with date: $dueDate',
+      );
+
       // Find task to get all required fields
       MaintenanceTask? task;
       try {
@@ -380,7 +405,7 @@ class MaintenanceController extends GetxController {
       if (task == null) {
         throw Exception('Task not found');
       }
-      
+
       // Build request body - include all required fields from create pattern
       // Map status enum to API format (snake_case for in_progress)
       String statusString;
@@ -398,7 +423,7 @@ class MaintenanceController extends GetxController {
           statusString = 'overdue';
           break;
       }
-      
+
       final requestBody = <String, dynamic>{
         'maintenance_title': task.title,
         'maintenance_frequency': task.frequency,
@@ -408,20 +433,21 @@ class MaintenanceController extends GetxController {
         'maintenance_item_id': task.maintenanceItemId ?? 1,
         'residence_id': task.residenceId,
       };
-      
+
       // Add optional fields
       if (task.maintenanceNote != null && task.maintenanceNote!.isNotEmpty) {
         requestBody['maintenance_note'] = task.maintenanceNote;
       }
-      if (task.lastMaintenanceDate != null && task.lastMaintenanceDate!.isNotEmpty) {
+      if (task.lastMaintenanceDate != null &&
+          task.lastMaintenanceDate!.isNotEmpty) {
         requestBody['last_maintenance_date'] = task.lastMaintenanceDate;
       }
-      
+
       // Try PUT to /maintenance/update/{id} or /maintenance/{id}
       // If that doesn't work, try PUT to /maintenance/store/{id}
       dio.Response? response;
       String? errorMessage;
-      
+
       try {
         // Try RESTful PUT to /maintenance/{id}
         print('🔄 [MaintenanceController] Trying PUT /maintenance/$taskId');
@@ -435,40 +461,54 @@ class MaintenanceController extends GetxController {
         print('⚠️ [MaintenanceController] Trying alternative endpoint...');
         try {
           // Try PUT to /maintenance/update/{id}
-          print('🔄 [MaintenanceController] Trying PUT /maintenance/update/$taskId');
+          print(
+            '🔄 [MaintenanceController] Trying PUT /maintenance/update/$taskId',
+          );
           response = await _apiService.put(
             '/maintenance/update/$taskId',
             data: requestBody,
           );
-          print('✅ [MaintenanceController] PUT /maintenance/update/$taskId succeeded');
+          print(
+            '✅ [MaintenanceController] PUT /maintenance/update/$taskId succeeded',
+          );
         } catch (e2) {
-          print('⚠️ [MaintenanceController] PUT /maintenance/update/{id} failed: $e2');
+          print(
+            '⚠️ [MaintenanceController] PUT /maintenance/update/{id} failed: $e2',
+          );
           print('⚠️ [MaintenanceController] Trying POST as last resort...');
           try {
             // Try POST to /maintenance/update with ID (Laravel-style update)
             requestBody['id'] = int.parse(taskId);
-            print('🔄 [MaintenanceController] Trying POST /maintenance/update with id: $taskId');
+            print(
+              '🔄 [MaintenanceController] Trying POST /maintenance/update with id: $taskId',
+            );
             response = await _apiService.post(
               '/maintenance/update',
               data: requestBody,
             );
-            print('✅ [MaintenanceController] POST /maintenance/update succeeded');
+            print(
+              '✅ [MaintenanceController] POST /maintenance/update succeeded',
+            );
           } catch (e3) {
-            print('❌ [MaintenanceController] POST /maintenance/update failed: $e3');
-            errorMessage = 'Failed to update task. Please ensure the API endpoint is available.';
+            print(
+              '❌ [MaintenanceController] POST /maintenance/update failed: $e3',
+            );
+            errorMessage =
+                'Failed to update task. Please ensure the API endpoint is available.';
           }
         }
       }
-      
-      if (response != null && (response.statusCode == 200 || response.statusCode == 201)) {
+
+      if (response != null &&
+          (response.statusCode == 200 || response.statusCode == 201)) {
         final responseData = response.data as Map<String, dynamic>;
-        
+
         if (responseData['status'] == true) {
           print('✅ [MaintenanceController] Task schedule updated successfully');
-          
+
           // Refresh maintenance list to get updated task
           await fetchMaintenanceTasks();
-          
+
           // Show success snackbar
           Get.snackbar(
             'Success',
@@ -479,12 +519,16 @@ class MaintenanceController extends GetxController {
             duration: const Duration(seconds: 2),
           );
         } else {
-          throw Exception(responseData['message'] ?? 'Failed to update schedule');
+          throw Exception(
+            responseData['message'] ?? 'Failed to update schedule',
+          );
         }
       } else if (errorMessage != null) {
         throw Exception(errorMessage);
       } else {
-        throw Exception('Invalid response status: ${response?.statusCode ?? 'unknown'}');
+        throw Exception(
+          'Invalid response status: ${response?.statusCode ?? 'unknown'}',
+        );
       }
     } catch (e) {
       print('❌ [MaintenanceController] Error updating task schedule: $e');
@@ -507,7 +551,7 @@ class MaintenanceController extends GetxController {
   Future<bool> deleteMaintenanceTask(String taskId) async {
     try {
       print('🗑️ [MaintenanceController] Deleting maintenance task: $taskId');
-      
+
       // Call DELETE API endpoint
       final response = await _apiService.delete(
         '${ApiConstants.DELETE_MAINTENANCE_TASK}/$taskId',
@@ -515,24 +559,26 @@ class MaintenanceController extends GetxController {
 
       if (response.statusCode == 200 || response.statusCode == 204) {
         final responseData = response.data as Map<String, dynamic>;
-        
+
         if (responseData['status'] == true) {
-          print('✅ [MaintenanceController] Delete success, updating UI immediately');
-          
+          print(
+            '✅ [MaintenanceController] Delete success, updating UI immediately',
+          );
+
           // OPTIMISTIC UPDATE: Remove from tasks list immediately
           tasks.removeWhere((task) => task.id == taskId);
-          
+
           // Update filtered tasks
           _applyFilter();
-          
+
           // Update counts
           totalTaskCount.value = tasks.length;
           _updateFilterCounts(tasks.toList());
           _updateCategoryTaskCounts();
-          
+
           // Also refresh from API to ensure consistency
           await fetchMaintenanceTasks();
-          
+
           // Show success snackbar
           Get.snackbar(
             'Success',
@@ -542,17 +588,19 @@ class MaintenanceController extends GetxController {
             colorText: Colors.white,
             duration: const Duration(seconds: 2),
           );
-          
+
           return true;
         } else {
-          throw Exception(responseData['message'] ?? 'Failed to delete maintenance');
+          throw Exception(
+            responseData['message'] ?? 'Failed to delete maintenance',
+          );
         }
       } else {
         throw Exception('Invalid response status: ${response.statusCode}');
       }
     } catch (e) {
       print('❌ [MaintenanceController] Error deleting maintenance task: $e');
-      
+
       // Show error snackbar
       String errorMessage = 'Failed to delete maintenance';
       if (e.toString().contains('Exception:')) {
@@ -560,7 +608,7 @@ class MaintenanceController extends GetxController {
       } else if (e.toString().isNotEmpty) {
         errorMessage = e.toString();
       }
-      
+
       Get.snackbar(
         'Error',
         errorMessage,
@@ -569,7 +617,7 @@ class MaintenanceController extends GetxController {
         colorText: Colors.white,
         duration: const Duration(seconds: 3),
       );
-      
+
       return false;
     }
   }
@@ -587,33 +635,44 @@ class MaintenanceController extends GetxController {
       hasCategoriesError.value = false;
 
       print('📡 [MaintenanceController] Fetching maintenance categories...');
-      final response = await _apiService.get(ApiConstants.GET_MAINTENANCE_CATEGORIES);
+      final response = await _apiService.get(
+        ApiConstants.GET_MAINTENANCE_CATEGORIES,
+      );
 
       if (response.statusCode == 200 && response.data != null) {
         final responseData = response.data as Map<String, dynamic>;
-        
+
         if (responseData['status'] == true && responseData['data'] != null) {
-          final List<dynamic> categoriesData = responseData['data'] as List<dynamic>;
+          final List<dynamic> categoriesData =
+              responseData['data'] as List<dynamic>;
           final List<MaintenanceCategory> fetchedCategories = categoriesData
               .map((json) {
                 // Debug: Log raw category data to verify API response structure
                 print('🔍 [MaintenanceController] Raw category JSON: $json');
-                return MaintenanceCategory.fromJson(json as Map<String, dynamic>);
+                return MaintenanceCategory.fromJson(
+                  json as Map<String, dynamic>,
+                );
               })
               .toList();
-          
+
           categories.value = fetchedCategories;
-          
+
           // Debug: Log parsed categories to verify name_en field is populated
           for (final category in fetchedCategories) {
-            print('🔍 [MaintenanceController] Parsed category - ID: ${category.id}, Name: "${category.name}", Name_EN: "${category.nameEn}", Description: "${category.description}"');
+            print(
+              '🔍 [MaintenanceController] Parsed category - ID: ${category.id}, Name: "${category.name}", Name_EN: "${category.nameEn}", Description: "${category.description}"',
+            );
           }
           _updateCategoryTaskCounts();
           _applyFilter(); // Reapply filter in case category selection needs updating
-          
-          print('✅ [MaintenanceController] Loaded ${categories.length} maintenance categories');
+
+          print(
+            '✅ [MaintenanceController] Loaded ${categories.length} maintenance categories',
+          );
         } else {
-          throw Exception(responseData['message'] ?? 'Failed to fetch categories');
+          throw Exception(
+            responseData['message'] ?? 'Failed to fetch categories',
+          );
         }
       } else {
         throw Exception('Invalid response format');
@@ -629,13 +688,15 @@ class MaintenanceController extends GetxController {
   /// Update category task counts based on loaded tasks
   void _updateCategoryTaskCounts() {
     categoryTaskCounts.clear();
-    
+
     for (final category in categories) {
       // Count tasks that match this category by category.id (from nested category object)
-      final count = tasks.where((task) => task.categoryObj?.id == category.id).length;
+      final count = tasks
+          .where((task) => task.categoryObj?.id == category.id)
+          .length;
       categoryTaskCounts[category.id] = count;
     }
-    
+
     // Trigger reactive update for filter list rebuild
     categoryTaskCounts.refresh();
   }
@@ -655,7 +716,9 @@ class MaintenanceController extends GetxController {
       // Category selected - filter by category.id (from nested category object)
       final categoryId = selectedCategoryId.value!;
       // Filter tasks by category.id (matching requirement: maintenance.category.id == selectedCategory.id)
-      filteredTasks.value = tasks.where((task) => task.categoryObj?.id == categoryId).toList();
+      filteredTasks.value = tasks
+          .where((task) => task.categoryObj?.id == categoryId)
+          .toList();
     }
   }
 
@@ -663,20 +726,24 @@ class MaintenanceController extends GetxController {
   /// Returns list of filter items with id, label, and count
   List<Map<String, dynamic>> buildFilterList() {
     final filterList = <Map<String, dynamic>>[];
-    
+
     // Always add "All" filter first
     filterList.add({
       'id': 'all',
       'label': 'All',
       'count': totalTaskCount.value,
     });
-    
+
     // Add category filters dynamically from API
     if (categories.isNotEmpty) {
       for (final category in categories) {
         final count = categoryTaskCounts[category.id] ?? 0;
         // Use name_en for display label
-        final label = category.nameEn.isNotEmpty ? category.nameEn : (category.name.isNotEmpty ? category.name : 'Category ${category.id}');
+        final label = category.nameEn.isNotEmpty
+            ? category.nameEn
+            : (category.name.isNotEmpty
+                  ? category.name
+                  : 'Category ${category.id}');
         filterList.add({
           'id': 'category_${category.id}',
           'categoryId': category.id,
@@ -685,16 +752,13 @@ class MaintenanceController extends GetxController {
         });
       }
     }
-    
+
     return filterList;
   }
 
   /// Refresh all data (pull-to-refresh)
   Future<void> refreshData() async {
-    await Future.wait([
-      fetchMaintenanceCategories(),
-      fetchMaintenanceTasks(),
-    ]);
+    await Future.wait([fetchMaintenanceCategories(), fetchMaintenanceTasks()]);
   }
 
   /// Pick a file for attachment (PDF, Images, DOC/DOCX)
@@ -710,7 +774,7 @@ class MaintenanceController extends GetxController {
     try {
       isPickingFile.value = true;
       print('📁 [MaintenanceController] Opening file picker...');
-      
+
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'],
@@ -733,14 +797,20 @@ class MaintenanceController extends GetxController {
         throw Exception('Invalid file size: $fileSize bytes');
       }
       if (fileSize > maxFileSizeBytes) {
-        throw Exception('File size (${_formatFileSize(fileSize)}) exceeds maximum allowed size (${_formatFileSize(maxFileSizeBytes)})');
+        throw Exception(
+          'File size (${_formatFileSize(fileSize)}) exceeds maximum allowed size (${_formatFileSize(maxFileSizeBytes)})',
+        );
       }
-      print('📁 [MaintenanceController] File size: ${_formatFileSize(fileSize)}');
+      print(
+        '📁 [MaintenanceController] File size: ${_formatFileSize(fileSize)}',
+      );
 
       // Get app documents directory for permanent storage (lightweight operation)
       final appDocDir = await getApplicationDocumentsDirectory();
-      final attachmentsDir = Directory('${appDocDir.path}/maintenance_attachments');
-      
+      final attachmentsDir = Directory(
+        '${appDocDir.path}/maintenance_attachments',
+      );
+
       // Create directory if it doesn't exist (lightweight)
       if (!await attachmentsDir.exists()) {
         await attachmentsDir.create(recursive: true);
@@ -749,8 +819,10 @@ class MaintenanceController extends GetxController {
       // Generate unique filename to avoid conflicts
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final fileName = pickedFile.name;
-      final fileExtension = fileName.contains('.') ? fileName.split('.').last : 'file';
-      final fileNameWithoutExt = fileName.contains('.') 
+      final fileExtension = fileName.contains('.')
+          ? fileName.split('.').last
+          : 'file';
+      final fileNameWithoutExt = fileName.contains('.')
           ? fileName.substring(0, fileName.lastIndexOf('.'))
           : fileName;
       final uniqueFileName = '${fileNameWithoutExt}_$timestamp.$fileExtension';
@@ -787,19 +859,24 @@ class MaintenanceController extends GetxController {
         await Future.microtask(() {
           if (!isClosed) {
             selectedFile.value = permanentFile;
-            selectedFileName.value = fileName; // Keep original filename for display
-            selectedFileSize.value = _formatFileSize(fileProcessResult.fileSize);
+            selectedFileName.value =
+                fileName; // Keep original filename for display
+            selectedFileSize.value = _formatFileSize(
+              fileProcessResult.fileSize,
+            );
           }
         });
       }
 
-      print('✅ [MaintenanceController] File selected successfully: $fileName (${selectedFileSize.value})');
+      print(
+        '✅ [MaintenanceController] File selected successfully: $fileName (${selectedFileSize.value})',
+      );
       print('📁 [MaintenanceController] File saved to: $permanentFilePath');
       return true;
     } catch (e, stackTrace) {
       print('❌ [MaintenanceController] Error picking file: $e');
       print('❌ [MaintenanceController] Stack trace: $stackTrace');
-      
+
       // Only show snackbar if controller is still valid
       if (!isClosed) {
         Get.snackbar(
@@ -825,12 +902,12 @@ class MaintenanceController extends GetxController {
   void removeSelectedFile() {
     // Check if controller is still valid before updating (prevents updates after disposal)
     if (isClosed) return;
-    
+
     // Clear file reference first to allow GC
     selectedFile.value = null;
     selectedFileName.value = '';
     selectedFileSize.value = '';
-    
+
     print('🗑️ [MaintenanceController] File removed');
   }
 
@@ -845,12 +922,24 @@ class MaintenanceController extends GetxController {
 
   /// Update filter counts based on loaded tasks
   void _updateFilterCounts(List<MaintenanceTask> tasks) {
-    personalCount.value = tasks.where((t) => t.priority == MaintenancePriority.personal).length;
-    facoltativeCount.value = tasks.where((t) => t.priority == MaintenancePriority.facoltative).length;
-    obbligatorieCount.value = tasks.where((t) => t.priority == MaintenancePriority.obbligatorie).length;
-    condominialiCount.value = tasks.where((t) => t.priority == MaintenancePriority.condominiali).length;
-    pendingCount.value = tasks.where((t) => t.status == MaintenanceStatus.pending).length;
-    overdueCount.value = tasks.where((t) => t.status == MaintenanceStatus.overdue).length;
+    personalCount.value = tasks
+        .where((t) => t.priority == MaintenancePriority.personal)
+        .length;
+    facoltativeCount.value = tasks
+        .where((t) => t.priority == MaintenancePriority.facoltative)
+        .length;
+    obbligatorieCount.value = tasks
+        .where((t) => t.priority == MaintenancePriority.obbligatorie)
+        .length;
+    condominialiCount.value = tasks
+        .where((t) => t.priority == MaintenancePriority.condominiali)
+        .length;
+    pendingCount.value = tasks
+        .where((t) => t.status == MaintenanceStatus.pending)
+        .length;
+    overdueCount.value = tasks
+        .where((t) => t.status == MaintenanceStatus.overdue)
+        .length;
   }
 
   /// Get mock tasks (kept for fallback/testing - not used when API is available)
@@ -860,7 +949,8 @@ class MaintenanceController extends GetxController {
         id: 'p1',
         title: 'Filter Replacement - Kitchen Hood',
         category: 'Appliances',
-        description: 'Replace grease filters in kitchen ventilation hood for optimal performance.',
+        description:
+            'Replace grease filters in kitchen ventilation hood for optimal performance.',
         priority: MaintenancePriority.personal,
         status: MaintenanceStatus.pending,
         frequency: 'Every 3 months',
@@ -875,7 +965,8 @@ class MaintenanceController extends GetxController {
         id: 'p2',
         title: 'Fridge Coil Cleaning',
         category: 'Appliances',
-        description: 'Clean refrigerator coils to improve efficiency and reduce energy consumption.',
+        description:
+            'Clean refrigerator coils to improve efficiency and reduce energy consumption.',
         priority: MaintenancePriority.personal,
         status: MaintenanceStatus.inProgress,
         frequency: 'Every 6 months',
@@ -891,7 +982,8 @@ class MaintenanceController extends GetxController {
         id: '1',
         title: 'Ispezione Annuale Sistema HVAC',
         category: 'Climatizzazione',
-        description: 'Ispezione annuale e sostituzione dei filtri per il sistema di riscaldamento, ventilazione e climatizzazione. Richiesto per la conformità alla garanzia e per garantire l\'efficienza energetica ottimale.',
+        description:
+            'Ispezione annuale e sostituzione dei filtri per il sistema di riscaldamento, ventilazione e climatizzazione. Richiesto per la conformità alla garanzia e per garantire l\'efficienza energetica ottimale.',
         priority: MaintenancePriority.obbligatorie,
         status: MaintenanceStatus.overdue,
         frequency: 'Annualmente',
@@ -902,7 +994,11 @@ class MaintenanceController extends GetxController {
         dueDate: '2025-10-30',
         lastMaintenanceDate: '2024-10-28',
         attachments: [
-          TaskAttachment(name: 'Certificato_Ispezione_2024.pdf', type: 'PDF', url: '#'),
+          TaskAttachment(
+            name: 'Certificato_Ispezione_2024.pdf',
+            type: 'PDF',
+            url: '#',
+          ),
           TaskAttachment(name: 'Manuale_HVAC.pdf', type: 'PDF', url: '#'),
         ],
         contacts: [
@@ -918,7 +1014,8 @@ class MaintenanceController extends GetxController {
         id: '2',
         title: 'Controllo Pressione Caldaia',
         category: 'Riscaldamento',
-        description: 'Controllo di routine della pressione e ottimizzazione del sistema. Raccomandato per prestazioni ottimali ed efficienza energetica.',
+        description:
+            'Controllo di routine della pressione e ottimizzazione del sistema. Raccomandato per prestazioni ottimali ed efficienza energetica.',
         priority: MaintenancePriority.facoltative,
         status: MaintenanceStatus.pending,
         frequency: 'Ogni 6 mesi',
@@ -933,7 +1030,8 @@ class MaintenanceController extends GetxController {
         id: '3',
         title: 'Ispezione Sicurezza Ascensore',
         category: 'Sistemi Edificio',
-        description: 'Ispezione di sicurezza obbligatoria secondo le normative edilizie. Gestito dall\'amministratore condominiale.',
+        description:
+            'Ispezione di sicurezza obbligatoria secondo le normative edilizie. Gestito dall\'amministratore condominiale.',
         priority: MaintenancePriority.condominiali,
         status: MaintenanceStatus.inProgress,
         frequency: 'Annualmente',
@@ -942,7 +1040,11 @@ class MaintenanceController extends GetxController {
         residenceId: 1,
         dueDate: '2025-11-08',
         attachments: [
-          TaskAttachment(name: 'Certificato_Sicurezza.pdf', type: 'PDF', url: '#'),
+          TaskAttachment(
+            name: 'Certificato_Sicurezza.pdf',
+            type: 'PDF',
+            url: '#',
+          ),
         ],
         contacts: [
           TaskContact(
@@ -956,7 +1058,8 @@ class MaintenanceController extends GetxController {
         id: '4',
         title: 'Sostituzione Batterie Rilevatori di Fumo',
         category: 'Sicurezza',
-        description: 'Sostituire le batterie in tutti i rilevatori di fumo per garantire il corretto funzionamento. Requisito di sicurezza critico.',
+        description:
+            'Sostituire le batterie in tutti i rilevatori di fumo per garantire il corretto funzionamento. Requisito di sicurezza critico.',
         priority: MaintenancePriority.obbligatorie,
         status: MaintenanceStatus.pending,
         frequency: 'Ogni 12 mesi',
@@ -971,7 +1074,8 @@ class MaintenanceController extends GetxController {
         id: '5',
         title: 'Manutenzione Scaldabagno',
         category: 'Idraulica',
-        description: 'Decalcificazione e controllo dell\'efficienza. Aiuta a prevenire guasti e prolunga la vita dell\'apparecchiatura.',
+        description:
+            'Decalcificazione e controllo dell\'efficienza. Aiuta a prevenire guasti e prolunga la vita dell\'apparecchiatura.',
         priority: MaintenancePriority.facoltative,
         status: MaintenanceStatus.pending,
         frequency: 'Ogni 18 mesi',
@@ -986,7 +1090,8 @@ class MaintenanceController extends GetxController {
         id: '6',
         title: 'Ispezione Guarnizioni Finestre',
         category: 'Involucro Edificio',
-        description: 'Controllare e mantenere le guarnizioni delle finestre per l\'efficienza energetica. Raccomandato prima della stagione invernale.',
+        description:
+            'Controllare e mantenere le guarnizioni delle finestre per l\'efficienza energetica. Raccomandato prima della stagione invernale.',
         priority: MaintenancePriority.facoltative,
         status: MaintenanceStatus.pending,
         frequency: 'Annualmente',
@@ -999,7 +1104,8 @@ class MaintenanceController extends GetxController {
         id: '7',
         title: 'Controllo Estintori',
         category: 'Sicurezza',
-        description: 'Ispezione annuale obbligatoria di tutte le attrezzature antincendio.',
+        description:
+            'Ispezione annuale obbligatoria di tutte le attrezzature antincendio.',
         priority: MaintenancePriority.obbligatorie,
         status: MaintenanceStatus.pending,
         frequency: 'Annualmente',
@@ -1010,17 +1116,15 @@ class MaintenanceController extends GetxController {
         dueDate: '2025-11-12',
         lastMaintenanceDate: '2024-11-10',
         contacts: [
-          TaskContact(
-            name: 'FireSafe Solutions',
-            role: 'Ispettore Sicurezza',
-          ),
+          TaskContact(name: 'FireSafe Solutions', role: 'Ispettore Sicurezza'),
         ],
       ),
       MaintenanceTask(
         id: '8',
         title: 'Aggiornamento Illuminazione Aree Comuni',
         category: 'Sistemi Edificio',
-        description: 'Progetto di aggiornamento LED per corridoi e spazi comuni dell\'edificio. Gestito dall\'amministratore.',
+        description:
+            'Progetto di aggiornamento LED per corridoi e spazi comuni dell\'edificio. Gestito dall\'amministratore.',
         priority: MaintenancePriority.condominiali,
         status: MaintenanceStatus.pending,
         frequency: 'Progetto una tantum',
@@ -1070,10 +1174,12 @@ class _FileProcessResult {
 /// This function runs in a separate isolate, so it can't access controller state
 /// It only performs file I/O operations
 /// Must be top-level function for compute() to work
-/// 
+///
 /// IMPORTANT: All parameters must be serializable for isolate communication
 /// Uint8List is serializable, so this works correctly
-Future<_FileProcessResult> _processFileInIsolate(_FileProcessParams params) async {
+Future<_FileProcessResult> _processFileInIsolate(
+  _FileProcessParams params,
+) async {
   try {
     Uint8List? fileBytes;
 
@@ -1114,13 +1220,13 @@ Future<_FileProcessResult> _processFileInIsolate(_FileProcessParams params) asyn
     // Write to permanent location (heavy operation - done in isolate)
     // This prevents blocking the main thread during file write
     final permanentFile = File(params.destinationPath);
-    
+
     // Ensure parent directory exists
     final parentDir = permanentFile.parent;
     if (!await parentDir.exists()) {
       await parentDir.create(recursive: true);
     }
-    
+
     // Write bytes to file
     await permanentFile.writeAsBytes(fileBytes);
 
@@ -1136,10 +1242,7 @@ Future<_FileProcessResult> _processFileInIsolate(_FileProcessParams params) asyn
     // Get file size (lightweight operation)
     final fileSize = await permanentFile.length();
 
-    return _FileProcessResult(
-      success: true,
-      fileSize: fileSize,
-    );
+    return _FileProcessResult(success: true, fileSize: fileSize);
   } catch (e, stackTrace) {
     // Log error details for debugging
     print('❌ [Isolate] Error processing file: $e');
@@ -1151,4 +1254,3 @@ Future<_FileProcessResult> _processFileInIsolate(_FileProcessParams params) asyn
     );
   }
 }
-
