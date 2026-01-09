@@ -990,7 +990,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                 Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    // Primary Action: Mark Complete (stays as is)
+                                    // Primary Action: Mark Complete / Revert Back
                                     Expanded(
                                       child: ElevatedButton(
                                         onPressed: () {
@@ -1012,15 +1012,23 @@ class MaintenanceTaskCard extends StatelessWidget {
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,
                                           children: [
-                                            const Icon(
-                                              Icons.check_circle_outline,
+                                            Icon(
+                                              task.status ==
+                                                      MaintenanceStatus
+                                                          .completed
+                                                  ? Icons.undo
+                                                  : Icons.check_circle_outline,
                                               size: 17,
                                               color: AppColors.surfaceWhite,
                                             ),
                                             const SizedBox(width: 8),
                                             Flexible(
                                               child: Text(
-                                                'markComplete'.tr,
+                                                task.status ==
+                                                        MaintenanceStatus
+                                                            .completed
+                                                    ? 'revertBack'.tr
+                                                    : 'markComplete'.tr,
                                                 style: AppTextStyles.bodySmall
                                                     .copyWith(
                                                       color: AppColors

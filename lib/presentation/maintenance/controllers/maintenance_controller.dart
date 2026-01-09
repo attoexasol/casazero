@@ -316,12 +316,29 @@ class MaintenanceController extends GetxController {
   }
 
   /// Mark task as completed
+  /// Toggle task completion status
+  /// If task is completed, reverts to pending
+  /// If task is not completed, marks as completed
   Future<void> markTaskCompleted(String taskId) async {
     try {
       isLoadingTasks.value = true;
 
+      // Find the task to check current status
+      MaintenanceTask? task;
+      try {
+        task = tasks.firstWhere((t) => t.id == taskId);
+      } catch (e) {
+        task = null;
+      }
+
+      final isCompleted = task?.status == MaintenanceStatus.completed;
+      final endpoint = isCompleted
+          ? '/undo/mantenance_status'
+          : '/change/mantenance_status';
+      final action = isCompleted ? 'reverting' : 'marking as completed';
+
       print(
-        '✅ [MaintenanceController] Marking task as completed: $taskId',
+        '🔄 [MaintenanceController] $action task: $taskId',
       );
 
       // Prepare request body
@@ -332,10 +349,13 @@ class MaintenanceController extends GetxController {
       print(
         '📤 [MaintenanceController] Request body: $requestBody',
       );
+      print(
+        '🔗 [MaintenanceController] Endpoint: $endpoint',
+      );
 
       // Call API to update maintenance status
       final response = await _apiService.post(
-        '/change/mantenance_status',
+        endpoint,
         data: requestBody,
       );
 
@@ -351,7 +371,7 @@ class MaintenanceController extends GetxController {
 
         if (responseData['status'] == true) {
           print(
-            '✅ [MaintenanceController] Task marked as completed successfully',
+            '✅ [MaintenanceController] Task status updated successfully',
           );
 
           // Refresh maintenance list to get updated task with new status
@@ -361,7 +381,9 @@ class MaintenanceController extends GetxController {
           Get.snackbar(
             'Success',
             responseData['message'] ??
-                'Task marked as completed successfully',
+                (isCompleted
+                    ? 'Task reverted to pending successfully'
+                    : 'Task marked as completed successfully'),
             snackPosition: SnackPosition.BOTTOM,
             backgroundColor: Colors.green[700],
             colorText: Colors.white,
@@ -374,7 +396,10 @@ class MaintenanceController extends GetxController {
           );
         } else {
           throw Exception(
-            responseData['message'] ?? 'Failed to mark task as completed',
+            responseData['message'] ??
+                (isCompleted
+                    ? 'Failed to revert task status'
+                    : 'Failed to mark task as completed'),
           );
         }
       } else {
@@ -383,10 +408,10 @@ class MaintenanceController extends GetxController {
         );
       }
     } catch (e) {
-      print('❌ [MaintenanceController] Error marking task as completed: $e');
+      print('❌ [MaintenanceController] Error updating task status: $e');
       Get.snackbar(
         'Error',
-        'Failed to mark task as completed: ${e.toString()}',
+        'Failed to update task status: ${e.toString()}',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red[700],
         colorText: Colors.white,
