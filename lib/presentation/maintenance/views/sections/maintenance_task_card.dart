@@ -619,9 +619,8 @@ class MaintenanceTaskCard extends StatelessWidget {
                                   return const SizedBox.shrink();
                                 },
                               ),
-                              Wrap(
-                                spacing: 16,
-                                runSpacing: 8,
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   if (task.nextDue != null)
                                     Row(
@@ -652,7 +651,9 @@ class MaintenanceTaskCard extends StatelessWidget {
                                     ),
                                   // Show "End Date" if lastMaintenanceDate exists
                                   if (task.lastMaintenanceDate != null &&
-                                      task.lastMaintenanceDate!.isNotEmpty)
+                                      task.lastMaintenanceDate!.isNotEmpty) ...[
+                                    if (task.nextDue != null)
+                                      const SizedBox(height: 8),
                                     Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
@@ -672,6 +673,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                         ),
                                       ],
                                     ),
+                                  ],
                                 ],
                               ),
                             ],
