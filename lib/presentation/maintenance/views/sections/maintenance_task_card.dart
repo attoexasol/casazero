@@ -640,8 +640,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                               .copyWith(
                                                 color: isOverdue
                                                     ? Colors.red.shade600
-                                                    : AppColors
-                                                          .neutralInk700,
+                                                    : AppColors.neutralInk700,
                                                 fontWeight: isOverdue
                                                     ? FontWeight.w600
                                                     : FontWeight.normal,
@@ -667,8 +666,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                           '${'endDate'.tr}: ${_formatDate(task.lastMaintenanceDate)}',
                                           style: AppTextStyles.bodySmall
                                               .copyWith(
-                                                color:
-                                                    AppColors.neutralInk700,
+                                                color: AppColors.neutralInk700,
                                               ),
                                         ),
                                       ],
@@ -732,13 +730,20 @@ class MaintenanceTaskCard extends StatelessWidget {
                                     task.companyObj!.phone != null &&
                                     task.companyObj!.phone!.isNotEmpty) ...[
                                   const SizedBox(height: 16),
-                                  Text(
-                                    'Recommended Company'.tr,
-                                    style: AppTextStyles.bodySmall.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.neutralInk700,
-                                    ),
-                                  ),
+                                  Obx(() {
+                                    final localeController =
+                                        Get.find<LocaleController>();
+                                    // Access locale to trigger reactivity
+                                    final _ = localeController.locale;
+
+                                    return Text(
+                                      'recommendedCompany'.tr,
+                                      style: AppTextStyles.bodySmall.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.neutralInk700,
+                                      ),
+                                    );
+                                  }),
                                   const SizedBox(height: 4),
                                   // Company Name
                                   if (task.companyObj!.name.isNotEmpty) ...[
