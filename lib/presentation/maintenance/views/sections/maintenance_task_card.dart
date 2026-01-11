@@ -610,6 +610,15 @@ class MaintenanceTaskCard extends StatelessWidget {
                               const SizedBox(height: 12),
 
                               // Dates
+                              // TEMP: Log lastMaintenanceDate for verification
+                              Builder(
+                                builder: (_) {
+                                  print(
+                                    'Last maintenance date: ${task.lastMaintenanceDate}',
+                                  );
+                                  return const SizedBox.shrink();
+                                },
+                              ),
                               Wrap(
                                 spacing: 16,
                                 runSpacing: 8,
@@ -627,12 +636,13 @@ class MaintenanceTaskCard extends StatelessWidget {
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
-                                          '${'due'.tr}: ${_formatDate(task.nextDue)}',
+                                          '${'startDate'.tr}: ${_formatDate(task.nextDue)}',
                                           style: AppTextStyles.bodySmall
                                               .copyWith(
                                                 color: isOverdue
                                                     ? Colors.red.shade600
-                                                    : AppColors.neutralInk700,
+                                                    : AppColors
+                                                          .neutralInk700,
                                                 fontWeight: isOverdue
                                                     ? FontWeight.w600
                                                     : FontWeight.normal,
@@ -640,25 +650,24 @@ class MaintenanceTaskCard extends StatelessWidget {
                                         ),
                                       ],
                                     ),
-                                  // Show "Last" field only if status is completed and lastMaintenanceDate exists
-                                  if (task.status ==
-                                          MaintenanceStatus.completed &&
-                                      (task.lastMaintenanceDate != null &&
-                                          task.lastMaintenanceDate!.isNotEmpty))
+                                  // Show "End Date" if lastMaintenanceDate exists
+                                  if (task.lastMaintenanceDate != null &&
+                                      task.lastMaintenanceDate!.isNotEmpty)
                                     Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Icon(
-                                          Icons.check_circle,
+                                          Icons.calendar_today,
                                           size: 14,
                                           color: AppColors.neutralInk500,
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
-                                          '${'lastMaintenanceLabel'.tr}: ${_formatDate(task.lastMaintenanceDate)}',
+                                          '${'endDate'.tr}: ${_formatDate(task.lastMaintenanceDate)}',
                                           style: AppTextStyles.bodySmall
                                               .copyWith(
-                                                color: AppColors.neutralInk700,
+                                                color:
+                                                    AppColors.neutralInk700,
                                               ),
                                         ),
                                       ],
@@ -722,7 +731,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                     task.companyObj!.phone!.isNotEmpty) ...[
                                   const SizedBox(height: 16),
                                   Text(
-                                    'company'.tr,
+                                    'Recommended Company'.tr,
                                     style: AppTextStyles.bodySmall.copyWith(
                                       fontWeight: FontWeight.w600,
                                       color: AppColors.neutralInk700,
