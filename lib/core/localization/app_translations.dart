@@ -102,6 +102,7 @@ class AppTranslations extends Translations {
     'complete': 'Complete',
 
     // Home Screen
+    'home': 'Home',
     'residence': 'Residence',
     'welcome': 'Welcome back,',
     'construction_progress': 'Construction Progress',
@@ -418,7 +419,7 @@ class AppTranslations extends Translations {
     'lastCompleted': 'Last Completed',
     'dueDateLabel': 'Due Date',
     'due': 'Due',
-    'startDate': 'Start Date',
+    'startDate': 'Due Date',
     'endDate': 'End Date',
     'lastMaintenanceLabel': 'Last Maintenance',
     'fullDescription': 'Full Description',
@@ -871,6 +872,7 @@ class AppTranslations extends Translations {
     'complete': 'Completa',
 
     // Home Screen (Italian)
+    'home': 'Casa',
     'residence': 'Residenza',
     'welcome': 'Bentornato,',
     'construction_progress': 'Avanzamento Costruzione',
@@ -987,7 +989,7 @@ class AppTranslations extends Translations {
     'lastCompleted': 'Ultimo Completato',
     'dueDateLabel': 'Scadenza',
     'due': 'Dovuta',
-    'startDate': 'Data Inizio',
+    'startDate': 'Scadenza',
     'endDate': 'Data Fine',
     'lastMaintenanceLabel': 'Ultima',
     'fullDescription': 'Descrizione Completa',

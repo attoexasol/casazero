@@ -84,9 +84,9 @@ class MainScaffold extends GetView<HomeController> {
 
     switch (controller.currentScreen.value) {
       case AppScreen.home:
-        title =
-            controller.selectedResidence.value?.residenceName ??
-            'AttoExa Solutions';
+        title = 'home'.tr;
+        // controller.selectedResidence.value?.residenceName ??
+        // 'AttoExa Solutions';
         showNotification = true;
         showSearch = false;
         showResidenceSwitcher =
@@ -201,11 +201,14 @@ class MainScaffold extends GetView<HomeController> {
                       child: Container(
                         constraints: BoxConstraints(maxWidth: 448.w),
                         margin: EdgeInsets.symmetric(horizontal: 24.w),
-                        child: Row(
+                        child: Stack(
+                          alignment: Alignment.center,
                           children: [
-                            // Left section
-                            Expanded(
+                            // Left section - positioned on the left
+                            Positioned(
+                              left: 0,
                               child: Row(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   // Navigation Controls (Back/Forward)
                                   // if (showNavigationControls) ...[
@@ -229,9 +232,11 @@ class MainScaffold extends GetView<HomeController> {
                                   //   SizedBox(width: 8.w),
                                   // ],
 
-                                  // Logo/Title Section
-                                  Expanded(
-                                    child: _buildTitleSection(
+                                  // Logo/Title Section (only for non-title cases like logo/residence switcher)
+                                  if (variant == 'branded' &&
+                                          !showNavigationControls ||
+                                      (showResidenceSwitcher && title != null))
+                                    _buildTitleSection(
                                       title: title,
                                       showNavigationControls:
                                           showNavigationControls,
@@ -249,33 +254,60 @@ class MainScaffold extends GetView<HomeController> {
                                           ? () => _showResidenceSelectorDialog()
                                           : null,
                                     ),
-                                  ),
                                 ],
                               ),
                             ),
 
-                            // Right section
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // Search button - shown only on Documents and Maintenance screens
-                                // if (showSearch) ...[
-                                //   _buildSearchButton(
-                                //     onTap: () {
-                                //       // TODO: Implement search functionality
-                                //     },
-                                //   ),
-                                //   SizedBox(width: 8.w),
-                                // ],
-                                // Notification button - shown on ALL screens
-                                if (showNotification)
-                                  _buildNotificationButton(
-                                    count: notificationCount,
-                                    onTap: () {
-                                      // TODO: Navigate to notifications screen
-                                    },
-                                  ),
-                              ],
+                            // Center section - Title positioned absolutely in center
+                            if (title != null &&
+                                !(variant == 'branded' &&
+                                    !showNavigationControls) &&
+                                !(showResidenceSwitcher && title != null))
+                              Center(
+                                child: _buildTitleSection(
+                                  title: title,
+                                  showNavigationControls:
+                                      showNavigationControls,
+                                  variant: variant,
+                                  showResidenceSwitcher: showResidenceSwitcher,
+                                  currentResidence: showResidenceSwitcher
+                                      ? (controller
+                                                .selectedResidence
+                                                .value
+                                                ?.residenceName ??
+                                            'Select Residence')
+                                      : null,
+                                  onResidenceSwitch: showResidenceSwitcher
+                                      ? () => _showResidenceSelectorDialog()
+                                      : null,
+                                ),
+                              ),
+
+                            // Right section - positioned on the right
+                            Positioned(
+                              right: 0,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // Search button - shown only on Documents and Maintenance screens
+                                  // if (showSearch) ...[
+                                  //   _buildSearchButton(
+                                  //     onTap: () {
+                                  //       // TODO: Implement search functionality
+                                  //     },
+                                  //   ),
+                                  //   SizedBox(width: 8.w),
+                                  // ],
+                                  // Notification button - shown on ALL screens
+                                  if (showNotification)
+                                    _buildNotificationButton(
+                                      count: notificationCount,
+                                      onTap: () {
+                                        // TODO: Navigate to notifications screen
+                                      },
+                                    ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
@@ -416,17 +448,19 @@ class MainScaffold extends GetView<HomeController> {
 
     // Title
     if (title != null) {
-      return Text(
-        title,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: AppTextStyles.bodyMedium.copyWith(
-          fontSize: 16.sp,
-          fontWeight: FontWeight.w500,
-          color: AppColors.neutralInk900,
-          letterSpacing: -0.3,
-        ),
-      ).animate().fadeIn(delay: 200.ms, duration: 400.ms);
+      return Center(
+        child: Text(
+          title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppTextStyles.bodyMedium.copyWith(
+            fontSize: 23.sp,
+            fontWeight: FontWeight.w500,
+            color: AppColors.neutralInk900,
+            letterSpacing: -0.3,
+          ),
+        ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
+      );
     }
 
     return const SizedBox.shrink();
