@@ -1,4 +1,5 @@
 import 'package:casazero/core/widgets/bounce_glow_widget.dart';
+import 'package:casazero/core/widgets/notifications_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -22,6 +23,7 @@ import '../profile/controllers/profile_controller.dart';
 import '../documents/controllers/documents_controller.dart';
 import '../maintenance/controllers/maintenance_controller.dart';
 import '../../data/models/user_model.dart';
+import '../../data/models/feed_item_model.dart';
 import '../../core/utils/permissions.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -170,7 +172,10 @@ class MainScaffold extends GetView<HomeController> {
 
     final showNavigationControls = canGoBack || canGoForward;
     final statusBarHeight = MediaQuery.of(Get.context!).padding.top;
-    const notificationCount = 2; // TODO: Get from notification service
+    // Calculate notification count from unread feed items
+    final notificationCount = controller.feedItems
+        .where((item) => item is FeedItemModel && !item.isRead)
+        .length;
 
     return PreferredSize(
       preferredSize: Size.fromHeight(64.h + statusBarHeight),
@@ -303,7 +308,8 @@ class MainScaffold extends GetView<HomeController> {
                                     _buildNotificationButton(
                                       count: notificationCount,
                                       onTap: () {
-                                        // TODO: Navigate to notifications screen
+                                        // Show notifications modal bottom sheet
+                                        NotificationsModal.show(Get.context!);
                                       },
                                     ),
                                 ],
