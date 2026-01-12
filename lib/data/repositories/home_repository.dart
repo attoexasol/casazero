@@ -163,16 +163,17 @@ class HomeRepository {
   }
 
   // Get Residence Data by Token (for Home Screen)
-  /// GET /residences/by-token?token=USER_TOKEN
+  /// POST /residences/by-token
+  /// Request: { "token": "<TOKEN_FROM_LOCAL_STORAGE>" }
   /// Returns residence data with photo and status
   Future<Map<String, dynamic>> getResidenceByToken() async {
     try {
       print('🏠 [HomeRepository] Starting getResidenceByToken()...');
+      
+      // Fetch token dynamically from local storage
       final token = _storageService.getAccessToken();
-      print(
-        '🔑 [HomeRepository] Token retrieved: ${token != null && token.isNotEmpty ? "Token exists (${token.length} chars)" : "NO TOKEN"}',
-      );
-
+      print('Residence token from storage: $token');
+      
       if (token == null || token.isEmpty) {
         print('❌ [HomeRepository] Token is null or empty');
         return {
@@ -181,9 +182,7 @@ class HomeRepository {
         };
       }
 
-      // Verify token format (should be 64 characters for this API)
-      print('🔑 [HomeRepository] Token verification: ${token.length} chars');
-      print('🔑 [HomeRepository] Token preview: ${token.substring(0, token.length > 20 ? 20 : token.length)}...');
+      print('🔑 [HomeRepository] Using token from storage (${token.length} chars)');
 
       final endpoint = ApiConstants.GET_USER_RESIDENCES;
       print('📡 [HomeRepository] Making POST request to: $endpoint');
@@ -199,8 +198,8 @@ class HomeRepository {
       print('📊 [HomeRepository] Status Code: ${response.statusCode}');
       print('📊 [HomeRepository] Response Data: ${response.data}');
       
-      // Success log as requested
-      print('✅ Residence API SUCCESS → ${response.data}');
+      // Temp log as requested
+      print('Home residence data: ${response.data}');
 
       // Response structure:
       // {

@@ -86,7 +86,7 @@ class MainScaffold extends GetView<HomeController> {
       case AppScreen.home:
         title = 'home'.tr;
         // controller.selectedResidence.value?.residenceName ??
-        // 'AttoExa Solutions';
+        //     'AttoExa Solutions';
         showNotification = true;
         showSearch = false;
         showResidenceSwitcher =
