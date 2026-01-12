@@ -100,7 +100,7 @@ class MainScaffold extends GetView<HomeController> {
       case AppScreen.documents:
         title = 'documents'.tr;
         showNotification = true;
-        showSearch = true; // Show search on Documents screen
+        //showSearch = true; // Show search on Documents screen
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
         canGoForward = controller.canGoForward;
@@ -118,7 +118,7 @@ class MainScaffold extends GetView<HomeController> {
       case AppScreen.maintenance:
         title = 'maintenance'.tr;
         showNotification = true; // Show notification on all screens
-        showSearch = true; // Show search on Maintenance screen
+        //showSearch = true; // Show search on Maintenance screen
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
         canGoForward = controller.canGoForward;
@@ -208,26 +208,26 @@ class MainScaffold extends GetView<HomeController> {
                               child: Row(
                                 children: [
                                   // Navigation Controls (Back/Forward)
-                                  if (showNavigationControls) ...[
-                                    _buildNavButton(
-                                      icon: Icons.arrow_back,
-                                      enabled: canGoBack,
-                                      onTap: canGoBack
-                                          ? () => controller.goBack()
-                                          : null,
-                                      tooltip: 'Go back (Alt+←)',
-                                    ),
-                                    SizedBox(width: 6.w),
-                                    _buildNavButton(
-                                      icon: Icons.arrow_forward,
-                                      enabled: canGoForward,
-                                      onTap: canGoForward
-                                          ? () => controller.goForward()
-                                          : null,
-                                      tooltip: 'Go forward (Alt+→)',
-                                    ),
-                                    SizedBox(width: 8.w),
-                                  ],
+                                  // if (showNavigationControls) ...[
+                                  //   _buildNavButton(
+                                  //     icon: Icons.arrow_back,
+                                  //     enabled: canGoBack,
+                                  //     onTap: canGoBack
+                                  //         ? () => controller.goBack()
+                                  //         : null,
+                                  //     tooltip: 'Go back (Alt+←)',
+                                  //   ),
+                                  //   SizedBox(width: 6.w),
+                                  //   _buildNavButton(
+                                  //     icon: Icons.arrow_forward,
+                                  //     enabled: canGoForward,
+                                  //     onTap: canGoForward
+                                  //         ? () => controller.goForward()
+                                  //         : null,
+                                  //     tooltip: 'Go forward (Alt+→)',
+                                  //   ),
+                                  //   SizedBox(width: 8.w),
+                                  // ],
 
                                   // Logo/Title Section
                                   Expanded(
@@ -259,14 +259,14 @@ class MainScaffold extends GetView<HomeController> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 // Search button - shown only on Documents and Maintenance screens
-                                if (showSearch) ...[
-                                  _buildSearchButton(
-                                    onTap: () {
-                                      // TODO: Implement search functionality
-                                    },
-                                  ),
-                                  SizedBox(width: 8.w),
-                                ],
+                                // if (showSearch) ...[
+                                //   _buildSearchButton(
+                                //     onTap: () {
+                                //       // TODO: Implement search functionality
+                                //     },
+                                //   ),
+                                //   SizedBox(width: 8.w),
+                                // ],
                                 // Notification button - shown on ALL screens
                                 if (showNotification)
                                   _buildNotificationButton(

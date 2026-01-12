@@ -653,24 +653,24 @@ class MaintenanceTaskCard extends StatelessWidget {
                                       task.lastMaintenanceDate!.isNotEmpty) ...[
                                     if (task.nextDue != null)
                                       const SizedBox(height: 8),
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          Icons.calendar_today,
-                                          size: 14,
-                                          color: AppColors.neutralInk500,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          '${'endDate'.tr}: ${_formatDate(task.lastMaintenanceDate)}',
-                                          style: AppTextStyles.bodySmall
-                                              .copyWith(
-                                                color: AppColors.neutralInk700,
-                                              ),
-                                        ),
-                                      ],
-                                    ),
+                                    // Row(
+                                    //   mainAxisSize: MainAxisSize.min,
+                                    //   children: [
+                                    //     Icon(
+                                    //       Icons.calendar_today,
+                                    //       size: 14,
+                                    //       color: AppColors.neutralInk500,
+                                    //     ),
+                                    //     const SizedBox(width: 4),
+                                    //     Text(
+                                    //       '${'endDate'.tr}: ${_formatDate(task.lastMaintenanceDate)}',
+                                    //       style: AppTextStyles.bodySmall
+                                    //           .copyWith(
+                                    //             color: AppColors.neutralInk700,
+                                    //           ),
+                                    //     ),
+                                    //   ],
+                                    // ),
                                   ],
                                 ],
                               ),
