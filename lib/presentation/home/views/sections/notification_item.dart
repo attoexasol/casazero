@@ -5,11 +5,18 @@ import '../../../../app/theme/app_shadows.dart';
 
 class NotificationItem extends StatelessWidget {
   final dynamic item;
+  final VoidCallback? onTap;
 
-  const NotificationItem({super.key, required this.item});
+  const NotificationItem({
+    super.key,
+    required this.item,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final isRead = item.isRead ?? false;
+    
     Color borderColor;
     Color iconBgColor;
     Color iconColor;
@@ -37,18 +44,31 @@ class NotificationItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: () {},
+        onTap: onTap,
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            gradient: const LinearGradient(
-              colors: [
-                AppColors.surfaceWhite,
-                AppColors.surfaceWarm50,
-              ],
+            gradient: LinearGradient(
+              colors: isRead
+                  ? const [
+                      AppColors.surfaceWhite,
+                      AppColors.surfaceWarm50,
+                    ]
+                  : [
+                      AppColors.surfaceWhite,
+                      AppColors.brandSage50.withOpacity(0.3),
+                    ],
             ),
-            border: Border.all(color: AppColors.neutralLine200.withOpacity(0.4)),
-            boxShadow: AppShadows.customColoredShadow(borderColor, opacity: 0.08),
+            border: Border.all(
+              color: isRead
+                  ? AppColors.neutralLine200.withOpacity(0.4)
+                  : borderColor.withOpacity(0.3),
+              width: isRead ? 1 : 1.5,
+            ),
+            boxShadow: AppShadows.customColoredShadow(
+              borderColor,
+              opacity: isRead ? 0.08 : 0.12,
+            ),
           ),
           child: Padding(
             padding: const EdgeInsets.all(14),
@@ -72,19 +92,49 @@ class NotificationItem extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        item.title,
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              item.title,
+                              style: AppTextStyles.bodyMedium.copyWith(
+                                fontWeight: isRead
+                                    ? FontWeight.w600
+                                    : FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          // Unread indicator dot
+                          if (!isRead) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: borderColor,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: borderColor.withOpacity(0.5),
+                                    blurRadius: 4,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                       const SizedBox(height: 4),
                       Text(
                         item.description,
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.neutralInk500,
+                          color: isRead
+                              ? AppColors.neutralInk500
+                              : AppColors.neutralInk700,
+                          fontWeight: isRead ? FontWeight.w400 : FontWeight.w500,
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -94,7 +144,7 @@ class NotificationItem extends StatelessWidget {
                           Container(
                             width: 4,
                             height: 4,
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: AppColors.neutralInk300,
                             ),

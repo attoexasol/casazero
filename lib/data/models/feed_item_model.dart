@@ -58,4 +58,25 @@ class FeedItemModel {
       return 'Just now';
     }
   }
+
+  /// Create a copy with updated fields (for marking as read)
+  FeedItemModel copyWith({
+    String? id,
+    String? type,
+    String? priority,
+    String? title,
+    String? description,
+    DateTime? timestamp,
+    bool? isRead,
+  }) {
+    return FeedItemModel(
+      id: id ?? this.id,
+      type: type ?? this.type,
+      priority: priority ?? this.priority,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      timestamp: timestamp ?? this.timestamp,
+      isRead: isRead ?? this.isRead,
+    );
+  }
 }

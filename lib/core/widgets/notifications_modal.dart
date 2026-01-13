@@ -6,6 +6,7 @@ import '../../app/theme/app_text_styles.dart';
 import '../../app/theme/app_shadows.dart';
 import '../../presentation/home/views/sections/notification_item.dart';
 import '../../presentation/home/controllers/home_controller.dart';
+import '../../data/models/feed_item_model.dart';
 
 /// Modal Bottom Sheet for displaying all notifications
 class NotificationsModal {
@@ -20,7 +21,7 @@ class NotificationsModal {
       enableDrag: true,
       isDismissible: true,
       builder: (context) => _NotificationsModalContent(
-        feedItems: controller.feedItems,
+        controller: controller,
       ),
     );
   }
@@ -28,10 +29,10 @@ class NotificationsModal {
 
 /// Content widget for the notifications modal
 class _NotificationsModalContent extends StatelessWidget {
-  final List<dynamic> feedItems;
+  final HomeController controller;
 
   const _NotificationsModalContent({
-    required this.feedItems,
+    required this.controller,
   });
 
   @override
@@ -65,31 +66,61 @@ class _NotificationsModalContent extends StatelessWidget {
           ),
 
           // Header
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Notifications',
-                  style: AppTextStyles.h4.copyWith(
-                    fontSize: 20.sp,
-                    fontWeight: FontWeight.w600,
+          Obx(() {
+            final unreadCount = controller.feedItems
+                .where((item) => !item.isRead)
+                .length;
+            return Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        'Notifications',
+                        style: AppTextStyles.h4.copyWith(
+                          fontSize: 20.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      if (unreadCount > 0) ...[
+                        SizedBox(width: 8.w),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8.w,
+                            vertical: 4.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.danger,
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          child: Text(
+                            unreadCount.toString(),
+                            style: AppTextStyles.caption.copyWith(
+                              color: AppColors.surfaceWhite,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12.sp,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
-                ),
-                IconButton(
-                  icon: Icon(
-                    Icons.close,
-                    size: 24.sp,
-                    color: AppColors.neutralInk700,
+                  IconButton(
+                    icon: Icon(
+                      Icons.close,
+                      size: 24.sp,
+                      color: AppColors.neutralInk700,
+                    ),
+                    onPressed: () => Navigator.of(context).pop(),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                   ),
-                  onPressed: () => Navigator.of(context).pop(),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
-            ),
-          ),
+                ],
+              ),
+            );
+          }),
 
           // Divider
           Divider(
@@ -99,11 +130,14 @@ class _NotificationsModalContent extends StatelessWidget {
           ),
 
           // Notification List
-          Flexible(
-            child: feedItems.isEmpty
-                ? _buildEmptyState()
-                : _buildNotificationList(),
-          ),
+          Obx(() {
+            final notifications = controller.feedItems;
+            return Flexible(
+              child: notifications.isEmpty
+                  ? _buildEmptyState()
+                  : _buildNotificationList(notifications),
+            );
+          }),
         ],
       ),
     );
@@ -134,13 +168,16 @@ class _NotificationsModalContent extends StatelessWidget {
     );
   }
 
-  Widget _buildNotificationList() {
+  Widget _buildNotificationList(List<FeedItemModel> notifications) {
     return ListView.builder(
       padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
       shrinkWrap: true,
-      itemCount: feedItems.length,
+      itemCount: notifications.length,
       itemBuilder: (context, index) {
-        return NotificationItem(item: feedItems[index]);
+        return NotificationItem(
+          item: notifications[index],
+          onTap: () => controller.markNotificationAsRead(notifications[index].id),
+        );
       },
     );
   }

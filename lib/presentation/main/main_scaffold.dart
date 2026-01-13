@@ -172,10 +172,6 @@ class MainScaffold extends GetView<HomeController> {
 
     final showNavigationControls = canGoBack || canGoForward;
     final statusBarHeight = MediaQuery.of(Get.context!).padding.top;
-    // Calculate notification count from unread feed items
-    final notificationCount = controller.feedItems
-        .where((item) => item is FeedItemModel && !item.isRead)
-        .length;
 
     return PreferredSize(
       preferredSize: Size.fromHeight(64.h + statusBarHeight),
@@ -305,13 +301,22 @@ class MainScaffold extends GetView<HomeController> {
                                   // ],
                                   // Notification button - shown on ALL screens
                                   if (showNotification)
-                                    _buildNotificationButton(
-                                      count: notificationCount,
-                                      onTap: () {
-                                        // Show notifications modal bottom sheet
-                                        NotificationsModal.show(Get.context!);
-                                      },
-                                    ),
+                                    Obx(() {
+                                      // Calculate unread count reactively
+                                      final count = controller.feedItems
+                                          .where((item) => !item.isRead)
+                                          .length;
+                                      return _buildNotificationButton(
+                                        count: count,
+                                        onTap: () {
+                                          // Show notifications modal bottom sheet
+                                          // Use Get.context! here as it's safe in onTap callback
+                                          if (Get.context != null) {
+                                            NotificationsModal.show(Get.context!);
+                                          }
+                                        },
+                                      );
+                                    }),
                                 ],
                               ),
                             ),
