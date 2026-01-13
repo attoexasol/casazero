@@ -174,9 +174,13 @@ class _NotificationsModalContent extends StatelessWidget {
       shrinkWrap: true,
       itemCount: notifications.length,
       itemBuilder: (context, index) {
+        final notification = notifications[index];
         return NotificationItem(
-          item: notifications[index],
-          onTap: () => controller.markNotificationAsRead(notifications[index].id),
+          item: notification,
+          onTap: () => controller.markNotificationAsRead(notification.id),
+          onChatPressed: () => controller.onNotificationChat(notification),
+          onAssistancePressed: () => controller.onNotificationAssistance(notification),
+          onAiSupportPressed: () => controller.onNotificationAiSupport(notification),
         );
       },
     );

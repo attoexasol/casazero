@@ -365,6 +365,30 @@ class HomeController extends GetxController {
     }
   }
 
+  /// Handle Chat action for notification (API-ready)
+  void onNotificationChat(FeedItemModel notification) {
+    // TODO: Integrate chat API
+    // Example: Navigate to chat screen with notification context
+    // Get.toNamed('/chat', arguments: {'notificationId': notification.id});
+    print('📱 Chat pressed for notification: ${notification.id}');
+  }
+
+  /// Handle Assistance action for notification (API-ready)
+  void onNotificationAssistance(FeedItemModel notification) {
+    // TODO: Integrate assistance API
+    // Example: Open assistance form or contact support
+    // Get.toNamed('/assistance', arguments: {'notificationId': notification.id});
+    print('🆘 Assistance pressed for notification: ${notification.id}');
+  }
+
+  /// Handle AI Support action for notification (API-ready)
+  void onNotificationAiSupport(FeedItemModel notification) {
+    // TODO: Integrate AI support API
+    // Example: Navigate to AI chat with notification context
+    // Get.toNamed('/ai-chat', arguments: {'notificationId': notification.id});
+    print('🤖 AI Support pressed for notification: ${notification.id}');
+  }
+
   /// Fetch residence data for Home Screen
   Future<void> fetchResidenceData() async {
     try {

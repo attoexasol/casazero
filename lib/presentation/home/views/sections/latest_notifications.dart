@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import 'notification_item.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../data/models/feed_item_model.dart';
+import '../../controllers/home_controller.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 
@@ -14,6 +16,8 @@ class LatestNotifications extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.find<HomeController>();
+    
     return Padding(
       padding: const EdgeInsets.only(left: 24, right: 24, top: 24),
       child: Column(
@@ -66,7 +70,14 @@ class LatestNotifications extends StatelessWidget {
           else
             Column(
               children: feedItems.asMap().entries.map((entry) {
-                return NotificationItem(item: entry.value)
+                final notification = entry.value as FeedItemModel;
+                return NotificationItem(
+                  item: notification,
+                  onTap: () => controller.markNotificationAsRead(notification.id),
+                  onChatPressed: () => controller.onNotificationChat(notification),
+                  onAssistancePressed: () => controller.onNotificationAssistance(notification),
+                  onAiSupportPressed: () => controller.onNotificationAiSupport(notification),
+                )
                     .animate(
                   delay: (entry.key * 100).ms,
                 )

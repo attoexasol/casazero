@@ -2,15 +2,22 @@ import 'package:flutter/material.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../app/theme/app_shadows.dart';
+import '../../../../data/models/feed_item_model.dart';
 
 class NotificationItem extends StatelessWidget {
   final dynamic item;
   final VoidCallback? onTap;
+  final VoidCallback? onChatPressed;
+  final VoidCallback? onAssistancePressed;
+  final VoidCallback? onAiSupportPressed;
 
   const NotificationItem({
     super.key,
     required this.item,
     this.onTap,
+    this.onChatPressed,
+    this.onAssistancePressed,
+    this.onAiSupportPressed,
   });
 
   @override
@@ -159,12 +166,92 @@ class NotificationItem extends StatelessWidget {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 12),
+                      // Action Buttons Row
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildActionButton(
+                              label: 'Chat',
+                              icon: Icons.chat_bubble_outline,
+                              onPressed: onChatPressed != null
+                                  ? () => onChatPressed!()
+                                  : null,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildActionButton(
+                              label: 'Assistance',
+                              icon: Icons.support_agent_outlined,
+                              onPressed: onAssistancePressed != null
+                                  ? () => onAssistancePressed!()
+                                  : null,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildActionButton(
+                              label: 'AI Support',
+                              icon: Icons.smart_toy_outlined,
+                              onPressed: onAiSupportPressed != null
+                                  ? () => onAiSupportPressed!()
+                                  : null,
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required String label,
+    required IconData icon,
+    required VoidCallback? onPressed,
+  }) {
+    return SizedBox(
+      height: 32,
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.brandSage600,
+          side: BorderSide(
+            color: AppColors.brandSage300,
+            width: 1,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          minimumSize: const Size(0, 32),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: AppColors.brandSage600),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                label,
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.brandSage600,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 11,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
         ),
       ),
     );
