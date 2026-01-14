@@ -171,6 +171,26 @@ class ApiConstants {
   static const String GET_CONSTRUCTION_PHASES =
       '/residences/{residenceId}/construction';
 
+  /// Get User Notifications
+  /// POST /get_user/notifications
+  /// Request: { "api_token": "<CURRENT_USER_API_TOKEN>" }
+  /// Response: {
+  ///   "status": true,
+  ///   "data": [
+  ///     {
+  ///       "id": 2,
+  ///       "title": "New Document Uploaded 📄",
+  ///       "content": "Your document has been uploaded successfully.",
+  ///       "url": "https://...",
+  ///       "notification_type": "document",
+  ///       "is_read": 0,
+  ///       "created_at": "2026-01-14T16:21:33.000000Z",
+  ///       "updated_at": "2026-01-14T16:21:33.000000Z"
+  ///     }
+  ///   ]
+  /// }
+  static const String GET_USER_NOTIFICATIONS = '/get_user/notifications';
+
   // Buildings Endpoints
   static const String GET_BUILDINGS = '/buildings';
   static const String GET_BUILDING_DETAILS = '/buildings/{buildingId}';

@@ -99,7 +99,7 @@ class HomeController extends GetxController {
     super.onReady();
     fetchHomeData();
     fetchResidenceData();
-    _initializeMockNotifications(); // Initialize mock notifications
+    fetchNotifications(); // Fetch notifications from API
     // Pre-load documents in background after login
     _preloadDocuments();
   }
@@ -295,63 +295,29 @@ class HomeController extends GetxController {
   Future<void> refreshData() async {
     await fetchHomeData();
     await fetchResidenceData();
+    await fetchNotifications(); // Refresh notifications on pull-to-refresh
   }
 
-  /// Initialize mock notifications (TODO: Replace with API response)
-  void _initializeMockNotifications() {
-    // Only initialize if feedItems is empty (to avoid overwriting API data)
-    if (feedItems.isEmpty) {
-      final now = DateTime.now();
-      feedItems.value = [
-        FeedItemModel(
-          id: 'mock_1',
-          type: 'document',
-          title: 'New Document Available',
-          description: 'Your electricity bill for January has been uploaded',
-          timestamp: now.subtract(const Duration(minutes: 15)),
-          isRead: false,
-        ),
-        FeedItemModel(
-          id: 'mock_2',
-          type: 'maintenance',
-          title: 'Maintenance Scheduled',
-          description: 'HVAC system maintenance scheduled for next week',
-          timestamp: now.subtract(const Duration(hours: 2)),
-          isRead: false,
-        ),
-        FeedItemModel(
-          id: 'mock_3',
-          type: 'announcement',
-          title: 'Residence Update',
-          description: 'Construction progress update: Phase 2 completed',
-          timestamp: now.subtract(const Duration(hours: 5)),
-          isRead: true,
-        ),
-        FeedItemModel(
-          id: 'mock_4',
-          type: 'document',
-          title: 'Contract Amendment',
-          description: 'Updated contract terms have been shared',
-          timestamp: now.subtract(const Duration(days: 1)),
-          isRead: false,
-        ),
-        FeedItemModel(
-          id: 'mock_5',
-          type: 'maintenance',
-          title: 'Maintenance Completed',
-          description: 'Plumbing inspection completed successfully',
-          timestamp: now.subtract(const Duration(days: 2)),
-          isRead: true,
-        ),
-        FeedItemModel(
-          id: 'mock_6',
-          type: 'announcement',
-          title: 'Community Meeting',
-          description: 'Monthly community meeting scheduled for next Friday',
-          timestamp: now.subtract(const Duration(days: 3)),
-          isRead: true,
-        ),
-      ];
+  /// Fetch notifications from API (user-wise)
+  Future<void> fetchNotifications() async {
+    try {
+      print('🔔 [HomeController] Fetching notifications from API...');
+      
+      final result = await _homeRepository.getUserNotifications();
+
+      if (result['success'] == true) {
+        final notifications = result['data'] as List<FeedItemModel>;
+        feedItems.value = notifications;
+        print('✅ [HomeController] Successfully loaded ${notifications.length} notifications');
+      } else {
+        print('❌ [HomeController] Failed to fetch notifications: ${result['error']}');
+        // On error, set empty list (don't show mock data)
+        feedItems.value = [];
+      }
+    } catch (e) {
+      print('❌ [HomeController] Error fetching notifications: $e');
+      // On error, set empty list (don't show mock data)
+      feedItems.value = [];
     }
   }
 

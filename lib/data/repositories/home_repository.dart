@@ -126,6 +126,99 @@ class HomeRepository {
     }
   }
 
+  /// Get User Notifications
+  /// POST /get_user/notifications
+  /// Request: { "api_token": "<CURRENT_USER_API_TOKEN>" }
+  /// Returns list of notifications for the current user
+  Future<Map<String, dynamic>> getUserNotifications() async {
+    try {
+      print('🔔 [HomeRepository] Starting getUserNotifications()...');
+      
+      // Get access token (api_token) from storage
+      final apiToken = _storageService.getAccessToken();
+      print('Notification API token: ${apiToken != null && apiToken.isNotEmpty ? "${apiToken.substring(0, 10)}..." : "NO TOKEN"}');
+      
+      if (apiToken == null || apiToken.isEmpty) {
+        print('❌ [HomeRepository] API token is null or empty');
+        return {
+          'success': false,
+          'error': 'User API token not found in local storage',
+        };
+      }
+
+      final endpoint = ApiConstants.GET_USER_NOTIFICATIONS;
+      print('📡 [HomeRepository] Making POST request to: $endpoint');
+
+      // Call API with api_token in request body
+      final response = await _apiService.post(
+        endpoint,
+        data: {'api_token': apiToken},
+      );
+
+      print('✅ [HomeRepository] API Response received');
+      print('📊 [HomeRepository] Status Code: ${response.statusCode}');
+
+      // Response structure:
+      // {
+      //   "status": true,
+      //   "data": [
+      //     {
+      //       "id": 2,
+      //       "title": "New Document Uploaded 📄",
+      //       "content": "Your document has been uploaded successfully.",
+      //       "url": "https://...",
+      //       "notification_type": "document",
+      //       "is_read": 0,
+      //       "created_at": "2026-01-14T16:21:33.000000Z"
+      //     }
+      //   ]
+      // }
+      if (response.statusCode == 200 && response.data['status'] == true) {
+        final List<dynamic> notificationsData = response.data['data'] ?? [];
+        print('Fetched notifications: ${notificationsData.length}');
+        
+        final notifications = notificationsData
+            .map((item) => FeedItemModel.fromJson(item as Map<String, dynamic>))
+            .toList();
+
+        print('✅ [HomeRepository] Successfully parsed ${notifications.length} notifications');
+        return {
+          'success': true,
+          'data': notifications,
+        };
+      } else {
+        final errorMessage =
+            response.data['message'] ??
+            response.data['error'] ??
+            'Failed to fetch notifications';
+        print('❌ [HomeRepository] API returned error: $errorMessage');
+        return {'success': false, 'error': errorMessage};
+      }
+    } on DioException catch (e, stackTrace) {
+      print('❌ [HomeRepository] DioException in getUserNotifications: $e');
+      print('📚 [HomeRepository] Stack trace: $stackTrace');
+
+      String errorMessage = 'Failed to fetch notifications. Please try again.';
+      if (e.response != null && e.response!.data != null) {
+        final responseData = e.response!.data;
+        if (responseData is Map) {
+          errorMessage =
+              responseData['message'] ?? responseData['error'] ?? errorMessage;
+        }
+        print('📊 [HomeRepository] Error response data: $responseData');
+      }
+
+      return {'success': false, 'error': errorMessage};
+    } catch (e, stackTrace) {
+      print('❌ [HomeRepository] Exception in getUserNotifications: $e');
+      print('📚 [HomeRepository] Stack trace: $stackTrace');
+      return {
+        'success': false,
+        'error': 'Failed to fetch notifications. Please try again.',
+      };
+    }
+  }
+
   // Get Construction Phases
   Future<List<ConstructionPhaseModel>> getConstructionPhases(
     String residenceId,

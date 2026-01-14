@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart' as dio;
+import 'package:intl/intl.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/storage_service.dart';
 import '../../core/constants/api_constants.dart';
@@ -321,6 +322,10 @@ class DocumentRepository {
         };
       }
 
+      // Format current date as YYYY-MM-DD for MySQL compatibility
+      // Backend was generating date incorrectly as DD-MM-YYYY, so we send it explicitly
+      final currentDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      
       // Create FormData for file upload
       final formData = dio.FormData.fromMap({
         'token': token,
@@ -330,6 +335,7 @@ class DocumentRepository {
         ),
         'document_title': documentTitle,
         'document_category': documentCategory,
+        'uploaded_date': currentDate, // Explicitly send date in YYYY-MM-DD format (MySQL standard)
         if (documentDescription != null && documentDescription.isNotEmpty)
           'document_description': documentDescription,
       });
@@ -337,6 +343,7 @@ class DocumentRepository {
       print('📤 [DocumentRepository] Uploading document: $documentTitle');
       print('📤 [DocumentRepository] Category ID: $documentCategory');
       print('📤 [DocumentRepository] File: ${documentFile.path}');
+      print('📅 [DocumentRepository] Sending uploaded_date: $currentDate (YYYY-MM-DD format)');
 
       // Make API call
       final response = await _apiService.post(
