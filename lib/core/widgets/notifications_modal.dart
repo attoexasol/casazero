@@ -67,9 +67,8 @@ class _NotificationsModalContent extends StatelessWidget {
 
           // Header
           Obx(() {
-            final unreadCount = controller.feedItems
-                .where((item) => !item.isRead)
-                .length;
+            // Use unread count from API (single source of truth)
+            final unreadCount = controller.unreadCount.value;
             return Padding(
               padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
               child: Row(

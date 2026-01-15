@@ -191,6 +191,29 @@ class ApiConstants {
   /// }
   static const String GET_USER_NOTIFICATIONS = '/get_user/notifications';
 
+  /// Mark Notification as Read
+  /// POST /get_user/mark_as_read
+  /// Request: {
+  ///   "api_token": "<CURRENT_USER_API_TOKEN>",
+  ///   "notification_id": <NOTIFICATION_ID>
+  /// }
+  /// Response: {
+  ///   "status": true,
+  ///   "message": "Notification marked as read"
+  /// }
+  static const String MARK_NOTIFICATION_AS_READ = '/get_user/mark_as_read';
+
+  /// Get Unread Notification Count
+  /// POST /get_user/unread_count
+  /// Request: {
+  ///   "api_token": "<CURRENT_USER_API_TOKEN>"
+  /// }
+  /// Response: {
+  ///   "status": true,
+  ///   "unread_count": 1
+  /// }
+  static const String GET_UNREAD_NOTIFICATION_COUNT = '/get_user/unread_count';
+
   // Buildings Endpoints
   static const String GET_BUILDINGS = '/buildings';
   static const String GET_BUILDING_DETAILS = '/buildings/{buildingId}';

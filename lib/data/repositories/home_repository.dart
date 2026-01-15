@@ -219,6 +219,173 @@ class HomeRepository {
     }
   }
 
+  /// Mark Notification as Read
+  /// POST /get_user/mark_as_read
+  /// Request: {
+  ///   "api_token": "<CURRENT_USER_API_TOKEN>",
+  ///   "notification_id": <NOTIFICATION_ID>
+  /// }
+  /// Response: {
+  ///   "status": true,
+  ///   "message": "Notification marked as read"
+  /// }
+  Future<Map<String, dynamic>> markNotificationAsRead(int notificationId) async {
+    try {
+      print('✅ [HomeRepository] Marking notification as read: $notificationId');
+      
+      // Get access token (api_token) from storage
+      final apiToken = _storageService.getAccessToken();
+      print('User api_token: ${apiToken != null && apiToken.isNotEmpty ? "${apiToken.substring(0, 10)}..." : "NO TOKEN"}');
+      
+      if (apiToken == null || apiToken.isEmpty) {
+        print('❌ [HomeRepository] API token is null or empty');
+        return {
+          'success': false,
+          'error': 'User API token not found in local storage',
+        };
+      }
+
+      final endpoint = ApiConstants.MARK_NOTIFICATION_AS_READ;
+      print('📡 [HomeRepository] Making POST request to: $endpoint');
+
+      // Call API with api_token and notification_id in request body
+      final response = await _apiService.post(
+        endpoint,
+        data: {
+          'api_token': apiToken,
+          'notification_id': notificationId,
+        },
+      );
+
+      print('✅ [HomeRepository] Mark as read response received');
+      print('📊 [HomeRepository] Status Code: ${response.statusCode}');
+
+      if (response.statusCode == 200 && response.data['status'] == true) {
+        print('✅ [HomeRepository] Notification marked as read successfully');
+        return {
+          'success': true,
+          'message': response.data['message'] ?? 'Notification marked as read',
+        };
+      } else {
+        final errorMessage =
+            response.data['message'] ??
+            response.data['error'] ??
+            'Failed to mark notification as read';
+        print('❌ [HomeRepository] API returned error: $errorMessage');
+        return {'success': false, 'error': errorMessage};
+      }
+    } on DioException catch (e, stackTrace) {
+      print('❌ [HomeRepository] DioException in markNotificationAsRead: $e');
+      print('📚 [HomeRepository] Stack trace: $stackTrace');
+
+      String errorMessage = 'Failed to mark notification as read. Please try again.';
+      if (e.response != null && e.response!.data != null) {
+        final responseData = e.response!.data;
+        if (responseData is Map) {
+          errorMessage =
+              responseData['message'] ?? responseData['error'] ?? errorMessage;
+        }
+        print('📊 [HomeRepository] Error response data: $responseData');
+      }
+
+      return {'success': false, 'error': errorMessage};
+    } catch (e, stackTrace) {
+      print('❌ [HomeRepository] Exception in markNotificationAsRead: $e');
+      print('📚 [HomeRepository] Stack trace: $stackTrace');
+      return {
+        'success': false,
+        'error': 'Failed to mark notification as read. Please try again.',
+      };
+    }
+  }
+
+  /// Get Unread Notification Count
+  /// POST /get_user/unread_count
+  /// Request: {
+  ///   "api_token": "<CURRENT_USER_API_TOKEN>"
+  /// }
+  /// Response: {
+  ///   "status": true,
+  ///   "unread_count": 1
+  /// }
+  Future<Map<String, dynamic>> getUnreadNotificationCount() async {
+    try {
+      print('🔔 [HomeRepository] Fetching unread notification count...');
+      
+      // Get access token (api_token) from storage
+      final apiToken = _storageService.getAccessToken();
+      print('User api_token: ${apiToken != null && apiToken.isNotEmpty ? "${apiToken.substring(0, 10)}..." : "NO TOKEN"}');
+      
+      if (apiToken == null || apiToken.isEmpty) {
+        print('❌ [HomeRepository] API token is null or empty');
+        return {
+          'success': false,
+          'error': 'User API token not found in local storage',
+          'unread_count': 0,
+        };
+      }
+
+      final endpoint = ApiConstants.GET_UNREAD_NOTIFICATION_COUNT;
+      print('📡 [HomeRepository] Making POST request to: $endpoint');
+
+      // Call API with api_token in request body
+      final response = await _apiService.post(
+        endpoint,
+        data: {'api_token': apiToken},
+      );
+
+      print('✅ [HomeRepository] Unread count response received');
+      print('📊 [HomeRepository] Status Code: ${response.statusCode}');
+
+      if (response.statusCode == 200 && response.data['status'] == true) {
+        final unreadCount = response.data['unread_count'] ?? 0;
+        print('✅ [HomeRepository] Unread count: $unreadCount');
+        return {
+          'success': true,
+          'unread_count': unreadCount,
+        };
+      } else {
+        final errorMessage =
+            response.data['message'] ??
+            response.data['error'] ??
+            'Failed to fetch unread count';
+        print('❌ [HomeRepository] API returned error: $errorMessage');
+        return {
+          'success': false,
+          'error': errorMessage,
+          'unread_count': 0,
+        };
+      }
+    } on DioException catch (e, stackTrace) {
+      print('❌ [HomeRepository] DioException in getUnreadNotificationCount: $e');
+      print('📚 [HomeRepository] Stack trace: $stackTrace');
+
+      String errorMessage = 'Failed to fetch unread count. Please try again.';
+      if (e.response != null && e.response!.data != null) {
+        final responseData = e.response!.data;
+        if (responseData is Map) {
+          errorMessage =
+              responseData['message'] ?? responseData['error'] ?? errorMessage;
+        }
+        print('📊 [HomeRepository] Error response data: $responseData');
+      }
+
+      return {
+        'success': false,
+        'error': errorMessage,
+        'unread_count': 0,
+      };
+    } catch (e, stackTrace) {
+      print('❌ [HomeRepository] Exception in getUnreadNotificationCount: $e');
+      print('📚 [HomeRepository] Stack trace: $stackTrace');
+      return {
+        'success': false,
+        'error': 'Failed to fetch unread count. Please try again.',
+        'unread_count': 0,
+      };
+    }
+  }
+
   // Get Construction Phases
   Future<List<ConstructionPhaseModel>> getConstructionPhases(
     String residenceId,

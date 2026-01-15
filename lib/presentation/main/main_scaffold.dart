@@ -302,10 +302,8 @@ class MainScaffold extends GetView<HomeController> {
                                   // Notification button - shown on ALL screens
                                   if (showNotification)
                                     Obx(() {
-                                      // Calculate unread count reactively
-                                      final count = controller.feedItems
-                                          .where((item) => !item.isRead)
-                                          .length;
+                                      // Use unread count from API (single source of truth)
+                                      final count = controller.unreadCount.value;
                                       return _buildNotificationButton(
                                         count: count,
                                         onTap: () {

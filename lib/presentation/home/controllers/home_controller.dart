@@ -23,6 +23,9 @@ class HomeController extends GetxController {
   final currentUser = Rx<UserModel?>(null);
   final feedItems = <FeedItemModel>[].obs;
   final constructionPhases = <ConstructionPhaseModel>[].obs;
+  
+  // Unread notification count from API (single source of truth)
+  final unreadCount = 0.obs;
 
   // Residence management
   final residences = <ResidenceModel>[].obs;
@@ -100,6 +103,7 @@ class HomeController extends GetxController {
     fetchHomeData();
     fetchResidenceData();
     fetchNotifications(); // Fetch notifications from API
+    fetchUnreadCount(); // Fetch unread count from API
     // Pre-load documents in background after login
     _preloadDocuments();
   }
@@ -296,6 +300,7 @@ class HomeController extends GetxController {
     await fetchHomeData();
     await fetchResidenceData();
     await fetchNotifications(); // Refresh notifications on pull-to-refresh
+    await fetchUnreadCount(); // Refresh unread count on pull-to-refresh
   }
 
   /// Fetch notifications from API (user-wise)
@@ -309,6 +314,9 @@ class HomeController extends GetxController {
         final notifications = result['data'] as List<FeedItemModel>;
         feedItems.value = notifications;
         print('✅ [HomeController] Successfully loaded ${notifications.length} notifications');
+        
+        // Refresh unread count after fetching notifications to stay in sync
+        await fetchUnreadCount();
       } else {
         print('❌ [HomeController] Failed to fetch notifications: ${result['error']}');
         // On error, set empty list (don't show mock data)
@@ -321,13 +329,71 @@ class HomeController extends GetxController {
     }
   }
 
-  /// Mark notification as read
-  void markNotificationAsRead(String notificationId) {
+  /// Fetch unread notification count from API (single source of truth)
+  Future<void> fetchUnreadCount() async {
+    try {
+      print('🔔 [HomeController] Fetching unread notification count from API...');
+      
+      final result = await _homeRepository.getUnreadNotificationCount();
+
+      if (result['success'] == true) {
+        final count = result['unread_count'] as int? ?? 0;
+        unreadCount.value = count;
+        print('✅ [HomeController] Unread count updated: $count');
+      } else {
+        print('❌ [HomeController] Failed to fetch unread count: ${result['error']}');
+        // Keep last known value on error (don't reset to 0)
+      }
+    } catch (e) {
+      print('❌ [HomeController] Error fetching unread count: $e');
+      // Keep last known value on error (don't reset to 0)
+    }
+  }
+
+  /// Mark notification as read (with API sync)
+  Future<void> markNotificationAsRead(String notificationId) async {
+    // Check if notification is already read (avoid unnecessary API call)
     final index = feedItems.indexWhere((item) => item.id == notificationId);
-    if (index != -1) {
-      final notification = feedItems[index];
-      // Create new instance with isRead = true
-      feedItems[index] = notification.copyWith(isRead: true);
+    if (index == -1) {
+      print('⚠️ [HomeController] Notification not found: $notificationId');
+      return;
+    }
+
+    final notification = feedItems[index];
+    if (notification.isRead) {
+      print('ℹ️ [HomeController] Notification already read: $notificationId');
+      return; // Already read, don't call API
+    }
+
+    try {
+      // Parse notification ID to int (API expects int)
+      final notificationIdInt = int.tryParse(notificationId);
+      if (notificationIdInt == null) {
+        print('❌ [HomeController] Invalid notification ID format: $notificationId');
+        return;
+      }
+
+      print('📝 [HomeController] Marking notification as read: $notificationId');
+      
+      // Call API to mark as read
+      final result = await _homeRepository.markNotificationAsRead(notificationIdInt);
+
+      if (result['success'] == true) {
+        // Update local state optimistically
+        feedItems[index] = notification.copyWith(isRead: true);
+        feedItems.refresh(); // Trigger reactive update
+        
+        print('✅ [HomeController] Notification marked as read successfully');
+        
+        // Refresh unread count from API to stay in sync
+        await fetchUnreadCount();
+      } else {
+        print('❌ [HomeController] Failed to mark notification as read: ${result['error']}');
+        // Don't update local state if API call failed
+      }
+    } catch (e) {
+      print('❌ [HomeController] Error marking notification as read: $e');
+      // Don't update local state if API call failed
     }
   }
 
