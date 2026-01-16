@@ -26,6 +26,10 @@ class HomeController extends GetxController {
   
   // Unread notification count from API (single source of truth)
   final unreadCount = 0.obs;
+  
+  // API Token state (single source of truth - ensures token is ready before API calls)
+  final apiToken = RxString('');
+  final _isInitialized = false.obs; // Prevent duplicate initialization
 
   // Residence management
   final residences = <ResidenceModel>[].obs;
@@ -80,7 +84,7 @@ class HomeController extends GetxController {
   void onInit() {
     super.onInit();
     _loadUserData();
-    fetchResidences(); // Fetch residences on init
+    _loadApiToken(); // Load token FIRST before any API calls
   }
 
   //   @override
@@ -100,6 +104,60 @@ class HomeController extends GetxController {
   @override
   void onReady() {
     super.onReady();
+    
+    // Check if token is already available (most common case - synchronous load)
+    if (apiToken.value.isNotEmpty) {
+      print('✅ [HomeController] API token already available, initializing data...');
+      _initializeDataWithToken();
+    } else {
+      print('⚠️ [HomeController] API token not available yet, waiting...');
+      // Wait for token to be ready before making API calls
+      // Use one-time listener to trigger APIs when token becomes available
+      once(apiToken, (token) {
+        if (token.isNotEmpty && !_isInitialized.value) {
+          print('✅ [HomeController] API token ready, initializing data...');
+          _initializeDataWithToken();
+        }
+      });
+    }
+  }
+  
+  /// Load API token from storage
+  void _loadApiToken() {
+    final token = _storageService.getAccessToken();
+    final previousToken = apiToken.value;
+    apiToken.value = token ?? '';
+    print('🔑 [HomeController] Loaded apiToken: ${token != null && token.isNotEmpty ? "${token.substring(0, 10)}..." : "NO TOKEN"}');
+    
+    // If token changed from empty to non-empty, trigger initialization
+    if (previousToken.isEmpty && apiToken.value.isNotEmpty && !_isInitialized.value) {
+      print('✅ [HomeController] Token became available, initializing data...');
+      _initializeDataWithToken();
+    }
+  }
+  
+  /// Public method to reload token (e.g., after login)
+  void reloadToken() {
+    _loadApiToken();
+  }
+  
+  /// Initialize all data after token is confirmed available
+  void _initializeDataWithToken() {
+    // Only initialize once to avoid duplicate calls
+    if (_isInitialized.value) {
+      print('⚠️ [HomeController] Already initialized, skipping');
+      return;
+    }
+    
+    if (apiToken.value.isEmpty) {
+      print('❌ [HomeController] Cannot initialize: API token is empty');
+      return;
+    }
+    
+    _isInitialized.value = true;
+    print('✅ [HomeController] Initializing data with token...');
+    
+    fetchResidences(); // Fetch residences
     fetchHomeData();
     fetchResidenceData();
     fetchNotifications(); // Fetch notifications from API
@@ -157,6 +215,12 @@ class HomeController extends GetxController {
 
   /// Fetch user residences from API
   Future<void> fetchResidences() async {
+    // Guard: Check token before API call
+    if (apiToken.value.isEmpty) {
+      print('⚠️ [HomeController] fetchResidences: API token not ready, skipping');
+      return;
+    }
+    
     try {
       isLoadingResidences.value = true;
 
@@ -297,6 +361,15 @@ class HomeController extends GetxController {
   }
 
   Future<void> refreshData() async {
+    // Reload token before refresh to ensure it's current
+    _loadApiToken();
+    
+    // Only proceed if token is available
+    if (apiToken.value.isEmpty) {
+      print('⚠️ [HomeController] refreshData: API token not available, skipping refresh');
+      return;
+    }
+    
     await fetchHomeData();
     await fetchResidenceData();
     await fetchNotifications(); // Refresh notifications on pull-to-refresh
@@ -305,6 +378,12 @@ class HomeController extends GetxController {
 
   /// Fetch notifications from API (user-wise)
   Future<void> fetchNotifications() async {
+    // Guard: Check token before API call
+    if (apiToken.value.isEmpty) {
+      print('⚠️ [HomeController] fetchNotifications: API token not ready, skipping');
+      return;
+    }
+    
     try {
       print('🔔 [HomeController] Fetching notifications from API...');
       
@@ -331,6 +410,12 @@ class HomeController extends GetxController {
 
   /// Fetch unread notification count from API (single source of truth)
   Future<void> fetchUnreadCount() async {
+    // Guard: Check token before API call
+    if (apiToken.value.isEmpty) {
+      print('⚠️ [HomeController] fetchUnreadCount: API token not ready, skipping');
+      return;
+    }
+    
     try {
       print('🔔 [HomeController] Fetching unread notification count from API...');
       
@@ -352,6 +437,12 @@ class HomeController extends GetxController {
 
   /// Mark notification as read (with API sync)
   Future<void> markNotificationAsRead(String notificationId) async {
+    // Guard: Check token before API call
+    if (apiToken.value.isEmpty) {
+      print('⚠️ [HomeController] markNotificationAsRead: API token not ready, skipping');
+      return;
+    }
+    
     // Check if notification is already read (avoid unnecessary API call)
     final index = feedItems.indexWhere((item) => item.id == notificationId);
     if (index == -1) {
@@ -423,6 +514,12 @@ class HomeController extends GetxController {
 
   /// Fetch residence data for Home Screen
   Future<void> fetchResidenceData() async {
+    // Guard: Check token before API call
+    if (apiToken.value.isEmpty) {
+      print('⚠️ [HomeController] fetchResidenceData: API token not ready, skipping');
+      return;
+    }
+    
     try {
       print('🏠 [HomeController] Fetching residence data...');
       final result = await _homeRepository.getResidenceByToken();
