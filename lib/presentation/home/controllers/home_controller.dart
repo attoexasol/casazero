@@ -181,13 +181,22 @@ class HomeController extends GetxController {
           if (!Get.isRegistered<DocumentsController>()) {
             final documentsController = Get.put(DocumentsController());
             // Update documents list with pre-loaded data
-            final documentsData = result['data'] as List<dynamic>;
-            documentsController.documents.value = documentsData
-                .map(
-                  (item) =>
-                      DocumentModel.fromJson(item as Map<String, dynamic>),
-                )
-                .toList();
+            final documentsData = result['data'];
+            
+            // Handle both List<DocumentModel> and List<Map> cases
+            if (documentsData is List) {
+              if (documentsData.isNotEmpty && documentsData.first is DocumentModel) {
+                // Already DocumentModel objects
+                documentsController.documents.value = documentsData.cast<DocumentModel>();
+              } else {
+                // Raw JSON maps - need to parse
+                documentsController.documents.value = documentsData
+                    .map(
+                      (item) => DocumentModel.fromJson(item as Map<String, dynamic>),
+                    )
+                    .toList();
+              }
+            }
             print(
               '✅ Documents pre-loaded in HomeController: ${documentsData.length} documents',
             );

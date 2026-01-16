@@ -158,7 +158,21 @@ class ApiService extends getx.GetxService {
       errorMessage =
           'Connection timeout. Please check your internet connection.';
     } else if (error.type == DioExceptionType.badResponse) {
-      errorMessage = error.response?.data['message'] ?? 'Server error occurred';
+      // Safely extract error message from response
+      if (error.response?.data != null) {
+        final responseData = error.response!.data;
+        if (responseData is Map<String, dynamic>) {
+          errorMessage = responseData['message'] ?? 
+                        responseData['error'] ?? 
+                        'Server error occurred';
+        } else if (responseData is String) {
+          errorMessage = responseData;
+        } else {
+          errorMessage = 'Server error occurred';
+        }
+      } else {
+        errorMessage = 'Server error occurred';
+      }
     } else if (error.type == DioExceptionType.cancel) {
       errorMessage = 'Request cancelled';
     } else {
