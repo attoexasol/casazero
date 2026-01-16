@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../app/theme/app_shadows.dart';
 import '../../../../data/models/feed_item_model.dart';
+import '../../../../core/localization/locale_controller.dart';
 
 class NotificationItem extends StatelessWidget {
   final dynamic item;
@@ -94,115 +96,135 @@ class NotificationItem extends StatelessWidget {
 
                 const SizedBox(width: 14),
 
-                // TEXTS
+                // TEXTS (reactive to language changes)
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              item.title,
-                              style: AppTextStyles.bodyMedium.copyWith(
-                                fontWeight: isRead
-                                    ? FontWeight.w600
-                                    : FontWeight.w700,
+                  child: Obx(() {
+                    // Get LocaleController to observe language changes
+                    final localeController = Get.find<LocaleController>();
+                    // Access reactive locale property to trigger updates on language change
+                    final currentLocale = localeController.locale;
+                    final isItalian = localeController.isItalian;
+                    
+                    // Use computed bilingual getters from model
+                    // These getters check LocaleController internally, but we ensure reactivity here
+                    final displayTitle = item is FeedItemModel 
+                        ? item.displayTitle 
+                        : item.title;
+                    final displayContent = item is FeedItemModel 
+                        ? item.displayContent 
+                        : item.description;
+                    
+                    // Use currentLocale to ensure Obx tracks the change (even if unused)
+                    final _ = currentLocale;
+                    
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                displayTitle,
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  fontWeight: isRead
+                                      ? FontWeight.w600
+                                      : FontWeight.w700,
+                                ),
                               ),
                             ),
+                            // Unread indicator dot
+                            if (!isRead) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: borderColor,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: borderColor.withOpacity(0.5),
+                                      blurRadius: 4,
+                                      spreadRadius: 1,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          displayContent,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: isRead
+                                ? AppColors.neutralInk500
+                                : AppColors.neutralInk700,
+                            fontWeight: isRead ? FontWeight.w400 : FontWeight.w500,
                           ),
-                          // Unread indicator dot
-                          if (!isRead) ...[
-                            const SizedBox(width: 8),
+                        ),
+                        const SizedBox(height: 6),
+
+                        Row(
+                          children: [
                             Container(
-                              width: 8,
-                              height: 8,
+                              width: 4,
+                              height: 4,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: borderColor,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: borderColor.withOpacity(0.5),
-                                    blurRadius: 4,
-                                    spreadRadius: 1,
-                                  ),
-                                ],
+                                color: AppColors.neutralInk300,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              item.timeAgo,
+                              style: AppTextStyles.caption.copyWith(
+                                color: AppColors.neutralInk400,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        item.description,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: isRead
-                              ? AppColors.neutralInk500
-                              : AppColors.neutralInk700,
-                          fontWeight: isRead ? FontWeight.w400 : FontWeight.w500,
                         ),
-                      ),
-                      const SizedBox(height: 6),
-
-                      Row(
-                        children: [
-                          Container(
-                            width: 4,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.neutralInk300,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            item.timeAgo,
-                            style: AppTextStyles.caption.copyWith(
-                              color: AppColors.neutralInk400,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      // Action Buttons Row
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildActionButton(
-                              label: 'Chat',
-                              icon: Icons.chat_bubble_outline,
-                              onPressed: onChatPressed != null
-                                  ? () => onChatPressed!()
-                                  : null,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: _buildActionButton(
-                              label: 'Assistance',
-                              icon: Icons.support_agent_outlined,
-                              onPressed: onAssistancePressed != null
-                                  ? () => onAssistancePressed!()
-                                  : null,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: _buildActionButton(
-                              label: 'AI Support',
-                              icon: Icons.smart_toy_outlined,
-                              onPressed: onAiSupportPressed != null
-                                  ? () => onAiSupportPressed!()
-                                  : null,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        const SizedBox(height: 12),
+                        // Action Buttons Row
+                        // Row(
+                        //   children: [
+                        //     Expanded(
+                        //       child: _buildActionButton(
+                        //         label: 'Chat',
+                        //         icon: Icons.chat_bubble_outline,
+                        //         onPressed: onChatPressed != null
+                        //             ? () => onChatPressed!()
+                        //             : null,
+                        //       ),
+                        //     ),
+                        //     const SizedBox(width: 8),
+                        //     Expanded(
+                        //       child: _buildActionButton(
+                        //         label: 'Assistance',
+                        //         icon: Icons.support_agent_outlined,
+                        //         onPressed: onAssistancePressed != null
+                        //             ? () => onAssistancePressed!()
+                        //             : null,
+                        //       ),
+                        //     ),
+                        //     const SizedBox(width: 8),
+                        //     Expanded(
+                        //       child: _buildActionButton(
+                        //         label: 'AI Support',
+                        //         icon: Icons.smart_toy_outlined,
+                        //         onPressed: onAiSupportPressed != null
+                        //             ? () => onAiSupportPressed!()
+                        //             : null,
+                        //       ),
+                        //     ),
+                        //   ],
+                        // ),
+                      ],
+                    );
+                  }),
                 ),
               ],
             ),
