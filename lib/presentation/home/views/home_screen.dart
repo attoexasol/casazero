@@ -92,7 +92,7 @@ class HomeScreen extends GetView<HomeController> {
           //   )
           //       .fadeIn()
           //       .slideY(begin: 0.15),
-          LatestNotifications(feedItems: controller.feedItems)
+          const LatestNotifications()
               .animate(
             delay: 100.ms,
           )
@@ -132,7 +132,7 @@ class HomeScreen extends GetView<HomeController> {
                 .fadeIn()
                 .slideY(begin: 0.15),
 
-            LatestNotifications(feedItems: controller.feedItems)
+            const LatestNotifications()
                 .animate(
               delay: 100.ms,
             )

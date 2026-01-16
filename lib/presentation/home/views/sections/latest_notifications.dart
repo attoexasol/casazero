@@ -10,9 +10,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 
 class LatestNotifications extends StatelessWidget {
-  final List<dynamic> feedItems;
-
-  const LatestNotifications({super.key, required this.feedItems});
+  const LatestNotifications({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -54,21 +52,27 @@ class LatestNotifications extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // Empty state
-          if (feedItems.isEmpty)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32.0),
-                child: Text(
-                  'no_notifications'.tr,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.neutralInk500,
+          // Reactive notification list - observes controller.feedItems directly
+          Obx(() {
+            final feedItems = controller.feedItems;
+            
+            // Empty state
+            if (feedItems.isEmpty) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Text(
+                    'no_notifications'.tr,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.neutralInk500,
+                    ),
                   ),
                 ),
-              ),
-            )
-          else
-            Column(
+              );
+            }
+            
+            // Notification list
+            return Column(
               children: feedItems.asMap().entries.map((entry) {
                 final notification = entry.value as FeedItemModel;
                 return NotificationItem(
@@ -84,7 +88,8 @@ class LatestNotifications extends StatelessWidget {
                     .fadeIn(duration: 300.ms)
                     .slideY(begin: 0.2);
               }).toList(),
-            ),
+            );
+          }),
         ],
       ),
     );
