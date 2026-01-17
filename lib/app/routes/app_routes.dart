@@ -1,6 +1,5 @@
 // app/routes/app_routes.dart (ENHANCED WITH OTP VERIFICATION)
-import 'package:casazero/app/theme/app_colors.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../presentation/auth/views/auth_screen.dart';
 import '../../presentation/auth/controllers/auth_controller.dart';
@@ -12,6 +11,8 @@ import '../../presentation/otp_verification/controllers/otp_verification_control
 import '../../presentation/main/main_scaffold.dart';
 import '../../presentation/home/controllers/home_controller.dart';
 import '../../presentation/auth/views/change_password_screen.dart';
+import '../../presentation/auth/views/forgot_password_screen.dart';
+import '../../presentation/auth/controllers/forgot_password_controller.dart';
 import '../../presentation/profile/views/two_fa_management_screen.dart';
 import '../../presentation/profile/views/two_fa_activation_screen.dart';
 import '../../presentation/profile/controllers/two_fa_management_controller.dart';
@@ -26,6 +27,7 @@ class AppRoutes {
   static const String OTP_VERIFICATION = '/otp-verification';
   static const String HOME = '/home';
   static const String CHANGE_PASSWORD = '/change-password';
+  static const String FORGOT_PASSWORD = '/forgot-password';
   static const String TWO_FA_MANAGEMENT = '/two-fa-management';
   static const String TWO_FA_ACTIVATION = '/two-fa-activation';
   static const String TWO_FA_DEACTIVATION_VERIFICATION =
@@ -96,21 +98,39 @@ class AppRoutes {
       name: CHANGE_PASSWORD,
       page: () => ChangePasswordScreen(
         onBack: () => Get.back(),
-        onSuccess: () {
+        onSuccess: (String message) {
+          // Navigate back first
           Get.back();
-          Get.snackbar(
-            'Success',
-            'Password changed successfully',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: AppColors.brandSage600,
-            colorText: AppColors.surfaceWhite,
-            margin: const EdgeInsets.all(16),
-            borderRadius: 12,
-          );
+          // Then show snackbar on previous screen after a brief delay
+          Future.delayed(const Duration(milliseconds: 300), () {
+            Get.snackbar(
+              'success'.tr,
+              message,
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: const Color(0xFF22C55E),
+              colorText: Colors.white,
+              margin: const EdgeInsets.all(16),
+              borderRadius: 12,
+              duration: const Duration(seconds: 3),
+            );
+          });
         },
       ),
       binding: BindingsBuilder(() {
         Get.lazyPut(() => ChangePasswordController());
+      }),
+    ),
+    GetPage(
+      name: FORGOT_PASSWORD,
+      page: () => ForgotPasswordScreen(
+        onBack: () => Get.back(),
+        onSuccess: (String message) {
+          // Navigate to OTP verification screen after successful password reset
+          Get.offAllNamed(OTP_VERIFICATION);
+        },
+      ),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => ForgotPasswordController());
       }),
     ),
   ];

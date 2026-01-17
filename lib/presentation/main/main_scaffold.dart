@@ -814,15 +814,21 @@ class MainScaffold extends GetView<HomeController> {
       case AppScreen.changePassword:
         return ChangePasswordScreen(
           onBack: () => controller.goBack(),
-          onSuccess: () {
+          onSuccess: (String message) {
             controller.goBack();
-            Get.snackbar(
-              'Success',
-              'Password changed successfully',
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: AppColors.brandSage600,
-              colorText: AppColors.surfaceWhite,
-            );
+            // Show snackbar after navigation completes
+            Future.delayed(const Duration(milliseconds: 300), () {
+              Get.snackbar(
+                'success'.tr,
+                message,
+                snackPosition: SnackPosition.BOTTOM,
+                backgroundColor: AppColors.brandSage600,
+                colorText: AppColors.surfaceWhite,
+                margin: const EdgeInsets.all(16),
+                borderRadius: 12,
+                duration: const Duration(seconds: 3),
+              );
+            });
           },
         );
 

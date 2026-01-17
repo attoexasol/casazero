@@ -57,6 +57,10 @@ class AppTranslations extends Translations {
     'enter_email_password': 'Please enter email and password',
     'enter_email': 'Please enter your email',
     'failed_reset_email': 'Failed to send reset email',
+    'reset_password': 'Reset Password',
+    'reset_password_description': 'Enter your email and create a new password',
+    'password_reset_successful': 'Password reset successfully',
+    'password_reset_failed': 'Failed to reset password. Please try again.',
 
     // First Login Setup
     'first_login_setup': 'First-Time Setup',
@@ -618,6 +622,10 @@ class AppTranslations extends Translations {
     'enter_email_password': 'Inserisci email e password',
     'enter_email': 'Inserisci la tua email',
     'failed_reset_email': 'Impossibile inviare email di reset',
+    'reset_password': 'Reimposta Password',
+    'reset_password_description': 'Inserisci la tua email e crea una nuova password',
+    'password_reset_successful': 'Password reimpostata con successo',
+    'password_reset_failed': 'Impossibile reimpostare la password. Riprova.',
 
     // Profile
     "profile": "Profilo",

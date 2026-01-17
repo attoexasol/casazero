@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../core/utils/validators.dart';
-import '../../../app/theme/app_colors.dart';
 
 class ChangePasswordController extends GetxController {
   // ---------------------------------------------------------------------------
@@ -117,7 +116,7 @@ class ChangePasswordController extends GetxController {
   // SUBMIT PASSWORD CHANGE
   // ---------------------------------------------------------------------------
   Future<void> handleChangePassword({
-    required VoidCallback onSuccess,
+    required Function(String message) onSuccess,
   }) async {
     // Empty fields
     if (!canSubmit) {
@@ -135,8 +134,8 @@ class ChangePasswordController extends GetxController {
     isLoading.value = false;
 
     if (result['success'] == true) {
-      _showSuccess(result['message'] ?? 'password_changed'.tr);
-      onSuccess();
+      // Navigate back first, then show snackbar on previous screen
+      onSuccess(result['message'] ?? 'password_changed'.tr);
     } else {
       _showError(result['error'] ?? 'password_requirements_not_met'.tr);
     }
@@ -152,19 +151,6 @@ class ChangePasswordController extends GetxController {
       message,
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: Colors.red.shade600,
-      colorText: Colors.white,
-      margin: const EdgeInsets.all(16),
-      borderRadius: 12,
-      duration: const Duration(seconds: 3),
-    );
-  }
-
-  void _showSuccess(String message) {
-    Get.snackbar(
-      'success'.tr,
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: AppColors.brandSage600,
       colorText: Colors.white,
       margin: const EdgeInsets.all(16),
       borderRadius: 12,

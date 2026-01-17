@@ -192,35 +192,7 @@ class AuthController extends GetxController {
   }
 
   Future<void> forgotPassword() async {
-    if (emailController.text.isEmpty) {
-      Get.snackbar(
-        'error'.tr,
-        'enter_email'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      return;
-    }
-
-    final success = await _authRepository.forgotPassword(
-      emailController.text.trim(),
-    );
-
-    if (success) {
-      Get.snackbar(
-        'password_reset_sent'.tr,
-        'check_email'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green[700],
-        colorText: Colors.white,
-      );
-    } else {
-      Get.snackbar(
-        'error'.tr,
-        'failed_reset_email'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
-      );
-    }
+    // Navigate to forgot password screen
+    Get.toNamed(AppRoutes.FORGOT_PASSWORD);
   }
 }

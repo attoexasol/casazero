@@ -179,6 +179,38 @@ class AuthRepository {
     }
   }
 
+  // Reset Password (Forgot Password Flow)
+  Future<Map<String, dynamic>> resetPassword({
+    required String email,
+    required String newPassword,
+  }) async {
+    try {
+      final response = await _apiService.post(
+        ApiConstants.RESET_PASSWORD,
+        data: {
+          'email': email,
+          'password': newPassword,
+          'password_confirmation': newPassword,
+        },
+      );
+
+      if (response.statusCode == 200 && response.data['status'] == true) {
+        return {
+          'success': true,
+          'message':
+              response.data['message'] ?? 'Password reset successfully!',
+        };
+      } else {
+        return {
+          'success': false,
+          'error': response.data['message'] ?? 'Failed to reset password',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
   // Change Password (First Login)
   Future<Map<String, dynamic>> changePassword({
     required String currentPassword,

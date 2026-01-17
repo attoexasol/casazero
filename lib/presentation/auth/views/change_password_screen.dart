@@ -9,7 +9,7 @@ import '../controllers/change_password_controller.dart';
 
 class ChangePasswordScreen extends GetView<ChangePasswordController> {
   final VoidCallback onBack;
-  final VoidCallback onSuccess;
+  final Function(String message) onSuccess;
 
   const ChangePasswordScreen({
     super.key,
