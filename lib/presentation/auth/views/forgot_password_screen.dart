@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import '../../../core/widgets/casazero_logo.dart';
-import '../../../core/widgets/password_input.dart';
 import '../../../core/widgets/custom_text_field.dart';
 import '../controllers/forgot_password_controller.dart';
 
@@ -96,30 +95,31 @@ class ForgotPasswordScreen extends GetView<ForgotPasswordController> {
       padding: const EdgeInsets.all(24),
       child: Align(
         alignment: Alignment.centerLeft,
-        child: InkWell(
-          onTap: onBack,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.arrow_back,
-                color: Colors.white.withOpacity(0.9),
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'back'.tr,
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.9),
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-        )
-            .animate()
-            .fadeIn(duration: 500.ms, delay: 200.ms)
-            .slideX(begin: -0.2, delay: 200.ms),
+        child:
+            InkWell(
+                  onTap: onBack,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.arrow_back,
+                        color: Colors.white.withOpacity(0.9),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'back'.tr,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.9),
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+                .animate()
+                .fadeIn(duration: 500.ms, delay: 200.ms)
+                .slideX(begin: -0.2, delay: 200.ms),
       ),
     );
   }
@@ -129,36 +129,36 @@ class ForgotPasswordScreen extends GetView<ForgotPasswordController> {
   // --------------------------
   Widget _buildGlassCard() {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: Container(
-          padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.white.withOpacity(0.2),
-                Colors.white.withOpacity(0.05),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+            color: Colors.white.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white.withOpacity(0.2)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: Container(
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.white.withOpacity(0.2),
+                    Colors.white.withOpacity(0.05),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: _buildFormContent(),
             ),
           ),
-          child: _buildFormContent(),
-        ),
-      ),
-    )
+        )
         .animate()
         .fadeIn(duration: 600.ms, delay: 400.ms)
         .slideY(begin: 0.2, delay: 400.ms);
@@ -204,52 +204,6 @@ class ForgotPasswordScreen extends GetView<ForgotPasswordController> {
                   borderColor: Colors.white.withOpacity(0.4),
                   textColor: const Color(0xFF1a1a1a),
                 ),
-
-                const SizedBox(height: 20),
-
-                // New Password
-                PasswordInputField(
-                  label: 'new_password'.tr,
-                  controller: ctrl.newPasswordController,
-                  isVisible: ctrl.showNewPassword,
-                  onToggle: () => ctrl.togglePasswordVisibility('new'),
-                ),
-
-                const SizedBox(height: 20),
-
-                // Confirm Password
-                PasswordInputField(
-                  label: 'confirm_password'.tr,
-                  controller: ctrl.confirmPasswordController,
-                  isVisible: ctrl.showConfirmPassword,
-                  onToggle: () => ctrl.togglePasswordVisibility('confirm'),
-                ),
-
-                // Requirements
-                Obx(() {
-                  if (!ctrl.hasPasswordInput.value) {
-                    return const SizedBox.shrink();
-                  }
-                  return Column(
-                    children: [
-                      const SizedBox(height: 20),
-                      _passwordRequirements(ctrl),
-                    ],
-                  );
-                }),
-
-                // Password Match
-                Obx(() {
-                  if (!ctrl.showPasswordMatch.value) {
-                    return const SizedBox.shrink();
-                  }
-                  return Column(
-                    children: [
-                      const SizedBox(height: 12),
-                      _passwordMatchIndicator(ctrl),
-                    ],
-                  );
-                }),
               ],
             ),
 
@@ -261,89 +215,6 @@ class ForgotPasswordScreen extends GetView<ForgotPasswordController> {
         );
       },
     );
-  }
-
-  // --------------------------
-  // PASSWORD REQUIREMENTS
-  // --------------------------
-  Widget _passwordRequirements(ForgotPasswordController ctrl) {
-    return Obx(() {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'password_requirements'.tr,
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.white.withOpacity(0.8),
-            ),
-          ),
-          const SizedBox(height: 8),
-          ...ctrl.passwordRequirements.asMap().entries.map((entry) {
-            final index = entry.key;
-            final req = entry.value;
-            return Row(
-              children: [
-                Container(
-                  width: 16,
-                  height: 16,
-                  decoration: BoxDecoration(
-                    color: req.isMet
-                        ? const Color(0xFF22C55E)
-                        : Colors.white.withOpacity(0.3),
-                    shape: BoxShape.circle,
-                  ),
-                  child: req.isMet
-                      ? const Icon(
-                          Icons.check,
-                          size: 12,
-                          color: Colors.white,
-                        )
-                      : null,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  req.label.tr,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: req.isMet
-                        ? const Color(0xFF22C55E)
-                        : Colors.white.withOpacity(0.7),
-                  ),
-                ),
-              ],
-            )
-                .animate()
-                .fadeIn(delay: (index * 50).ms)
-                .slideX(begin: -0.1, delay: (index * 50).ms);
-          }),
-        ],
-      );
-    });
-  }
-
-  // --------------------------
-  // MATCH INDICATOR
-  // --------------------------
-  Widget _passwordMatchIndicator(ForgotPasswordController ctrl) {
-    final match = ctrl.passwordsMatch;
-    return Row(
-      children: [
-        Icon(
-          match ? Icons.check : Icons.close,
-          color: match ? const Color(0xFF22C55E) : const Color(0xFFE11D48),
-          size: 16,
-        ),
-        const SizedBox(width: 8),
-        Text(
-          match ? 'passwords_match'.tr : 'passwords_no_match'.tr,
-          style: TextStyle(
-            fontSize: 11,
-            color: match ? const Color(0xFF22C55E) : const Color(0xFFE11D48),
-          ),
-        ),
-      ],
-    ).animate().fadeIn();
   }
 
   // --------------------------

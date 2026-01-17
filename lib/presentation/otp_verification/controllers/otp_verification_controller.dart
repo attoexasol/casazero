@@ -19,10 +19,16 @@ class OtpVerificationController extends GetxController {
   final RxInt countdown = 0.obs;
   final RxString twoFaMethod = ''.obs;
   final RxString maskedContact = ''.obs;
+  final RxBool fromForgotPassword = false.obs;
 
   @override
   void onInit() {
     super.onInit();
+    // Check if this OTP verification is from forgot password flow
+    final arguments = Get.arguments;
+    if (arguments != null && arguments is Map) {
+      fromForgotPassword.value = arguments['fromForgotPassword'] == true;
+    }
     _initializeVerification();
   }
 
@@ -35,6 +41,29 @@ class OtpVerificationController extends GetxController {
   void _initializeVerification() {
     // Get user data to determine 2FA method
     final userData = _storageService.getUserData();
+    
+    // If from forgot password flow, verify user_id exists
+    if (fromForgotPassword.value) {
+      final userId = userData?['id'];
+      if (userId == null) {
+        print('❌ [OTPVerification] User ID not found in storage for forgot password flow');
+        Get.snackbar(
+          'error'.tr,
+          'user_id_not_found'.tr,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red[700],
+          colorText: Colors.white,
+        );
+        // Navigate back to forgot password screen
+        Future.delayed(const Duration(seconds: 2), () {
+          Get.offAllNamed(AppRoutes.FORGOT_PASSWORD);
+        });
+        return;
+      } else {
+        print('✅ [OTPVerification] User ID found in storage for forgot password flow: $userId');
+      }
+    }
+    
     if (userData != null) {
       twoFaMethod.value = userData['two_fa_method'] ?? 'email';
 
@@ -206,12 +235,19 @@ class OtpVerificationController extends GetxController {
     isLoading.value = false;
     print(result.toString());
     if (result['success']) {
-      // Pre-load documents in background while navigating
-      _preloadDocuments();
+      // Check if this is from forgot password flow
+      if (fromForgotPassword.value) {
+        // Navigate to forgot change password screen
+        await Future.delayed(const Duration(milliseconds: 500));
+        Get.offAllNamed(AppRoutes.FORGOT_CHANGE_PASSWORD);
+      } else {
+        // Pre-load documents in background while navigating
+        _preloadDocuments();
 
-      // Navigate to home
-      await Future.delayed(const Duration(milliseconds: 500));
-      Get.offAllNamed(AppRoutes.HOME);
+        // Navigate to home
+        await Future.delayed(const Duration(milliseconds: 500));
+        Get.offAllNamed(AppRoutes.HOME);
+      }
     } else {
       Get.snackbar(
         'error'.tr,

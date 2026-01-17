@@ -59,9 +59,15 @@ class AppTranslations extends Translations {
     'failed_reset_email': 'Failed to send reset email',
     'reset_password': 'Reset Password',
     'reset_password_description': 'Enter your email and create a new password',
+    'create_new_password': 'Create a new password for your account',
+    'email_not_found': 'Email not found. Please try again.',
+    'user_id_not_found': 'User ID not found. Please try again.',
     'password_reset_successful': 'Password reset successfully',
     'password_reset_failed': 'Failed to reset password. Please try again.',
+    'sent_to_phone': 'Sent to phone',
+    'sent_to_email': 'Sent to email',
 
+    'verify_continue': 'Verify and Continue',
     // First Login Setup
     'first_login_setup': 'First-Time Setup',
     'secure_your_account':
@@ -182,6 +188,7 @@ class AppTranslations extends Translations {
 
     // Security
     "security": "Security",
+    'cancel_logout': 'Cancel and Logout',
 
     // Trusted Devices
     "trusted_devices": "Trusted Devices",
@@ -335,6 +342,30 @@ class AppTranslations extends Translations {
     'enter_code_to_confirm':
         'Enter your verification code to confirm deactivation',
     'open_authenticator_app': 'Open your authenticator app for the code',
+
+    // OTP Verification Screen - English Translations
+    'verify_identity': 'Verify Your Identity',
+    'email_authentication': 'Email Authentication',
+    'sms_authentication': 'SMS Authentication',
+    'two_factor_authentication': 'Two-Factor Authentication',
+    'otp_email_instruction':
+        'We\'ve sent a 6-digit verification code to your email',
+    'otp_sms_instruction':
+        'We\'ve sent a 6-digit verification code to your phone number',
+    'otp_authenticator_instruction':
+        'Open your authenticator app and enter the 6-digit code',
+    'otp_verification_instruction':
+        'Enter the 6-digit verification code to continue',
+    'enter_otp_code': 'Please enter the verification code',
+    'otp_must_be_6_digits': 'Verification code must be 6 digits',
+    'invalid_otp_code': 'Invalid verification code. Please try again',
+    'failed_to_send_otp': 'Failed to send verification code',
+    'please_wait_before_resend':
+        'Please wait {seconds} seconds before requesting a new code',
+    'cancel_verification': 'Cancel Verification',
+    'cancel_verification_message':
+        'Are you sure you want to cancel? You will be logged out.',
+
     'two_factor_deactivated': '2FA Deactivated',
     'two_factor_deactivated_message':
         'Two-factor authentication has been disabled for your account',
@@ -377,6 +408,7 @@ class AppTranslations extends Translations {
     'downloadFailed': 'Download Failed',
     'downloadSuccess': 'Document downloaded successfully',
     'downloadError': 'Failed to download document',
+    'enter_6_digit_code': 'Enter 6-digit code',
 
     // OPEN FILE KEYS  ← ADD HERE
     'openFile': 'Open',
@@ -623,7 +655,11 @@ class AppTranslations extends Translations {
     'enter_email': 'Inserisci la tua email',
     'failed_reset_email': 'Impossibile inviare email di reset',
     'reset_password': 'Reimposta Password',
-    'reset_password_description': 'Inserisci la tua email e crea una nuova password',
+    'reset_password_description':
+        'Inserisci la tua email e crea una nuova password',
+    'create_new_password': 'Crea una nuova password per il tuo account',
+    'email_not_found': 'Email non trovata. Riprova.',
+    'user_id_not_found': 'ID utente non trovato. Riprova.',
     'password_reset_successful': 'Password reimpostata con successo',
     'password_reset_failed': 'Impossibile reimpostare la password. Riprova.',
 

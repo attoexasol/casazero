@@ -79,7 +79,9 @@ class AuthRepository {
         // Save the new token from response for next login
         if (response.data['token'] != null) {
           await _storageService.saveDeviceToken(response.data['token']);
-          print('💾 Device Token Saved (for trusted login): ${response.data['token']}');
+          print(
+            '💾 Device Token Saved (for trusted login): ${response.data['token']}',
+          );
         }
 
         return {
@@ -159,23 +161,37 @@ class AuthRepository {
     } catch (e) {
       print('❌ Error during logout API call: $e');
       // Even if API fails, we should still clear local storage
-      return {
-        'success': false,
-        'error': 'Failed to logout. Please try again.',
-      };
+      return {'success': false, 'error': 'Failed to logout. Please try again.'};
     }
   }
 
   // Forgot Password
-  Future<bool> forgotPassword(String email) async {
+  Future<Map<String, dynamic>> forgotPassword(String email) async {
     try {
-      await _apiService.post(
+      final response = await _apiService.post(
         ApiConstants.FORGOT_PASSWORD,
         data: {'email': email},
       );
-      return true;
+
+      if (response.statusCode == 200 && response.data['status'] == true) {
+        return {
+          'success': true,
+          'message':
+              response.data['message'] ??
+              'Password reset email sent successfully!',
+          'user_id':
+              response.data['data']?['user_id'] ?? response.data['user_id'],
+        };
+      } else {
+        return {
+          'success': false,
+          'error':
+              response.data['message'] ?? 'Failed to send password reset email',
+        };
+      }
     } catch (e) {
-      return false;
+      print('❌ Error sending forgot password request: $e');
+      return {'success': false, 'error': e.toString()};
     }
   }
 
@@ -197,8 +213,7 @@ class AuthRepository {
       if (response.statusCode == 200 && response.data['status'] == true) {
         return {
           'success': true,
-          'message':
-              response.data['message'] ?? 'Password reset successfully!',
+          'message': response.data['message'] ?? 'Password reset successfully!',
         };
       } else {
         return {

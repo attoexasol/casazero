@@ -4,32 +4,24 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../core/utils/validators.dart';
+import '../../../core/services/storage_service.dart';
 
 class ForgotPasswordController extends GetxController {
   // ---------------------------------------------------------------------------
   // DEPENDENCIES
   // ---------------------------------------------------------------------------
   final AuthRepository _authRepository = Get.find();
+  final StorageService _storageService = Get.find();
 
   // ---------------------------------------------------------------------------
   // TEXT CONTROLLERS
   // ---------------------------------------------------------------------------
   final emailController = TextEditingController();
-  final newPasswordController = TextEditingController();
-  final confirmPasswordController = TextEditingController();
 
   // ---------------------------------------------------------------------------
   // OBSERVABLES FOR UI
   // ---------------------------------------------------------------------------
-  final RxBool showNewPassword = false.obs;
-  final RxBool showConfirmPassword = false.obs;
-
   final RxBool isLoading = false.obs;
-  final RxBool hasPasswordInput = false.obs;
-  final RxBool showPasswordMatch = false.obs;
-
-  final RxList<PasswordRequirement> passwordRequirements =
-      <PasswordRequirement>[].obs;
 
   // ---------------------------------------------------------------------------
   // LIFECYCLE
@@ -38,59 +30,14 @@ class ForgotPasswordController extends GetxController {
   void onInit() {
     super.onInit();
 
-    // Update password strength + rules
-    newPasswordController.addListener(_updatePasswordRequirements);
-
-    // Show/hide password match section
-    newPasswordController.addListener(_updatePasswordMatchVisibility);
-    confirmPasswordController.addListener(_updatePasswordMatchVisibility);
-
     // Update GetBuilder UI for submit button / form state
     emailController.addListener(() => update());
-    newPasswordController.addListener(() => update());
-    confirmPasswordController.addListener(() => update());
   }
 
   @override
   void onClose() {
     emailController.dispose();
-    newPasswordController.dispose();
-    confirmPasswordController.dispose();
     super.onClose();
-  }
-
-  // ---------------------------------------------------------------------------
-  // INPUT LISTENERS
-  // ---------------------------------------------------------------------------
-
-  /// updates the password strength requirements from Validators class
-  void _updatePasswordRequirements() {
-    final newPassword = newPasswordController.text;
-
-    hasPasswordInput.value = newPassword.isNotEmpty;
-
-    passwordRequirements.value =
-        Validators.getPasswordRequirements(newPassword);
-
-    update(); // updates GetBuilder UI
-  }
-
-  /// updates when to show the "passwords match" message
-  void _updatePasswordMatchVisibility() {
-    showPasswordMatch.value =
-        newPasswordController.text.isNotEmpty &&
-            confirmPasswordController.text.isNotEmpty;
-  }
-
-  // ---------------------------------------------------------------------------
-  // PASSWORD VISIBILITY
-  // ---------------------------------------------------------------------------
-  void togglePasswordVisibility(String field) {
-    if (field == 'new') {
-      showNewPassword.toggle();
-    } else if (field == 'confirm') {
-      showConfirmPassword.toggle();
-    }
   }
 
   // ---------------------------------------------------------------------------
@@ -99,22 +46,10 @@ class ForgotPasswordController extends GetxController {
 
   bool get isValidEmail => Validators.isValidEmail(emailController.text);
 
-  bool get passwordsMatch =>
-      newPasswordController.text == confirmPasswordController.text;
-
-  bool get isPasswordStrong =>
-      Validators.isPasswordStrong(newPasswordController.text);
-
-  bool get canSubmit =>
-      emailController.text.isNotEmpty &&
-          isValidEmail &&
-          newPasswordController.text.isNotEmpty &&
-          confirmPasswordController.text.isNotEmpty &&
-          passwordsMatch &&
-          isPasswordStrong;
+  bool get canSubmit => emailController.text.isNotEmpty && isValidEmail;
 
   // ---------------------------------------------------------------------------
-  // SUBMIT PASSWORD RESET
+  // SUBMIT PASSWORD RESET REQUEST
   // ---------------------------------------------------------------------------
   Future<void> handleResetPassword({
     required Function(String message) onSuccess,
@@ -127,15 +62,27 @@ class ForgotPasswordController extends GetxController {
 
     isLoading.value = true;
 
-    final result = await _authRepository.resetPassword(
-      email: emailController.text.trim(),
-      newPassword: newPasswordController.text.trim(),
+    final result = await _authRepository.forgotPassword(
+      emailController.text.trim(),
     );
 
     isLoading.value = false;
 
     if (result['success'] == true) {
-      // Navigate back first, then show snackbar on previous screen
+      // Save email and user_id to storage for use in OTP verification and forgot change password screen
+      final email = emailController.text.trim();
+      final userId = result['user_id'];
+      final userData = _storageService.getUserData() ?? {};
+      userData['email'] = email;
+      if (userId != null) {
+        userData['id'] = userId;
+        print('✅ [ForgotPassword] User ID stored: $userId');
+      } else {
+        print('⚠️ [ForgotPassword] User ID not found in API response');
+      }
+      await _storageService.saveUserData(userData);
+
+      // Navigate to OTP verification screen
       onSuccess(result['message'] ?? 'password_reset_successful'.tr);
     } else {
       _showError(result['error'] ?? 'password_reset_failed'.tr);

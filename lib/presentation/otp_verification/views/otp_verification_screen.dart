@@ -49,7 +49,10 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
             child: Center(
               child: SingleChildScrollView(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24.0,
+                    vertical: 48,
+                  ),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 430),
                     child: Column(
@@ -100,7 +103,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
   }
 
   Widget _buildOtpCard() {
-    return Obx(() => ClipRRect(
+    return ClipRRect(
       borderRadius: BorderRadius.circular(24),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
@@ -111,10 +114,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: Colors.white.withOpacity(0.2)),
             boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 40,
-              ),
+              BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 40),
             ],
           ),
           child: Column(
@@ -135,7 +135,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
           ),
         ),
       ),
-    ));
+    );
   }
 
   Widget _buildHeader() {
@@ -150,11 +150,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
               colors: [AppColors.brandSage500, AppColors.brandSage600],
             ),
           ),
-          child: Icon(
-            _getMethodIconData(),
-            color: Colors.white,
-            size: 24,
-          ),
+          child: Icon(_getMethodIconData(), color: Colors.white, size: 24),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -169,13 +165,12 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Obx(() => Text(
-                controller.methodDisplayName,
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12,
+              Obx(
+                () => Text(
+                  controller.methodDisplayName,
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
                 ),
-              )),
+              ),
             ],
           ),
         ),
@@ -196,13 +191,15 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
           const Icon(Icons.info_outline, color: Colors.white, size: 18),
           const SizedBox(width: 12),
           Expanded(
-            child: Obx(() => Text(
-              controller.instructionText,
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.9),
-                fontSize: 13,
+            child: Obx(
+              () => Text(
+                controller.instructionText,
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.9),
+                  fontSize: 13,
+                ),
               ),
-            )),
+            ),
           ),
         ],
       ),
@@ -211,7 +208,9 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
 
   Widget _buildMethodInfo() {
     return Obx(() {
-      if (controller.twoFaMethod.value == 'authenticator') {
+      final method = controller.twoFaMethod.value;
+
+      if (method == 'authenticator') {
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -263,7 +262,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
         );
       }
 
-      // For email and SMS, show masked contact
+      // Email / SMS UI
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -281,9 +280,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
-                controller.twoFaMethod.value == 'email'
-                    ? Icons.email_outlined
-                    : Icons.sms_outlined,
+                method == 'email' ? Icons.email_outlined : Icons.sms_outlined,
                 color: Colors.white,
                 size: 24,
               ),
@@ -294,9 +291,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    controller.twoFaMethod.value == 'email'
-                        ? 'sent_to_email'.tr
-                        : 'sent_to_phone'.tr,
+                    method == 'email' ? 'sent_to_email'.tr : 'sent_to_phone'.tr,
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.7),
                       fontSize: 12,
@@ -350,9 +345,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
               letterSpacing: 8,
               color: AppColors.neutralInk900,
             ),
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-            ],
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             decoration: InputDecoration(
               hintText: '000000',
               hintStyle: TextStyle(
@@ -376,16 +369,19 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
 
   Widget _buildResendSection() {
     return Obx(() {
-      if (controller.twoFaMethod.value == 'authenticator') {
+      final method = controller.twoFaMethod.value;
+      final seconds = controller.countdown.value;
+
+      if (method == 'authenticator') {
         return const SizedBox.shrink();
       }
 
       return Center(
         child: Column(
           children: [
-            if (controller.countdown.value > 0)
+            if (seconds > 0)
               Text(
-                'resend_code_in'.tr.replaceAll('{seconds}', controller.countdown.value.toString()),
+                'resend_code_in'.tr.replaceAll('{seconds}', seconds.toString()),
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.7),
                   fontSize: 13,
@@ -411,7 +407,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
 
   Widget _buildVerifyButton() {
     return Obx(
-          () => CustomButton(
+      () => CustomButton(
         text: 'verify_continue'.tr,
         onPressed: controller.verifyOTP,
         isLoading: controller.isLoading.value,
@@ -424,10 +420,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
       onPressed: controller.cancelVerification,
       child: Text(
         'cancel_logout'.tr,
-        style: TextStyle(
-          color: Colors.white.withOpacity(0.8),
-          fontSize: 14,
-        ),
+        style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14),
       ),
     );
   }
@@ -436,10 +429,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
     return Text(
       'copyright'.tr,
       textAlign: TextAlign.center,
-      style: TextStyle(
-        fontSize: 12,
-        color: Colors.white.withOpacity(0.6),
-      ),
+      style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.6)),
     );
   }
 

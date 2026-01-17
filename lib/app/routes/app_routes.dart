@@ -13,6 +13,8 @@ import '../../presentation/home/controllers/home_controller.dart';
 import '../../presentation/auth/views/change_password_screen.dart';
 import '../../presentation/auth/views/forgot_password_screen.dart';
 import '../../presentation/auth/controllers/forgot_password_controller.dart';
+import '../../presentation/auth/views/forgot_change_password_screen.dart';
+import '../../presentation/auth/controllers/forgot_change_password_controller.dart';
 import '../../presentation/profile/views/two_fa_management_screen.dart';
 import '../../presentation/profile/views/two_fa_activation_screen.dart';
 import '../../presentation/profile/controllers/two_fa_management_controller.dart';
@@ -28,6 +30,7 @@ class AppRoutes {
   static const String HOME = '/home';
   static const String CHANGE_PASSWORD = '/change-password';
   static const String FORGOT_PASSWORD = '/forgot-password';
+  static const String FORGOT_CHANGE_PASSWORD = '/forgot-change-password';
   static const String TWO_FA_MANAGEMENT = '/two-fa-management';
   static const String TWO_FA_ACTIVATION = '/two-fa-activation';
   static const String TWO_FA_DEACTIVATION_VERIFICATION =
@@ -125,12 +128,40 @@ class AppRoutes {
       page: () => ForgotPasswordScreen(
         onBack: () => Get.back(),
         onSuccess: (String message) {
-          // Navigate to OTP verification screen after successful password reset
-          Get.offAllNamed(OTP_VERIFICATION);
+          // Navigate to OTP verification screen with flag indicating it's from forgot password
+          Get.offAllNamed(
+            OTP_VERIFICATION,
+            arguments: {'fromForgotPassword': true},
+          );
         },
       ),
       binding: BindingsBuilder(() {
         Get.lazyPut(() => ForgotPasswordController());
+      }),
+    ),
+    GetPage(
+      name: FORGOT_CHANGE_PASSWORD,
+      page: () => ForgotChangePasswordScreen(
+        onBack: () => Get.back(),
+        onSuccess: (String message) {
+          // Navigate back to auth screen after successful password reset
+          Future.delayed(const Duration(milliseconds: 300), () {
+            Get.offAllNamed(AUTH);
+            Get.snackbar(
+              'success'.tr,
+              message,
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: const Color(0xFF22C55E),
+              colorText: Colors.white,
+              margin: const EdgeInsets.all(16),
+              borderRadius: 12,
+              duration: const Duration(seconds: 3),
+            );
+          });
+        },
+      ),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => ForgotChangePasswordController());
       }),
     ),
   ];
