@@ -26,27 +26,14 @@ class NotificationItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final isRead = item.isRead ?? false;
     
+    // Determine border color based on notification type for card styling
     Color borderColor;
-    Color iconBgColor;
-    Color iconColor;
-    IconData icon;
-
-    // TYPE MATCHING
     if (item.type == 'maintenance') {
       borderColor = AppColors.warning;
-      iconBgColor = AppColors.warning.withOpacity(0.15);
-      iconColor = AppColors.warning;
-      icon = Icons.build;
-    } else if (item.type == 'document') {
+    } else if (item.type == 'document' || item.type == 'documents') {
       borderColor = AppColors.brandSage500;
-      iconBgColor = AppColors.brandSage100;
-      iconColor = AppColors.brandSage600;
-      icon = Icons.description;
     } else {
       borderColor = AppColors.info;
-      iconBgColor = AppColors.info.withOpacity(0.15);
-      iconColor = AppColors.info;
-      icon = Icons.info_outline;
     }
 
     return Container(
@@ -82,20 +69,8 @@ class NotificationItem extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ICON BOX
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: iconBgColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(icon, color: iconColor, size: 20),
-                ),
-
-                const SizedBox(width: 14),
-
                 // TEXTS (reactive to language changes)
                 Expanded(
                   child: Obx(() {
@@ -103,7 +78,6 @@ class NotificationItem extends StatelessWidget {
                     final localeController = Get.find<LocaleController>();
                     // Access reactive locale property to trigger updates on language change
                     final currentLocale = localeController.locale;
-                    final isItalian = localeController.isItalian;
                     
                     // Use computed bilingual getters from model
                     // These getters check LocaleController internally, but we ensure reactivity here
@@ -114,14 +88,21 @@ class NotificationItem extends StatelessWidget {
                         ? item.displayContent 
                         : item.description;
                     
-                    // Use currentLocale to ensure Obx tracks the change (even if unused)
+                    // Use currentLocale to ensure Obx tracks the change (triggers rebuild on language change)
                     final _ = currentLocale;
+                    
+                    // Get category icon for this notification type
+                    final categoryIcon = _getNotificationIcon(item.type ?? '');
                     
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
+                            // Category icon on the LEFT of title
+                            _buildCategoryIcon(categoryIcon, item.type ?? ''),
+                            const SizedBox(width: 10),
                             Expanded(
                               child: Text(
                                 displayTitle,
@@ -232,6 +213,88 @@ class NotificationItem extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Get notification icon based on type
+  /// Returns appropriate icon for each notification category
+  IconData _getNotificationIcon(String type) {
+    switch (type.toLowerCase()) {
+      case 'maintenance':
+        return Icons.build_outlined; // wrench/tools icon
+      case 'documents':
+      case 'document':
+        return Icons.description_outlined; // file/document icon
+      case 'payments':
+      case 'payment':
+        return Icons.credit_card_outlined; // credit card/wallet icon
+      case 'messages':
+      case 'message':
+        return Icons.chat_bubble_outline; // chat/message icon
+      case 'booking':
+      case 'bookings':
+        return Icons.calendar_today_outlined; // calendar icon
+      case 'security':
+        return Icons.shield_outlined; // shield/lock icon
+      case 'system':
+        return Icons.notifications_outlined; // bell/info icon
+      default:
+        return Icons.notifications_outlined; // default bell icon
+    }
+  }
+
+  /// Build category icon container
+  /// Small circular icon (28-32px) with subtle background, aligned left of title
+  Widget _buildCategoryIcon(IconData icon, String type) {
+    // Use app primary color for icons
+    final iconColor = AppColors.brandSage600;
+    // Subtle circular background (8-12% opacity)
+    final iconBgColor = AppColors.brandSage500.withOpacity(0.1);
+    
+    // Get semantic label for accessibility
+    final semanticLabel = _getNotificationSemanticLabel(type);
+    
+    return Semantics(
+      label: semanticLabel,
+      child: Container(
+        width: 30,
+        height: 30,
+        decoration: BoxDecoration(
+          color: iconBgColor,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          icon,
+          color: iconColor,
+          size: 18,
+        ),
+      ),
+    );
+  }
+
+  /// Get semantic label for accessibility
+  String _getNotificationSemanticLabel(String type) {
+    switch (type.toLowerCase()) {
+      case 'maintenance':
+        return 'Maintenance notification';
+      case 'documents':
+      case 'document':
+        return 'Document notification';
+      case 'payments':
+      case 'payment':
+        return 'Payment notification';
+      case 'messages':
+      case 'message':
+        return 'Message notification';
+      case 'booking':
+      case 'bookings':
+        return 'Booking notification';
+      case 'security':
+        return 'Security notification';
+      case 'system':
+        return 'System notification';
+      default:
+        return 'Notification';
+    }
   }
 
   Widget _buildActionButton({

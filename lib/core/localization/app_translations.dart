@@ -114,7 +114,7 @@ class AppTranslations extends Translations {
     // Home Screen
     'home': 'Home',
     'residence': 'Residence',
-    'welcome': 'Welcome back,',
+    'welcome': 'Welcome,',
     'construction_progress': 'Construction Progress',
     'your_home_is_being_built': 'Your new home is taking shape',
     'view_all_buildings': 'View All Buildings',
@@ -918,7 +918,7 @@ class AppTranslations extends Translations {
     // Home Screen (Italian)
     'home': 'Casa',
     'residence': 'Residenza',
-    'welcome': 'Bentornato,',
+    'welcome': 'Benvenuto,',
     'construction_progress': 'Avanzamento Costruzione',
     'your_home_is_being_built': 'La tua nuova casa sta prendendo forma',
     'view_all_buildings': 'Visualizza Tutti gli Edifici',

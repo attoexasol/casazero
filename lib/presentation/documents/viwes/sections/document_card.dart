@@ -42,7 +42,6 @@ class _DocumentCardState extends State<DocumentCard> {
     final accentColor = documentCategoryColor(widget.document.category);
     final typeKey = _documentTypeKey(widget.document);
     final typeColor = documentTypeColor(typeKey);
-    final iconAsset = _iconForType(typeKey);
 
     return IntrinsicHeight(
       child: GestureDetector(
@@ -111,27 +110,30 @@ class _DocumentCardState extends State<DocumentCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       /// FILE TYPE ICON BOX
-                      Container(
-                        width: 48 * scale,
-                        height: 48 * scale,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(14 * scale),
-                        ),
-                        child: iconAsset != null
-                            ? SvgPicture.asset(
-                                iconAsset,
-                                width: 24 * scale,
-                                height: 24 * scale,
-                              )
-                            : Text(
-                                widget.document.type,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13 * scale,
-                                ),
-                              ),
+                      // Use dynamic file type icon based on file extension
+                      Builder(
+                        builder: (context) {
+                          final fileTypeData = _getFileTypeIcon();
+                          final fileIcon = fileTypeData['icon'] as IconData;
+                          final fileColor = fileTypeData['color'] as Color;
+
+                          return Container(
+                            width: 48 * scale,
+                            height: 48 * scale,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: fileColor.withOpacity(
+                                0.1,
+                              ), // Soft background with file type color
+                              borderRadius: BorderRadius.circular(14 * scale),
+                            ),
+                            child: Icon(
+                              fileIcon,
+                              size: 24 * scale,
+                              color: fileColor,
+                            ),
+                          );
+                        },
                       ),
 
                       SizedBox(width: 12 * scale),
@@ -323,16 +325,95 @@ class _DocumentCardState extends State<DocumentCard> {
     return 'owner';
   }
 
-  String? _iconForType(String typeKey) {
-    switch (typeKey.toLowerCase()) {
-      case 'compliance':
-        return 'assets/images/complience_doc_icon.svg';
-      case 'owner':
-        return 'assets/images/owner_doc_icon.svg';
-      case 'technical':
-        return 'assets/images/technical_doc_icon.svg';
+  /// Get file type icon based on file extension or mime type
+  /// Returns IconData and Color for the file type
+  /// Handles uppercase/lowercase extensions, missing extensions, and null safety
+  Map<String, dynamic> _getFileTypeIcon() {
+    // Try to get file extension from fileUrl first
+    String? extension;
+    if (widget.document.fileUrl != null &&
+        widget.document.fileUrl!.isNotEmpty) {
+      final url = widget.document.fileUrl!;
+      final lastDot = url.lastIndexOf('.');
+      if (lastDot != -1 && lastDot < url.length - 1) {
+        extension = url.substring(lastDot + 1).toLowerCase();
+      }
+    }
+
+    // Fallback to type field if no extension found in fileUrl
+    if (extension == null || extension.isEmpty) {
+      final type = widget.document.type.toLowerCase();
+      // Remove common prefixes and extract extension
+      if (type.contains('.')) {
+        extension = type.substring(type.lastIndexOf('.') + 1);
+      } else {
+        // Type might be just the extension (e.g., "PDF", "JPG")
+        extension = type;
+      }
+    }
+
+    // Map file extension to icon and color
+    switch (extension) {
+      // PDF files → PDF icon (red tone)
+      case 'pdf':
+        return {
+          'icon': Icons.picture_as_pdf_outlined,
+          'color': const Color(0xFFDC2626), // Red tone
+        };
+
+      // Word documents → Word document icon (blue tone)
+      case 'doc':
+      case 'docx':
+        return {
+          'icon': Icons.description_outlined,
+          'color': const Color(0xFF2563EB), // Blue tone
+        };
+
+      // Excel files → Spreadsheet icon (green tone)
+      case 'xls':
+      case 'xlsx':
+        return {
+          'icon': Icons.table_chart_outlined,
+          'color': const Color(0xFF16A34A), // Green tone
+        };
+
+      // Image files → Image icon (accent color)
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'webp':
+      case 'gif':
+      case 'bmp':
+      case 'svg':
+        return {
+          'icon': Icons.image_outlined,
+          'color': const Color(0xFF4CAF47), // Accent color (brand sage)
+        };
+
+      // Text files → Text file icon
+      case 'txt':
+        return {
+          'icon': Icons.text_snippet_outlined,
+          'color': Colors.grey.shade700, // Neutral color
+        };
+
+      // Archive files → Archive icon
+      case 'zip':
+      case 'rar':
+      case '7z':
+      case 'tar':
+      case 'gz':
+        return {
+          'icon': Icons.folder_zip_outlined,
+          'color': Colors.grey.shade700, // Neutral color
+        };
+
+      // Default/Unknown → Generic file icon (neutral color)
       default:
-        return null;
+        return {
+          'icon': Icons.insert_drive_file_outlined,
+          'color': Colors.grey.shade700, // Neutral color
+        };
     }
   }
 
