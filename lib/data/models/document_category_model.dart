@@ -1,6 +1,7 @@
 class DocumentCategoryModel {
   final int id;
   final String categoryName;
+  final String categoryNameIt;
   final String categoryDescription;
   final String createdAt;
   final String updatedAt;
@@ -11,6 +12,7 @@ class DocumentCategoryModel {
   DocumentCategoryModel({
     required this.id,
     required this.categoryName,
+    required this.categoryNameIt,
     required this.categoryDescription,
     required this.createdAt,
     required this.updatedAt,
@@ -21,6 +23,7 @@ class DocumentCategoryModel {
     return DocumentCategoryModel(
       id: json['id'] ?? 0,
       categoryName: json['category_name'] ?? '',
+      categoryNameIt: json['category_name_it'] ?? '',
       categoryDescription: json['category_description'] ?? '',
       createdAt: json['created_at'] ?? '',
       updatedAt: json['updated_at'] ?? '',
@@ -42,6 +45,7 @@ class DocumentCategoryModel {
   DocumentCategoryModel copyWith({
     int? id,
     String? categoryName,
+    String? categoryNameIt,
     String? categoryDescription,
     String? createdAt,
     String? updatedAt,
@@ -50,6 +54,7 @@ class DocumentCategoryModel {
     return DocumentCategoryModel(
       id: id ?? this.id,
       categoryName: categoryName ?? this.categoryName,
+      categoryNameIt: categoryNameIt ?? this.categoryNameIt,
       categoryDescription: categoryDescription ?? this.categoryDescription,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
