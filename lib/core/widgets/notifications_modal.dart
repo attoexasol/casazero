@@ -47,7 +47,7 @@ class _NotificationsModalContentState
   @override
   Widget build(BuildContext context) {
     // Fixed height: 75% of screen height
-    final fixedHeight = MediaQuery.of(context).size.height * 0.75;
+    final fixedHeight = MediaQuery.of(context).size.height * 0.80;
 
     return SizedBox(
       height: fixedHeight,
@@ -191,21 +191,21 @@ class _NotificationsModalContentState
             ),
 
             // Close button (absolute top-right corner)
-            Positioned(
-              top: 0.h,
-              right: 8.w,
-              child: IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-                onPressed: () => Navigator.of(context).pop(),
-                icon: Icon(
-                  Icons.close,
-                  color: AppColors.neutralInk500,
-                  size: 24.sp,
-                ),
-                splashRadius: 22,
-              ),
-            ),
+            // Positioned(
+            //   top: 0.h,
+            //   right: 8.w,
+            //   child: IconButton(
+            //     padding: EdgeInsets.zero,
+            //     constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+            //     onPressed: () => Navigator.of(context).pop(),
+            //     icon: Icon(
+            //       Icons.close,
+            //       color: AppColors.neutralInk500,
+            //       size: 24.sp,
+            //     ),
+            //     splashRadius: 22,
+            //   ),
+            // ),
           ],
         ),
       ),
