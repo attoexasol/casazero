@@ -86,17 +86,13 @@ class MainScaffold extends GetView<HomeController> {
 
     switch (controller.currentScreen.value) {
       case AppScreen.home:
-        title = 'home'.tr;
-        // controller.selectedResidence.value?.residenceName ??
-        //     'AttoExa Solutions';
+        title = 'home_page'.tr;
         showNotification = true;
         showSearch = false;
-        showResidenceSwitcher =
-            controller.permissions.canManageBuildings &&
-            controller.residences.isNotEmpty;
+        showResidenceSwitcher = false; // No residence switcher on home screen
         canGoBack = controller.canGoBack;
         canGoForward = controller.canGoForward;
-        variant = 'branded';
+        variant = 'default'; // Use default variant to show title text (not logo)
         break;
 
       case AppScreen.documents:

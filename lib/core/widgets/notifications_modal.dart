@@ -3,12 +3,15 @@ import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:open_filex/open_filex.dart';
+import 'dart:io';
 import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_text_styles.dart';
 import '../../app/theme/app_shadows.dart';
 import '../../presentation/home/controllers/home_controller.dart';
 import '../../data/models/feed_item_model.dart';
 import '../../core/localization/locale_controller.dart';
+import '../../core/services/download_service.dart';
 import '../../presentation/main/main_scaffold.dart';
 
 /// Modal Bottom Sheet for displaying all notifications
@@ -44,6 +47,7 @@ class _NotificationsModalContent extends StatefulWidget {
 class _NotificationsModalContentState
     extends State<_NotificationsModalContent> {
   String _filter = 'all'; // 'all', 'document', 'maintenance', 'chat', 'ticket'
+  final DownloadService _downloadService = Get.find<DownloadService>();
 
   @override
   Widget build(BuildContext context) {
@@ -83,10 +87,6 @@ class _NotificationsModalContentState
                 // Header with filter tabs and mark all as read (FIXED)
                 Obx(() {
                   final unreadCount = widget.controller.unreadCount.value;
-                  final notifications = widget.controller.feedItems;
-                  final filteredNotifications = _getFilteredNotifications(
-                    notifications,
-                  );
 
                   return Container(
                     decoration: BoxDecoration(
@@ -344,9 +344,9 @@ class _NotificationsModalContentState
     // Close modal first
     Navigator.of(context).pop();
 
-    // Navigate to screen
+    // Handle document notifications - download and open with native chooser
     if (type == 'document' || type == 'documents') {
-      widget.controller.navigateToScreen(AppScreen.documents);
+      _handleDocumentNotification(notification);
     } else if (type == 'maintenance') {
       widget.controller.navigateToScreen(AppScreen.maintenance);
     } else if (type == 'chat' || type == 'message' || type == 'messages') {
@@ -355,6 +355,187 @@ class _NotificationsModalContentState
     } else if (type == 'ticket' || type == 'tickets') {
       // Tickets screen not implemented yet, use existing handler
       widget.controller.onNotificationAssistance(notification);
+    }
+  }
+
+  /// Handle document notification - download and open with native "Open with" chooser
+  /// Same functionality as document card view button
+  Future<void> _handleDocumentNotification(FeedItemModel notification) async {
+    try {
+      // Check if notification has a URL
+      if (notification.url == null || notification.url!.isEmpty) {
+        // If no URL, navigate to documents screen as fallback
+        widget.controller.navigateToScreen(AppScreen.documents);
+        Get.snackbar(
+          'viewDocument'.tr.isEmpty ? 'View Document' : 'viewDocument'.tr,
+          'Document URL is not available',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red[700],
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+        return;
+      }
+
+      // Generate filename from notification
+      final fileName = _generateFileName(notification);
+      final fileId = notification.id;
+
+      print('📥 [Notification] Starting download: $fileName');
+      print('📥 [Notification] URL: ${notification.url}');
+
+      Get.snackbar(
+        'downloading'.tr,
+        notification.displayTitle,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.blue[700],
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+        icon: const Icon(Icons.download, color: Colors.white),
+      );
+
+      // Download the document
+      final result = await _downloadService.downloadDocument(
+        fileUrl: notification.url!,
+        fileName: fileName,
+        fileId: fileId,
+      );
+
+      if (result['success'] == true) {
+        final filePath = result['filePath'] as String;
+
+        // Download successful - Show success snackbar
+        Get.snackbar(
+          'downloadSuccess'.tr,
+          '${'downloadComplete'.tr}: ${result['fileName']}',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green[700],
+          colorText: Colors.white,
+          duration: const Duration(seconds: 2),
+          icon: const Icon(Icons.check_circle, color: Colors.white),
+        );
+
+        print('✅ [Notification] Download successful: $filePath');
+
+        // Show native bottom sheet with available apps to open the file
+        await Future.delayed(const Duration(milliseconds: 500));
+        await _showOpenFileBottomSheet(filePath, notification.displayTitle);
+      } else {
+        Get.snackbar(
+          'downloadFailed'.tr,
+          result['error'] ?? 'downloadError'.tr,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red[700],
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+          icon: const Icon(Icons.error, color: Colors.white),
+        );
+        print('❌ [Notification] Download failed: ${result['error']}');
+      }
+    } catch (e) {
+      print('❌ [Notification] Error downloading document: $e');
+      Get.snackbar(
+        'downloadFailed'.tr,
+        'downloadError'.tr,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red[700],
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+        icon: const Icon(Icons.error, color: Colors.white),
+      );
+    }
+  }
+
+  /// Generate filename from notification URL or title
+  String _generateFileName(FeedItemModel notification) {
+    if (notification.url != null && notification.url!.isNotEmpty) {
+      final urlParts = notification.url!.split('/');
+      if (urlParts.isNotEmpty) {
+        final lastPart = urlParts.last;
+        if (lastPart.contains('.')) {
+          return lastPart;
+        }
+      }
+    }
+
+    // Fallback: generate from title
+    final cleanTitle = notification.displayTitle
+        .replaceAll(RegExp(r'[^\w\s-]'), '')
+        .replaceAll(RegExp(r'\s+'), '_');
+    
+    // Try to extract extension from URL
+    String extension = 'pdf'; // Default extension
+    if (notification.url != null && notification.url!.isNotEmpty) {
+      final url = notification.url!;
+      final lastDot = url.lastIndexOf('.');
+      if (lastDot != -1 && lastDot < url.length - 1) {
+        final ext = url.substring(lastDot + 1).toLowerCase();
+        if (ext.length <= 5) { // Reasonable extension length
+          extension = ext;
+        }
+      }
+    }
+
+    return '$cleanTitle.$extension';
+  }
+
+  /// Show native "Open with" chooser with available apps to open the file
+  /// Uses open_filex which shows native Android chooser or iOS share sheet
+  Future<void> _showOpenFileBottomSheet(String filePath, String fileName) async {
+    try {
+      final file = File(filePath);
+      if (!await file.exists()) {
+        Get.snackbar(
+          'openFileFailed'.tr,
+          'fileNotFound'.tr,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red[700],
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+        return;
+      }
+
+      // Use open_filex to show native "Open with" chooser
+      // This will show all available apps that can open the file type
+      print('📂 [Notification] Opening native "Open with" chooser for file: $fileName');
+      final result = await OpenFilex.open(filePath);
+
+      print('📂 [Notification] Open file result: ${result.type} - ${result.message}');
+
+      // Handle the result
+      if (result.type == ResultType.noAppToOpen) {
+        Get.snackbar(
+          'openFileFailed'.tr,
+          'noAppToOpen'.tr,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange[700],
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+          icon: const Icon(Icons.warning, color: Colors.white),
+        );
+      } else if (result.type == ResultType.error || result.type == ResultType.fileNotFound) {
+        Get.snackbar(
+          'openFileFailed'.tr,
+          result.message.isNotEmpty ? result.message : 'openFileError'.tr,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red[700],
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+          icon: const Icon(Icons.error, color: Colors.white),
+        );
+      }
+    } catch (e) {
+      print('❌ [Notification] Error showing file chooser: $e');
+      Get.snackbar(
+        'openFileFailed'.tr,
+        'openFileError'.tr,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red[700],
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+        icon: const Icon(Icons.error, color: Colors.white),
+      );
     }
   }
 
@@ -535,37 +716,42 @@ class _NotificationCard extends StatelessWidget {
                           children: [
                             // View button (Primary action)
                             if (actionLabel != null)
-                              SizedBox(
-                                height: 32.h,
-                                child: OutlinedButton(
-                                  onPressed: onAction,
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: AppColors.brandSage600,
-                                    side: BorderSide(
-                                      color: AppColors.brandSage300,
-                                      width: 1,
+                              Builder(
+                                builder: (context) {
+                                  final label = actionLabel!;
+                                  return SizedBox(
+                                    height: 32.h,
+                                    child: OutlinedButton(
+                                      onPressed: onAction,
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: AppColors.brandSage600,
+                                        side: BorderSide(
+                                          color: AppColors.brandSage300,
+                                          width: 1,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(8.r),
+                                        ),
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 12.w,
+                                          vertical: 0,
+                                        ),
+                                        minimumSize: Size(80.w, 32.h),
+                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      ),
+                                      child: Text(
+                                        label,
+                                        style: AppTextStyles.caption.copyWith(
+                                          fontSize: 12.sp,
+                                          fontWeight: FontWeight.w500,
+                                          color: AppColors.brandSage600,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8.r),
-                                    ),
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 12.w,
-                                      vertical: 0,
-                                    ),
-                                    minimumSize: Size(80.w, 32.h),
-                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                  ),
-                                  child: Text(
-                                    actionLabel!,
-                                    style: AppTextStyles.caption.copyWith(
-                                      fontSize: 12.sp,
-                                      fontWeight: FontWeight.w500,
-                                      color: AppColors.brandSage600,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
+                                  );
+                                },
                               ),
 
                             // Mark as Read button (Secondary action)

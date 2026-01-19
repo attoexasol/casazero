@@ -113,6 +113,7 @@ class AppTranslations extends Translations {
 
     // Home Screen
     'home': 'Home',
+    'home_page': 'Home Page',
     'residence': 'Residence',
     'welcome': 'Welcome,',
     'construction_progress': 'Construction Progress',
@@ -917,6 +918,7 @@ class AppTranslations extends Translations {
 
     // Home Screen (Italian)
     'home': 'Casa',
+    'home_page': 'Pagina Iniziale',
     'residence': 'Residenza',
     'welcome': 'Benvenuto,',
     'construction_progress': 'Avanzamento Costruzione',
