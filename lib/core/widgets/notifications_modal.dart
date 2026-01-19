@@ -48,119 +48,116 @@ class _NotificationsModalContentState extends State<_NotificationsModalContent> 
 
   @override
   Widget build(BuildContext context) {
-    final maxHeight = MediaQuery.of(context).size.height * 0.85;
+    // Fixed height: 75% of screen height
+    final fixedHeight = MediaQuery.of(context).size.height * 0.75;
     
-    return Container(
-      constraints: BoxConstraints(maxHeight: maxHeight),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceWhite,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24.r),
-          topRight: Radius.circular(24.r),
+    return SizedBox(
+      height: fixedHeight,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surfaceWhite,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(24.r),
+            topRight: Radius.circular(24.r),
+          ),
+          boxShadow: AppShadows.shadowLg,
         ),
-        boxShadow: AppShadows.shadowLg,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle bar
-          Padding(
-            padding: EdgeInsets.only(top: 12.h, bottom: 8.h),
-            child: Container(
-              width: 40.w,
-              height: 4.h,
-              decoration: BoxDecoration(
-                color: AppColors.neutralInk300,
-                borderRadius: BorderRadius.circular(2.r),
+        child: Column(
+          children: [
+            // Handle bar
+            Padding(
+              padding: EdgeInsets.only(top: 12.h, bottom: 8.h),
+              child: Container(
+                width: 40.w,
+                height: 4.h,
+                decoration: BoxDecoration(
+                  color: AppColors.neutralInk300,
+                  borderRadius: BorderRadius.circular(2.r),
+                ),
               ),
             ),
-          ),
 
-          // Header with filter tabs and mark all as read
-          Obx(() {
-            final unreadCount = widget.controller.unreadCount.value;
-            final notifications = widget.controller.feedItems;
-            final filteredNotifications = _getFilteredNotifications(notifications);
-            
-            return Column(
-              children: [
-                // Sticky header with filters
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceWhite.withOpacity(0.95),
-                    border: Border(
-                      bottom: BorderSide(
-                        color: AppColors.neutralLine100,
-                        width: 1,
-                      ),
+            // Header with filter tabs and mark all as read (FIXED)
+            Obx(() {
+              final unreadCount = widget.controller.unreadCount.value;
+              final notifications = widget.controller.feedItems;
+              final filteredNotifications = _getFilteredNotifications(notifications);
+              
+              return Container(
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceWhite.withOpacity(0.95),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: AppColors.neutralLine100,
+                      width: 1,
                     ),
                   ),
-                  padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Filter tabs
-                      Expanded(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: [
-                              _buildFilterTab('all', 'all'.tr.isEmpty ? 'All' : 'all'.tr),
-                              SizedBox(width: 8.w),
-                              _buildFilterTab('document', 'documents'.tr),
-                              SizedBox(width: 8.w),
-                              _buildFilterTab('maintenance', 'maintenance'.tr),
-                              SizedBox(width: 8.w),
-                              _buildFilterTab('chat', 'chat'.tr),
-                              SizedBox(width: 8.w),
-                              _buildFilterTab('ticket', 'supportTickets'.tr.isEmpty ? 'Tickets' : 'supportTickets'.tr),
-                            ],
-                          ),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Filter tabs
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _buildFilterTab('all', 'all'.tr.isEmpty ? 'All' : 'all'.tr),
+                            SizedBox(width: 8.w),
+                            _buildFilterTab('document', 'documents'.tr),
+                            SizedBox(width: 8.w),
+                            _buildFilterTab('maintenance', 'maintenance'.tr),
+                            SizedBox(width: 8.w),
+                            _buildFilterTab('chat', 'chat'.tr),
+                            SizedBox(width: 8.w),
+                            _buildFilterTab('ticket', 'supportTickets'.tr.isEmpty ? 'Tickets' : 'supportTickets'.tr),
+                          ],
                         ),
                       ),
-                      
-                      // Mark all as read button
-                      if (unreadCount > 0)
-                        TextButton.icon(
-                          onPressed: _markAllAsRead,
-                          icon: Icon(
-                            Icons.check_circle_outline,
-                            size: 16.sp,
+                    ),
+                    
+                    // Mark all as read button
+                    if (unreadCount > 0)
+                      TextButton.icon(
+                        onPressed: _markAllAsRead,
+                        icon: Icon(
+                          Icons.check_circle_outline,
+                          size: 16.sp,
+                          color: AppColors.brandSage600,
+                        ),
+                        label: Text(
+                          'markAllRead'.tr.isEmpty ? 'Mark all read' : 'markAllRead'.tr,
+                          style: AppTextStyles.caption.copyWith(
+                            fontSize: 12.sp,
                             color: AppColors.brandSage600,
-                          ),
-                          label: Text(
-                            'markAllRead'.tr.isEmpty ? 'Mark all read' : 'markAllRead'.tr,
-                            style: AppTextStyles.caption.copyWith(
-                              fontSize: 12.sp,
-                              color: AppColors.brandSage600,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                    ],
-                  ),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                      ),
+                  ],
                 ),
-              ],
-            );
-          }),
+              );
+            }),
 
-          // Notification List
-          Obx(() {
-            final notifications = widget.controller.feedItems;
-            final filteredNotifications = _getFilteredNotifications(notifications);
-            
-            return Flexible(
-              child: filteredNotifications.isEmpty
-                  ? _buildEmptyState()
-                  : _buildNotificationList(filteredNotifications),
-            );
-          }),
-        ],
+            // Notification List (SCROLLABLE)
+            Expanded(
+              child: Obx(() {
+                final notifications = widget.controller.feedItems;
+                final filteredNotifications = _getFilteredNotifications(notifications);
+                
+                return filteredNotifications.isEmpty
+                    ? _buildEmptyState()
+                    : _buildNotificationList(filteredNotifications);
+              }),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -265,24 +262,25 @@ class _NotificationsModalContentState extends State<_NotificationsModalContent> 
   }
 
   Widget _buildNotificationList(List<FeedItemModel> notifications) {
-    return ListView.builder(
+    return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-      shrinkWrap: true,
-      itemCount: notifications.length,
-      itemBuilder: (context, index) {
-        final notification = notifications[index];
-        return _NotificationCard(
-          notification: notification,
-          onMarkAsRead: () => widget.controller.markNotificationAsRead(notification.id),
-          onAction: () => _handleAction(notification),
-          onDelete: () => _deleteNotification(notification),
-        )
-            .animate(
-          delay: (index * 50).ms,
-        )
-            .fadeIn(duration: 300.ms)
-            .slideY(begin: 0.2, end: 0, duration: 300.ms);
-      },
+      child: Column(
+        children: notifications.asMap().entries.map((entry) {
+          final index = entry.key;
+          final notification = entry.value;
+          return _NotificationCard(
+            notification: notification,
+            onMarkAsRead: () => widget.controller.markNotificationAsRead(notification.id),
+            onAction: () => _handleAction(notification),
+            onDelete: () => _deleteNotification(notification),
+          )
+              .animate(
+            delay: (index * 50).ms,
+          )
+              .fadeIn(duration: 300.ms)
+              .slideY(begin: 0.2, end: 0, duration: 300.ms);
+        }).toList(),
+      ),
     );
   }
 
