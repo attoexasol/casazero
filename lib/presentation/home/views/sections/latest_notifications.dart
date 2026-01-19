@@ -135,6 +135,12 @@ class _LatestNotificationCard extends StatefulWidget {
 class _LatestNotificationCardState extends State<_LatestNotificationCard> {
   bool _isHovered = false;
 
+  // Shared border radius for card and sidebar
+  static const double _cardRadius = 16.0;
+  static final BorderRadius _cardBorderRadius = BorderRadius.circular(
+    _cardRadius,
+  );
+
   @override
   Widget build(BuildContext context) {
     final notification = widget.notification;
@@ -198,137 +204,151 @@ class _LatestNotificationCardState extends State<_LatestNotificationCard> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           transform: Matrix4.identity()..scale(_isHovered ? 1.02 : 1.0),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16), // rounded-2xl
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [AppColors.surfaceWhite, AppColors.surfaceWarm50],
-              ),
-              border: Border.all(
-                color: _isHovered
-                    ? AppColors.neutralLine200
-                    : AppColors.neutralLine200.withOpacity(0.4),
-                width: 1,
-              ),
-              boxShadow: _buildShadows(accentColor, _isHovered),
-            ),
-            child: Stack(
-              children: [
-                // Left accent border (1px wide gradient)
-                Positioned(
-                  left: 0,
-                  top: 0,
-                  bottom: 0,
-                  width: 4, // w-1 = 4px
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: accentGradientColors,
-                      ),
-                    ),
-                  ),
+          child: ClipRRect(
+            borderRadius: _cardBorderRadius,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: _cardBorderRadius,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [AppColors.surfaceWhite, AppColors.surfaceWarm50],
                 ),
-
-                // Subtle glow effect on hover
-                if (_isHovered)
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                          colors: [
-                            accentColor.withOpacity(0.05),
-                            Colors.transparent,
-                          ],
+                border: Border.all(
+                  color: _isHovered
+                      ? AppColors.neutralLine200
+                      : AppColors.neutralLine200.withOpacity(0.4),
+                  width: 1,
+                ),
+                boxShadow: _buildShadows(accentColor, _isHovered),
+              ),
+              child: Stack(
+                children: [
+                  // Left accent border (4px wide gradient) with matching border radius
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: 4, // w-1 = 4px
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.only(
+                        topLeft: _cardBorderRadius.topLeft,
+                        bottomLeft: _cardBorderRadius.bottomLeft,
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: accentGradientColors,
+                          ),
                         ),
-                        borderRadius: BorderRadius.circular(16),
                       ),
                     ),
                   ),
 
-                // Content
-                Padding(
-                  padding: const EdgeInsets.all(14), // p-3.5 = 14px
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Icon container (w-11 h-11 = 44px, rounded-xl = 12px)
-                      _buildIconContainer(type, iconColor, iconGradientColors),
-
-                      const SizedBox(width: 14), // gap-3.5 = 14px
-                      // Content
-                      Expanded(
-                        child: Obx(() {
-                          final localeController = Get.find<LocaleController>();
-                          final _ =
-                              localeController.locale; // Trigger reactivity
-
-                          final displayTitle = notification.displayTitle;
-                          final displayContent = notification.displayContent;
-
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Title
-                              Text(
-                                displayTitle,
-                                style: AppTextStyles.bodyMedium.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.neutralInk800,
-                                  fontSize: 14,
-                                  height: 1.2, // leading-tight
-                                ),
-                              ),
-
-                              const SizedBox(height: 4), // mb-1 = 4px
-                              // Description
-                              Text(
-                                displayContent,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: AppTextStyles.bodySmall.copyWith(
-                                  fontSize: 12, // text-xs
-                                  color: AppColors.neutralInk500,
-                                  height: 1.5, // leading-relaxed
-                                ),
-                              ),
-
-                              const SizedBox(height: 6), // mb-1.5 = 6px
-                              // Timestamp
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 4, // w-1 = 4px
-                                    height: 4,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: AppColors.neutralInk300,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8), // gap-2 = 8px
-                                  Text(
-                                    notification.timeAgo,
-                                    style: AppTextStyles.caption.copyWith(
-                                      fontSize: 12,
-                                      color: AppColors.neutralInk400,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                  // Subtle glow effect on hover
+                  if (_isHovered)
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                            colors: [
+                              accentColor.withOpacity(0.05),
+                              Colors.transparent,
                             ],
-                          );
-                        }),
+                          ),
+                          borderRadius: _cardBorderRadius,
+                        ),
                       ),
-                    ],
+                    ),
+
+                  // Content
+                  Padding(
+                    padding: const EdgeInsets.all(14), // p-3.5 = 14px
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Icon container (w-11 h-11 = 44px, rounded-xl = 12px)
+                        _buildIconContainer(
+                          type,
+                          iconColor,
+                          iconGradientColors,
+                        ),
+
+                        const SizedBox(width: 14), // gap-3.5 = 14px
+                        // Content
+                        Expanded(
+                          child: Obx(() {
+                            final localeController =
+                                Get.find<LocaleController>();
+                            final _ =
+                                localeController.locale; // Trigger reactivity
+
+                            final displayTitle = notification.displayTitle;
+                            final displayContent = notification.displayContent;
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Title
+                                Text(
+                                  displayTitle,
+                                  style: AppTextStyles.bodyMedium.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.neutralInk800,
+                                    fontSize: 14,
+                                    height: 1.2, // leading-tight
+                                  ),
+                                ),
+
+                                const SizedBox(height: 4), // mb-1 = 4px
+                                // Description
+                                Text(
+                                  displayContent,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppTextStyles.bodySmall.copyWith(
+                                    fontSize: 12, // text-xs
+                                    color: AppColors.neutralInk500,
+                                    height: 1.5, // leading-relaxed
+                                  ),
+                                ),
+
+                                const SizedBox(height: 6), // mb-1.5 = 6px
+                                // Timestamp
+                                Row(
+                                  children: [
+                                    Container(
+                                      width: 4, // w-1 = 4px
+                                      height: 4,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: AppColors.neutralInk300,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8), // gap-2 = 8px
+                                    Text(
+                                      notification.timeAgo,
+                                      style: AppTextStyles.caption.copyWith(
+                                        fontSize: 12,
+                                        color: AppColors.neutralInk400,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            );
+                          }),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
