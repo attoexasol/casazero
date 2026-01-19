@@ -110,7 +110,8 @@ class _DocumentCardState extends State<DocumentCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       /// FILE TYPE ICON BOX
-                      // Use dynamic file type icon based on file extension
+                      // Icon box background uses category color to match sidebar
+                      // Icon itself uses file type color for visual clarity
                       Builder(
                         builder: (context) {
                           final fileTypeData = _getFileTypeIcon();
@@ -122,15 +123,15 @@ class _DocumentCardState extends State<DocumentCard> {
                             height: 48 * scale,
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
-                              color: fileColor.withOpacity(
-                                0.1,
-                              ), // Soft background with file type color
+                              color: accentColor.withOpacity(
+                                0.15,
+                              ), // Background matches category color (sidebar)
                               borderRadius: BorderRadius.circular(14 * scale),
                             ),
                             child: Icon(
                               fileIcon,
                               size: 24 * scale,
-                              color: fileColor,
+                              color: fileColor, // Icon color remains file type color
                             ),
                           );
                         },

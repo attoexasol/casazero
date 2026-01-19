@@ -10,6 +10,9 @@ Color documentCategoryColor(String category) {
   }
   
   // Try keyword-based matching for new categories
+  if (key.contains('electricity') || (key.contains('bill') && key.contains('electric'))) {
+    return const Color(0xffffb020); // Electricity Bill - Orange/Warning
+  }
   if (key.contains('legal') && (key.contains('administrative') || key.contains('admin'))) {
     return const Color(0xff2b7fff); // legal & administrative
   }
@@ -47,16 +50,20 @@ const Map<String, Color> _categoryColors = {
   'post-delivery documents': Color(0xffff6900),
   'post delivery documents': Color(0xffff6900),
   // Legacy mappings for backward compatibility
-  'my documents': Color(0xff4caf47),
+  'my documents': Color(0xff4caf47), // Brand Sage Green - distinct
   'ownership & legal': Color(0xff2b7fff),
   'ownership & leagal': Color(0xff2b7fff),
   'technical building docs': Color(0xffad46ff),
   'technical building': Color(0xffad46ff),
-  'energy & environmental': Color(0xff00c951),
+  'energy & environmental': Color(0xff14b8a6), // Aqua Green - distinct from My Documents
   'compliance & safety': Color(0xffff6900),
   'complience & safety': Color(0xffff6900),
-  'administrative & maintenance': Color(0xff388e3c),
-  'administratative & maintenance': Color(0xff388e3c),
+  'administrative & maintenance': Color(0xff2b7fff), // Blue - distinct from others
+  'administratative & maintenance': Color(0xff2b7fff),
+  // Electricity Bill category (if exists as separate category)
+  'electricity bill': Color(0xffffb020), // Warning/Orange - distinct
+  'electricity': Color(0xffffb020),
+  'bill': Color(0xffffb020),
 };
 
 const Map<String, Color> _typeColors = {

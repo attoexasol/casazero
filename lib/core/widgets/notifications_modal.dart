@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_text_styles.dart';
 import '../../app/theme/app_shadows.dart';
@@ -608,10 +609,11 @@ class _NotificationCard extends StatelessWidget {
                           height: 32.h,
                           child: IconButton(
                             onPressed: onDelete,
-                            icon: Icon(
-                              Icons.delete_outline,
-                              size: 18.sp,
-                              color: AppColors.danger,
+                            icon: SvgPicture.asset(
+                              'assets/images/delete.svg',
+                              width: 18.sp,
+                              height: 18.sp,
+                              fit: BoxFit.contain,
                             ),
                             padding: EdgeInsets.zero,
                             constraints: BoxConstraints(
