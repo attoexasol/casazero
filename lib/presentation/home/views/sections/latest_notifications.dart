@@ -158,15 +158,18 @@ class _LatestNotificationCardState extends State<_LatestNotificationCard> {
       iconColor = notification.priority == 'high'
           ? AppColors.warning
           : AppColors.neutralInk700;
+      // Icon box gradient derived from accentColor (single source of truth)
+      // Uses higher opacity values to accurately match the sidebar color intensity
+      // Sidebar uses: 100% → 100% → 60% opacity, icon box uses proportional values
       iconGradientColors = [
-        AppColors.warning.withOpacity(0.2),
-        AppColors.warning.withOpacity(0.15),
-        AppColors.warning.withOpacity(0.05),
+        accentColor.withOpacity(0.8),
+        accentColor.withOpacity(0.80),
+        accentColor.withOpacity(0.45),
       ];
       accentGradientColors = [
-        AppColors.warning,
-        AppColors.warning,
-        AppColors.warning.withOpacity(0.6),
+        accentColor,
+        accentColor,
+        accentColor.withOpacity(0.8),
       ];
     } else if (type == 'document' || type == 'documents') {
       accentColor = AppColors.brandSage500;
