@@ -16,16 +16,14 @@ class NotificationsModal {
   /// Show the notifications modal bottom sheet
   static void show(BuildContext context) {
     final controller = Get.find<HomeController>();
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       enableDrag: true,
       isDismissible: true,
-      builder: (context) => _NotificationsModalContent(
-        controller: controller,
-      ),
+      builder: (context) => _NotificationsModalContent(controller: controller),
     );
   }
 }
@@ -35,22 +33,22 @@ class NotificationsModal {
 class _NotificationsModalContent extends StatefulWidget {
   final HomeController controller;
 
-  const _NotificationsModalContent({
-    required this.controller,
-  });
+  const _NotificationsModalContent({required this.controller});
 
   @override
-  State<_NotificationsModalContent> createState() => _NotificationsModalContentState();
+  State<_NotificationsModalContent> createState() =>
+      _NotificationsModalContentState();
 }
 
-class _NotificationsModalContentState extends State<_NotificationsModalContent> {
+class _NotificationsModalContentState
+    extends State<_NotificationsModalContent> {
   String _filter = 'all'; // 'all', 'document', 'maintenance', 'chat', 'ticket'
 
   @override
   Widget build(BuildContext context) {
     // Fixed height: 75% of screen height
     final fixedHeight = MediaQuery.of(context).size.height * 0.75;
-    
+
     return SizedBox(
       height: fixedHeight,
       child: Container(
@@ -62,99 +60,150 @@ class _NotificationsModalContentState extends State<_NotificationsModalContent> 
           ),
           boxShadow: AppShadows.shadowLg,
         ),
-        child: Column(
+        child: Stack(
           children: [
-            // Handle bar
-            Padding(
-              padding: EdgeInsets.only(top: 12.h, bottom: 8.h),
-              child: Container(
-                width: 40.w,
-                height: 4.h,
-                decoration: BoxDecoration(
-                  color: AppColors.neutralInk300,
-                  borderRadius: BorderRadius.circular(2.r),
-                ),
-              ),
-            ),
-
-            // Header with filter tabs and mark all as read (FIXED)
-            Obx(() {
-              final unreadCount = widget.controller.unreadCount.value;
-              final notifications = widget.controller.feedItems;
-              final filteredNotifications = _getFilteredNotifications(notifications);
-              
-              return Container(
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceWhite.withOpacity(0.95),
-                  border: Border(
-                    bottom: BorderSide(
-                      color: AppColors.neutralLine100,
-                      width: 1,
+            Column(
+              children: [
+                // Handle bar
+                Padding(
+                  padding: EdgeInsets.only(top: 12.h, bottom: 8.h),
+                  child: Center(
+                    child: Container(
+                      width: 40.w,
+                      height: 4.h,
+                      decoration: BoxDecoration(
+                        color: AppColors.neutralInk300,
+                        borderRadius: BorderRadius.circular(2.r),
+                      ),
                     ),
                   ),
                 ),
-                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Filter tabs
-                    Expanded(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            _buildFilterTab('all', 'all'.tr.isEmpty ? 'All' : 'all'.tr),
-                            SizedBox(width: 8.w),
-                            _buildFilterTab('document', 'documents'.tr),
-                            SizedBox(width: 8.w),
-                            _buildFilterTab('maintenance', 'maintenance'.tr),
-                            SizedBox(width: 8.w),
-                            _buildFilterTab('chat', 'chat'.tr),
-                            SizedBox(width: 8.w),
-                            _buildFilterTab('ticket', 'supportTickets'.tr.isEmpty ? 'Tickets' : 'supportTickets'.tr),
-                          ],
+
+                // Header with filter tabs and mark all as read (FIXED)
+                Obx(() {
+                  final unreadCount = widget.controller.unreadCount.value;
+                  final notifications = widget.controller.feedItems;
+                  final filteredNotifications = _getFilteredNotifications(
+                    notifications,
+                  );
+
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceWhite.withOpacity(0.95),
+                      border: Border(
+                        bottom: BorderSide(
+                          color: AppColors.neutralLine100,
+                          width: 1,
                         ),
                       ),
                     ),
-                    
-                    // Mark all as read button
-                    if (unreadCount > 0)
-                      TextButton.icon(
-                        onPressed: _markAllAsRead,
-                        icon: Icon(
-                          Icons.check_circle_outline,
-                          size: 16.sp,
-                          color: AppColors.brandSage600,
-                        ),
-                        label: Text(
-                          'markAllRead'.tr.isEmpty ? 'Mark all read' : 'markAllRead'.tr,
-                          style: AppTextStyles.caption.copyWith(
-                            fontSize: 12.sp,
-                            color: AppColors.brandSage600,
-                            fontWeight: FontWeight.w500,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 24.w,
+                      vertical: 16.h,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Filter tabs
+                        Expanded(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                _buildFilterTab(
+                                  'all',
+                                  'all'.tr.isEmpty ? 'All' : 'all'.tr,
+                                ),
+                                SizedBox(width: 8.w),
+                                _buildFilterTab('document', 'documents'.tr),
+                                SizedBox(width: 8.w),
+                                _buildFilterTab(
+                                  'maintenance',
+                                  'maintenance'.tr,
+                                ),
+                                SizedBox(width: 8.w),
+                                _buildFilterTab('chat', 'chat'.tr),
+                                SizedBox(width: 8.w),
+                                _buildFilterTab(
+                                  'ticket',
+                                  'supportTickets'.tr.isEmpty
+                                      ? 'Tickets'
+                                      : 'supportTickets'.tr,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                      ),
-                  ],
-                ),
-              );
-            }),
 
-            // Notification List (SCROLLABLE)
-            Expanded(
-              child: Obx(() {
-                final notifications = widget.controller.feedItems;
-                final filteredNotifications = _getFilteredNotifications(notifications);
-                
-                return filteredNotifications.isEmpty
-                    ? _buildEmptyState()
-                    : _buildNotificationList(filteredNotifications);
-              }),
+                        // Mark all as read button
+                        if (unreadCount > 0)
+                          Padding(
+                            padding: EdgeInsets.only(
+                              right: 8.w,
+                            ), // Small spacing from edge
+                            child: TextButton.icon(
+                              onPressed: _markAllAsRead,
+                              icon: Icon(
+                                Icons.check_circle_outline,
+                                size: 16.sp,
+                                color: AppColors.brandSage600,
+                              ),
+                              label: Text(
+                                'markAllRead'.tr.isEmpty
+                                    ? 'Mark all read'
+                                    : 'markAllRead'.tr,
+                                style: AppTextStyles.caption.copyWith(
+                                  fontSize: 12.sp,
+                                  color: AppColors.brandSage600,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 12.w,
+                                  vertical: 8.h,
+                                ),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                }),
+
+                // Notification List (SCROLLABLE)
+                Expanded(
+                  child: Obx(() {
+                    final notifications = widget.controller.feedItems;
+                    final filteredNotifications = _getFilteredNotifications(
+                      notifications,
+                    );
+
+                    return filteredNotifications.isEmpty
+                        ? _buildEmptyState()
+                        : _buildNotificationList(filteredNotifications);
+                  }),
+                ),
+              ],
+            ),
+
+            // Close button (absolute top-right corner)
+            Positioned(
+              top: 0.h,
+              right: 8.w,
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                onPressed: () => Navigator.of(context).pop(),
+                icon: Icon(
+                  Icons.close,
+                  color: AppColors.neutralInk500,
+                  size: 24.sp,
+                ),
+                splashRadius: 22,
+              ),
             ),
           ],
         ),
@@ -164,19 +213,17 @@ class _NotificationsModalContentState extends State<_NotificationsModalContent> 
 
   Widget _buildFilterTab(String filter, String label) {
     final isSelected = _filter == filter;
-    
+
     return GestureDetector(
       onTap: () => setState(() => _filter = filter),
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
         decoration: BoxDecoration(
-          color: isSelected 
-              ? AppColors.brandSage600 
-              : AppColors.surfaceWhite,
+          color: isSelected ? AppColors.brandSage600 : AppColors.surfaceWhite,
           borderRadius: BorderRadius.circular(20.r), // rounded-full
           border: Border.all(
-            color: isSelected 
-                ? AppColors.brandSage600 
+            color: isSelected
+                ? AppColors.brandSage600
                 : AppColors.neutralLine200,
             width: 1,
           ),
@@ -185,8 +232,8 @@ class _NotificationsModalContentState extends State<_NotificationsModalContent> 
           label,
           style: AppTextStyles.caption.copyWith(
             fontSize: 12.sp,
-            color: isSelected 
-                ? AppColors.surfaceWhite 
+            color: isSelected
+                ? AppColors.surfaceWhite
                 : AppColors.neutralInk700,
             fontWeight: FontWeight.w500,
           ),
@@ -195,9 +242,11 @@ class _NotificationsModalContentState extends State<_NotificationsModalContent> 
     );
   }
 
-  List<FeedItemModel> _getFilteredNotifications(List<FeedItemModel> notifications) {
+  List<FeedItemModel> _getFilteredNotifications(
+    List<FeedItemModel> notifications,
+  ) {
     if (_filter == 'all') return notifications;
-    
+
     return notifications.where((notif) {
       final type = notif.type.toLowerCase();
       switch (_filter) {
@@ -219,7 +268,7 @@ class _NotificationsModalContentState extends State<_NotificationsModalContent> 
     final unreadNotifications = widget.controller.feedItems
         .where((n) => !n.isRead)
         .toList();
-    
+
     for (final notification in unreadNotifications) {
       widget.controller.markNotificationAsRead(notification.id);
     }
@@ -247,8 +296,8 @@ class _NotificationsModalContentState extends State<_NotificationsModalContent> 
             ),
             SizedBox(height: 8.h),
             Text(
-              'no_notifications_desc'.tr.isEmpty 
-                  ? 'You\'re all caught up!' 
+              'no_notifications_desc'.tr.isEmpty
+                  ? 'You\'re all caught up!'
                   : 'no_notifications_desc'.tr,
               style: AppTextStyles.caption.copyWith(
                 color: AppColors.neutralInk400,
@@ -269,14 +318,13 @@ class _NotificationsModalContentState extends State<_NotificationsModalContent> 
           final index = entry.key;
           final notification = entry.value;
           return _NotificationCard(
-            notification: notification,
-            onMarkAsRead: () => widget.controller.markNotificationAsRead(notification.id),
-            onAction: () => _handleAction(notification),
-            onDelete: () => _deleteNotification(notification),
-          )
-              .animate(
-            delay: (index * 50).ms,
-          )
+                notification: notification,
+                onMarkAsRead: () =>
+                    widget.controller.markNotificationAsRead(notification.id),
+                onAction: () => _handleAction(notification),
+                onDelete: () => _deleteNotification(notification),
+              )
+              .animate(delay: (index * 50).ms)
               .fadeIn(duration: 300.ms)
               .slideY(begin: 0.2, end: 0, duration: 300.ms);
         }).toList(),
@@ -287,13 +335,13 @@ class _NotificationsModalContentState extends State<_NotificationsModalContent> 
   void _handleAction(FeedItemModel notification) {
     // Mark as read first
     widget.controller.markNotificationAsRead(notification.id);
-    
+
     // Navigate to appropriate screen based on type
     final type = notification.type.toLowerCase();
-    
+
     // Close modal first
     Navigator.of(context).pop();
-    
+
     // Navigate to screen
     if (type == 'document' || type == 'documents') {
       widget.controller.navigateToScreen(AppScreen.documents);
@@ -340,11 +388,11 @@ class _NotificationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isRead = notification.isRead;
     final type = notification.type.toLowerCase();
-    
+
     // Get icon and colors based on type
     IconData iconData;
     Color iconColor;
-    
+
     if (type == 'document' || type == 'documents') {
       iconData = Icons.description_outlined;
       iconColor = AppColors.brandSage600;
@@ -367,7 +415,8 @@ class _NotificationCard extends StatelessWidget {
     if (type == 'maintenance') {
       actionLabel = 'View Task'; // Matches React: actionLabel: 'View Task'
     } else if (type == 'document' || type == 'documents') {
-      actionLabel = 'View Document'; // Matches React: actionLabel: 'View Document'
+      actionLabel =
+          'View Document'; // Matches React: actionLabel: 'View Document'
     } else if (type == 'chat' || type == 'message' || type == 'messages') {
       actionLabel = 'Open Chat'; // Matches React: actionLabel: 'Open Chat'
     } else if (type == 'ticket' || type == 'tickets') {
@@ -377,14 +426,12 @@ class _NotificationCard extends StatelessWidget {
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
       decoration: BoxDecoration(
-        color: isRead 
-            ? AppColors.surfaceWhite 
+        color: isRead
+            ? AppColors.surfaceWhite
             : AppColors.brandSage50.withOpacity(0.2),
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
-          color: isRead 
-              ? AppColors.neutralLine200 
-              : AppColors.brandSage300,
+          color: isRead ? AppColors.neutralLine200 : AppColors.brandSage300,
           width: 1,
         ),
         boxShadow: [
@@ -408,24 +455,20 @@ class _NotificationCard extends StatelessWidget {
                 color: AppColors.surfaceWarm50,
                 borderRadius: BorderRadius.circular(8.r),
               ),
-              child: Icon(
-                iconData,
-                size: 20.sp,
-                color: iconColor,
-              ),
+              child: Icon(iconData, size: 20.sp, color: iconColor),
             ),
-            
+
             SizedBox(width: 12.w),
-            
+
             // Content
             Expanded(
               child: Obx(() {
                 final localeController = Get.find<LocaleController>();
                 final _ = localeController.locale; // Trigger reactivity
-                
+
                 final displayTitle = notification.displayTitle;
                 final displayContent = notification.displayContent;
-                
+
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -456,9 +499,9 @@ class _NotificationCard extends StatelessWidget {
                         ],
                       ],
                     ),
-                    
+
                     SizedBox(height: 4.h),
-                    
+
                     // Description
                     Text(
                       displayContent,
@@ -467,9 +510,9 @@ class _NotificationCard extends StatelessWidget {
                         color: AppColors.neutralInk500,
                       ),
                     ),
-                    
+
                     SizedBox(height: 8.h),
-                    
+
                     // Timestamp
                     Text(
                       notification.timeAgo,
@@ -478,9 +521,9 @@ class _NotificationCard extends StatelessWidget {
                         color: AppColors.neutralInk400,
                       ),
                     ),
-                    
+
                     SizedBox(height: 12.h),
-                    
+
                     // Action buttons
                     Row(
                       children: [
@@ -514,7 +557,7 @@ class _NotificationCard extends StatelessWidget {
                               ),
                             ),
                           ),
-                        
+
                         if (!isRead) ...[
                           if (actionLabel != null) SizedBox(width: 8.w),
                           TextButton(
@@ -528,7 +571,9 @@ class _NotificationCard extends StatelessWidget {
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
                             child: Text(
-                              'markAsRead'.tr.isEmpty ? 'Mark as read' : 'markAsRead'.tr,
+                              'markAsRead'.tr.isEmpty
+                                  ? 'Mark as read'
+                                  : 'markAsRead'.tr,
                               style: AppTextStyles.caption.copyWith(
                                 fontSize: 12.sp,
                                 color: AppColors.neutralInk700,
@@ -536,9 +581,9 @@ class _NotificationCard extends StatelessWidget {
                             ),
                           ),
                         ],
-                        
+
                         const Spacer(),
-                        
+
                         // Delete button
                         IconButton(
                           onPressed: onDelete,
@@ -563,4 +608,3 @@ class _NotificationCard extends StatelessWidget {
     );
   }
 }
-
