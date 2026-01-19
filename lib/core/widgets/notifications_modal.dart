@@ -525,11 +525,14 @@ class _NotificationCard extends StatelessWidget {
 
                     SizedBox(height: 12.h),
 
-                    // Action buttons
+                    // Action buttons - Fixed size and aligned
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
+                        // View button (Primary action)
                         if (actionLabel != null)
-                          Expanded(
+                          SizedBox(
+                            height: 32.h,
                             child: OutlinedButton(
                               onPressed: onAction,
                               style: OutlinedButton.styleFrom(
@@ -543,9 +546,9 @@ class _NotificationCard extends StatelessWidget {
                                 ),
                                 padding: EdgeInsets.symmetric(
                                   horizontal: 12.w,
-                                  vertical: 8.h,
+                                  vertical: 0,
                                 ),
-                                minimumSize: Size.zero,
+                                minimumSize: Size(80.w, 32.h),
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
                               child: Text(
@@ -555,47 +558,61 @@ class _NotificationCard extends StatelessWidget {
                                   fontWeight: FontWeight.w500,
                                   color: AppColors.brandSage600,
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ),
 
+                        // Mark as Read button (Secondary action)
                         if (!isRead) ...[
                           if (actionLabel != null) SizedBox(width: 8.w),
-                          TextButton(
-                            onPressed: onMarkAsRead,
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 12.w,
-                                vertical: 8.h,
+                          SizedBox(
+                            height: 32.h,
+                            child: TextButton(
+                              onPressed: onMarkAsRead,
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 12.w,
+                                  vertical: 0,
+                                ),
+                                minimumSize: Size(80.w, 32.h),
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                            child: Text(
-                              'markAsRead'.tr.isEmpty
-                                  ? 'Mark as read'
-                                  : 'markAsRead'.tr,
-                              style: AppTextStyles.caption.copyWith(
-                                fontSize: 12.sp,
-                                color: AppColors.neutralInk700,
+                              child: Text(
+                                'markAsRead'.tr.isEmpty
+                                    ? 'Mark as read'
+                                    : 'markAsRead'.tr,
+                                style: AppTextStyles.caption.copyWith(
+                                  fontSize: 12.sp,
+                                  color: AppColors.neutralInk700,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ),
                         ],
 
-                        const Spacer(),
-
-                        // Delete button
-                        IconButton(
-                          onPressed: onDelete,
-                          icon: Icon(
-                            Icons.delete_outline,
-                            size: 18.sp,
-                            color: AppColors.danger,
+                        // Delete button (Destructive action)
+                        SizedBox(width: 8.w),
+                        SizedBox(
+                          width: 32.w,
+                          height: 32.h,
+                          child: IconButton(
+                            onPressed: onDelete,
+                            icon: Icon(
+                              Icons.delete_outline,
+                              size: 18.sp,
+                              color: AppColors.danger,
+                            ),
+                            padding: EdgeInsets.zero,
+                            constraints: BoxConstraints(
+                              minWidth: 32.w,
+                              minHeight: 32.h,
+                            ),
+                            tooltip: 'Delete',
                           ),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          tooltip: 'Delete',
                         ),
                       ],
                     ),
