@@ -97,77 +97,78 @@ class _NotificationsModalContentState
                         ),
                       ),
                     ),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 24.w,
-                      vertical: 16.h,
+                    padding: EdgeInsets.only(
+                      left: 24.w,
+                      right: 24.w,
+                      top: 12.h,
+                      bottom: 16.h,
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Filter tabs
-                        Expanded(
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: [
-                                _buildFilterTab(
-                                  'all',
-                                  'all'.tr.isEmpty ? 'All' : 'all'.tr,
+                        // Top row: Mark all as read button (right-aligned)
+                        if (unreadCount > 0)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              TextButton.icon(
+                                onPressed: _markAllAsRead,
+                                icon: Icon(
+                                  Icons.check_circle_outline,
+                                  size: 16.sp,
+                                  color: AppColors.brandSage600,
                                 ),
-                                SizedBox(width: 8.w),
-                                _buildFilterTab('document', 'documents'.tr),
-                                SizedBox(width: 8.w),
-                                _buildFilterTab(
-                                  'maintenance',
-                                  'maintenance'.tr,
+                                label: Text(
+                                  'markAllRead'.tr.isEmpty
+                                      ? 'Mark all read'
+                                      : 'markAllRead'.tr,
+                                  style: AppTextStyles.caption.copyWith(
+                                    fontSize: 12.sp,
+                                    color: AppColors.brandSage600,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
-                                SizedBox(width: 8.w),
-                                _buildFilterTab('chat', 'chat'.tr),
-                                SizedBox(width: 8.w),
-                                _buildFilterTab(
-                                  'ticket',
-                                  'supportTickets'.tr.isEmpty
-                                      ? 'Tickets'
-                                      : 'supportTickets'.tr,
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 12.w,
+                                    vertical: 6.h,
+                                  ),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
+                          ),
+                        
+                        // Bottom row: Filter tabs
+                        if (unreadCount > 0) SizedBox(height: 8.h),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              _buildFilterTab(
+                                'all',
+                                'all'.tr.isEmpty ? 'All' : 'all'.tr,
+                              ),
+                              SizedBox(width: 8.w),
+                              _buildFilterTab('document', 'documents'.tr),
+                              SizedBox(width: 8.w),
+                              _buildFilterTab(
+                                'maintenance',
+                                'maintenance'.tr,
+                              ),
+                              SizedBox(width: 8.w),
+                              _buildFilterTab('chat', 'chat'.tr),
+                              SizedBox(width: 8.w),
+                              _buildFilterTab(
+                                'ticket',
+                                'supportTickets'.tr.isEmpty
+                                    ? 'Tickets'
+                                    : 'supportTickets'.tr,
+                              ),
+                            ],
                           ),
                         ),
-
-                        // Mark all as read button
-                        if (unreadCount > 0)
-                          Padding(
-                            padding: EdgeInsets.only(
-                              right: 8.w,
-                            ), // Small spacing from edge
-                            child: TextButton.icon(
-                              onPressed: _markAllAsRead,
-                              icon: Icon(
-                                Icons.check_circle_outline,
-                                size: 16.sp,
-                                color: AppColors.brandSage600,
-                              ),
-                              label: Text(
-                                'markAllRead'.tr.isEmpty
-                                    ? 'Mark all read'
-                                    : 'markAllRead'.tr,
-                                style: AppTextStyles.caption.copyWith(
-                                  fontSize: 12.sp,
-                                  color: AppColors.brandSage600,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              style: TextButton.styleFrom(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 12.w,
-                                  vertical: 8.h,
-                                ),
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                            ),
-                          ),
                       ],
                     ),
                   );
