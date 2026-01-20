@@ -248,8 +248,8 @@ class _DocumentCardState extends State<DocumentCard> {
                                       padding: EdgeInsets.only(
                                         left: 15 * scale,
                                       ),
-                                      child: _actionIconBtn(
-                                        Icons.delete_outline,
+                                      child: _actionBtn(
+                                        "assets/images/delete.svg",
                                         widget.onDelete!,
                                         scale,
                                       ),

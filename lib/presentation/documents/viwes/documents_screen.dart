@@ -167,8 +167,34 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                           print('View document: ${doc.title}');
                         },
                         onDelete: permissions.canDeleteDocuments
-                            ? () {
-                                _controller.deleteDocument(doc);
+                            ? () async {
+                                // Show confirmation dialog
+                                final confirmed = await Get.dialog<bool>(
+                                  AlertDialog(
+                                    title: const Text('Delete Document'),
+                                    content: Text(
+                                      'Are you sure you want to delete this document?',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Get.back(result: false),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () => Get.back(result: true),
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: Colors.red,
+                                        ),
+                                        child: const Text('Delete'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+
+                                // Only delete if user confirmed
+                                if (confirmed == true) {
+                                  await _controller.deleteDocument(doc);
+                                }
                               }
                             : null,
                         onDownload: () {
