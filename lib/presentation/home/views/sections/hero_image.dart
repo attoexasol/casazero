@@ -99,23 +99,6 @@ class _HeroImageState extends State<HeroImage>
       margin: const EdgeInsets.only(top: 5),
       width: double.infinity,
       height: 500, // Fixed height: 500px equivalent
-      decoration: BoxDecoration(
-        // Outer glow/shadow effect for eye-catching depth
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 20,
-            spreadRadius: 2,
-            offset: const Offset(0, 4),
-          ),
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 40,
-            spreadRadius: -4,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
       child: ClipRect(
         clipBehavior: Clip.hardEdge,
         child: Stack(
@@ -155,24 +138,28 @@ class _HeroImageState extends State<HeroImage>
             ),
 
             // ============================================================================
-            // LAYER 3: DRAMATIC BOTTOM WHITE FADE (Strong Transition)
+            // LAYER 3: SEAMLESS BOTTOM EDGE BLEND (Smooth Background Integration)
             // ============================================================================
-            // More pronounced bottom fade for eye-catching contrast
+            // Smooth bottom fade that blends seamlessly with app background (white)
+            // Long, natural gradient to eliminate visible edge
             Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    stops: const [0.0, 0.40, 0.60, 0.75, 0.88, 1.0],
-                    colors: [
-                      Colors.transparent,
-                      Colors.white.withOpacity(0.0),
-                      Colors.white.withOpacity(0.35),
-                      Colors.white.withOpacity(0.65),
-                      Colors.white.withOpacity(0.88),
-                      Colors.white.withOpacity(0.98),
-                    ],
+              child: IgnorePointer(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      stops: const [0.0, 0.50, 0.65, 0.78, 0.88, 0.95, 1.0],
+                      colors: [
+                        Colors.transparent,
+                        Colors.transparent,
+                        AppColors.surfaceWhite.withOpacity(0.0),
+                        AppColors.surfaceWhite.withOpacity(0.30),
+                        AppColors.surfaceWhite.withOpacity(0.65),
+                        AppColors.surfaceWhite.withOpacity(0.90),
+                        AppColors.surfaceWhite, // Full white at bottom - seamless blend
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -248,11 +235,11 @@ class _HeroImageState extends State<HeroImage>
             ),
 
             // ============================================================================
-            // LAYER 7: TOP GRADIENT OVERLAY (Premium Header Fade) - PLACED LAST FOR VISIBILITY
+            // LAYER 7: SEAMLESS TOP EDGE BLEND (Smooth Background Integration) - PLACED LAST
             // ============================================================================
-            // Stronger top fade for better contrast - placed LAST in stack to ensure visibility
-            // This layer MUST cover the FULL top area - using pure white for maximum visibility
-            // Positioned.fill ensures it covers the ENTIRE image area including top edge
+            // Smooth top fade that blends seamlessly with app background (white)
+            // Long, natural gradient to eliminate visible edge - placed LAST for visibility
+            // This creates an unbroken, continuous feel with the app header/background
             Positioned.fill(
               child: IgnorePointer(
                 child: Container(
@@ -262,42 +249,14 @@ class _HeroImageState extends State<HeroImage>
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      stops: const [0.0, 0.01, 0.03, 0.08, 0.15, 0.25],
+                      stops: const [0.0, 0.02, 0.05, 0.10, 0.18, 0.28],
                       colors: [
-                        Colors.white, // Pure white at top (100% opacity) - FULL COVERAGE AT 0%
-                        Colors.white, // Keep white for first 1% to ensure full coverage
-                        Colors.white.withOpacity(0.98), // 98% at 3%
-                        Colors.white.withOpacity(0.85), // 85% at 8%
-                        Colors.white.withOpacity(0.60), // 60% at 15%
-                        Colors.white.withOpacity(0.0), // Transparent at 25%
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            // ============================================================================
-            // LAYER 8: TOP EDGE GLOW (Additional Top Effect) - FINAL LAYER
-            // ============================================================================
-            // Extra top edge glow for maximum visibility - FINAL layer for top effects
-            // Ensures the very top edge is fully covered - covers ENTIRE top area
-            Positioned.fill(
-              child: IgnorePointer(
-                child: Container(
-                  width: double.infinity,
-                  height: double.infinity,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      stops: const [0.0, 0.01, 0.04, 0.08, 0.15],
-                      colors: [
-                        Colors.white.withOpacity(0.6), // Strong glow at very top (0%) - FULL COVERAGE
-                        Colors.white.withOpacity(0.5), // Strong glow at 1%
-                        Colors.white.withOpacity(0.3), // Medium glow at 4%
-                        Colors.white.withOpacity(0.15), // Subtle glow at 8%
-                        Colors.transparent, // Transparent at 15%
+                        AppColors.surfaceWhite, // Full white at top - seamless blend with background
+                        AppColors.surfaceWhite, // Keep white for first 2% for smooth transition
+                        AppColors.surfaceWhite.withOpacity(0.95), // 95% at 5%
+                        AppColors.surfaceWhite.withOpacity(0.80), // 80% at 10%
+                        AppColors.surfaceWhite.withOpacity(0.50), // 50% at 18%
+                        AppColors.surfaceWhite.withOpacity(0.0), // Transparent at 28%
                       ],
                     ),
                   ),
