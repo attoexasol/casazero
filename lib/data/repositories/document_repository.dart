@@ -375,4 +375,40 @@ class DocumentRepository {
       };
     }
   }
+
+  /// Delete Document
+  /// DELETE /documents/delete/{document_id}
+  /// Response: {
+  ///   "status": true,
+  ///   "message": "Document deleted successfully"
+  /// }
+  Future<Map<String, dynamic>> deleteDocument(int documentId) async {
+    try {
+      print('🗑️ [DocumentRepository] Deleting document with ID: $documentId');
+
+      final response = await _apiService.delete(
+        '/documents/delete/$documentId',
+      );
+
+      if (response.statusCode == 200 && response.data['status'] == true) {
+        print('✅ [DocumentRepository] Document deleted successfully');
+        return {
+          'success': true,
+          'message': response.data['message'] ?? 'Document deleted successfully',
+        };
+      } else {
+        print('⚠️ [DocumentRepository] Delete failed: ${response.data['message']}');
+        return {
+          'success': false,
+          'error': response.data['message'] ?? 'Failed to delete document',
+        };
+      }
+    } catch (e) {
+      print('❌ [DocumentRepository] Error deleting document: $e');
+      return {
+        'success': false,
+        'error': 'Failed to delete document. Please try again.',
+      };
+    }
+  }
 }

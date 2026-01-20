@@ -634,4 +634,82 @@ class DocumentsController extends GetxController {
   // -------------------------------------------------------------------------
   // Snackbars are now handled ONLY in UI layer (AddDocumentDialog)
   // Controller returns UploadResult - no side effects
+
+  /// Delete a document
+  /// Calls the delete API and removes the document from the list on success
+  Future<bool> deleteDocument(DocumentModel document) async {
+    try {
+      // Parse document ID from String to int (API expects int)
+      final documentId = int.tryParse(document.id);
+      if (documentId == null) {
+        print('❌ [DocumentsController] Invalid document ID: ${document.id}');
+        Get.snackbar(
+          'Delete Failed',
+          'Invalid document ID',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red[700],
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+          icon: const Icon(Icons.error, color: Colors.white),
+        );
+        return false;
+      }
+
+      print('🗑️ [DocumentsController] Deleting document: ${document.title} (ID: $documentId)');
+
+      // Call delete API
+      final result = await _repository.deleteDocument(documentId);
+
+      if (result['success'] == true) {
+        print('✅ [DocumentsController] Delete success, removing from UI');
+
+        // Remove document from reactive list immediately
+        documents.removeWhere((d) => d.id == document.id);
+
+        // Update total count
+        totalDocumentCount.value = documents.length;
+
+        // Update category counts
+        _updateCategoryCounts(documents.toList());
+
+        // Show success snackbar
+        Get.snackbar(
+          'Document Deleted',
+          '${document.title} has been deleted successfully',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green[700],
+          colorText: Colors.white,
+          duration: const Duration(seconds: 2),
+          icon: const Icon(Icons.check_circle, color: Colors.white),
+        );
+
+        return true;
+      } else {
+        // Show error snackbar
+        Get.snackbar(
+          'Delete Failed',
+          result['error'] ?? 'Failed to delete document',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red[700],
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+          icon: const Icon(Icons.error, color: Colors.white),
+        );
+        print('❌ [DocumentsController] Delete failed: ${result['error']}');
+        return false;
+      }
+    } catch (e) {
+      print('❌ [DocumentsController] Error deleting document: $e');
+      Get.snackbar(
+        'Delete Failed',
+        'An error occurred while deleting the document',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red[700],
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+        icon: const Icon(Icons.error, color: Colors.white),
+      );
+      return false;
+    }
+  }
 }

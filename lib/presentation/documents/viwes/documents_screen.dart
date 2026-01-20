@@ -168,7 +168,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                         },
                         onDelete: permissions.canDeleteDocuments
                             ? () {
-                                print('Delete document: ${doc.title}');
+                                _controller.deleteDocument(doc);
                               }
                             : null,
                         onDownload: () {

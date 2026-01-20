@@ -240,10 +240,10 @@ class _DocumentCardState extends State<DocumentCard> {
 
                                   const Spacer(),
 
-                                  // Delete Button (only for Personal documents: type.id === 1 OR type.type_name === "Personal")
+                                  // Delete Button
                                   // Positioned at bottom-right, after Spacer to align right
-                                  if (_shouldShowDeleteButton() &&
-                                      widget.onDelete != null)
+                                  // Consistent visibility: shows for all cards when onDelete callback is provided
+                                  if (widget.onDelete != null)
                                     Padding(
                                       padding: EdgeInsets.only(
                                         left: 15 * scale,
@@ -418,24 +418,4 @@ class _DocumentCardState extends State<DocumentCard> {
     }
   }
 
-  /// Check if delete button should be shown
-  /// Returns true if document.type.id === 1 OR document.type.type_name === "Personal"
-  /// Since type_name is stored in tags, we check tags for "Personal"
-  bool _shouldShowDeleteButton() {
-    // Check if typeId === 1
-    if (widget.document.typeId == 1) {
-      return true;
-    }
-
-    // Check if type_name is "Personal" (stored in tags)
-    // Check both exact match and substring match for robustness
-    final lowerTags = widget.document.tags
-        .map((t) => t.toLowerCase().trim())
-        .toList();
-    if (lowerTags.any((tag) => tag == 'personal' || tag.contains('personal'))) {
-      return true;
-    }
-
-    return false;
-  }
 }
