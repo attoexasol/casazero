@@ -197,9 +197,9 @@ class _HeroImageState extends State<HeroImage>
                     colors: [
                       Colors.white.withOpacity(0.0),
                       Colors.white.withOpacity(0.0),
-                      Colors.white.withOpacity(0.25), // Stronger at center
-                      Colors.white.withOpacity(0.15),
-                      Colors.white.withOpacity(0.05),
+                      Colors.white.withOpacity(0.00), // Stronger at center
+                      Colors.white.withOpacity(0.00),
+                      Colors.white.withOpacity(0.00),
                       Colors.white.withOpacity(0.0),
                     ],
                     stops: const [0.0, 0.15, 0.35, 0.55, 0.75, 1.0],
@@ -228,9 +228,9 @@ class _HeroImageState extends State<HeroImage>
                       colors: [
                         AppColors.surfaceWhite, // Full white at bottom - seamless blend with background (mirrors top 0%)
                         AppColors.surfaceWhite, // Keep white for first 2% for smooth transition (mirrors top 2%)
-                        AppColors.surfaceWhite.withOpacity(0.95), // 95% at 5% (EXACTLY mirrors top 5%)
-                        AppColors.surfaceWhite.withOpacity(0.80), // 80% at 10% (EXACTLY mirrors top 10%)
-                        AppColors.surfaceWhite.withOpacity(0.50), // 50% at 18% (EXACTLY mirrors top 18%)
+                        AppColors.surfaceWhite.withOpacity(0.30), // 95% at 5% (EXACTLY mirrors top 5%)
+                        AppColors.surfaceWhite.withOpacity(0.20), // 80% at 10% (EXACTLY mirrors top 10%)
+                        AppColors.surfaceWhite.withOpacity(0.10), // 50% at 18% (EXACTLY mirrors top 18%)
                         AppColors.surfaceWhite.withOpacity(0.0), // Transparent at 28% (EXACTLY mirrors top 28%)
                       ],
                     ),
@@ -258,9 +258,9 @@ class _HeroImageState extends State<HeroImage>
                       colors: [
                         AppColors.surfaceWhite, // Full white at top - seamless blend with background
                         AppColors.surfaceWhite, // Keep white for first 2% for smooth transition
-                        AppColors.surfaceWhite.withOpacity(0.95), // 95% at 5%
-                        AppColors.surfaceWhite.withOpacity(0.80), // 80% at 10%
-                        AppColors.surfaceWhite.withOpacity(0.50), // 50% at 18%
+                        AppColors.surfaceWhite.withOpacity(0.30), // 95% at 5%
+                        AppColors.surfaceWhite.withOpacity(0.20), // 80% at 10%
+                        AppColors.surfaceWhite.withOpacity(0.10), // 50% at 18%
                         AppColors.surfaceWhite.withOpacity(0.0), // Transparent at 28%
                       ],
                     ),
