@@ -40,29 +40,16 @@ class _HeroImageState extends State<HeroImage>
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeOut,
-      ),
-    );
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     // Scale animation (0.98 → 1.0)
     _scaleAnimation = Tween<double>(
       begin: 0.98,
       end: 1.0,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeOut,
-      ),
-    );
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     // Image hover scale effect (1.0 → 1.05, 700ms, smooth easing)
-    _imageScaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.05,
-    ).animate(
+    _imageScaleAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
       CurvedAnimation(
         parent: _controller,
         curve: const Interval(0.2, 1.0, curve: Curves.easeInOut),
@@ -108,95 +95,216 @@ class _HeroImageState extends State<HeroImage>
 
   /// Build the complete image stack with all overlays and effects
   Widget _buildImageStack(String imageUrl) {
-    return ClipRect(
-      child: Container(
-        margin: const EdgeInsets.only(top: 5),
-        width: double.infinity,
-        height: 500, // Fixed height: 500px equivalent
+    return Container(
+      margin: const EdgeInsets.only(top: 5),
+      width: double.infinity,
+      height: 500, // Fixed height: 500px equivalent
+      decoration: BoxDecoration(
+        // Outer glow/shadow effect for eye-catching depth
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 20,
+            spreadRadius: 2,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 40,
+            spreadRadius: -4,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: ClipRect(
+        clipBehavior: Clip.hardEdge,
         child: Stack(
           fit: StackFit.expand,
-          clipBehavior: Clip.hardEdge,
           children: [
-          // ============================================================================
-          // MAIN IMAGE CONTAINER
-          // ============================================================================
-          // Base layer: Image with scale animation (hover effect equivalent)
-          ScaleTransition(
-            scale: _imageScaleAnimation,
-            child: _buildImage(imageUrl),
-          ),
+            // ============================================================================
+            // MAIN IMAGE CONTAINER
+            // ============================================================================
+            // Base layer: Image with scale animation (hover effect equivalent)
+            ScaleTransition(
+              scale: _imageScaleAnimation,
+              child: _buildImage(imageUrl),
+            ),
 
-          // ============================================================================
-          // TOP GRADIENT OVERLAY (Header Fade)
-          // ============================================================================
-          // Gradient: rgb(250, 249, 246) solid → 80% at 10% → transparent at 25%
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  stops: const [0.0, 0.10, 0.25],
-                  colors: [
-                    const Color(0xFFFAF9F6), // rgb(250, 249, 246) - solid
-                    const Color(0xFFFAF9F6).withOpacity(0.8), // 80% opacity at 10%
-                    const Color(0xFFFAF9F6).withOpacity(0.0), // transparent at 25%
-                  ],
+            // ============================================================================
+            // LAYER 1: ENHANCED RADIAL GLOW (Dramatic Center Bloom)
+            // ============================================================================
+            // Creates eye-catching depth with stronger radial glow - extends to top
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    center: const Alignment(0.0, -0.2), // Higher up to reach top better
+                    radius: 1.5, // Larger radius to cover top area
+                    colors: [
+                      Colors.white.withOpacity(0.0),
+                      Colors.white.withOpacity(0.0),
+                      Colors.white.withOpacity(0.20),
+                      Colors.white.withOpacity(0.35),
+                      Colors.white.withOpacity(0.30),
+                      Colors.white.withOpacity(0.15), // Extends glow to edges
+                    ],
+                    stops: const [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
+                  ),
                 ),
               ),
             ),
-          ),
 
-          // ============================================================================
-          // BOTTOM WHITE FADE
-          // ============================================================================
-          // Gradient: transparent (top) → white (bottom)
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.white.withOpacity(0.0),
-                    Colors.white.withOpacity(0.3),
-                    Colors.white.withOpacity(0.7),
-                  ],
-                  stops: const [0.0, 0.5, 0.7, 1.0],
+            // ============================================================================
+            // LAYER 3: DRAMATIC BOTTOM WHITE FADE (Strong Transition)
+            // ============================================================================
+            // More pronounced bottom fade for eye-catching contrast
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: const [0.0, 0.40, 0.60, 0.75, 0.88, 1.0],
+                    colors: [
+                      Colors.transparent,
+                      Colors.white.withOpacity(0.0),
+                      Colors.white.withOpacity(0.35),
+                      Colors.white.withOpacity(0.65),
+                      Colors.white.withOpacity(0.88),
+                      Colors.white.withOpacity(0.98),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
 
-          // ============================================================================
-          // DECORATIVE GLOW EFFECT (Top Right)
-          // ============================================================================
-          // Position absolute top right, 128x128, accent lime 20% opacity, circular, blurred
-          Positioned(
-            top: -64, // Center of 128px circle
-            right: -64, // Center of 128px circle
-            child: Container(
-              width: 128,
-              height: 128,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.accentLime500.withOpacity(0.2), // 20% opacity
+            // ============================================================================
+            // LAYER 4: ENHANCED VIGNETTE (Stronger Edge Darkening)
+            // ============================================================================
+            // More dramatic vignette for eye-catching depth and focus
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    center: Alignment.center,
+                    radius: 1.1,
+                    colors: [
+                      Colors.transparent,
+                      Colors.transparent,
+                      Colors.black.withOpacity(0.0),
+                      Colors.black.withOpacity(0.12),
+                      Colors.black.withOpacity(0.20),
+                      Colors.black.withOpacity(0.25),
+                    ],
+                    stops: const [0.0, 0.4, 0.65, 0.82, 0.92, 1.0],
+                  ),
+                ),
               ),
-              child: ClipOval(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.accentLime500.withOpacity(0.1),
+            ),
+
+            // ============================================================================
+            // LAYER 5: CONTRAST ENHANCEMENT OVERLAY
+            // ============================================================================
+            // Subtle overlay to boost contrast and make image pop
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: const [0.0, 0.5, 1.0],
+                    colors: [
+                      Colors.black.withOpacity(0.0),
+                      Colors.black.withOpacity(0.03),
+                      Colors.black.withOpacity(0.06),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // ============================================================================
+            // LAYER 6: ENHANCED LIGHT BLOOM EFFECT (Top Center)
+            // ============================================================================
+            // Eye-catching light bloom from top center - more visible at top
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    center: const Alignment(0.0, -0.9), // Higher up for top effect
+                    radius: 1.8, // Larger radius for better coverage
+                    colors: [
+                      Colors.white.withOpacity(0.0),
+                      Colors.white.withOpacity(0.0),
+                      Colors.white.withOpacity(0.25), // Stronger at center
+                      Colors.white.withOpacity(0.15),
+                      Colors.white.withOpacity(0.05),
+                      Colors.white.withOpacity(0.0),
+                    ],
+                    stops: const [0.0, 0.15, 0.35, 0.55, 0.75, 1.0],
+                  ),
+                ),
+              ),
+            ),
+
+            // ============================================================================
+            // LAYER 7: TOP GRADIENT OVERLAY (Premium Header Fade) - PLACED LAST FOR VISIBILITY
+            // ============================================================================
+            // Stronger top fade for better contrast - placed LAST in stack to ensure visibility
+            // This layer MUST cover the FULL top area - using pure white for maximum visibility
+            // Positioned.fill ensures it covers the ENTIRE image area including top edge
+            Positioned.fill(
+              child: IgnorePointer(
+                child: Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      stops: const [0.0, 0.01, 0.03, 0.08, 0.15, 0.25],
+                      colors: [
+                        Colors.white, // Pure white at top (100% opacity) - FULL COVERAGE AT 0%
+                        Colors.white, // Keep white for first 1% to ensure full coverage
+                        Colors.white.withOpacity(0.98), // 98% at 3%
+                        Colors.white.withOpacity(0.85), // 85% at 8%
+                        Colors.white.withOpacity(0.60), // 60% at 15%
+                        Colors.white.withOpacity(0.0), // Transparent at 25%
+                      ],
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+
+            // ============================================================================
+            // LAYER 8: TOP EDGE GLOW (Additional Top Effect) - FINAL LAYER
+            // ============================================================================
+            // Extra top edge glow for maximum visibility - FINAL layer for top effects
+            // Ensures the very top edge is fully covered - covers ENTIRE top area
+            Positioned.fill(
+              child: IgnorePointer(
+                child: Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      stops: const [0.0, 0.01, 0.04, 0.08, 0.15],
+                      colors: [
+                        Colors.white.withOpacity(0.6), // Strong glow at very top (0%) - FULL COVERAGE
+                        Colors.white.withOpacity(0.5), // Strong glow at 1%
+                        Colors.white.withOpacity(0.3), // Medium glow at 4%
+                        Colors.white.withOpacity(0.15), // Subtle glow at 8%
+                        Colors.transparent, // Transparent at 15%
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -215,9 +323,7 @@ class _HeroImageState extends State<HeroImage>
           width: double.infinity,
           height: 500,
           color: Colors.grey[200],
-          child: const Center(
-            child: CircularProgressIndicator(),
-          ),
+          child: const Center(child: CircularProgressIndicator()),
         ),
         errorWidget: (context, url, error) => _buildFallbackImage(),
       );
