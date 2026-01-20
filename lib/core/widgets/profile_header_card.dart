@@ -78,7 +78,11 @@ class ProfileHeaderCard extends StatelessWidget {
 
         // Show image or fallback
         if (hasValidImage) {
-          return _networkImageAvatar(controller.user.value!.profileImage!, initials);
+          return _networkImageAvatar(
+            controller.user.value!.profileImage!,
+            initials,
+            controller,
+          );
         } else {
           return _fallbackAvatar(initials);
         }
@@ -87,38 +91,54 @@ class ProfileHeaderCard extends StatelessWidget {
   }
 
   // Network image avatar with camera icon overlay
-  Widget _networkImageAvatar(String imageUrl, String initials) {
-    return Stack(
-      children: [
-        Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: AppColors.brandSage500.withOpacity(0.3),
-              width: 2,
+  Widget _networkImageAvatar(
+    String imageUrl,
+    String initials,
+    ProfileController controller,
+  ) {
+    return Obx(() {
+      // Get refresh timestamp from controller - updates on every pull-to-refresh
+      final refreshTimestamp = controller.imageRefreshTimestamp.value;
+      
+      // Add cache-busting parameter using refresh timestamp
+      // This ensures image is reloaded from backend on every pull-to-refresh
+      // even if the URL is the same but image content has changed
+      final cacheBustedUrl = _addCacheBusterWithTimestamp(imageUrl, refreshTimestamp);
+      
+      return Stack(
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppColors.brandSage500.withOpacity(0.3),
+                width: 2,
+              ),
             ),
-          ),
-          child: ClipOval(
-            child: CachedNetworkImage(
-              imageUrl: imageUrl,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => Container(
-                color: AppColors.brandSage500.withOpacity(0.1),
-                child: Center(
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      AppColors.brandSage500,
+            child: ClipOval(
+              // Use Key with refresh timestamp to force rebuild on every refresh
+              // This ensures CachedNetworkImage reloads even if URL is the same
+              key: ValueKey('$imageUrl-$refreshTimestamp'),
+              child: CachedNetworkImage(
+                imageUrl: cacheBustedUrl,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => Container(
+                  color: AppColors.brandSage500.withOpacity(0.1),
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        AppColors.brandSage500,
+                      ),
                     ),
                   ),
                 ),
+                errorWidget: (context, url, error) => _fallbackAvatar(initials),
               ),
-              errorWidget: (context, url, error) => _fallbackAvatar(initials),
             ),
           ),
-        ),
         // Camera icon overlay
         Positioned(
           bottom: 0,
@@ -138,8 +158,9 @@ class ProfileHeaderCard extends StatelessWidget {
             ),
           ),
         ),
-      ],
-    );
+        ],
+      );
+    });
   }
 
   // Uploading indicator
@@ -216,6 +237,38 @@ class ProfileHeaderCard extends StatelessWidget {
           uri.host.isNotEmpty;
     } catch (e) {
       return false;
+    }
+  }
+
+  // Add cache-busting parameter to image URL using refresh timestamp
+  // This forces image reload on every pull-to-refresh, even if URL is the same
+  String _addCacheBusterWithTimestamp(String url, int refreshTimestamp) {
+    try {
+      final uri = Uri.parse(url);
+      final queryParams = Map<String, String>.from(uri.queryParameters);
+      // Use refresh timestamp as cache-buster - changes on every pull-to-refresh
+      // This ensures image is always reloaded from backend when refresh is triggered
+      queryParams['_refresh'] = refreshTimestamp.toString();
+      return uri.replace(queryParameters: queryParams).toString();
+    } catch (e) {
+      // If URL parsing fails, return original URL
+      return url;
+    }
+  }
+
+  // Legacy cache-busting method (kept for backward compatibility)
+  // Uses URL hash to ensure cache-buster only changes when URL changes
+  String _addCacheBuster(String url) {
+    try {
+      final uri = Uri.parse(url);
+      final queryParams = Map<String, String>.from(uri.queryParameters);
+      // Use URL hash as cache-buster - changes only when URL changes
+      // This ensures cache refresh without unnecessary reloads on every rebuild
+      queryParams['_v'] = url.hashCode.toString();
+      return uri.replace(queryParameters: queryParams).toString();
+    } catch (e) {
+      // If URL parsing fails, return original URL
+      return url;
     }
   }
 

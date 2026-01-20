@@ -5,8 +5,10 @@ import 'package:casazero/core/widgets/profile_header_card.dart';
 import 'package:casazero/core/widgets/residence_info_card.dart';
 import 'package:casazero/core/widgets/security_card.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../data/models/user_model.dart';
 import '../../../app/theme/app_colors.dart';
+import '../controllers/profile_controller.dart';
 
 class ProfileScreen extends StatelessWidget {
   final UserModel user;
@@ -22,28 +24,36 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get ProfileController instance
+    final profileController = Get.find<ProfileController>();
+    
     // NO SCAFFOLD/APPBAR - This screen is wrapped by MainScaffold
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          children: [
-            // Profile header
-            ProfileHeaderCard(user: user),
-            const SizedBox(height: 24),
+    return RefreshIndicator(
+      onRefresh: () => profileController.refreshData(),
+      color: AppColors.brandSage500,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(), // Enable pull-to-refresh even when content doesn't scroll
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            children: [
+              // Profile header
+              ProfileHeaderCard(user: user),
+              const SizedBox(height: 24),
 
-            // Profile sections
-            ResidenceInfoCard(user: user),
-            const SizedBox(height: 16),
-            SecurityCard(user: user, onNavigate: onNavigate),
-            const SizedBox(height: 16),
-            PreferencesCard(user: user),
-            const SizedBox(height: 16),
-            NotificationSettingsCard(user: user),
-            const SizedBox(height: 16),
-            LogoutSection(onLogoutTap: onLogout),
-            const SizedBox(height: 80),
-          ],
+              // Profile sections
+              ResidenceInfoCard(user: user),
+              const SizedBox(height: 16),
+              SecurityCard(user: user, onNavigate: onNavigate),
+              const SizedBox(height: 16),
+              PreferencesCard(user: user),
+              const SizedBox(height: 16),
+              NotificationSettingsCard(user: user),
+              const SizedBox(height: 16),
+              LogoutSection(onLogoutTap: onLogout),
+              const SizedBox(height: 80),
+            ],
+          ),
         ),
       ),
     );

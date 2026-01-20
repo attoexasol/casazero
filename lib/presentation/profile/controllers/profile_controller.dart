@@ -8,6 +8,7 @@ import '../../../data/repositories/profile_repository.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/routes/app_routes.dart';
+import '../../home/controllers/home_controller.dart';
 import 'package:flutter/material.dart';
 
 class ProfileController extends GetxController {
@@ -20,6 +21,8 @@ class ProfileController extends GetxController {
   final RxBool isSaving = false.obs;
   final RxBool isUploadingImage = false.obs;
   final RxBool isChangingLanguage = false.obs;
+  // Refresh timestamp for cache-busting profile images on pull-to-refresh
+  final RxInt imageRefreshTimestamp = 0.obs;
 
   @override
   void onInit() {
@@ -51,6 +54,56 @@ class ProfileController extends GetxController {
     if (data != null) {
       user.value = UserModel.fromJson(data);
       print('🔄 [ProfileController] User force-reloaded from storage');
+    }
+  }
+
+  /// Refresh user data from backend API
+  /// Fetches latest user profile from server and updates local storage and reactive state
+  /// Also syncs with HomeController if available to ensure app-wide consistency
+  Future<void> refreshData() async {
+    try {
+      print('🔄 [ProfileController] Refreshing user data from backend...');
+      
+      // Fetch latest user data from backend API
+      final updatedUser = await _authRepository.getUserProfile();
+      
+      if (updatedUser != null) {
+        // Update reactive state with latest data
+        user.value = updatedUser;
+        
+        // Update local storage with latest data
+        await _storage.saveUserData(updatedUser.toJson());
+        
+        // Update refresh timestamp to force image cache invalidation
+        // This ensures profile image is reloaded from backend even if URL is the same
+        imageRefreshTimestamp.value = DateTime.now().millisecondsSinceEpoch;
+        
+        // Sync with HomeController if available to ensure app-wide consistency
+        try {
+          if (Get.isRegistered<HomeController>()) {
+            final homeController = Get.find<HomeController>();
+            homeController.currentUser.value = updatedUser;
+            print('✅ [ProfileController] Synced updated user data to HomeController');
+          }
+        } catch (e) {
+          print('⚠️ [ProfileController] Could not sync with HomeController: $e');
+          // Non-critical - continue even if HomeController sync fails
+        }
+        
+        print('✅ [ProfileController] User data refreshed successfully from backend');
+        print('   User ID: ${updatedUser.id}');
+        print('   User Name: ${updatedUser.userName}');
+        print('   Email: ${updatedUser.email}');
+        print('   Image refresh timestamp: ${imageRefreshTimestamp.value}');
+      } else {
+        print('⚠️ [ProfileController] Failed to fetch user data from backend');
+        // Fallback: reload from storage if API fails
+        forceReloadUser();
+      }
+    } catch (e) {
+      print('❌ [ProfileController] Error refreshing user data: $e');
+      // Fallback: reload from storage if API fails
+      forceReloadUser();
     }
   }
 
@@ -113,8 +166,20 @@ class ProfileController extends GetxController {
       );
 
       if (result['success'] == true) {
-        // Reload user data from storage (updated by repository)
-        loadUser();
+        // Get the new image URL from API response
+        final newImageUrl = result['image_url'] as String?;
+        
+        // Directly update the user model with the new image URL
+        // This bypasses the loadUser() guard and ensures immediate UI update
+        if (user.value != null && newImageUrl != null) {
+          user.value = user.value!.copyWith(profileImage: newImageUrl);
+          // Also update storage to keep it in sync
+          await _saveUserToStorage();
+        } else {
+          // Fallback: force reload from storage if direct update fails
+          forceReloadUser();
+        }
+        
         _showSuccess(result['message'] ?? 'profile_image_updated'.tr);
       } else {
         _showError(result['error'] ?? 'failed_to_upload_image'.tr);

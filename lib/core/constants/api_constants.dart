@@ -11,7 +11,12 @@ class ApiConstants {
   static const String CHANGE_PASSWORD = '/user/forget_password';
 
   // User Endpoints
-  static const String GET_USER_PROFILE = '/users/profile';
+  /// Get User Profile
+  /// POST /user/profile
+  /// API URL: https://smarthome.attoexasolutions.com/api/user/profile
+  /// Request: { "token": "USER_API_TOKEN" }
+  /// Response: { "status": true, "message": "...", "data": {...} }
+  static const String GET_USER_PROFILE = '/user/profile';
 
   /// Update User Profile
   /// POST /user/profile_data/update/{user_id}

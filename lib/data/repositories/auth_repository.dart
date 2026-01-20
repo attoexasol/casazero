@@ -105,11 +105,15 @@ class AuthRepository {
 
   // Logout
   /// POST /user/logout
-  /// Request: { "token": "user_access_token" }
+  /// API URL: https://smarthome.attoexasolutions.com/api/user/logout
+  /// Request: { "token": "USER_API_TOKEN" }
   /// Response: { "status": true, "message": "Logout successful" }
+  /// 
+  /// Gets the logged-in user's saved API token from storage and sends it in the request body
   Future<Map<String, dynamic>> logout() async {
     try {
-      // Get access token before clearing storage
+      // Get the logged-in user's saved API token (access token) from storage
+      // This is the USER_API_TOKEN that was saved during login
       final token = _storageService.getAccessToken();
 
       if (token == null || token.isEmpty) {
@@ -122,8 +126,11 @@ class AuthRepository {
       }
 
       print('🚪 Calling logout API with token: ${token.substring(0, 10)}...');
+      print('📍 Endpoint: ${ApiConstants.LOGOUT}');
+      print('📦 Request Body: { "token": "${token.substring(0, 10)}..." }');
 
       // Call logout API with token in request body
+      // API URL: https://smarthome.attoexasolutions.com/api/user/logout
       final response = await _apiService.post(
         ApiConstants.LOGOUT,
         data: {'token': token},
@@ -653,11 +660,50 @@ class AuthRepository {
   }
 
   // Get User Profile
+  /// POST /user/profile
+  /// API URL: https://smarthome.attoexasolutions.com/api/user/profile
+  /// Request: { "token": "USER_API_TOKEN" }
+  /// Response: { "status": true, "message": "...", "data": {...} }
+  /// 
+  /// Gets the logged-in user's saved API token from storage and sends it in the request body
   Future<UserModel?> getUserProfile() async {
     try {
-      final response = await _apiService.get(ApiConstants.GET_USER_PROFILE);
-      return UserModel.fromJson(response.data);
+      // Get the logged-in user's saved API token (access token) from storage
+      final token = _storageService.getAccessToken();
+
+      if (token == null || token.isEmpty) {
+        print('⚠️ [AuthRepository] No access token found for getUserProfile API call');
+        return null;
+      }
+
+      print('📥 [AuthRepository] Fetching user profile...');
+      print('📍 Endpoint: ${ApiConstants.GET_USER_PROFILE}');
+      print('📦 Request Body: { "token": "${token.substring(0, 10)}..." }');
+
+      // Call API with POST method and token in request body
+      final response = await _apiService.post(
+        ApiConstants.GET_USER_PROFILE,
+        data: {'token': token},
+      );
+
+      print('✅ [AuthRepository] User Profile API Response:');
+      print('  Status Code: ${response.statusCode}');
+      print('  Status: ${response.data['status']}');
+      print('  Message: ${response.data['message']}');
+
+      // Check if response is successful and has data
+      if (response.statusCode == 200 && 
+          response.data['status'] == true && 
+          response.data['data'] != null) {
+        // Parse user data from response.data['data']
+        final userData = response.data['data'] as Map<String, dynamic>;
+        return UserModel.fromJson(userData);
+      } else {
+        print('⚠️ [AuthRepository] Invalid response format or missing data');
+        return null;
+      }
     } catch (e) {
+      print('❌ [AuthRepository] Error fetching user profile: $e');
       return null;
     }
   }
