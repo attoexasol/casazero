@@ -100,7 +100,7 @@ class _HeroImageState extends State<HeroImage>
       width: double.infinity,
       height: 500, // Fixed height: 500px equivalent
       child: ClipRect(
-        clipBehavior: Clip.hardEdge,
+        clipBehavior: Clip.antiAlias, // Smooth anti-aliased edges for better gradient blending
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -138,34 +138,6 @@ class _HeroImageState extends State<HeroImage>
             ),
 
             // ============================================================================
-            // LAYER 3: SEAMLESS BOTTOM EDGE BLEND (Smooth Background Integration)
-            // ============================================================================
-            // Smooth bottom fade that blends seamlessly with app background (white)
-            // Long, natural gradient to eliminate visible edge
-            Positioned.fill(
-              child: IgnorePointer(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      stops: const [0.0, 0.50, 0.65, 0.78, 0.88, 0.95, 1.0],
-                      colors: [
-                        Colors.transparent,
-                        Colors.transparent,
-                        AppColors.surfaceWhite.withOpacity(0.0),
-                        AppColors.surfaceWhite.withOpacity(0.30),
-                        AppColors.surfaceWhite.withOpacity(0.65),
-                        AppColors.surfaceWhite.withOpacity(0.90),
-                        AppColors.surfaceWhite, // Full white at bottom - seamless blend
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            // ============================================================================
             // LAYER 4: ENHANCED VIGNETTE (Stronger Edge Darkening)
             // ============================================================================
             // More dramatic vignette for eye-catching depth and focus
@@ -193,17 +165,19 @@ class _HeroImageState extends State<HeroImage>
             // LAYER 5: CONTRAST ENHANCEMENT OVERLAY
             // ============================================================================
             // Subtle overlay to boost contrast and make image pop
+            // Darkening stops before bottom edge to prevent dark line interference with bottom fade
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    stops: const [0.0, 0.5, 1.0],
+                    stops: const [0.0, 0.5, 0.75, 1.0], // Stop darkening at 75% to avoid bottom edge
                     colors: [
                       Colors.black.withOpacity(0.0),
                       Colors.black.withOpacity(0.03),
-                      Colors.black.withOpacity(0.06),
+                      Colors.black.withOpacity(0.03), // Keep same at 75%
+                      Colors.black.withOpacity(0.0), // Fade to transparent at bottom to avoid dark line
                     ],
                   ),
                 ),
@@ -235,7 +209,38 @@ class _HeroImageState extends State<HeroImage>
             ),
 
             // ============================================================================
-            // LAYER 7: SEAMLESS TOP EDGE BLEND (Smooth Background Integration) - PLACED LAST
+            // LAYER 7: SEAMLESS BOTTOM EDGE BLEND (Smooth Background Integration) - SECOND TO LAST
+            // ============================================================================
+            // Smooth bottom fade that blends seamlessly with app background (white)
+            // EXACTLY mirrors the top fade (Layer 8) for perfect visual symmetry
+            // Same structure, same stops (inverted direction), same colors, same quality
+            // Placed second-to-last to ensure same visibility as top fade
+            Positioned.fill(
+              child: IgnorePointer(
+                child: Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter, // Inverted direction to mirror top
+                      stops: const [0.0, 0.02, 0.05, 0.10, 0.18, 0.28], // EXACTLY same stops as top fade
+                      colors: [
+                        AppColors.surfaceWhite, // Full white at bottom - seamless blend with background (mirrors top 0%)
+                        AppColors.surfaceWhite, // Keep white for first 2% for smooth transition (mirrors top 2%)
+                        AppColors.surfaceWhite.withOpacity(0.95), // 95% at 5% (EXACTLY mirrors top 5%)
+                        AppColors.surfaceWhite.withOpacity(0.80), // 80% at 10% (EXACTLY mirrors top 10%)
+                        AppColors.surfaceWhite.withOpacity(0.50), // 50% at 18% (EXACTLY mirrors top 18%)
+                        AppColors.surfaceWhite.withOpacity(0.0), // Transparent at 28% (EXACTLY mirrors top 28%)
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // ============================================================================
+            // LAYER 8: SEAMLESS TOP EDGE BLEND (Smooth Background Integration) - PLACED LAST
             // ============================================================================
             // Smooth top fade that blends seamlessly with app background (white)
             // Long, natural gradient to eliminate visible edge - placed LAST for visibility
