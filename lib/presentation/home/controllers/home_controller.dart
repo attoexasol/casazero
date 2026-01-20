@@ -87,35 +87,26 @@ class HomeController extends GetxController {
     _loadApiToken(); // Load token FIRST before any API calls
   }
 
-  //   @override
-  // void onInit() {
-  //   super.onInit();
-
-  //   fetchDocumentCategories();
-
-  //   // WAIT for HomeController to finish loading residences
-  //   ever(Get.find<HomeController>().selectedResidence, (residence) {
-  //     if (residence != null) {
-  //       fetchDocuments();
-  //     }
-  //   });
-  // }
-
   @override
   void onReady() {
     super.onReady();
     
-    // Check if token is already available (most common case - synchronous load)
+    // CRITICAL: Always check token and initialize if available
+    // This ensures notifications are fetched on app launch
     if (apiToken.value.isNotEmpty) {
-      print('✅ [HomeController] API token already available, initializing data...');
-      _initializeDataWithToken();
+      if (!_isInitialized.value) {
+        print('✅ [HomeController] API token available, initializing data (including notifications)...');
+        _initializeDataWithToken();
+      } else {
+        print('⚠️ [HomeController] Already initialized, skipping');
+      }
     } else {
-      print('⚠️ [HomeController] API token not available yet, waiting...');
+      print('⚠️ [HomeController] API token not available yet, setting up listener...');
       // Wait for token to be ready before making API calls
       // Use one-time listener to trigger APIs when token becomes available
       once(apiToken, (token) {
         if (token.isNotEmpty && !_isInitialized.value) {
-          print('✅ [HomeController] API token ready, initializing data...');
+          print('✅ [HomeController] API token ready via listener, initializing data (including notifications)...');
           _initializeDataWithToken();
         }
       });
@@ -125,15 +116,9 @@ class HomeController extends GetxController {
   /// Load API token from storage
   void _loadApiToken() {
     final token = _storageService.getAccessToken();
-    final previousToken = apiToken.value;
     apiToken.value = token ?? '';
     print('🔑 [HomeController] Loaded apiToken: ${token != null && token.isNotEmpty ? "${token.substring(0, 10)}..." : "NO TOKEN"}');
-    
-    // If token changed from empty to non-empty, trigger initialization
-    if (previousToken.isEmpty && apiToken.value.isNotEmpty && !_isInitialized.value) {
-      print('✅ [HomeController] Token became available, initializing data...');
-      _initializeDataWithToken();
-    }
+    // Note: Initialization is handled in onReady() to ensure proper lifecycle order
   }
   
   /// Public method to reload token (e.g., after login)
@@ -435,12 +420,17 @@ class HomeController extends GetxController {
         unreadCount.value = count;
         print('✅ [HomeController] Unread count updated: $count');
       } else {
-        print('❌ [HomeController] Failed to fetch unread count: ${result['error']}');
+        final errorMessage = result['error'] ?? 'Unknown error';
+        print('❌ [HomeController] Failed to fetch unread count: $errorMessage');
         // Keep last known value on error (don't reset to 0)
+        print('⚠️ [HomeController] Keeping last known unread count: ${unreadCount.value}');
       }
-    } catch (e) {
-      print('❌ [HomeController] Error fetching unread count: $e');
+    } catch (e, stackTrace) {
+      print('❌ [HomeController] Exception fetching unread count: $e');
+      print('❌ [HomeController] Exception type: ${e.runtimeType}');
+      print('📚 [HomeController] Stack trace: $stackTrace');
       // Keep last known value on error (don't reset to 0)
+      print('⚠️ [HomeController] Keeping last known unread count: ${unreadCount.value}');
     }
   }
 

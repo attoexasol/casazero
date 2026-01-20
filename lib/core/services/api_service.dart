@@ -158,19 +158,49 @@ class ApiService extends getx.GetxService {
       errorMessage =
           'Connection timeout. Please check your internet connection.';
     } else if (error.type == DioExceptionType.badResponse) {
+      final statusCode = error.response?.statusCode;
+      
+      // Handle specific HTTP status codes
+      if (statusCode == 403) {
+        errorMessage = 'Access forbidden. Please check your permissions.';
+      } else if (statusCode == 401) {
+        errorMessage = 'Unauthorized. Please log in again.';
+      } else if (statusCode == 404) {
+        errorMessage = 'Resource not found.';
+      } else if (statusCode != null && statusCode >= 500) {
+        errorMessage = 'Server error. Please try again later.';
+      }
+      
       // Safely extract error message from response
       if (error.response?.data != null) {
         final responseData = error.response!.data;
         if (responseData is Map<String, dynamic>) {
-          errorMessage = responseData['message'] ?? 
-                        responseData['error'] ?? 
-                        'Server error occurred';
+          final extractedMessage = responseData['message'] ?? 
+                        responseData['error'];
+          if (extractedMessage != null) {
+            errorMessage = extractedMessage;
+          }
         } else if (responseData is String) {
-          errorMessage = responseData;
-        } else {
-          errorMessage = 'Server error occurred';
+          // Check if response is HTML (like 403 Forbidden page)
+          if (responseData.trim().startsWith('<!DOCTYPE') || 
+              responseData.trim().startsWith('<html')) {
+            // Don't return HTML, use status code based message
+            if (statusCode == 403) {
+              errorMessage = 'Access forbidden. Please check your permissions.';
+            } else if (statusCode == 401) {
+              errorMessage = 'Unauthorized. Please log in again.';
+            } else {
+              errorMessage = 'Server returned an error. Please try again.';
+            }
+          } else {
+            // Valid string error message
+            errorMessage = responseData;
+          }
         }
-      } else {
+      }
+      
+      // Fallback if no specific message was set
+      if (errorMessage == 'An error occurred') {
         errorMessage = 'Server error occurred';
       }
     } else if (error.type == DioExceptionType.cancel) {

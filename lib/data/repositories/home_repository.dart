@@ -211,10 +211,29 @@ class HomeRepository {
       return {'success': false, 'error': errorMessage};
     } catch (e, stackTrace) {
       print('❌ [HomeRepository] Exception in getUserNotifications: $e');
+      print('❌ [HomeRepository] Exception type: ${e.runtimeType}');
       print('📚 [HomeRepository] Stack trace: $stackTrace');
+      
+      String errorMessage = 'Failed to fetch notifications. Please try again.';
+      
+      // Handle String exceptions (from ApiService._handleError)
+      if (e is String) {
+        // Check if it's HTML (403 Forbidden page)
+        if (e.trim().startsWith('<!DOCTYPE') || e.trim().startsWith('<html')) {
+          errorMessage = 'Access forbidden. Please check your permissions.';
+        } else {
+          // Use the error message from ApiService
+          errorMessage = e;
+        }
+      } else if (e.toString().contains('403') || e.toString().contains('Forbidden')) {
+        errorMessage = 'Access forbidden. Please check your permissions.';
+      } else if (e.toString().contains('401') || e.toString().contains('Unauthorized')) {
+        errorMessage = 'Unauthorized. Please log in again.';
+      }
+      
       return {
         'success': false,
-        'error': 'Failed to fetch notifications. Please try again.',
+        'error': errorMessage,
       };
     }
   }
@@ -337,6 +356,8 @@ class HomeRepository {
       print('✅ [HomeRepository] Unread count response received');
       print('📊 [HomeRepository] Status Code: ${response.statusCode}');
 
+      print('📊 [HomeRepository] Response data: ${response.data}');
+
       if (response.statusCode == 200 && response.data['status'] == true) {
         final unreadCount = response.data['unread_count'] ?? 0;
         print('✅ [HomeRepository] Unread count: $unreadCount');
@@ -350,6 +371,8 @@ class HomeRepository {
             response.data['error'] ??
             'Failed to fetch unread count';
         print('❌ [HomeRepository] API returned error: $errorMessage');
+        print('📊 [HomeRepository] Response status: ${response.statusCode}');
+        print('📊 [HomeRepository] Response data: ${response.data}');
         return {
           'success': false,
           'error': errorMessage,
@@ -357,17 +380,31 @@ class HomeRepository {
         };
       }
     } on DioException catch (e, stackTrace) {
-      print('❌ [HomeRepository] DioException in getUnreadNotificationCount: $e');
+      print('❌ [HomeRepository] DioException in getUnreadNotificationCount');
+      print('❌ [HomeRepository] Error type: ${e.type}');
+      print('❌ [HomeRepository] Error message: ${e.message}');
+      print('📊 [HomeRepository] Status code: ${e.response?.statusCode}');
+      print('📊 [HomeRepository] Response data: ${e.response?.data}');
       print('📚 [HomeRepository] Stack trace: $stackTrace');
 
       String errorMessage = 'Failed to fetch unread count. Please try again.';
-      if (e.response != null && e.response!.data != null) {
-        final responseData = e.response!.data;
-        if (responseData is Map) {
-          errorMessage =
-              responseData['message'] ?? responseData['error'] ?? errorMessage;
+      
+      // Handle different DioException types
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        errorMessage = 'Connection timeout. Please check your internet connection.';
+      } else if (e.type == DioExceptionType.badResponse) {
+        if (e.response != null && e.response!.data != null) {
+          final responseData = e.response!.data;
+          if (responseData is Map) {
+            errorMessage =
+                responseData['message'] ?? responseData['error'] ?? errorMessage;
+          } else if (responseData is String) {
+            errorMessage = responseData;
+          }
         }
-        print('📊 [HomeRepository] Error response data: $responseData');
+      } else if (e.type == DioExceptionType.unknown) {
+        errorMessage = 'Network error. Please check your internet connection.';
       }
 
       return {
@@ -377,10 +414,33 @@ class HomeRepository {
       };
     } catch (e, stackTrace) {
       print('❌ [HomeRepository] Exception in getUnreadNotificationCount: $e');
+      print('❌ [HomeRepository] Exception type: ${e.runtimeType}');
       print('📚 [HomeRepository] Stack trace: $stackTrace');
+      
+      String errorMessage = 'Failed to fetch unread count. Please try again.';
+      
+      // Handle String exceptions (from ApiService._handleError)
+      if (e is String) {
+        // Check if it's HTML (403 Forbidden page)
+        if (e.trim().startsWith('<!DOCTYPE') || e.trim().startsWith('<html')) {
+          errorMessage = 'Access forbidden. Please check your permissions.';
+        } else {
+          // Use the error message from ApiService
+          errorMessage = e;
+        }
+      } else if (e.toString().contains('403') || e.toString().contains('Forbidden')) {
+        errorMessage = 'Access forbidden. Please check your permissions.';
+      } else if (e.toString().contains('401') || e.toString().contains('Unauthorized')) {
+        errorMessage = 'Unauthorized. Please log in again.';
+      } else if (e.toString().contains('timeout') || e.toString().contains('Timeout')) {
+        errorMessage = 'Connection timeout. Please check your internet connection.';
+      } else if (e.toString().contains('network') || e.toString().contains('Network')) {
+        errorMessage = 'Network error. Please check your internet connection.';
+      }
+      
       return {
         'success': false,
-        'error': 'Failed to fetch unread count. Please try again.',
+        'error': errorMessage,
         'unread_count': 0,
       };
     }
