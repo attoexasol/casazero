@@ -179,8 +179,8 @@ class DocumentPasswordScreen extends GetView<DocumentPasswordController> {
               ),
               onPressed: controller.toggleNewPasswordVisibility,
             ),
-            onChanged: (_) {
-              // Trigger validation on change
+            onChanged: (value) {
+              // Trigger validation and reactive updates
               controller.formKey.currentState?.validate();
             },
           ),
@@ -207,8 +207,8 @@ class DocumentPasswordScreen extends GetView<DocumentPasswordController> {
               ),
               onPressed: controller.toggleConfirmPasswordVisibility,
             ),
-            onChanged: (_) {
-              // Trigger validation on change
+            onChanged: (value) {
+              // Trigger validation and reactive updates
               controller.formKey.currentState?.validate();
             },
           ),
@@ -335,17 +335,21 @@ class DocumentPasswordScreen extends GetView<DocumentPasswordController> {
   // ============================================================================
 
   Widget _buildSaveButton() {
-    return Obx(
-      () => CustomButton(
-        text: 'save'.tr,
-        onPressed: controller.canSubmit && !controller.isLoading.value
-            ? controller.submitDocumentPassword
-            : null,
-        isLoading: controller.isLoading.value,
-        backgroundColor: AppColors.brandSage500,
-        textColor: AppColors.surfaceWhite,
-        height: 48.h,
-      ),
+    return GetBuilder<DocumentPasswordController>(
+      builder: (ctrl) {
+        return Obx(
+          () => CustomButton(
+            text: 'save'.tr,
+            onPressed: ctrl.canSubmit && !ctrl.isLoading.value
+                ? ctrl.submitDocumentPassword
+                : null,
+            isLoading: ctrl.isLoading.value,
+            backgroundColor: AppColors.brandSage500,
+            textColor: AppColors.surfaceWhite,
+            height: 48.h,
+          ),
+        );
+      },
     );
   }
 }

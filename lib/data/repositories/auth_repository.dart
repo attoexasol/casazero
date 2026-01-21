@@ -313,6 +313,73 @@ class AuthRepository {
     }
   }
 
+  // Set Document Password
+  /// POST /user/set-document-password
+  /// API URL: https://smarthome.attoexasolutions.com/api/user/set-document-password
+  /// Request: {
+  ///   "token": "USER_API_TOKEN",
+  ///   "password": "123456",
+  ///   "confirm_password": "123456"
+  /// }
+  /// Response: {
+  ///   "status": true,
+  ///   "message": "Document password set successfully"
+  /// }
+  Future<Map<String, dynamic>> setDocumentPassword({
+    required String password,
+    required String confirmPassword,
+  }) async {
+    try {
+      // Get user token from storage
+      final accessToken = _storageService.getAccessToken();
+
+      if (accessToken == null || accessToken.isEmpty) {
+        print('❌ [AuthRepository] Access token not found in storage');
+        return {'success': false, 'error': 'User not authenticated'};
+      }
+
+      print('🔄 [AuthRepository] Setting document password...');
+      print('📍 Endpoint: ${ApiConstants.SET_DOCUMENT_PASSWORD}');
+      print('📦 Request Body: {');
+      print('   "token": "${accessToken.substring(0, 20)}...",');
+      print('   "password": "***",');
+      print('   "confirm_password": "***"');
+      print(' }');
+
+      // Call API with POST method
+      final response = await _apiService.post(
+        ApiConstants.SET_DOCUMENT_PASSWORD,
+        data: {
+          'token': accessToken,
+          'password': password,
+          'confirm_password': confirmPassword,
+        },
+      );
+
+      print('✅ [AuthRepository] Set Document Password API Response:');
+      print('  Status Code: ${response.statusCode}');
+      print('  Status: ${response.data['status']}');
+      print('  Message: ${response.data['message']}');
+
+      // Check if response is successful
+      if (response.statusCode == 200 && response.data['status'] == true) {
+        return {
+          'success': true,
+          'message':
+              response.data['message'] ?? 'Document password set successfully',
+        };
+      } else {
+        return {
+          'success': false,
+          'error': response.data['message'] ?? 'Failed to set document password',
+        };
+      }
+    } catch (e) {
+      print('❌ [AuthRepository] Error setting document password: $e');
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
   // ============================================================================
   // 2FA SETUP METHODS
   // ============================================================================

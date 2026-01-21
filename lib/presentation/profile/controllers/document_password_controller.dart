@@ -3,8 +3,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/utils/validators.dart';
+import '../../../data/repositories/auth_repository.dart';
 
 class DocumentPasswordController extends GetxController {
+  // ---------------------------------------------------------------------------
+  // DEPENDENCIES
+  // ---------------------------------------------------------------------------
+  final AuthRepository _authRepository = Get.find();
   // ---------------------------------------------------------------------------
   // TEXT CONTROLLERS
   // ---------------------------------------------------------------------------
@@ -41,6 +46,10 @@ class DocumentPasswordController extends GetxController {
     // Show/hide password match section
     newPasswordController.addListener(_updatePasswordMatchVisibility);
     confirmPasswordController.addListener(_updatePasswordMatchVisibility);
+
+    // Update GetBuilder UI for submit button / form state
+    newPasswordController.addListener(() => update());
+    confirmPasswordController.addListener(() => update());
   }
 
   @override
@@ -62,13 +71,21 @@ class DocumentPasswordController extends GetxController {
 
     passwordRequirements.value =
         Validators.getPasswordRequirements(newPassword);
+    
+    // Trigger reactive update for canSubmit
+    update();
   }
 
   /// Updates when to show the "passwords match" message
   void _updatePasswordMatchVisibility() {
+    final newPassword = newPasswordController.text;
+    final confirmPassword = confirmPasswordController.text;
+    
     showPasswordMatch.value =
-        newPasswordController.text.isNotEmpty &&
-            confirmPasswordController.text.isNotEmpty;
+        newPassword.isNotEmpty && confirmPassword.isNotEmpty;
+    
+    // Trigger reactive update for canSubmit
+    update();
   }
 
   // ---------------------------------------------------------------------------
@@ -107,9 +124,10 @@ class DocumentPasswordController extends GetxController {
       return 'new_password_required'.tr;
     }
 
-    if (!isPasswordStrong) {
-      // Return null here - validation details shown in requirements list
-      // Form validation will prevent submission via canSubmit getter
+    // Check password strength
+    if (!Validators.isPasswordStrong(value)) {
+      // Don't show error here - requirements list shows details
+      // But we need to ensure canSubmit prevents submission
       return null;
     }
 
@@ -146,51 +164,49 @@ class DocumentPasswordController extends GetxController {
     isLoading.value = true;
 
     try {
-      // Get password value securely (never log it)
+      // Get password values securely (never log them)
       final newPassword = newPasswordController.text.trim();
+      final confirmPassword = confirmPasswordController.text.trim();
 
-      // TODO: Implement API call here
-      // Example:
-      // final result = await _repository.updateDocumentPassword(
-      //   newPassword: newPassword,
-      // );
-      // 
-      // IMPORTANT SECURITY NOTES:
-      // - Backend must handle password hashing/encryption
-      // - Never log password values
-      // - Use secure HTTPS connection
-      // - Consider rate limiting on backend
-
-      // Simulate API call delay
-      await Future.delayed(const Duration(seconds: 1));
-
-      // Clear password fields for security
-      newPasswordController.clear();
-      confirmPasswordController.clear();
-      hasPasswordInput.value = false;
-      showPasswordMatch.value = false;
-
-      // Success feedback
-      Get.snackbar(
-        'success'.tr,
-        'document_password_saved'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(16),
-        borderRadius: 12,
-        duration: const Duration(seconds: 2),
+      // Call API to set document password
+      final result = await _authRepository.setDocumentPassword(
+        password: newPassword,
+        confirmPassword: confirmPassword,
       );
 
-      // Navigate back after success
-      Future.delayed(const Duration(milliseconds: 500), () {
-        Get.back();
-      });
+      isLoading.value = false;
+
+      if (result['success'] == true) {
+        // Clear password fields for security
+        newPasswordController.clear();
+        confirmPasswordController.clear();
+        hasPasswordInput.value = false;
+        showPasswordMatch.value = false;
+
+        // Success feedback
+        Get.snackbar(
+          'success'.tr,
+          result['message'] ?? 'document_password_saved'.tr,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          margin: const EdgeInsets.all(16),
+          borderRadius: 12,
+          duration: const Duration(seconds: 2),
+        );
+
+        // Navigate back after success
+        Future.delayed(const Duration(milliseconds: 500), () {
+          Get.back();
+        });
+      } else {
+        // Show error message
+        _showError(result['error'] ?? 'failed_to_save_document_password'.tr);
+      }
     } catch (e) {
+      isLoading.value = false;
       // Never log password in error messages
       _showError('failed_to_save_document_password'.tr);
-    } finally {
-      isLoading.value = false;
     }
   }
 
