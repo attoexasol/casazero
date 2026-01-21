@@ -191,6 +191,13 @@ class AppTranslations extends Translations {
 
     // Security
     "security": "Security",
+    "document_password": "Document Password",
+    "document_password_description": "Set a password to protect your documents",
+    "new_password_required": "New password is required",
+    "confirm_password_required": "Please confirm your password",
+    "passwords_do_not_match": "Passwords do not match",
+    "document_password_saved": "Document password saved successfully",
+    "failed_to_save_document_password": "Failed to save document password",
     'cancel_logout': 'Cancel and Logout',
 
     // Trusted Devices
@@ -701,6 +708,13 @@ class AppTranslations extends Translations {
 
     // Security
     "security": "Sicurezza",
+    "document_password": "Password Documenti",
+    "document_password_description": "Imposta una password per proteggere i tuoi documenti",
+    "new_password_required": "La nuova password è obbligatoria",
+    "confirm_password_required": "Conferma la tua password",
+    "passwords_do_not_match": "Le password non corrispondono",
+    "document_password_saved": "Password documento salvata con successo",
+    "failed_to_save_document_password": "Impossibile salvare la password del documento",
 
     // Trusted Devices
     "trusted_devices": "Dispositivi Fidati",

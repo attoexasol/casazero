@@ -159,14 +159,14 @@ class MainScaffold extends GetView<HomeController> {
         canGoForward = controller.canGoForward;
         break;
 
-      // case AppScreen.trustedDevices:
-      //   title = 'trusted_devices'.tr;
-      //   showNotification = true; // Show notification on all screens
-      //   showSearch = false;
-      //   showResidenceSwitcher = false;
-      //   canGoBack = controller.canGoBack;
-      //   canGoForward = controller.canGoForward;
-      //   break;
+      case AppScreen.trustedDevices:
+        title = 'trusted_devices'.tr;
+        showNotification = true; // Show notification on all screens
+        showSearch = false;
+        showResidenceSwitcher = false;
+        canGoBack = controller.canGoBack;
+        canGoForward = controller.canGoForward;
+        break;
     }
 
     final showNavigationControls = canGoBack || canGoForward;
