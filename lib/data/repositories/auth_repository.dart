@@ -233,29 +233,68 @@ class AuthRepository {
     }
   }
 
-  // Change Password (First Login)
+  // Change Password
+  /// POST /user/forget_password
+  /// API URL: https://smarthome.attoexasolutions.com/api/user/forget_password
+  /// Request: {
+  ///   "user_id": 19,
+  ///   "old_password": "password123",
+  ///   "new_password": "CasaZero@024017",
+  ///   "new_password_confirmation": "CasaZero@024017"
+  /// }
+  /// Response: {
+  ///   "status": true,
+  ///   "message": "Password changed successfully!"
+  /// }
   Future<Map<String, dynamic>> changePassword({
     required String currentPassword,
     required String newPassword,
   }) async {
     try {
+      // Get user data from storage
       final userData = _storageService.getUserData();
       final userId = userData?['id'];
 
       if (userId == null) {
+        print('❌ [AuthRepository] User ID not found in local storage');
         return {'success': false, 'error': 'User not found in local storage'};
       }
 
+      // Ensure user_id is an integer (API expects int)
+      final userIdInt = userId is int ? userId : int.tryParse(userId.toString());
+      
+      if (userIdInt == null) {
+        print('❌ [AuthRepository] Invalid user ID format: $userId');
+        return {'success': false, 'error': 'Invalid user ID format'};
+      }
+
+      print('🔄 [AuthRepository] Changing password...');
+      print('📍 Endpoint: ${ApiConstants.CHANGE_PASSWORD}');
+      print('👤 User ID: $userIdInt');
+      print('📦 Request Body: {');
+      print('   "user_id": $userIdInt,');
+      print('   "old_password": "***",');
+      print('   "new_password": "***",');
+      print('   "new_password_confirmation": "***"');
+      print(' }');
+
+      // Call API with POST method
       final response = await _apiService.post(
         ApiConstants.CHANGE_PASSWORD,
         data: {
-          'user_id': userId,
+          'user_id': userIdInt,
           'old_password': currentPassword,
           'new_password': newPassword,
           'new_password_confirmation': newPassword,
         },
       );
 
+      print('✅ [AuthRepository] Change Password API Response:');
+      print('  Status Code: ${response.statusCode}');
+      print('  Status: ${response.data['status']}');
+      print('  Message: ${response.data['message']}');
+
+      // Check if response is successful
       if (response.statusCode == 200 && response.data['status'] == true) {
         return {
           'success': true,
@@ -269,6 +308,7 @@ class AuthRepository {
         };
       }
     } catch (e) {
+      print('❌ [AuthRepository] Error changing password: $e');
       return {'success': false, 'error': e.toString()};
     }
   }
