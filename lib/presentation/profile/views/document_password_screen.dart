@@ -31,6 +31,30 @@ class DocumentPasswordScreen extends GetView<DocumentPasswordController> {
                     _buildDescription(),
                     SizedBox(height: 32.h),
                     _buildPasswordFields(),
+                    // Password Requirements
+                    Obx(() {
+                      if (!controller.hasPasswordInput.value) {
+                        return const SizedBox.shrink();
+                      }
+                      return Column(
+                        children: [
+                          SizedBox(height: 20.h),
+                          _buildPasswordRequirements(),
+                        ],
+                      );
+                    }),
+                    // Password Match Indicator
+                    Obx(() {
+                      if (!controller.showPasswordMatch.value) {
+                        return const SizedBox.shrink();
+                      }
+                      return Column(
+                        children: [
+                          SizedBox(height: 12.h),
+                          _buildPasswordMatchIndicator(),
+                        ],
+                      );
+                    }),
                     SizedBox(height: 32.h),
                     _buildSaveButton(),
                   ],
@@ -52,10 +76,7 @@ class DocumentPasswordScreen extends GetView<DocumentPasswordController> {
       decoration: BoxDecoration(
         color: AppColors.surfaceWhite,
         border: Border(
-          bottom: BorderSide(
-            color: AppColors.neutralLine200,
-            width: 1,
-          ),
+          bottom: BorderSide(color: AppColors.neutralLine200, width: 1),
         ),
       ),
       child: SafeArea(
@@ -110,19 +131,12 @@ class DocumentPasswordScreen extends GetView<DocumentPasswordController> {
       decoration: BoxDecoration(
         color: AppColors.brandSage50,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.brandSage300,
-          width: 1,
-        ),
+        border: Border.all(color: AppColors.brandSage300, width: 1),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.info_outline,
-            color: AppColors.brandSage600,
-            size: 20.sp,
-          ),
+          Icon(Icons.info_outline, color: AppColors.brandSage600, size: 20.sp),
           SizedBox(width: 12.w),
           Expanded(
             child: Text(
@@ -167,9 +181,7 @@ class DocumentPasswordScreen extends GetView<DocumentPasswordController> {
             ),
             onChanged: (_) {
               // Trigger validation on change
-              if (controller.confirmPasswordController.text.isNotEmpty) {
-                controller.formKey.currentState?.validate();
-              }
+              controller.formKey.currentState?.validate();
             },
           ),
         ),
@@ -206,6 +218,119 @@ class DocumentPasswordScreen extends GetView<DocumentPasswordController> {
   }
 
   // ============================================================================
+  // PASSWORD REQUIREMENTS
+  // ============================================================================
+
+  Widget _buildPasswordRequirements() {
+    return Obx(() {
+      return Container(
+        padding: EdgeInsets.all(16.w),
+        decoration: BoxDecoration(
+          color: AppColors.neutralInk300,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.neutralLine200, width: 1),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'password_requirements'.tr,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.neutralInk700,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: 12.h),
+            ...controller.passwordRequirements.map((req) {
+              return Padding(
+                padding: EdgeInsets.only(bottom: 8.h),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 16.w,
+                      height: 16.h,
+                      decoration: BoxDecoration(
+                        color: req.isMet
+                            ? AppColors.success
+                            : AppColors.neutralInk300,
+                        shape: BoxShape.circle,
+                      ),
+                      child: req.isMet
+                          ? Icon(
+                              Icons.check,
+                              size: 12.sp,
+                              color: AppColors.surfaceWhite,
+                            )
+                          : null,
+                    ),
+                    SizedBox(width: 8.w),
+                    Expanded(
+                      child: Text(
+                        req.label.tr,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: req.isMet
+                              ? AppColors.success
+                              : AppColors.neutralInk700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
+      );
+    });
+  }
+
+  // ============================================================================
+  // PASSWORD MATCH INDICATOR
+  // ============================================================================
+
+  Widget _buildPasswordMatchIndicator() {
+    return Obx(() {
+      // Observe reactive values to trigger rebuild
+      // Access showPasswordMatch.value to make Obx reactive
+      final _ = controller.showPasswordMatch.value;
+      final match = controller.passwordsMatch;
+      return Container(
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+        decoration: BoxDecoration(
+          color: match
+              ? AppColors.success.withOpacity(0.1)
+              : AppColors.danger.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: match
+                ? AppColors.success.withOpacity(0.3)
+                : AppColors.danger.withOpacity(0.3),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              match ? Icons.check_circle : Icons.error_outline,
+              color: match ? AppColors.success : AppColors.danger,
+              size: 16.sp,
+            ),
+            SizedBox(width: 8.w),
+            Text(
+              match ? 'passwords_match'.tr : 'passwords_no_match'.tr,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: match ? AppColors.success : AppColors.danger,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  // ============================================================================
   // SAVE BUTTON
   // ============================================================================
 
@@ -213,7 +338,7 @@ class DocumentPasswordScreen extends GetView<DocumentPasswordController> {
     return Obx(
       () => CustomButton(
         text: 'save'.tr,
-        onPressed: controller.isFormValid && !controller.isLoading.value
+        onPressed: controller.canSubmit && !controller.isLoading.value
             ? controller.submitDocumentPassword
             : null,
         isLoading: controller.isLoading.value,
@@ -224,4 +349,3 @@ class DocumentPasswordScreen extends GetView<DocumentPasswordController> {
     );
   }
 }
-
