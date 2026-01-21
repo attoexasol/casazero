@@ -15,16 +15,11 @@ import '../../presentation/profile/controllers/two_fa_management_controller.dart
 import '../../presentation/profile/controllers/profile_controller.dart';
 import '../../presentation/profile/views/sections/two_fa_management_widgets.dart';
 
-
 class SecurityCard extends StatelessWidget {
   final UserModel user;
   final Function(String screen)? onNavigate;
 
-  const SecurityCard({
-    super.key,
-    required this.user,
-    this.onNavigate,
-  });
+  const SecurityCard({super.key, required this.user, this.onNavigate});
 
   @override
   Widget build(BuildContext context) {
@@ -66,30 +61,30 @@ class SecurityCard extends StatelessWidget {
           // 2FA Status - Make this reactive
           profileController != null
               ? Obx(() {
-            // Use the reactive user from ProfileController if available
-            final currentUser = profileController.user.value ?? user;
-            return _item(
-              icon: Icons.verified_user_outlined,
-              title: "two_factor_auth".tr,
-              iconPath: 'assets/images/auth_settings.svg',
-              suffix: _twoFAStatus(currentUser),
-              onTap: () => _handle2FATap(context, currentUser),
-            );
-          })
+                  // Use the reactive user from ProfileController if available
+                  final currentUser = profileController.user.value ?? user;
+                  return _item(
+                    icon: Icons.verified_user_outlined,
+                    title: "two_factor_auth".tr,
+                    iconPath: 'assets/images/auth_settings.svg',
+                    suffix: _twoFAStatus(currentUser),
+                    onTap: () => _handle2FATap(context, currentUser),
+                  );
+                })
               : _item(
-            icon: Icons.verified_user_outlined,
-            title: "two_factor_auth".tr,
-            iconPath: 'assets/images/auth_settings.svg',
-            suffix: _twoFAStatus(user),
-            onTap: () => _handle2FATap(context, user),
-          ),
+                  icon: Icons.verified_user_outlined,
+                  title: "two_factor_auth".tr,
+                  iconPath: 'assets/images/auth_settings.svg',
+                  suffix: _twoFAStatus(user),
+                  onTap: () => _handle2FATap(context, user),
+                ),
 
           // Trusted Devices
           _item(
-            icon: Icons.devices_other,
+            icon: Icons.security,
             title: "trusted_devices".tr,
             iconPath: 'assets/images/trusted.svg',
-            onTap: () => onNavigate?.call("trusted-devices"),
+            onTap: () => Get.toNamed(AppRoutes.TRUSTED_DEVICES),
           ),
         ],
       ),
@@ -121,12 +116,13 @@ class SecurityCard extends StatelessWidget {
   // -----------------------------------------------------------------------------
   // 2FA MANAGEMENT DIALOG (When Active)
   // -----------------------------------------------------------------------------
-  void _show2FAManagementDialog(BuildContext context, TwoFAManagementController controller) {
+  void _show2FAManagementDialog(
+    BuildContext context,
+    TwoFAManagementController controller,
+  ) {
     Get.dialog(
       Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -137,10 +133,7 @@ class SecurityCard extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      'two_factor_auth'.tr,
-                      style: AppTextStyles.h4,
-                    ),
+                    child: Text('two_factor_auth'.tr, style: AppTextStyles.h4),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close),
@@ -156,9 +149,7 @@ class SecurityCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.success.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppColors.success.withOpacity(0.3),
-                  ),
+                  border: Border.all(color: AppColors.success.withOpacity(0.3)),
                 ),
                 child: Row(
                   children: [
@@ -259,16 +250,16 @@ class SecurityCard extends StatelessWidget {
   // ACTIVATION DIALOG (Method Selection)
   // -----------------------------------------------------------------------------
 
-
-  void _showActivationDialog(BuildContext context, TwoFAManagementController controller) {
+  void _showActivationDialog(
+    BuildContext context,
+    TwoFAManagementController controller,
+  ) {
     controller.startActivation();
 
     Get.dialog(
       Dialog(
         insetPadding: EdgeInsets.all(5),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -331,10 +322,7 @@ class SecurityCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surfaceWhite,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: AppColors.neutralInk300,
-            width: 1,
-          ),
+          border: Border.all(color: AppColors.neutralInk300, width: 1),
         ),
         child: Row(
           children: [
@@ -371,10 +359,7 @@ class SecurityCard extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(
-              Icons.chevron_right,
-              color: AppColors.neutralInk400,
-            ),
+            const Icon(Icons.chevron_right, color: AppColors.neutralInk400),
           ],
         ),
       ),
@@ -398,12 +383,13 @@ class SecurityCard extends StatelessWidget {
   // -----------------------------------------------------------------------------
   // DEACTIVATION WARNING DIALOG (When 2FA is Active)
   // -----------------------------------------------------------------------------
-  void _showDeactivationWarningDialog(BuildContext context, TwoFAManagementController controller) {
+  void _showDeactivationWarningDialog(
+    BuildContext context,
+    TwoFAManagementController controller,
+  ) {
     Get.dialog(
       Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -437,9 +423,7 @@ class SecurityCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.warning.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppColors.warning.withOpacity(0.3),
-                  ),
+                  border: Border.all(color: AppColors.warning.withOpacity(0.3)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -453,9 +437,15 @@ class SecurityCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     _buildConsequenceItem('Your account will be less secure'),
-                    _buildConsequenceItem('Only password will be required to login'),
-                    _buildConsequenceItem('You will be more vulnerable to unauthorized access'),
-                    _buildConsequenceItem('Verification will be required to proceed'),
+                    _buildConsequenceItem(
+                      'Only password will be required to login',
+                    ),
+                    _buildConsequenceItem(
+                      'You will be more vulnerable to unauthorized access',
+                    ),
+                    _buildConsequenceItem(
+                      'Verification will be required to proceed',
+                    ),
                   ],
                 ),
               ),

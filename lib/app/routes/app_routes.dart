@@ -21,6 +21,8 @@ import '../../presentation/profile/controllers/two_fa_management_controller.dart
 import '../../presentation/profile/views/two_fa_deactivation_verification_screen.dart';
 import '../../presentation/splash/controllers/splash_controller.dart';
 import '../../presentation/splash/views/splash_screen.dart';
+import '../../presentation/trusted_device/views/trusted_devices_screen.dart';
+import '../../presentation/trusted_device/controllers/trusted_devices_controller.dart';
 
 class AppRoutes {
   static const String SPLASH = '/';
@@ -35,6 +37,7 @@ class AppRoutes {
   static const String TWO_FA_ACTIVATION = '/two-fa-activation';
   static const String TWO_FA_DEACTIVATION_VERIFICATION =
       '/two-fa-deactivation-verification';
+  static const String TRUSTED_DEVICES = '/trusted-devices';
 
   static final routes = [
     GetPage(
@@ -139,6 +142,14 @@ class AppRoutes {
         Get.lazyPut(() => ForgotPasswordController());
       }),
     ),
+    GetPage(
+      name: TRUSTED_DEVICES,
+      page: () => const TrustedDevicesScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => TrustedDevicesController());
+      }),
+    ),
+
     GetPage(
       name: FORGOT_CHANGE_PASSWORD,
       page: () => ForgotChangePasswordScreen(

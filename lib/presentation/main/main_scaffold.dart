@@ -39,7 +39,7 @@ enum AppScreen {
   smartHome,
   changePassword,
   hubScreen,
-  trustedDevices,
+  //trustedDevices,
   // Add more screens as needed
 }
 
@@ -92,7 +92,8 @@ class MainScaffold extends GetView<HomeController> {
         showResidenceSwitcher = false; // No residence switcher on home screen
         canGoBack = controller.canGoBack;
         canGoForward = controller.canGoForward;
-        variant = 'default'; // Use default variant to show title text (not logo)
+        variant =
+            'default'; // Use default variant to show title text (not logo)
         break;
 
       case AppScreen.documents:
@@ -156,14 +157,15 @@ class MainScaffold extends GetView<HomeController> {
         canGoBack = controller.canGoBack;
         canGoForward = controller.canGoForward;
         break;
-      case AppScreen.trustedDevices:
-        title = 'trusted_devices'.tr;
-        showNotification = true; // Show notification on all screens
-        showSearch = false;
-        showResidenceSwitcher = false;
-        canGoBack = controller.canGoBack;
-        canGoForward = controller.canGoForward;
-        break;
+
+      // case AppScreen.trustedDevices:
+      //   title = 'trusted_devices'.tr;
+      //   showNotification = true; // Show notification on all screens
+      //   showSearch = false;
+      //   showResidenceSwitcher = false;
+      //   canGoBack = controller.canGoBack;
+      //   canGoForward = controller.canGoForward;
+      //   break;
     }
 
     final showNavigationControls = canGoBack || canGoForward;
@@ -171,164 +173,150 @@ class MainScaffold extends GetView<HomeController> {
 
     return PreferredSize(
       preferredSize: Size.fromHeight(64.h + statusBarHeight),
-      child:
-          Container(
-                height: 50.h + statusBarHeight,
-                padding: EdgeInsets.only(top: statusBarHeight),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceWhite.withOpacity(0.95),
-                  border: Border(
-                    bottom: BorderSide(
-                      color: AppColors.neutralLine200.withOpacity(0.5),
-                      width: 1,
+      child: Container(
+        height: 50.h + statusBarHeight,
+        padding: EdgeInsets.only(top: statusBarHeight),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceWhite.withOpacity(0.95),
+          border: Border(
+            bottom: BorderSide(
+              color: AppColors.neutralLine200.withOpacity(0.5),
+              width: 1,
+            ),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 15,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+            child: Center(
+              child: Container(
+                constraints: BoxConstraints(maxWidth: 448.w),
+                margin: EdgeInsets.symmetric(horizontal: 24.w),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Left section - positioned on the left
+                    Positioned(
+                      left: 0,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Navigation Controls (Back/Forward)
+                          // if (showNavigationControls) ...[
+                          //   _buildNavButton(
+                          //     icon: Icons.arrow_back,
+                          //     enabled: canGoBack,
+                          //     onTap: canGoBack
+                          //         ? () => controller.goBack()
+                          //         : null,
+                          //     tooltip: 'Go back (Alt+←)',
+                          //   ),
+                          //   SizedBox(width: 6.w),
+                          //   _buildNavButton(
+                          //     icon: Icons.arrow_forward,
+                          //     enabled: canGoForward,
+                          //     onTap: canGoForward
+                          //         ? () => controller.goForward()
+                          //         : null,
+                          //     tooltip: 'Go forward (Alt+→)',
+                          //   ),
+                          //   SizedBox(width: 8.w),
+                          // ],
+
+                          // Logo/Title Section (only for non-title cases like logo/residence switcher)
+                          if (variant == 'branded' && !showNavigationControls ||
+                              (showResidenceSwitcher && title != null))
+                            _buildTitleSection(
+                              title: title,
+                              showNavigationControls: showNavigationControls,
+                              variant: variant,
+                              showResidenceSwitcher: showResidenceSwitcher,
+                              currentResidence: showResidenceSwitcher
+                                  ? (controller
+                                            .selectedResidence
+                                            .value
+                                            ?.residenceName ??
+                                        'Select Residence')
+                                  : null,
+                              onResidenceSwitch: showResidenceSwitcher
+                                  ? () => _showResidenceSelectorDialog()
+                                  : null,
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 15,
-                      offset: const Offset(0, 4),
+
+                    // Center section - Title positioned absolutely in center
+                    if (title != null &&
+                        !(variant == 'branded' && !showNavigationControls) &&
+                        !(showResidenceSwitcher && title != null))
+                      Center(
+                        child: _buildTitleSection(
+                          title: title,
+                          showNavigationControls: showNavigationControls,
+                          variant: variant,
+                          showResidenceSwitcher: showResidenceSwitcher,
+                          currentResidence: showResidenceSwitcher
+                              ? (controller
+                                        .selectedResidence
+                                        .value
+                                        ?.residenceName ??
+                                    'Select Residence')
+                              : null,
+                          onResidenceSwitch: showResidenceSwitcher
+                              ? () => _showResidenceSelectorDialog()
+                              : null,
+                        ),
+                      ),
+
+                    // Right section - positioned on the right
+                    Positioned(
+                      right: 0,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Search button - shown only on Documents and Maintenance screens
+                          // if (showSearch) ...[
+                          //   _buildSearchButton(
+                          //     onTap: () {
+                          //       // TODO: Implement search functionality
+                          //     },
+                          //   ),
+                          //   SizedBox(width: 8.w),
+                          // ],
+                          // Notification button - shown on ALL screens
+                          if (showNotification)
+                            Obx(() {
+                              // Use unread count from API (single source of truth)
+                              final count = controller.unreadCount.value;
+                              return _buildNotificationButton(
+                                count: count,
+                                onTap: () {
+                                  // Show notifications modal bottom sheet
+                                  // Use Get.context! here as it's safe in onTap callback
+                                  if (Get.context != null) {
+                                    NotificationsModal.show(Get.context!);
+                                  }
+                                },
+                              );
+                            }),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-                child: ClipRect(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-                    child: Center(
-                      child: Container(
-                        constraints: BoxConstraints(maxWidth: 448.w),
-                        margin: EdgeInsets.symmetric(horizontal: 24.w),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            // Left section - positioned on the left
-                            Positioned(
-                              left: 0,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  // Navigation Controls (Back/Forward)
-                                  // if (showNavigationControls) ...[
-                                  //   _buildNavButton(
-                                  //     icon: Icons.arrow_back,
-                                  //     enabled: canGoBack,
-                                  //     onTap: canGoBack
-                                  //         ? () => controller.goBack()
-                                  //         : null,
-                                  //     tooltip: 'Go back (Alt+←)',
-                                  //   ),
-                                  //   SizedBox(width: 6.w),
-                                  //   _buildNavButton(
-                                  //     icon: Icons.arrow_forward,
-                                  //     enabled: canGoForward,
-                                  //     onTap: canGoForward
-                                  //         ? () => controller.goForward()
-                                  //         : null,
-                                  //     tooltip: 'Go forward (Alt+→)',
-                                  //   ),
-                                  //   SizedBox(width: 8.w),
-                                  // ],
-
-                                  // Logo/Title Section (only for non-title cases like logo/residence switcher)
-                                  if (variant == 'branded' &&
-                                          !showNavigationControls ||
-                                      (showResidenceSwitcher && title != null))
-                                    _buildTitleSection(
-                                      title: title,
-                                      showNavigationControls:
-                                          showNavigationControls,
-                                      variant: variant,
-                                      showResidenceSwitcher:
-                                          showResidenceSwitcher,
-                                      currentResidence: showResidenceSwitcher
-                                          ? (controller
-                                                    .selectedResidence
-                                                    .value
-                                                    ?.residenceName ??
-                                                'Select Residence')
-                                          : null,
-                                      onResidenceSwitch: showResidenceSwitcher
-                                          ? () => _showResidenceSelectorDialog()
-                                          : null,
-                                    ),
-                                ],
-                              ),
-                            ),
-
-                            // Center section - Title positioned absolutely in center
-                            if (title != null &&
-                                !(variant == 'branded' &&
-                                    !showNavigationControls) &&
-                                !(showResidenceSwitcher && title != null))
-                              Center(
-                                child: _buildTitleSection(
-                                  title: title,
-                                  showNavigationControls:
-                                      showNavigationControls,
-                                  variant: variant,
-                                  showResidenceSwitcher: showResidenceSwitcher,
-                                  currentResidence: showResidenceSwitcher
-                                      ? (controller
-                                                .selectedResidence
-                                                .value
-                                                ?.residenceName ??
-                                            'Select Residence')
-                                      : null,
-                                  onResidenceSwitch: showResidenceSwitcher
-                                      ? () => _showResidenceSelectorDialog()
-                                      : null,
-                                ),
-                              ),
-
-                            // Right section - positioned on the right
-                            Positioned(
-                              right: 0,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  // Search button - shown only on Documents and Maintenance screens
-                                  // if (showSearch) ...[
-                                  //   _buildSearchButton(
-                                  //     onTap: () {
-                                  //       // TODO: Implement search functionality
-                                  //     },
-                                  //   ),
-                                  //   SizedBox(width: 8.w),
-                                  // ],
-                                  // Notification button - shown on ALL screens
-                                  if (showNotification)
-                                    Obx(() {
-                                      // Use unread count from API (single source of truth)
-                                      final count = controller.unreadCount.value;
-                                      return _buildNotificationButton(
-                                        count: count,
-                                        onTap: () {
-                                          // Show notifications modal bottom sheet
-                                          // Use Get.context! here as it's safe in onTap callback
-                                          if (Get.context != null) {
-                                            NotificationsModal.show(Get.context!);
-                                          }
-                                        },
-                                      );
-                                    }),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              )
-              .animate()
-              .slideY(
-                begin: -0.05,
-                end: 0,
-                duration: 500.ms,
-                curve: Curves.easeOut,
-              )
-              .fadeIn(duration: 500.ms),
+              ),
+            ),
+          ),
+        ),
+      ).animate().slideY(begin: -0.05, end: 0, duration: 500.ms, curve: Curves.easeOut).fadeIn(duration: 500.ms),
     );
   }
 
@@ -828,8 +816,8 @@ class MainScaffold extends GetView<HomeController> {
           },
         );
 
-      case AppScreen.trustedDevices:
-        return const TrustedDevicesScreen();
+      // case AppScreen.trustedDevices:
+      //   return const TrustedDevicesScreen();
 
       default:
         return _buildHomeScreen();
@@ -862,7 +850,7 @@ class MainScaffold extends GetView<HomeController> {
     final hideBottomNavScreens = [
       AppScreen.smartHome,
       AppScreen.changePassword,
-      AppScreen.trustedDevices,
+      // AppScreen.trustedDevices,
       // Add other screens where you want to hide bottom nav
     ];
 
