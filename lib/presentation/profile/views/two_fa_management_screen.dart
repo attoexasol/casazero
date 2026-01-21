@@ -225,13 +225,13 @@ class TwoFAManagementScreen extends GetView<TwoFAManagementController> {
   String _getStepLabel(int index) {
     switch (index) {
       case 0:
-        return 'Select';
+        return 'select'.tr;
       case 1:
-        return 'Setup';
+        return 'setup'.tr;
       case 2:
-        return 'Verify';
+        return 'verify'.tr;
       case 3:
-        return 'Success';
+        return 'success'.tr;
       default:
         return '';
     }
@@ -385,7 +385,7 @@ class TwoFAManagementScreen extends GetView<TwoFAManagementController> {
                             borderRadius: BorderRadius.circular(12.r),
                           ),
                           child: Text(
-                            'Recommended',
+                            'recommended'.tr,
                             style: AppTextStyles.caption.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.w600,
@@ -511,7 +511,7 @@ class TwoFAManagementScreen extends GetView<TwoFAManagementController> {
                 CustomTextField(
                   controller: controller.verificationCodeController,
                   label: 'verification_code'.tr,
-                  hint: 'Enter 6-digit code',
+                  hint: 'enter_verification_code'.tr,
                   keyboardType: TextInputType.number,
                   maxLength: 6,
                 ),
@@ -628,8 +628,8 @@ class TwoFAManagementScreen extends GetView<TwoFAManagementController> {
                             ClipboardData(text: controller.totpSecret.value),
                           );
                           Get.snackbar(
-                            'Copied',
-                            'Secret key copied to clipboard',
+                            'success'.tr,
+                            'secret_copied'.tr,
                             snackPosition: SnackPosition.BOTTOM,
                             backgroundColor: AppColors.brandSage600,
                             colorText: Colors.white,
@@ -743,7 +743,7 @@ class TwoFAManagementScreen extends GetView<TwoFAManagementController> {
         ),
         child: Center(
           child: Text(
-            'Unable to generate QR code',
+            'failed_to_generate_qr'.tr,
             style: AppTextStyles.bodySmall.copyWith(
               color: AppColors.neutralInk500,
             ),
@@ -761,7 +761,7 @@ class TwoFAManagementScreen extends GetView<TwoFAManagementController> {
         ),
         child: Center(
           child: Text(
-            'QR code error',
+            'qr_code_error'.tr,
             style: AppTextStyles.bodySmall.copyWith(
               color: AppColors.danger,
             ),
@@ -805,7 +805,7 @@ class TwoFAManagementScreen extends GetView<TwoFAManagementController> {
           ),
           SizedBox(height: 12.h),
           Text(
-            'A verification code will be sent when you tap Verify below',
+            'verification_code_sent_on_verify'.tr,
             style: AppTextStyles.bodySmall.copyWith(
               color: AppColors.neutralInk500,
             ),
@@ -875,7 +875,7 @@ class TwoFAManagementScreen extends GetView<TwoFAManagementController> {
           CustomTextField(
             controller: controller.verificationCodeController,
             label: 'verification_code'.tr,
-            hint: 'Enter 6-digit code',
+            hint: 'enter_verification_code'.tr,
             keyboardType: TextInputType.number,
             maxLength: 6,
           ),

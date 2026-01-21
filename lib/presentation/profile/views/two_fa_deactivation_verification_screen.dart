@@ -438,7 +438,7 @@ class TwoFADeactivationVerificationScreen extends GetView<TwoFAManagementControl
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'â€¢ ',
+          '• ',
           style: AppTextStyles.bodySmall.copyWith(
             color: AppColors.brandSage600,
             fontWeight: FontWeight.bold,
