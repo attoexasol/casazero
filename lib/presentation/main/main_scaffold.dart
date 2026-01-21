@@ -37,6 +37,7 @@ enum AppScreen {
   maintenance,
   profile,
   smartHome,
+  trustedDevices,
   changePassword,
   hubScreen,
   //trustedDevices,

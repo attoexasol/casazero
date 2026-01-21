@@ -7,6 +7,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/localization/app_translations.dart';
 import '../controllers/trusted_devices_controller.dart';
 import '../../../data/models/trusted_device_model.dart';
+import '../../../app/theme/app_colors.dart';
+import '../../../app/theme/app_text_styles.dart';
 
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -16,10 +18,10 @@ class TrustedDevicesScreen extends GetView<TrustedDevicesController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surfaceWhite,
       body: Column(
         children: [
-          //_buildHeader(),
+          _buildHeader(),
           Expanded(
             child: Obx(() {
               if (controller.isLoading.value) {
@@ -51,14 +53,17 @@ class TrustedDevicesScreen extends GetView<TrustedDevicesController> {
     );
   }
 
-  /// Header - Matches React sticky header
+  // ============================================================================
+  // HEADER
+  // ============================================================================
+
   Widget _buildHeader() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surfaceWhite,
         border: Border(
           bottom: BorderSide(
-            color: const Color(0xFFE5E7EB), // neutral-line-200
+            color: AppColors.neutralLine200,
             width: 1,
           ),
         ),
@@ -70,42 +75,31 @@ class TrustedDevicesScreen extends GetView<TrustedDevicesController> {
           child: Row(
             children: [
               // Back button
-              InkWell(
-                onTap: () => Get.back(),
-                borderRadius: BorderRadius.circular(8.r),
-                child: Container(
-                  width: 36.w,
-                  height: 36.w,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                  child: Icon(
-                    Icons.chevron_left,
-                    size: 20.sp,
-                    color: const Color(0xFF1F2937),
-                  ),
-                ),
+              IconButton(
+                icon: Icon(Icons.chevron_left, size: 24.sp),
+                color: AppColors.neutralInk900,
+                onPressed: () => Get.back(),
               ),
-              SizedBox(width: 12.w),
-              // Title section
+
+              SizedBox(width: 8.w),
+
+              // Title
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppTranslations.trustedDevices.tr,
-                      style: TextStyle(
-                        fontSize: 20.sp,
+                      'trusted_devices'.tr,
+                      style: AppTextStyles.h4.copyWith(
+                        color: AppColors.neutralInk900,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF1F2937),
                       ),
                     ),
                     SizedBox(height: 2.h),
                     Text(
-                      AppTranslations.manageYourDevices.tr,
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        color: const Color(0xFF6B7280), // neutral-ink-500
+                      'manage_your_devices'.tr,
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.neutralInk500,
                       ),
                     ),
                   ],
