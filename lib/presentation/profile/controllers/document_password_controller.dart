@@ -192,11 +192,11 @@ class DocumentPasswordController extends GetxController {
           colorText: Colors.white,
           margin: const EdgeInsets.all(16),
           borderRadius: 12,
-          duration: const Duration(seconds: 2),
+          duration: const Duration(seconds: 3),
         );
 
         // Navigate back after success
-        Future.delayed(const Duration(milliseconds: 500), () {
+        Future.delayed(const Duration(milliseconds: 3000), () {
           Get.back();
         });
       } else {

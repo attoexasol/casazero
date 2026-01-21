@@ -89,7 +89,7 @@ class SecurityCard extends StatelessWidget {
 
           // Document Password
           _item(
-            icon: Icons.lock_outline,
+            icon: Icons.message,
             title: "document_password".tr,
             iconPath: 'assets/images/chanage_pass_icon.svg',
             onTap: () => Get.toNamed(AppRoutes.DOCUMENT_PASSWORD),
