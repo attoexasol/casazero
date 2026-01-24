@@ -5,11 +5,21 @@ import '../widgets/custom_message_popup.dart';
 /// Centralized controller for showing custom popups
 /// Replaces all SnackBar usage across the app
 class MessagePopupController {
+  // ---------- Internal helper ----------
+  static void _closeIfOpen() {
+    if (Get.isDialogOpen ?? false) {
+      Get.back();
+    }
+  }
+
+  // ---------- Success ----------
   /// Show success popup - auto-dismisses after 3 seconds
   static Future<void> showSuccess({
     required String messageKey,
     String titleKey = '',
   }) async {
+    _closeIfOpen();
+
     Get.dialog(
       CustomMessagePopup(
         titleKey: titleKey,
@@ -18,19 +28,19 @@ class MessagePopupController {
       ),
       barrierDismissible: true,
     );
-    
-    // Auto-dismiss after 3 seconds
+
     await Future.delayed(const Duration(seconds: 3));
-    if (Get.isDialogOpen ?? false) {
-      Get.back();
-    }
+    _closeIfOpen();
   }
 
+  // ---------- Error ----------
   /// Show error popup - auto-dismisses after 3 seconds
   static Future<void> showError({
     required String messageKey,
     String titleKey = '',
   }) async {
+    _closeIfOpen();
+
     Get.dialog(
       CustomMessagePopup(
         titleKey: titleKey,
@@ -39,19 +49,19 @@ class MessagePopupController {
       ),
       barrierDismissible: true,
     );
-    
-    // Auto-dismiss after 3 seconds
+
     await Future.delayed(const Duration(seconds: 3));
-    if (Get.isDialogOpen ?? false) {
-      Get.back();
-    }
+    _closeIfOpen();
   }
 
-  /// Show warning popup with OK button
+  // ---------- Warning ----------
+  /// Show warning popup (no auto dismiss)
   static void showWarning({
     required String messageKey,
     String titleKey = '',
   }) {
+    _closeIfOpen();
+
     Get.dialog(
       CustomMessagePopup(
         titleKey: titleKey,
@@ -62,14 +72,16 @@ class MessagePopupController {
     );
   }
 
+  // ---------- Info ----------
   /// Show info popup.
-  /// [autoDismissSeconds] if null or 0: no auto-dismiss (caller closes with Get.back()).
-  /// Otherwise auto-dismisses after that many seconds.
+  /// If [autoDismissSeconds] is null or 0 → stays open until manually closed.
   static Future<void> showInfo({
     required String messageKey,
     String titleKey = '',
     int? autoDismissSeconds = 3,
   }) async {
+    _closeIfOpen();
+
     Get.dialog(
       CustomMessagePopup(
         titleKey: titleKey,
@@ -78,15 +90,37 @@ class MessagePopupController {
       ),
       barrierDismissible: true,
     );
-    
+
     if (autoDismissSeconds == null || autoDismissSeconds <= 0) return;
-    
+
     await Future.delayed(Duration(seconds: autoDismissSeconds));
-    if (Get.isDialogOpen ?? false) {
-      Get.back();
-    }
+    _closeIfOpen();
   }
 
+  // ---------- Download ----------
+  /// Show downloading popup (stays open until closed manually)
+  static void showDownloading({
+    required String messageKey,
+    String titleKey = 'downloading',
+  }) {
+    _closeIfOpen();
+
+    Get.dialog(
+      CustomMessagePopup(
+        titleKey: titleKey,
+        messageKey: messageKey,
+        messageType: MessageType.info,
+      ),
+      barrierDismissible: false,
+    );
+  }
+
+  /// Close current popup safely
+  static void closePopup() {
+    _closeIfOpen();
+  }
+
+  // ---------- Confirmation ----------
   /// Show confirmation popup with Yes/No buttons
   static Future<bool> showConfirmation({
     required String messageKey,
@@ -96,6 +130,8 @@ class MessagePopupController {
     VoidCallback? onPrimary,
     VoidCallback? onSecondary,
   }) async {
+    _closeIfOpen();
+
     final result = await Get.dialog<bool>(
       CustomMessagePopup(
         titleKey: titleKey,
@@ -118,7 +154,8 @@ class MessagePopupController {
     return result ?? false;
   }
 
-  /// Show popup with custom actions (e.g., Cancel/Open, Cancel/Logout)
+  // ---------- Custom ----------
+  /// Show popup with custom actions (Cancel/Open, Logout, etc.)
   static Future<bool?> showCustom({
     required String messageKey,
     required String titleKey,
@@ -127,6 +164,8 @@ class MessagePopupController {
     PopupAction? secondaryAction,
     bool barrierDismissible = true,
   }) async {
+    _closeIfOpen();
+
     final result = await Get.dialog<bool>(
       CustomMessagePopup(
         titleKey: titleKey,

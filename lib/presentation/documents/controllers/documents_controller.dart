@@ -119,10 +119,8 @@ class DocumentsController extends GetxController {
   /// Shows loading dialog, downloads the file, and shows result with Open button
   Future<void> downloadDocument(DocumentModel document) async {
     try {
-      // Parse document ID from String to int (API expects int)
       final documentId = int.tryParse(document.id);
       if (documentId == null) {
-        print('❌ [DocumentsController] Invalid document ID: ${document.id}');
         MessagePopupController.showError(
           messageKey: 'invalidDocumentId'.tr,
           titleKey: 'downloadError'.tr,
@@ -133,30 +131,23 @@ class DocumentsController extends GetxController {
       final fileName = _generateFileName(document);
       final fileId = document.id;
 
-      print(
-        '📥 [DocumentsController] Starting download: $fileName (ID: $documentId)',
-      );
+      print('📥 Starting download: $fileName');
 
-      // Show downloading info (no auto-dismiss; we close it when done)
-      MessagePopupController.showInfo(
+      // 1. Show downloading popup (stays open)
+      MessagePopupController.showDownloading(
         messageKey: 'downloading'.tr + ': ${document.title}',
-        titleKey: '',
-        autoDismissSeconds: 0,
       );
 
-      // Call the download API endpoint
+      // 2. Call API
       final apiResult = await _repository.downloadDocument(
         documentId: documentId,
       );
 
       if (apiResult['success'] != true) {
-        if (Get.isDialogOpen ?? false) Get.back();
+        MessagePopupController.closePopup();
         await MessagePopupController.showError(
           messageKey: apiResult['error'] ?? 'downloadError'.tr,
           titleKey: 'downloadFailed'.tr,
-        );
-        print(
-          '❌ [DocumentsController] Download API failed: ${apiResult['error']}',
         );
         return;
       }
@@ -279,17 +270,14 @@ class DocumentsController extends GetxController {
 
       // Show confirmation popup using CustomMessagePopup
       final shouldOpen = await MessagePopupController.showCustom(
-        messageKey: 'fileDownloadedSuccessfully'.tr.replaceAll('{fileName}', fileName),
+        messageKey: 'fileDownloadedSuccessfully'.tr.replaceAll(
+          '{fileName}',
+          fileName,
+        ),
         titleKey: 'downloadSuccess'.tr,
         messageType: MessageType.success,
-        primaryAction: PopupAction(
-          labelKey: 'openWith',
-          isPrimary: true,
-        ),
-        secondaryAction: PopupAction(
-          labelKey: 'cancel',
-          isPrimary: false,
-        ),
+        primaryAction: PopupAction(labelKey: 'openWith', isPrimary: true),
+        secondaryAction: PopupAction(labelKey: 'cancel', isPrimary: false),
         barrierDismissible: true,
       );
 
@@ -368,7 +356,9 @@ class DocumentsController extends GetxController {
         } else if (result.type == ResultType.error ||
             result.type == ResultType.fileNotFound) {
           MessagePopupController.showError(
-            messageKey: result.message.isNotEmpty ? result.message : 'openFileError'.tr,
+            messageKey: result.message.isNotEmpty
+                ? result.message
+                : 'openFileError'.tr,
             titleKey: 'openFileFailed'.tr,
           );
         } else if (result.type == ResultType.done) {
@@ -425,7 +415,9 @@ class DocumentsController extends GetxController {
       } else if (result.type == ResultType.error ||
           result.type == ResultType.fileNotFound) {
         MessagePopupController.showError(
-          messageKey: result.message.isNotEmpty ? result.message : 'openFileError'.tr,
+          messageKey: result.message.isNotEmpty
+              ? result.message
+              : 'openFileError'.tr,
           titleKey: 'openFileFailed'.tr,
         );
       }
@@ -552,10 +544,10 @@ class DocumentsController extends GetxController {
           print('✅ Share dialog opened successfully');
 
           // No confirmation; just success message for 3 seconds
-          await MessagePopupController.showSuccess(
-            messageKey: 'shareSuccess'.tr + ': ${document.title}',
-            titleKey: '',
-          );
+          // await MessagePopupController.showSuccess(
+          //   messageKey: 'shareSuccess'.tr + ': ${document.title}',
+          //   titleKey: '',
+          // );
         } else {
           throw Exception('File not found after download');
         }
@@ -817,7 +809,10 @@ class DocumentsController extends GetxController {
 
         // Show success popup
         MessagePopupController.showSuccess(
-          messageKey: 'documentDeletedSuccessfully'.tr.replaceAll('{title}', document.title),
+          messageKey: 'documentDeletedSuccessfully'.tr.replaceAll(
+            '{title}',
+            document.title,
+          ),
           titleKey: 'documentDeleted'.tr,
         );
 

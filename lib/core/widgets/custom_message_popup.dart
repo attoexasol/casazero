@@ -4,13 +4,7 @@ import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_text_styles.dart';
 
 /// Message types for different popup styles
-enum MessageType {
-  success,
-  error,
-  warning,
-  info,
-  confirmation,
-}
+enum MessageType { success, error, warning, info, confirmation }
 
 /// Action button configuration
 class PopupAction {
@@ -67,7 +61,8 @@ class CustomMessagePopup extends StatelessWidget {
           children: [
             // Header with icon and title
             _buildHeader(),
-            
+            SizedBox(height: 5,),
+
             // Message content
             Padding(
               padding: EdgeInsets.fromLTRB(
@@ -84,9 +79,11 @@ class CustomMessagePopup extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
             ),
+            SizedBox(height: 10,),
 
             // Action buttons only for confirmation (when primary/secondary provided)
-            if (primaryAction != null || secondaryAction != null) _buildActions(),
+            if (primaryAction != null || secondaryAction != null)
+              _buildActions(),
           ],
         ),
       ),
@@ -127,7 +124,7 @@ class CustomMessagePopup extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 15,vertical: 15),
       decoration: BoxDecoration(
         color: iconColor.withOpacity(0.1),
         borderRadius: const BorderRadius.only(
@@ -146,8 +143,9 @@ class CustomMessagePopup extends StatelessWidget {
               style: AppTextStyles.h4.copyWith(
                 fontWeight: FontWeight.w600,
                 color: AppColors.neutralInk900,
+                fontSize: 20,
               ),
-              textAlign: TextAlign.center,
+              textAlign: TextAlign.start,
             ),
           ),
         ],
@@ -177,7 +175,8 @@ class CustomMessagePopup extends StatelessWidget {
               secondaryAction!.labelKey.tr,
               style: AppTextStyles.button.copyWith(
                 color: AppColors.neutralInk700,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w800,
+                fontSize: 14
               ),
             ),
           ),
@@ -187,7 +186,9 @@ class CustomMessagePopup extends StatelessWidget {
 
     if (primaryAction != null) {
       actions.add(
-        Expanded(
+        SizedBox(
+          height: 40,
+          width: 90,
           child: ElevatedButton(
             onPressed: () {
               Get.back(result: true);
@@ -197,7 +198,7 @@ class CustomMessagePopup extends StatelessWidget {
               backgroundColor: _getPrimaryButtonColor(),
               foregroundColor: Colors.white,
               elevation: 0,
-              padding: const EdgeInsets.symmetric(vertical: 14),
+              padding: EdgeInsets.zero,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -206,7 +207,8 @@ class CustomMessagePopup extends StatelessWidget {
               primaryAction!.labelKey.tr,
               style: AppTextStyles.button.copyWith(
                 color: Colors.white,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w800,
+                fontSize: 14,
               ),
             ),
           ),
@@ -214,19 +216,15 @@ class CustomMessagePopup extends StatelessWidget {
       );
     }
 
+    
+
     // Buttons only for confirmation; never show OK for info/error/success/warning
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
       child: Row(
         children: actions.length > 1
-            ? [
-                ...actions,
-              ]
-            : [
-                const Spacer(),
-                ...actions,
-                const Spacer(),
-              ],
+            ? [const Spacer(),...actions]
+            : [const Spacer(), ...actions, const Spacer()],
       ),
     );
   }

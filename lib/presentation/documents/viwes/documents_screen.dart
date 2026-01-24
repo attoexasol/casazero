@@ -156,7 +156,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                   onRefresh: () => _controller.refreshData(),
                   color: const Color(0xFF4CAF47),
                   child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 90),
                     itemCount: filteredDocs.length,
                     itemBuilder: (_, i) {
                       final doc = filteredDocs[i];
