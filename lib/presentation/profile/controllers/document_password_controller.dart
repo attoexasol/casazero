@@ -147,17 +147,22 @@ class DocumentPasswordController extends GetxController {
   }
 
   // ---------------------------------------------------------------------------
-  // SUBMIT HANDLER (Ready for future API integration)
+  // SUBMIT HANDLER (API Integration - Production Ready)
   // ---------------------------------------------------------------------------
   Future<void> submitDocumentPassword() async {
-    // Validate form state
+    // Validate form state first
     if (!formKey.currentState!.validate()) {
       return;
     }
 
-    // Double-check security requirements
+    // Double-check security requirements before API call
     if (!canSubmit) {
       _showError('complete_fields'.tr);
+      return;
+    }
+
+    // Prevent multiple simultaneous submissions
+    if (isLoading.value) {
       return;
     }
 
@@ -168,7 +173,14 @@ class DocumentPasswordController extends GetxController {
       final newPassword = newPasswordController.text.trim();
       final confirmPassword = confirmPasswordController.text.trim();
 
-      // Call API to set document password
+      // Additional validation: ensure passwords match after trim
+      if (newPassword != confirmPassword) {
+        isLoading.value = false;
+        _showError('passwords_do_not_match'.tr);
+        return;
+      }
+
+      // Call API to set/update document password
       final result = await _authRepository.setDocumentPassword(
         password: newPassword,
         confirmPassword: confirmPassword,
@@ -177,7 +189,7 @@ class DocumentPasswordController extends GetxController {
       isLoading.value = false;
 
       if (result['success'] == true) {
-        // Clear password fields for security
+        // Clear password fields for security (passwords should not persist in memory)
         newPasswordController.clear();
         confirmPasswordController.clear();
         hasPasswordInput.value = false;
@@ -195,17 +207,20 @@ class DocumentPasswordController extends GetxController {
           duration: const Duration(seconds: 3),
         );
 
-        // Navigate back after success
+        // Navigate back after success (give user time to see success message)
         Future.delayed(const Duration(milliseconds: 3000), () {
-          Get.back();
+          if (Get.isDialogOpen != true) {
+            Get.back();
+          }
         });
       } else {
-        // Show error message
+        // Show error message from API response
         _showError(result['error'] ?? 'failed_to_save_document_password'.tr);
       }
     } catch (e) {
       isLoading.value = false;
-      // Never log password in error messages
+      // Never log password in error messages - security best practice
+      // Show generic error message to user
       _showError('failed_to_save_document_password'.tr);
     }
   }

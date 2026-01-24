@@ -411,4 +411,92 @@ class DocumentRepository {
       };
     }
   }
+
+  /// Download Document
+  /// POST /download_document
+  /// Request: {
+  ///   "token": "<CURRENT_USER_API_TOKEN>",
+  ///   "document_id": <DOCUMENT_ID>
+  /// }
+  /// Response: File bytes (binary data)
+  Future<Map<String, dynamic>> downloadDocument({
+    required int documentId,
+  }) async {
+    try {
+      final storageService = Get.find<StorageService>();
+      final token = storageService.getAccessToken();
+
+      if (token == null || token.isEmpty) {
+        return {
+          'success': false,
+          'error': 'User token is missing. Please login again.',
+        };
+      }
+
+      print('📥 [DocumentRepository] Downloading document with ID: $documentId');
+      print('🔑 [DocumentRepository] Using token: ${token.substring(0, 10)}...');
+
+      // Use Dio directly to get bytes response
+      final dioInstance = dio.Dio(
+        dio.BaseOptions(
+          baseUrl: ApiConstants.BASE_URL,
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+
+      final response = await dioInstance.post(
+        ApiConstants.DOWNLOAD_DOCUMENT,
+        data: {
+          'token': token,
+          'document_id': documentId,
+        },
+        options: dio.Options(
+          responseType: dio.ResponseType.bytes,
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        print('✅ [DocumentRepository] Document downloaded successfully (${response.data.length} bytes)');
+        return {
+          'success': true,
+          'data': response.data as List<int>, // File bytes
+        };
+      } else {
+        print('⚠️ [DocumentRepository] Download failed: Status ${response.statusCode}');
+        return {
+          'success': false,
+          'error': 'Failed to download document. Server returned status ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      print('❌ [DocumentRepository] Error downloading document: $e');
+      
+      String errorMessage = 'Failed to download document. Please try again.';
+      if (e is dio.DioException) {
+        if (e.type == dio.DioExceptionType.connectionTimeout ||
+            e.type == dio.DioExceptionType.receiveTimeout) {
+          errorMessage = 'Download timeout. Please check your connection.';
+        } else if (e.type == dio.DioExceptionType.badResponse) {
+          final statusCode = e.response?.statusCode;
+          if (statusCode == 401) {
+            errorMessage = 'Unauthorized. Please log in again.';
+          } else if (statusCode == 404) {
+            errorMessage = 'Document not found.';
+          } else {
+            errorMessage = 'Server error. Please try again later.';
+          }
+        } else {
+          errorMessage = 'Network error. Please check your connection.';
+        }
+      }
+
+      return {
+        'success': false,
+        'error': errorMessage,
+      };
+    }
+  }
 }

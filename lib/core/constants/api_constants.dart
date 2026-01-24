@@ -309,6 +309,15 @@ class ApiConstants {
   /// }
   static const String UPLOAD_USER_DOCUMENT = '/user_document_upload';
 
+  /// Download Document
+  /// POST /download_document
+  /// Request: {
+  ///   "token": "<CURRENT_USER_API_TOKEN>",
+  ///   "document_id": <DOCUMENT_ID>
+  /// }
+  /// Response: File bytes (binary data)
+  static const String DOWNLOAD_DOCUMENT = '/download_document';
+
   // Maintenance Endpoints
   /// Get Maintenance Tasks
   /// GET /maintenance/list - Fetch maintenance tasks

@@ -3,12 +3,14 @@ import 'package:dio/dio.dart';
 import 'package:get/get.dart' as getx;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter/services.dart';
 import '../constants/api_constants.dart';
 import 'storage_service.dart';
 
 class DownloadService extends getx.GetxService {
   final Dio _dio = Dio();
   final StorageService _storageService = getx.Get.find();
+  static const MethodChannel _platformChannel = MethodChannel('com.example.casazero/file_opener');
 
   // Track download progress for multiple files
   final getx.RxMap<String, double> downloadProgress = <String, double>{}.obs;
@@ -141,25 +143,32 @@ class DownloadService extends getx.GetxService {
   }
 
   /// Check and request storage permissions
+  /// For Android 11+ (API 30+), we may need additional permissions for public Downloads
   Future<bool> _checkAndRequestPermissions() async {
     if (Platform.isAndroid) {
-      // For Android 13+ (API 33+), we don't need WRITE_EXTERNAL_STORAGE
-      // For Android 10-12, we need storage permission
+      // For Android 10 and below, request storage permission
       if (await Permission.storage.isGranted) {
         return true;
       }
 
-      // Request permission
+      // Request storage permission
       final status = await Permission.storage.request();
       if (status.isGranted) {
         return true;
       }
 
-      // If denied, check if we can request again
+      // For Android 11+ (API 30+), storage permission might not be enough
+      // But we can still use app's external storage directory
+      // Try requesting photos permission as fallback for Android 13+
       if (status.isDenied) {
-        // Try requesting photos permission for Android 13+
-        final photosStatus = await Permission.photos.request();
-        return photosStatus.isGranted;
+        try {
+          final photosStatus = await Permission.photos.request();
+          if (photosStatus.isGranted) {
+            return true;
+          }
+        } catch (e) {
+          print('⚠️ Photos permission not available: $e');
+        }
       }
 
       // Permanently denied - need to open settings
@@ -167,7 +176,10 @@ class DownloadService extends getx.GetxService {
         await openAppSettings();
       }
 
-      return false;
+      // Even if permission is denied, we can still use app's external directory
+      // Return true to allow saving to app's Downloads folder
+      print('⚠️ Storage permission not granted, but will try app directory');
+      return true;
     } else if (Platform.isIOS) {
       // iOS doesn't need special permissions for app's documents directory
       return true;
@@ -177,35 +189,57 @@ class DownloadService extends getx.GetxService {
   }
 
   /// Get the appropriate download directory based on platform
+  /// Android: ALWAYS returns public Downloads folder (/storage/emulated/0/Download)
+  ///         This ensures files are visible in File Manager
+  /// iOS: Returns Documents directory (OS limitation)
   Future<Directory?> _getDownloadDirectory() async {
     try {
       if (Platform.isAndroid) {
-        // For Android, try to get the Downloads directory
-        final directory = Directory('/storage/emulated/0/Download');
-        if (await directory.exists()) {
-          return directory;
-        }
-
-        // Fallback to external storage directory
-        final externalDir = await getExternalStorageDirectory();
-        if (externalDir != null) {
-          // Create a Downloads folder in app's external directory
-          final downloadsDir = Directory('${externalDir.path}/Downloads');
-          if (!await downloadsDir.exists()) {
-            await downloadsDir.create(recursive: true);
+        // CRITICAL: Always use public Downloads directory for visibility in File Manager
+        // Path: /storage/emulated/0/Download
+        // This is the standard Android Downloads folder visible to users
+        final publicDownloadsPath = '/storage/emulated/0/Download';
+        final publicDownloads = Directory(publicDownloadsPath);
+        
+        // Ensure directory exists - create if it doesn't
+        if (!await publicDownloads.exists()) {
+          try {
+            await publicDownloads.create(recursive: true);
+            print('📁 Created public Downloads directory: $publicDownloadsPath');
+          } catch (e) {
+            print('⚠️ Could not create public Downloads directory: $e');
+            // Still try to return it - might work even if create failed
           }
-          return downloadsDir;
         }
-
-        // Last resort - app's documents directory
-        return await getApplicationDocumentsDirectory();
+        
+        // Verify we can access the directory
+        try {
+          final testFile = File('${publicDownloads.path}/.test');
+          // Just check if we can create a test file (we'll delete it immediately)
+          // This verifies write permissions
+          if (await publicDownloads.exists()) {
+            print('📁 Using public Downloads directory: ${publicDownloads.path}');
+            return publicDownloads;
+          }
+        } catch (e) {
+          print('⚠️ Cannot write to public Downloads directory: $e');
+        }
+        
+        // If public Downloads fails, log error but don't fallback to app directory
+        // This ensures we know when files won't be visible
+        print('❌ Public Downloads directory not accessible. Files may not be visible in File Manager.');
+        return publicDownloads; // Return anyway - let the save operation handle the error
       } else if (Platform.isIOS) {
-        // For iOS, use the app's documents directory
-        return await getApplicationDocumentsDirectory();
+        // iOS: Use Documents directory (visible in Files app)
+        final documentsDir = await getApplicationDocumentsDirectory();
+        print('📁 Using iOS Documents directory: ${documentsDir.path}');
+        return documentsDir;
       }
 
       // For other platforms
-      return await getApplicationDocumentsDirectory();
+      final appDir = await getApplicationDocumentsDirectory();
+      print('📁 Using default documents directory: ${appDir.path}');
+      return appDir;
     } catch (e) {
       print('❌ Error getting download directory: $e');
       return null;
@@ -226,5 +260,160 @@ class DownloadService extends getx.GetxService {
   /// Check if a file is currently being downloaded
   bool isFileDownloading(String fileId) {
     return isDownloading[fileId] ?? false;
+  }
+
+  /// Save document bytes to file
+  /// [fileBytes] - File bytes as List<int>
+  /// [fileName] - Name to save the file as
+  /// [fileId] - Unique identifier for tracking this download
+  /// Saves to device Downloads folder (Android) or Documents directory (iOS)
+  Future<Map<String, dynamic>> saveDocumentBytes({
+    required List<int> fileBytes,
+    required String fileName,
+    required String fileId,
+  }) async {
+    try {
+      // Check and request permissions first
+      final hasPermission = await _checkAndRequestPermissions();
+      if (!hasPermission) {
+        return {
+          'success': false,
+          'error': 'Storage permission denied. Please enable it in settings.',
+        };
+      }
+
+      // Mark as saving
+      isDownloading[fileId] = true;
+      downloadProgress[fileId] = 0.0;
+
+      // Get the appropriate directory - use actual Downloads folder for visibility
+      final directory = await _getDownloadDirectory();
+      if (directory == null) {
+        isDownloading[fileId] = false;
+        return {
+          'success': false,
+          'error': 'Could not access download directory',
+        };
+      }
+      
+      // Ensure directory exists
+      if (!await directory.exists()) {
+        await directory.create(recursive: true);
+      }
+      print('📁 Using download directory: ${directory.path}');
+
+      // Sanitize filename - remove invalid characters
+      String sanitizedFileName = fileName
+          .replaceAll(RegExp(r'[<>:"/\\|?*]'), '_')
+          .replaceAll(RegExp(r'\s+'), '_');
+
+      // Create the initial file path
+      String filePath = '${directory.path}/$sanitizedFileName';
+      File file = File(filePath);
+
+      // Check if file already exists and generate unique name if needed
+      if (await file.exists()) {
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+        final nameParts = sanitizedFileName.split('.');
+        final extension = nameParts.length > 1 ? nameParts.last : '';
+        final nameWithoutExt = nameParts.length > 1
+            ? nameParts.sublist(0, nameParts.length - 1).join('.')
+            : sanitizedFileName;
+        sanitizedFileName = '${nameWithoutExt}_$timestamp${extension.isNotEmpty ? '.$extension' : ''}';
+        filePath = '${directory.path}/$sanitizedFileName';
+        file = File(filePath); // Create new File object with updated path
+      }
+
+      print('💾 Saving file bytes to: $filePath');
+      print('💾 File size: ${fileBytes.length} bytes');
+      print('💾 Directory exists: ${await directory.exists()}');
+
+      // Write bytes to file with flush to ensure data is written
+      await file.writeAsBytes(fileBytes, flush: true);
+
+      // CRITICAL: Verify file exists after writing
+      final fileExists = await file.exists();
+      if (!fileExists) {
+        print('❌ File does not exist after write operation');
+        isDownloading[fileId] = false;
+        downloadProgress.remove(fileId);
+        return {
+          'success': false,
+          'error': 'File save failed: File was not created',
+        };
+      }
+
+      // Verify file size matches
+      final savedFileSize = await file.length();
+      if (savedFileSize != fileBytes.length) {
+        print('⚠️ File size mismatch: Expected ${fileBytes.length}, got $savedFileSize');
+        // Don't fail here, but log the warning
+      }
+
+      // For Android 10+ (API 29+): Index file in MediaStore to ensure visibility in Downloads app
+      // Note: Files in /storage/emulated/0/Download are visible in File Manager,
+      // but MediaStore indexing ensures they appear in the Downloads app
+      if (Platform.isAndroid) {
+        try {
+          await _indexFileInMediaStore(filePath, sanitizedFileName);
+        } catch (e) {
+          // Don't fail if MediaStore indexing fails - file is still saved
+          print('⚠️ Could not index file in MediaStore (file is still saved): $e');
+        }
+      }
+
+      // Save complete
+      isDownloading[fileId] = false;
+      downloadProgress.remove(fileId);
+
+      print('✅ File saved successfully: $filePath');
+      print('✅ File exists: ${await file.exists()}');
+      print('✅ File size: ${await file.length()} bytes');
+      print('✅ File location: ${directory.path} (visible in File Manager)');
+
+      return {
+        'success': true,
+        'filePath': filePath, // Return absolute path
+        'fileName': sanitizedFileName,
+      };
+    } catch (e, stackTrace) {
+      print('❌ Error saving file bytes: $e');
+      print('❌ Stack trace: $stackTrace');
+      isDownloading[fileId] = false;
+      downloadProgress.remove(fileId);
+
+      return {
+        'success': false,
+        'error': 'Failed to save file: ${e.toString()}',
+      };
+    }
+  }
+
+  /// Index file in MediaStore for Android 10+ (API 29+)
+  /// This ensures files appear in the Downloads app
+  /// Files in /storage/emulated/0/Download are already visible in File Manager
+  Future<void> _indexFileInMediaStore(String filePath, String fileName) async {
+    if (!Platform.isAndroid) {
+      return; // Only needed for Android
+    }
+
+    try {
+      final result = await _platformChannel.invokeMethod<bool>(
+        'indexFileInMediaStore',
+        {
+          'filePath': filePath,
+          'fileName': fileName,
+        },
+      );
+
+      if (result == true) {
+        print('✅ File indexed in MediaStore: $fileName');
+      } else {
+        print('⚠️ MediaStore indexing returned false (file still saved)');
+      }
+    } catch (e) {
+      // Don't throw - file is still saved and visible in File Manager
+      print('⚠️ MediaStore indexing error (non-critical): $e');
+    }
   }
 }

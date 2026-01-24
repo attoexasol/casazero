@@ -3,6 +3,7 @@ import '../../../data/models/document_category_model.dart';
 import '../../../data/models/document_model.dart';
 import '../../../data/repositories/document_repository.dart';
 import '../../../core/services/download_service.dart';
+import '../../../core/services/file_opener_service.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:open_filex/open_filex.dart';
@@ -23,7 +24,7 @@ class DocumentsController extends GetxController {
   final RxBool isLoadingDocuments = false.obs;
   final RxString errorMessage = ''.obs;
   final RxBool hasError = false.obs;
-  
+
   // Document counts per category
   final RxInt totalDocumentCount = 0.obs;
 
@@ -50,18 +51,18 @@ class DocumentsController extends GetxController {
       if (result['success'] == true) {
         final List<DocumentCategoryModel> fetchedCategories = result['data'];
         categories.value = fetchedCategories;
-        
+
         // If documents are already loaded, update category counts
         if (documents.isNotEmpty) {
           _updateCategoryCounts(documents);
         }
       } else {
-        errorMessage.value = result['error'] ?? 'Failed to fetch categories';
+        errorMessage.value = result['error'] ?? 'failedToFetchCategories'.tr;
         categories.value = [];
       }
     } catch (e) {
       print('Error in fetchDocumentCategories: $e');
-      errorMessage.value = 'An error occurred while fetching categories';
+      errorMessage.value = 'errorFetchingCategories'.tr;
       categories.value = [];
     } finally {
       isLoadingCategories.value = false;
@@ -82,13 +83,12 @@ class DocumentsController extends GetxController {
 
       if (result['success'] == true) {
         final dynamic data = result['data'];
-        final List<DocumentModel> fetchedDocuments =
-            data is List<DocumentModel>
-                ? data
-                : (data as List<dynamic>?)
-                        ?.map((item) => item as DocumentModel)
-                        .toList() ??
-                    [];
+        final List<DocumentModel> fetchedDocuments = data is List<DocumentModel>
+            ? data
+            : (data as List<dynamic>?)
+                      ?.map((item) => item as DocumentModel)
+                      .toList() ??
+                  [];
 
         documents.value = fetchedDocuments;
         totalDocumentCount.value = fetchedDocuments.length;
@@ -99,13 +99,13 @@ class DocumentsController extends GetxController {
         print('✅ Loaded ${documents.length} documents from API');
       } else {
         print('⚠️ API Error: ${result['error']}');
-        errorMessage.value = result['error'] ?? 'Failed to fetch documents';
+        errorMessage.value = result['error'] ?? 'failedToFetchDocuments'.tr;
         hasError.value = true;
         documents.clear();
       }
     } catch (e) {
       print('❌ Error in fetchDocuments: $e');
-      errorMessage.value = 'An error occurred while fetching documents';
+      errorMessage.value = 'errorFetchingDocuments'.tr;
       hasError.value = true;
       documents.clear();
     } finally {
@@ -117,10 +117,13 @@ class DocumentsController extends GetxController {
   /// Shows loading dialog, downloads the file, and shows result with Open button
   Future<void> downloadDocument(DocumentModel document) async {
     try {
-      if (document.fileUrl == null || document.fileUrl!.isEmpty) {
+      // Parse document ID from String to int (API expects int)
+      final documentId = int.tryParse(document.id);
+      if (documentId == null) {
+        print('❌ [DocumentsController] Invalid document ID: ${document.id}');
         Get.snackbar(
           'downloadError'.tr,
-          'Document URL is not available',
+          'invalidDocumentId'.tr,
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.red[700],
           colorText: Colors.white,
@@ -132,8 +135,9 @@ class DocumentsController extends GetxController {
       final fileName = _generateFileName(document);
       final fileId = document.id;
 
-      print('📥 Starting download: $fileName');
-      print('📥 URL: ${document.fileUrl}');
+      print(
+        '📥 [DocumentsController] Starting download: $fileName (ID: $documentId)',
+      );
 
       Get.snackbar(
         'downloading'.tr,
@@ -141,49 +145,122 @@ class DocumentsController extends GetxController {
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.blue[700],
         colorText: Colors.white,
-        duration: const Duration(seconds: 2),
+        duration: const Duration(seconds: 4),
         icon: const Icon(Icons.download, color: Colors.white),
       );
 
-      final result = await _downloadService.downloadDocument(
-        fileUrl: document.fileUrl!,
-        fileName: fileName,
-        fileId: fileId,
+      // Call the download API endpoint
+      final apiResult = await _repository.downloadDocument(
+        documentId: documentId,
       );
 
-      if (result['success'] == true) {
-        final filePath = result['filePath'] as String;
-
-        // Download successful - Show success snackbar
-        Get.snackbar(
-          'downloadSuccess'.tr,
-          '${'downloadComplete'.tr}: ${result['fileName']}',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 2),
-          icon: const Icon(Icons.check_circle, color: Colors.white),
-        );
-
-        print('✅ Download successful: $filePath');
-        
-        // Show native bottom sheet with available apps to open the file
-        await Future.delayed(const Duration(milliseconds: 500));
-        await _showOpenFileBottomSheet(filePath, document.title);
-      } else {
+      if (apiResult['success'] != true) {
+        Get.closeAllSnackbars();
         Get.snackbar(
           'downloadFailed'.tr,
-          result['error'] ?? 'downloadError'.tr,
+          apiResult['error'] ?? 'downloadError'.tr,
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.red[700],
           colorText: Colors.white,
           duration: const Duration(seconds: 3),
           icon: const Icon(Icons.error, color: Colors.white),
         );
-        print('❌ Download failed: ${result['error']}');
+        print(
+          '❌ [DocumentsController] Download API failed: ${apiResult['error']}',
+        );
+        return;
+      }
+
+      // Get file bytes from API response
+      final fileBytes = apiResult['data'] as List<int>?;
+      if (fileBytes == null || fileBytes.isEmpty) {
+        Get.closeAllSnackbars();
+        Get.snackbar(
+          'downloadFailed'.tr,
+          'noFileDataReceived'.tr,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red[700],
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+          icon: const Icon(Icons.error, color: Colors.white),
+        );
+        print('❌ [DocumentsController] No file bytes received');
+        return;
+      }
+
+      // Save the file bytes
+      final saveResult = await _downloadService.saveDocumentBytes(
+        fileBytes: fileBytes,
+        fileName: fileName,
+        fileId: fileId,
+      );
+
+      if (saveResult['success'] == true) {
+        final filePath = saveResult['filePath'] as String;
+
+        // CRITICAL: Verify file exists before showing confirmation dialog
+        final savedFile = File(filePath);
+        final fileExists = await savedFile.exists();
+
+        if (!fileExists) {
+          print(
+            '❌ [DocumentsController] File does not exist after save: $filePath',
+          );
+          Get.closeAllSnackbars();
+          Get.snackbar(
+            'downloadFailed'.tr,
+            'fileNotSavedCorrectly'.tr,
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red[700],
+            colorText: Colors.white,
+            duration: const Duration(seconds: 3),
+            icon: const Icon(Icons.error, color: Colors.white),
+          );
+          return;
+        }
+
+        // Verify file has content
+        final fileSize = await savedFile.length();
+        if (fileSize == 0) {
+          print('❌ [DocumentsController] File is empty after save: $filePath');
+          Get.closeAllSnackbars();
+          Get.snackbar(
+            'downloadFailed'.tr,
+            'fileEmptyPleaseDownloadAgain'.tr,
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red[700],
+            colorText: Colors.white,
+            duration: const Duration(seconds: 3),
+            icon: const Icon(Icons.error, color: Colors.white),
+          );
+          return;
+        }
+
+        print('✅ [DocumentsController] Download successful: $filePath');
+        print(
+          '✅ [DocumentsController] File verified: exists=${fileExists}, size=${fileSize} bytes',
+        );
+
+        // UX: Dismiss "Downloading..." snackbar first, then 3 second fixed pause, then popup
+        Get.closeAllSnackbars();
+        await Future.delayed(const Duration(seconds: 2));
+        await _showDownloadConfirmationDialog(filePath, document.title);
+      } else {
+        Get.closeAllSnackbars();
+        Get.snackbar(
+          'downloadFailed'.tr,
+          saveResult['error'] ?? 'downloadError'.tr,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red[700],
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+          icon: const Icon(Icons.error, color: Colors.white),
+        );
+        print('❌ [DocumentsController] Save failed: ${saveResult['error']}');
       }
     } catch (e) {
-      print('❌ Error downloading document: $e');
+      print('❌ [DocumentsController] Error downloading document: $e');
+      Get.closeAllSnackbars();
       Get.snackbar(
         'downloadFailed'.tr,
         'downloadError'.tr,
@@ -196,9 +273,247 @@ class DocumentsController extends GetxController {
     }
   }
 
+  /// Show download confirmation dialog with Open With and Cancel options
+  /// File is NOT opened automatically - only when user taps "Open With"
+  /// NOTE: File existence should be verified BEFORE calling this method
+  Future<void> _showDownloadConfirmationDialog(
+    String filePath,
+    String fileName,
+  ) async {
+    try {
+      // Double-check file exists (defensive programming)
+      final file = File(filePath);
+      final fileExists = await file.exists();
+
+      if (!fileExists) {
+        print(
+          '❌ [DocumentsController] File not found in confirmation dialog: $filePath',
+        );
+        Get.snackbar(
+          'openFileFailed'.tr,
+          'fileNotFoundInStorage'.tr,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red[700],
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+        return;
+      }
+
+      // Verify file has content
+      final fileSize = await file.length();
+      if (fileSize == 0) {
+        print(
+          '❌ [DocumentsController] File is empty in confirmation dialog: $filePath',
+        );
+        Get.snackbar(
+          'openFileFailed'.tr,
+          'fileEmptyPleaseDownloadAgain'.tr,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red[700],
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+        return;
+      }
+
+      print(
+        '✅ [DocumentsController] Showing confirmation dialog for file: $filePath (${fileSize} bytes)',
+      );
+
+      // Show confirmation dialog
+      final shouldOpen = await Get.dialog<bool>(
+        AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              const Icon(
+                Icons.check_circle,
+                color: Color(0xFF4CAF47),
+                size: 28,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'downloadSuccess'.tr,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            'fileDownloadedSuccessfully'.tr.replaceAll('{fileName}', fileName),
+            style: const TextStyle(fontSize: 12),
+          ),
+          actions: [
+            // Cancel button
+            TextButton(
+              onPressed: () => Get.back(result: false),
+              child: Text(
+                'cancel'.tr,
+                style: TextStyle(color: Colors.grey[600], fontSize: 16),
+              ),
+            ),
+            // Open With button
+            ElevatedButton(
+              onPressed: () => Get.back(result: true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF4CAF47),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text('openWith'.tr, style: const TextStyle(fontSize: 12)),
+            ),
+          ],
+        ),
+      );
+
+      // Only open file if user explicitly tapped "Open With"
+      if (shouldOpen == true) {
+        print('📂 User chose to open file: $fileName');
+        await _openFileFromLocalStorage(filePath, fileName);
+      } else {
+        print(
+          '📂 User cancelled file opening. File remains saved at: $filePath',
+        );
+      }
+    } catch (e) {
+      print('❌ Error showing download confirmation dialog: $e');
+      Get.snackbar(
+        'error'.tr,
+        'anErrorOccurred'.tr,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red[700],
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+        icon: const Icon(Icons.error, color: Colors.white),
+      );
+    }
+  }
+
+  /// Open file from local storage (only called when user explicitly chooses to open)
+  Future<void> _openFileFromLocalStorage(
+    String filePath,
+    String fileName,
+  ) async {
+    try {
+      // Verify file exists before attempting to open
+      final file = File(filePath);
+      final fileExists = await file.exists();
+
+      if (!fileExists) {
+        print(
+          '❌ [DocumentsController] File not found when trying to open: $filePath',
+        );
+        Get.snackbar(
+          'openFileFailed'.tr,
+          'fileNotFoundInStorage'.tr,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red[700],
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+        return;
+      }
+
+      // Verify file has content
+      final fileSize = await file.length();
+      if (fileSize == 0) {
+        print(
+          '❌ [DocumentsController] File is empty when trying to open: $filePath',
+        );
+        Get.snackbar(
+          'openFileFailed'.tr,
+          'fileEmptyPleaseDownloadAgain'.tr,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red[700],
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+        return;
+      }
+
+      print(
+        '📂 [DocumentsController] Opening file from local storage: $filePath (${fileSize} bytes)',
+      );
+
+      // CRITICAL: Force native chooser for ALL file types (including images)
+      // Use platform channel which uses Intent.createChooser on Android
+      // This ALWAYS shows the app chooser, preventing auto-open for images
+      try {
+        final result = await FileOpenerService.openWithChooser(filePath);
+
+        print(
+          '📂 [DocumentsController] Open file result: ${result.type} - ${result.message}',
+        );
+
+        // Handle the result
+        if (result.type == ResultType.noAppToOpen) {
+          Get.snackbar(
+            'openFileFailed'.tr,
+            'noAppToOpen'.tr,
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.orange[700],
+            colorText: Colors.white,
+            duration: const Duration(seconds: 3),
+            icon: const Icon(Icons.warning, color: Colors.white),
+          );
+        } else if (result.type == ResultType.error ||
+            result.type == ResultType.fileNotFound) {
+          Get.snackbar(
+            'openFileFailed'.tr,
+            result.message.isNotEmpty ? result.message : 'openFileError'.tr,
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red[700],
+            colorText: Colors.white,
+            duration: const Duration(seconds: 3),
+            icon: const Icon(Icons.error, color: Colors.white),
+          );
+        } else if (result.type == ResultType.done) {
+          print('✅ [DocumentsController] File chooser shown successfully');
+        }
+      } catch (e) {
+        print('❌ [DocumentsController] Error opening file: $e');
+        Get.snackbar(
+          'openFileFailed'.tr,
+          'openFileError'.tr,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red[700],
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+          icon: const Icon(Icons.error, color: Colors.white),
+        );
+      }
+    } catch (e) {
+      print(
+        '❌ [DocumentsController] Error opening file from local storage: $e',
+      );
+      Get.snackbar(
+        'openFileFailed'.tr,
+        'openFileError'.tr,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red[700],
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+        icon: const Icon(Icons.error, color: Colors.white),
+      );
+    }
+  }
+
   /// Show native "Open with" chooser with available apps to open the file
   /// Uses open_filex which shows native Android chooser or iOS share sheet
-  Future<void> _showOpenFileBottomSheet(String filePath, String fileName) async {
+  /// NOTE: This method is kept for backward compatibility but is no longer called automatically
+  Future<void> _showOpenFileBottomSheet(
+    String filePath,
+    String fileName,
+  ) async {
     try {
       final file = File(filePath);
       if (!await file.exists()) {
@@ -217,9 +532,9 @@ class DocumentsController extends GetxController {
       // This will show all available apps that can open the file type
       print('📂 Opening native "Open with" chooser for file: $fileName');
       final result = await OpenFilex.open(filePath);
-      
+
       print('📂 Open file result: ${result.type} - ${result.message}');
-      
+
       // Handle the result
       if (result.type == ResultType.noAppToOpen) {
         Get.snackbar(
@@ -231,7 +546,8 @@ class DocumentsController extends GetxController {
           duration: const Duration(seconds: 3),
           icon: const Icon(Icons.warning, color: Colors.white),
         );
-      } else if (result.type == ResultType.error || result.type == ResultType.fileNotFound) {
+      } else if (result.type == ResultType.error ||
+          result.type == ResultType.fileNotFound) {
         Get.snackbar(
           'openFileFailed'.tr,
           result.message.isNotEmpty ? result.message : 'openFileError'.tr,
@@ -498,14 +814,15 @@ class DocumentsController extends GetxController {
     isUploading.value = true;
 
     try {
-      int? categoryId = documentCategoryId ??
+      int? categoryId =
+          documentCategoryId ??
           (documentType != null
               ? _mapDocumentTypeToCategoryId(documentType)
               : null);
 
       if (categoryId == null) {
         isUploading.value = false;
-        return const UploadResult.error('Invalid document category selected');
+        return UploadResult.error('invalidDocumentCategorySelected'.tr);
       }
 
       final result = await _repository.uploadDocument(
@@ -517,28 +834,29 @@ class DocumentsController extends GetxController {
 
       // Check if upload succeeded
       final bool isSuccess = result['success'] == true;
-      
+
       // Defensive check: if message contains "successfully", treat as success
       // This prevents success messages from being routed to error snackbar
       final String? message = result['message'] as String?;
       final String? error = result['error'] as String?;
       final String? checkMessage = error ?? message;
-      final bool hasSuccessMessage = checkMessage?.toLowerCase().contains('successfully') ?? false;
+      final bool hasSuccessMessage =
+          checkMessage?.toLowerCase().contains('successfully') ?? false;
 
       if (isSuccess || hasSuccessMessage) {
         // Refresh documents silently (non-blocking)
         fetchDocuments().catchError((_) {});
-        
+
         isUploading.value = false;
-        return const UploadResult.success('Document uploaded successfully');
+        return UploadResult.success('documentUploadSuccess'.tr);
       } else {
-        final String errorMessage = error ?? 'Document upload failed';
+        final String errorMessage = error ?? 'documentUploadError'.tr;
         isUploading.value = false;
         return UploadResult.error(errorMessage);
       }
     } catch (e) {
       isUploading.value = false;
-      return const UploadResult.error('Document upload failed');
+      return UploadResult.error('documentUploadError'.tr);
     }
   }
 
@@ -563,11 +881,14 @@ class DocumentsController extends GetxController {
     // Find category ID from categories list
     try {
       final category = categories.firstWhere(
-        (cat) => cat.categoryName.toLowerCase().trim() == 
-                 categoryName.toLowerCase().trim(),
+        (cat) =>
+            cat.categoryName.toLowerCase().trim() ==
+            categoryName.toLowerCase().trim(),
       );
 
-      print('✅ [DocumentsController] Mapped "$documentType" to category "${category.categoryName}" (ID: ${category.id})');
+      print(
+        '✅ [DocumentsController] Mapped "$documentType" to category "${category.categoryName}" (ID: ${category.id})',
+      );
       return category.id;
     } catch (e) {
       // Try fallback: match by partial name
@@ -578,14 +899,18 @@ class DocumentsController extends GetxController {
           ),
         );
 
-        print('✅ [DocumentsController] Mapped "$documentType" to category "${fallbackCategory.categoryName}" (ID: ${fallbackCategory.id}) - fallback match');
+        print(
+          '✅ [DocumentsController] Mapped "$documentType" to category "${fallbackCategory.categoryName}" (ID: ${fallbackCategory.id}) - fallback match',
+        );
         return fallbackCategory.id;
       } catch (e2) {
         // No match found
       }
     }
 
-    print('⚠️ [DocumentsController] Could not find category for type: $documentType');
+    print(
+      '⚠️ [DocumentsController] Could not find category for type: $documentType',
+    );
     return null;
   }
 
@@ -606,18 +931,18 @@ class DocumentsController extends GetxController {
     final updatedCategories = categories.map((category) {
       // Try exact match first
       var count = categoryCounts[category.categoryName] ?? 0;
-      
+
       // If no exact match, try case-insensitive match
       if (count == 0) {
         for (var entry in categoryCounts.entries) {
-          if (entry.key.toLowerCase().trim() == 
+          if (entry.key.toLowerCase().trim() ==
               category.categoryName.toLowerCase().trim()) {
             count = entry.value;
             break;
           }
         }
       }
-      
+
       return category.copyWith(count: count);
     }).toList();
 
@@ -644,8 +969,8 @@ class DocumentsController extends GetxController {
       if (documentId == null) {
         print('❌ [DocumentsController] Invalid document ID: ${document.id}');
         Get.snackbar(
-          'Delete Failed',
-          'Invalid document ID',
+          'deleteFailed'.tr,
+          'invalidDocumentId'.tr,
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.red[700],
           colorText: Colors.white,
@@ -655,7 +980,9 @@ class DocumentsController extends GetxController {
         return false;
       }
 
-      print('🗑️ [DocumentsController] Deleting document: ${document.title} (ID: $documentId)');
+      print(
+        '🗑️ [DocumentsController] Deleting document: ${document.title} (ID: $documentId)',
+      );
 
       // Call delete API
       final result = await _repository.deleteDocument(documentId);
@@ -674,8 +1001,8 @@ class DocumentsController extends GetxController {
 
         // Show success snackbar
         Get.snackbar(
-          'Document Deleted',
-          '${document.title} has been deleted successfully',
+          'documentDeleted'.tr,
+          'documentDeletedSuccessfully'.tr.replaceAll('{title}', document.title),
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.green[700],
           colorText: Colors.white,
@@ -687,8 +1014,8 @@ class DocumentsController extends GetxController {
       } else {
         // Show error snackbar
         Get.snackbar(
-          'Delete Failed',
-          result['error'] ?? 'Failed to delete document',
+          'deleteFailed'.tr,
+          result['error'] ?? 'failedToDeleteDocument'.tr,
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.red[700],
           colorText: Colors.white,
@@ -701,8 +1028,8 @@ class DocumentsController extends GetxController {
     } catch (e) {
       print('❌ [DocumentsController] Error deleting document: $e');
       Get.snackbar(
-        'Delete Failed',
-        'An error occurred while deleting the document',
+        'deleteFailed'.tr,
+        'errorDeletingDocument'.tr,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red[700],
         colorText: Colors.white,

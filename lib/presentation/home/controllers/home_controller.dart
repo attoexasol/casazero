@@ -243,7 +243,9 @@ class HomeController extends GetxController {
             'Auto-selected residence: ${selectedResidence.value?.residenceName}',
           );
 
-          Get.find<DocumentsController>().fetchDocuments();
+          if (Get.isRegistered<DocumentsController>()) {
+            Get.find<DocumentsController>().fetchDocuments();
+          }
         }
 
         print('Loaded ${residences.length} residences');
@@ -268,9 +270,9 @@ class HomeController extends GetxController {
   void selectResidence(ResidenceModel residence) {
     selectedResidence.value = residence;
     print('Selected residence: ${residence.residenceName}');
-    // Optionally refresh data for the selected residence
-    // fetchHomeData();
-    Get.find<DocumentsController>().fetchDocuments();
+    if (Get.isRegistered<DocumentsController>()) {
+      Get.find<DocumentsController>().fetchDocuments();
+    }
   }
 
   /// Show residence selector dialog
