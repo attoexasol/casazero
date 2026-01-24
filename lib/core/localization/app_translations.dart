@@ -26,6 +26,9 @@ class AppTranslations extends Translations {
     'loading': 'Loading...',
     'error': 'Error',
     'success': 'Success',
+    'warning': 'Warning',
+    'info': 'Info',
+    'confirmation': 'Confirmation',
     'cancel': 'Cancel',
     'confirm': 'Confirm',
     'save': 'Save',
@@ -656,6 +659,9 @@ class AppTranslations extends Translations {
     'loading': 'Caricamento...',
     'error': 'Errore',
     'success': 'Successo',
+    'warning': 'Avviso',
+    'info': 'Informazione',
+    'confirmation': 'Conferma',
     'cancel': 'Annulla',
     'confirm': 'Conferma',
     'save': 'Salva',
@@ -1299,8 +1305,6 @@ class AppTranslations extends Translations {
     'cancel_verification_message':
         'Sei sicuro di voler annullare? Verrai disconnesso.',
 
-    // General
-    'info': 'Informazione',
     // First Login Setup - Italian Translations
     // Add these to the itIT map in app_translations.dart
 

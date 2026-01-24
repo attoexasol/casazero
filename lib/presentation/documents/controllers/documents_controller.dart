@@ -4,6 +4,8 @@ import '../../../data/models/document_model.dart';
 import '../../../data/repositories/document_repository.dart';
 import '../../../core/services/download_service.dart';
 import '../../../core/services/file_opener_service.dart';
+import '../../../core/controllers/message_popup_controller.dart';
+import '../../../core/widgets/custom_message_popup.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:open_filex/open_filex.dart';
@@ -121,13 +123,9 @@ class DocumentsController extends GetxController {
       final documentId = int.tryParse(document.id);
       if (documentId == null) {
         print('❌ [DocumentsController] Invalid document ID: ${document.id}');
-        Get.snackbar(
-          'downloadError'.tr,
-          'invalidDocumentId'.tr,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
+        MessagePopupController.showError(
+          messageKey: 'invalidDocumentId'.tr,
+          titleKey: 'downloadError'.tr,
         );
         return;
       }
@@ -139,14 +137,11 @@ class DocumentsController extends GetxController {
         '📥 [DocumentsController] Starting download: $fileName (ID: $documentId)',
       );
 
-      Get.snackbar(
-        'downloading'.tr,
-        document.title,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.blue[700],
-        colorText: Colors.white,
-        duration: const Duration(seconds: 4),
-        icon: const Icon(Icons.download, color: Colors.white),
+      // Show downloading info (no auto-dismiss; we close it when done)
+      MessagePopupController.showInfo(
+        messageKey: 'downloading'.tr + ': ${document.title}',
+        titleKey: '',
+        autoDismissSeconds: 0,
       );
 
       // Call the download API endpoint
@@ -155,15 +150,10 @@ class DocumentsController extends GetxController {
       );
 
       if (apiResult['success'] != true) {
-        Get.closeAllSnackbars();
-        Get.snackbar(
-          'downloadFailed'.tr,
-          apiResult['error'] ?? 'downloadError'.tr,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
-          icon: const Icon(Icons.error, color: Colors.white),
+        if (Get.isDialogOpen ?? false) Get.back();
+        await MessagePopupController.showError(
+          messageKey: apiResult['error'] ?? 'downloadError'.tr,
+          titleKey: 'downloadFailed'.tr,
         );
         print(
           '❌ [DocumentsController] Download API failed: ${apiResult['error']}',
@@ -174,15 +164,10 @@ class DocumentsController extends GetxController {
       // Get file bytes from API response
       final fileBytes = apiResult['data'] as List<int>?;
       if (fileBytes == null || fileBytes.isEmpty) {
-        Get.closeAllSnackbars();
-        Get.snackbar(
-          'downloadFailed'.tr,
-          'noFileDataReceived'.tr,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
-          icon: const Icon(Icons.error, color: Colors.white),
+        if (Get.isDialogOpen ?? false) Get.back();
+        await MessagePopupController.showError(
+          messageKey: 'noFileDataReceived'.tr,
+          titleKey: 'downloadFailed'.tr,
         );
         print('❌ [DocumentsController] No file bytes received');
         return;
@@ -206,15 +191,10 @@ class DocumentsController extends GetxController {
           print(
             '❌ [DocumentsController] File does not exist after save: $filePath',
           );
-          Get.closeAllSnackbars();
-          Get.snackbar(
-            'downloadFailed'.tr,
-            'fileNotSavedCorrectly'.tr,
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red[700],
-            colorText: Colors.white,
-            duration: const Duration(seconds: 3),
-            icon: const Icon(Icons.error, color: Colors.white),
+          if (Get.isDialogOpen ?? false) Get.back();
+          await MessagePopupController.showError(
+            messageKey: 'fileNotSavedCorrectly'.tr,
+            titleKey: 'downloadFailed'.tr,
           );
           return;
         }
@@ -223,15 +203,10 @@ class DocumentsController extends GetxController {
         final fileSize = await savedFile.length();
         if (fileSize == 0) {
           print('❌ [DocumentsController] File is empty after save: $filePath');
-          Get.closeAllSnackbars();
-          Get.snackbar(
-            'downloadFailed'.tr,
-            'fileEmptyPleaseDownloadAgain'.tr,
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red[700],
-            colorText: Colors.white,
-            duration: const Duration(seconds: 3),
-            icon: const Icon(Icons.error, color: Colors.white),
+          if (Get.isDialogOpen ?? false) Get.back();
+          await MessagePopupController.showError(
+            messageKey: 'fileEmptyPleaseDownloadAgain'.tr,
+            titleKey: 'downloadFailed'.tr,
           );
           return;
         }
@@ -241,34 +216,23 @@ class DocumentsController extends GetxController {
           '✅ [DocumentsController] File verified: exists=${fileExists}, size=${fileSize} bytes',
         );
 
-        // UX: Dismiss "Downloading..." snackbar first, then 3 second fixed pause, then popup
-        Get.closeAllSnackbars();
-        await Future.delayed(const Duration(seconds: 2));
+        // Close "downloading" info, then show confirmation (no middle success message)
+        if (Get.isDialogOpen ?? false) Get.back();
         await _showDownloadConfirmationDialog(filePath, document.title);
       } else {
-        Get.closeAllSnackbars();
-        Get.snackbar(
-          'downloadFailed'.tr,
-          saveResult['error'] ?? 'downloadError'.tr,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
-          icon: const Icon(Icons.error, color: Colors.white),
+        if (Get.isDialogOpen ?? false) Get.back();
+        await MessagePopupController.showError(
+          messageKey: saveResult['error'] ?? 'downloadError'.tr,
+          titleKey: 'downloadFailed'.tr,
         );
         print('❌ [DocumentsController] Save failed: ${saveResult['error']}');
       }
     } catch (e) {
       print('❌ [DocumentsController] Error downloading document: $e');
-      Get.closeAllSnackbars();
-      Get.snackbar(
-        'downloadFailed'.tr,
-        'downloadError'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-        icon: const Icon(Icons.error, color: Colors.white),
+      if (Get.isDialogOpen ?? false) Get.back();
+      await MessagePopupController.showError(
+        messageKey: 'downloadError'.tr,
+        titleKey: 'downloadFailed'.tr,
       );
     }
   }
@@ -289,13 +253,9 @@ class DocumentsController extends GetxController {
         print(
           '❌ [DocumentsController] File not found in confirmation dialog: $filePath',
         );
-        Get.snackbar(
-          'openFileFailed'.tr,
-          'fileNotFoundInStorage'.tr,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
+        MessagePopupController.showError(
+          messageKey: 'fileNotFoundInStorage'.tr,
+          titleKey: 'openFileFailed'.tr,
         );
         return;
       }
@@ -306,13 +266,9 @@ class DocumentsController extends GetxController {
         print(
           '❌ [DocumentsController] File is empty in confirmation dialog: $filePath',
         );
-        Get.snackbar(
-          'openFileFailed'.tr,
-          'fileEmptyPleaseDownloadAgain'.tr,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
+        MessagePopupController.showError(
+          messageKey: 'fileEmptyPleaseDownloadAgain'.tr,
+          titleKey: 'openFileFailed'.tr,
         );
         return;
       }
@@ -321,58 +277,20 @@ class DocumentsController extends GetxController {
         '✅ [DocumentsController] Showing confirmation dialog for file: $filePath (${fileSize} bytes)',
       );
 
-      // Show confirmation dialog
-      final shouldOpen = await Get.dialog<bool>(
-        AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Row(
-            children: [
-              const Icon(
-                Icons.check_circle,
-                color: Color(0xFF4CAF47),
-                size: 28,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'downloadSuccess'.tr,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          content: Text(
-            'fileDownloadedSuccessfully'.tr.replaceAll('{fileName}', fileName),
-            style: const TextStyle(fontSize: 12),
-          ),
-          actions: [
-            // Cancel button
-            TextButton(
-              onPressed: () => Get.back(result: false),
-              child: Text(
-                'cancel'.tr,
-                style: TextStyle(color: Colors.grey[600], fontSize: 16),
-              ),
-            ),
-            // Open With button
-            ElevatedButton(
-              onPressed: () => Get.back(result: true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF4CAF47),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text('openWith'.tr, style: const TextStyle(fontSize: 12)),
-            ),
-          ],
+      // Show confirmation popup using CustomMessagePopup
+      final shouldOpen = await MessagePopupController.showCustom(
+        messageKey: 'fileDownloadedSuccessfully'.tr.replaceAll('{fileName}', fileName),
+        titleKey: 'downloadSuccess'.tr,
+        messageType: MessageType.success,
+        primaryAction: PopupAction(
+          labelKey: 'openWith',
+          isPrimary: true,
         ),
+        secondaryAction: PopupAction(
+          labelKey: 'cancel',
+          isPrimary: false,
+        ),
+        barrierDismissible: true,
       );
 
       // Only open file if user explicitly tapped "Open With"
@@ -386,14 +304,9 @@ class DocumentsController extends GetxController {
       }
     } catch (e) {
       print('❌ Error showing download confirmation dialog: $e');
-      Get.snackbar(
-        'error'.tr,
-        'anErrorOccurred'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-        icon: const Icon(Icons.error, color: Colors.white),
+      MessagePopupController.showError(
+        messageKey: 'anErrorOccurred'.tr,
+        titleKey: 'error'.tr,
       );
     }
   }
@@ -412,13 +325,9 @@ class DocumentsController extends GetxController {
         print(
           '❌ [DocumentsController] File not found when trying to open: $filePath',
         );
-        Get.snackbar(
-          'openFileFailed'.tr,
-          'fileNotFoundInStorage'.tr,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
+        MessagePopupController.showError(
+          messageKey: 'fileNotFoundInStorage'.tr,
+          titleKey: 'openFileFailed'.tr,
         );
         return;
       }
@@ -429,13 +338,9 @@ class DocumentsController extends GetxController {
         print(
           '❌ [DocumentsController] File is empty when trying to open: $filePath',
         );
-        Get.snackbar(
-          'openFileFailed'.tr,
-          'fileEmptyPleaseDownloadAgain'.tr,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
+        MessagePopupController.showError(
+          messageKey: 'fileEmptyPleaseDownloadAgain'.tr,
+          titleKey: 'openFileFailed'.tr,
         );
         return;
       }
@@ -456,53 +361,33 @@ class DocumentsController extends GetxController {
 
         // Handle the result
         if (result.type == ResultType.noAppToOpen) {
-          Get.snackbar(
-            'openFileFailed'.tr,
-            'noAppToOpen'.tr,
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.orange[700],
-            colorText: Colors.white,
-            duration: const Duration(seconds: 3),
-            icon: const Icon(Icons.warning, color: Colors.white),
+          MessagePopupController.showWarning(
+            messageKey: 'noAppToOpen'.tr,
+            titleKey: 'openFileFailed'.tr,
           );
         } else if (result.type == ResultType.error ||
             result.type == ResultType.fileNotFound) {
-          Get.snackbar(
-            'openFileFailed'.tr,
-            result.message.isNotEmpty ? result.message : 'openFileError'.tr,
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red[700],
-            colorText: Colors.white,
-            duration: const Duration(seconds: 3),
-            icon: const Icon(Icons.error, color: Colors.white),
+          MessagePopupController.showError(
+            messageKey: result.message.isNotEmpty ? result.message : 'openFileError'.tr,
+            titleKey: 'openFileFailed'.tr,
           );
         } else if (result.type == ResultType.done) {
           print('✅ [DocumentsController] File chooser shown successfully');
         }
       } catch (e) {
         print('❌ [DocumentsController] Error opening file: $e');
-        Get.snackbar(
-          'openFileFailed'.tr,
-          'openFileError'.tr,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
-          icon: const Icon(Icons.error, color: Colors.white),
+        MessagePopupController.showError(
+          messageKey: 'openFileError'.tr,
+          titleKey: 'openFileFailed'.tr,
         );
       }
     } catch (e) {
       print(
         '❌ [DocumentsController] Error opening file from local storage: $e',
       );
-      Get.snackbar(
-        'openFileFailed'.tr,
-        'openFileError'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-        icon: const Icon(Icons.error, color: Colors.white),
+      MessagePopupController.showError(
+        messageKey: 'openFileError'.tr,
+        titleKey: 'openFileFailed'.tr,
       );
     }
   }
@@ -517,13 +402,9 @@ class DocumentsController extends GetxController {
     try {
       final file = File(filePath);
       if (!await file.exists()) {
-        Get.snackbar(
-          'openFileFailed'.tr,
-          'fileNotFound'.tr,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
+        MessagePopupController.showError(
+          messageKey: 'fileNotFound'.tr,
+          titleKey: 'openFileFailed'.tr,
         );
         return;
       }
@@ -537,37 +418,22 @@ class DocumentsController extends GetxController {
 
       // Handle the result
       if (result.type == ResultType.noAppToOpen) {
-        Get.snackbar(
-          'openFileFailed'.tr,
-          'noAppToOpen'.tr,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.orange[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
-          icon: const Icon(Icons.warning, color: Colors.white),
+        MessagePopupController.showWarning(
+          messageKey: 'noAppToOpen'.tr,
+          titleKey: 'openFileFailed'.tr,
         );
       } else if (result.type == ResultType.error ||
           result.type == ResultType.fileNotFound) {
-        Get.snackbar(
-          'openFileFailed'.tr,
-          result.message.isNotEmpty ? result.message : 'openFileError'.tr,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
-          icon: const Icon(Icons.error, color: Colors.white),
+        MessagePopupController.showError(
+          messageKey: result.message.isNotEmpty ? result.message : 'openFileError'.tr,
+          titleKey: 'openFileFailed'.tr,
         );
       }
     } catch (e) {
       print('❌ Error showing file chooser: $e');
-      Get.snackbar(
-        'openFileFailed'.tr,
-        'openFileError'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-        icon: const Icon(Icons.error, color: Colors.white),
+      MessagePopupController.showError(
+        messageKey: 'openFileError'.tr,
+        titleKey: 'openFileFailed'.tr,
       );
     }
   }
@@ -581,14 +447,9 @@ class DocumentsController extends GetxController {
       // Check if file exists
       final file = File(filePath);
       if (!await file.exists()) {
-        Get.snackbar(
-          'openFileFailed'.tr,
-          'fileNotFound'.tr,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
-          icon: const Icon(Icons.error, color: Colors.white),
+        MessagePopupController.showError(
+          messageKey: 'fileNotFound'.tr,
+          titleKey: 'openFileFailed'.tr,
         );
         print('❌ File not found: $filePath');
         return;
@@ -607,60 +468,38 @@ class DocumentsController extends GetxController {
           break;
 
         case ResultType.fileNotFound:
-          Get.snackbar(
-            'openFileFailed'.tr,
-            'fileNotFound'.tr,
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red[700],
-            colorText: Colors.white,
-            duration: const Duration(seconds: 3),
+          MessagePopupController.showError(
+            messageKey: 'fileNotFound'.tr,
+            titleKey: 'openFileFailed'.tr,
           );
           break;
 
         case ResultType.noAppToOpen:
-          Get.snackbar(
-            'openFileFailed'.tr,
-            'noAppToOpen'.tr,
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.orange[700],
-            colorText: Colors.white,
-            duration: const Duration(seconds: 4),
-            icon: const Icon(Icons.warning, color: Colors.white),
+          MessagePopupController.showWarning(
+            messageKey: 'noAppToOpen'.tr,
+            titleKey: 'openFileFailed'.tr,
           );
           break;
 
         case ResultType.permissionDenied:
-          Get.snackbar(
-            'openFileFailed'.tr,
-            'permissionDenied'.tr,
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red[700],
-            colorText: Colors.white,
-            duration: const Duration(seconds: 3),
+          MessagePopupController.showError(
+            messageKey: 'permissionDenied'.tr,
+            titleKey: 'openFileFailed'.tr,
           );
           break;
 
         case ResultType.error:
-          Get.snackbar(
-            'openFileFailed'.tr,
-            result.message,
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red[700],
-            colorText: Colors.white,
-            duration: const Duration(seconds: 3),
+          MessagePopupController.showError(
+            messageKey: result.message,
+            titleKey: 'openFileFailed'.tr,
           );
           break;
       }
     } catch (e) {
       print('❌ Error opening file: $e');
-      Get.snackbar(
-        'openFileFailed'.tr,
-        'openFileError'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-        icon: const Icon(Icons.error, color: Colors.white),
+      MessagePopupController.showError(
+        messageKey: 'openFileError'.tr,
+        titleKey: 'openFileFailed'.tr,
       );
     }
   }
@@ -670,13 +509,9 @@ class DocumentsController extends GetxController {
   Future<void> shareDocument(DocumentModel document) async {
     try {
       if (document.fileUrl == null || document.fileUrl!.isEmpty) {
-        Get.snackbar(
-          'shareError'.tr,
-          'Document URL is not available',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
+        MessagePopupController.showError(
+          messageKey: 'documentUrlNotAvailable'.tr,
+          titleKey: 'shareError'.tr,
         );
         return;
       }
@@ -686,14 +521,11 @@ class DocumentsController extends GetxController {
 
       print('📤 Starting share process: $fileName');
 
-      Get.snackbar(
-        'preparingShare'.tr,
-        document.title,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.blue[700],
-        colorText: Colors.white,
-        duration: const Duration(seconds: 2),
-        icon: const Icon(Icons.share, color: Colors.white),
+      // Show preparing share info (no auto-dismiss; we close when done)
+      MessagePopupController.showInfo(
+        messageKey: 'preparingShare'.tr + ': ${document.title}',
+        titleKey: '',
+        autoDismissSeconds: 0,
       );
 
       final result = await _downloadService.downloadDocument(
@@ -709,6 +541,7 @@ class DocumentsController extends GetxController {
         if (await file.exists()) {
           print('✅ File ready for sharing: $filePath');
 
+          if (Get.isDialogOpen ?? false) Get.back();
           final xFile = XFile(filePath);
           await Share.shareXFiles(
             [xFile],
@@ -718,40 +551,28 @@ class DocumentsController extends GetxController {
 
           print('✅ Share dialog opened successfully');
 
-          Get.snackbar(
-            'shareSuccess'.tr,
-            document.title,
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.green[700],
-            colorText: Colors.white,
-            duration: const Duration(seconds: 2),
-            icon: const Icon(Icons.check_circle, color: Colors.white),
+          // No confirmation; just success message for 3 seconds
+          await MessagePopupController.showSuccess(
+            messageKey: 'shareSuccess'.tr + ': ${document.title}',
+            titleKey: '',
           );
         } else {
           throw Exception('File not found after download');
         }
       } else {
-        Get.snackbar(
-          'shareFailed'.tr,
-          result['error'] ?? 'shareError'.tr,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
-          icon: const Icon(Icons.error, color: Colors.white),
+        if (Get.isDialogOpen ?? false) Get.back();
+        await MessagePopupController.showError(
+          messageKey: result['error'] ?? 'shareError'.tr,
+          titleKey: 'shareFailed'.tr,
         );
         print('❌ Share failed: ${result['error']}');
       }
     } catch (e) {
       print('❌ Error sharing document: $e');
-      Get.snackbar(
-        'shareFailed'.tr,
-        'shareError'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-        icon: const Icon(Icons.error, color: Colors.white),
+      if (Get.isDialogOpen ?? false) Get.back();
+      await MessagePopupController.showError(
+        messageKey: 'shareError'.tr,
+        titleKey: 'shareFailed'.tr,
       );
     }
   }
@@ -968,14 +789,9 @@ class DocumentsController extends GetxController {
       final documentId = int.tryParse(document.id);
       if (documentId == null) {
         print('❌ [DocumentsController] Invalid document ID: ${document.id}');
-        Get.snackbar(
-          'deleteFailed'.tr,
-          'invalidDocumentId'.tr,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
-          icon: const Icon(Icons.error, color: Colors.white),
+        MessagePopupController.showError(
+          messageKey: 'invalidDocumentId'.tr,
+          titleKey: 'deleteFailed'.tr,
         );
         return false;
       }
@@ -999,42 +815,27 @@ class DocumentsController extends GetxController {
         // Update category counts
         _updateCategoryCounts(documents.toList());
 
-        // Show success snackbar
-        Get.snackbar(
-          'documentDeleted'.tr,
-          'documentDeletedSuccessfully'.tr.replaceAll('{title}', document.title),
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 2),
-          icon: const Icon(Icons.check_circle, color: Colors.white),
+        // Show success popup
+        MessagePopupController.showSuccess(
+          messageKey: 'documentDeletedSuccessfully'.tr.replaceAll('{title}', document.title),
+          titleKey: 'documentDeleted'.tr,
         );
 
         return true;
       } else {
-        // Show error snackbar
-        Get.snackbar(
-          'deleteFailed'.tr,
-          result['error'] ?? 'failedToDeleteDocument'.tr,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
-          icon: const Icon(Icons.error, color: Colors.white),
+        // Show error popup
+        MessagePopupController.showError(
+          messageKey: result['error'] ?? 'failedToDeleteDocument'.tr,
+          titleKey: 'deleteFailed'.tr,
         );
         print('❌ [DocumentsController] Delete failed: ${result['error']}');
         return false;
       }
     } catch (e) {
       print('❌ [DocumentsController] Error deleting document: $e');
-      Get.snackbar(
-        'deleteFailed'.tr,
-        'errorDeletingDocument'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-        icon: const Icon(Icons.error, color: Colors.white),
+      MessagePopupController.showError(
+        messageKey: 'errorDeletingDocument'.tr,
+        titleKey: 'deleteFailed'.tr,
       );
       return false;
     }

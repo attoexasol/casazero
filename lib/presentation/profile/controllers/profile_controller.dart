@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../core/services/storage_service.dart';
 import '../../../core/localization/locale_controller.dart';
+import '../../../core/controllers/message_popup_controller.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/repositories/profile_repository.dart';
 import '../../../data/repositories/auth_repository.dart';
@@ -485,60 +486,16 @@ class ProfileController extends GetxController {
   // -------------------------------------------------------------------------
 
   void _showError(String message) {
-    // Close any existing snackbars first
-    if (Get.isSnackbarOpen) {
-      Get.closeAllSnackbars();
-    }
-
-    // Use Future.microtask to ensure snackbar shows after current frame
-    Future.microtask(() {
-      Get.snackbar(
-        'error'.tr,
-        message,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.shade600,
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(16),
-        borderRadius: 12,
-        duration: const Duration(seconds: 3),
-        snackStyle: SnackStyle.FLOATING,
-        isDismissible: true,
-        dismissDirection: DismissDirection.horizontal,
-        forwardAnimationCurve: Curves.easeOutBack,
-        reverseAnimationCurve: Curves.easeInBack,
-        animationDuration: const Duration(milliseconds: 300),
-        maxWidth: 500,
-      );
-    });
+    MessagePopupController.showError(
+      messageKey: message,
+      titleKey: 'error'.tr,
+    );
   }
 
   void _showSuccess(String message) {
-    // Close any existing snackbars first
-    if (Get.isSnackbarOpen) {
-      Get.closeAllSnackbars();
-    }
-
-    // Use Future.microtask to ensure snackbar shows after current frame
-    Future.microtask(() {
-      Get.snackbar(
-        '', // No title for toast-like appearance
-        message,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.brandSage600,
-        colorText: Colors.white,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-        borderRadius: 12,
-        duration: const Duration(seconds: 2), // Shorter duration for toast
-        icon: const Icon(Icons.check_circle, color: Colors.white, size: 20),
-        shouldIconPulse: false,
-        isDismissible: true,
-        dismissDirection: DismissDirection.horizontal,
-        snackStyle: SnackStyle.FLOATING,
-        forwardAnimationCurve: Curves.easeOutBack,
-        reverseAnimationCurve: Curves.easeInBack,
-        animationDuration: const Duration(milliseconds: 300),
-        maxWidth: 500,
-      );
-    });
+    MessagePopupController.showSuccess(
+      messageKey: message,
+      titleKey: '',
+    );
   }
 }
