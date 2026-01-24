@@ -91,8 +91,18 @@ class DownloadService extends getx.GetxService {
       String fullUrl = fileUrl;
       if (!fileUrl.startsWith('http://') && !fileUrl.startsWith('https://')) {
         // If URL is relative, prepend the base URL
-        fullUrl = '${ApiConstants.BASE_URL.replaceAll('/api', '')}$fileUrl';
+        // Remove '/api' from BASE_URL and ensure proper path joining
+        String baseUrl = ApiConstants.BASE_URL.replaceAll('/api', '');
+        // Ensure base URL ends with '/' and fileUrl doesn't start with '/'
+        if (!baseUrl.endsWith('/')) {
+          baseUrl += '/';
+        }
+        // Remove leading '/' from fileUrl if present to avoid double slashes
+        String cleanFileUrl = fileUrl.startsWith('/') ? fileUrl.substring(1) : fileUrl;
+        fullUrl = '$baseUrl$cleanFileUrl';
       }
+
+      print('📥 Full URL: $fullUrl');
 
       // Download the file with progress tracking
       await _dio.download(
