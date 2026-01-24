@@ -1,11 +1,11 @@
-/// Strongly typed upload result to prevent snackbar routing bugs
+/// Strongly typed upload result to prevent popup routing bugs
 enum UploadStatus {
   success,
   error,
 }
 
 /// Typed result for document upload operations
-/// Prevents success messages from being routed to error snackbars
+/// Prevents success messages from being routed to error popups
 class UploadResult {
   final UploadStatus status;
   final String message;

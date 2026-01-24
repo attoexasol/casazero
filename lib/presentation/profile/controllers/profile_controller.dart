@@ -482,7 +482,7 @@ class ProfileController extends GetxController {
   }
 
   // -------------------------------------------------------------------------
-  // SNACKBARS
+  // POPUP MESSAGES
   // -------------------------------------------------------------------------
 
   void _showError(String message) {

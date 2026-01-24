@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/controllers/message_popup_controller.dart';
 import '../../../data/repositories/profile_repository.dart';
 import '../../../data/models/trusted_device_model.dart';
 import '../../../core/services/geocoding_service.dart';
@@ -38,13 +39,10 @@ class TrustedDevicesController extends GetxController {
       // Load locations for all devices in background
       _loadLocationsForDevices();
     } else {
-      errorMessage.value = result['error'] ?? 'Failed to load devices';
-      Get.snackbar(
-        'Error',
-        errorMessage.value,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      errorMessage.value = result['error'] ?? 'failed_to_load_devices';
+      MessagePopupController.showError(
+        messageKey: result['error'] ?? 'failed_to_load_devices',
+        titleKey: 'error',
       );
     }
 
@@ -118,23 +116,16 @@ class TrustedDevicesController extends GetxController {
     Get.back();
 
     if (result['success']) {
-      Get.snackbar(
-        'Success',
-        result['message'] ?? 'Device removed successfully',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green[700],
-        colorText: Colors.white,
+      MessagePopupController.showSuccess(
+        messageKey: result['message'] ?? 'device_removed_successfully',
+        titleKey: 'success',
       );
 
-      // Reload devices
       await loadTrustedDevices();
     } else {
-      Get.snackbar(
-        'Error',
-        result['error'] ?? 'Failed to remove device',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      MessagePopupController.showError(
+        messageKey: result['error'] ?? 'failed_to_remove_device',
+        titleKey: 'error',
       );
     }
   }

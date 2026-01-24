@@ -1,6 +1,7 @@
 // presentation/otp_verification/controllers/otp_verification_controller.dart (WITH EMAIL OTP)
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/controllers/message_popup_controller.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../app/routes/app_routes.dart';
@@ -47,14 +48,10 @@ class OtpVerificationController extends GetxController {
       final userId = userData?['id'];
       if (userId == null) {
         print('❌ [OTPVerification] User ID not found in storage for forgot password flow');
-        Get.snackbar(
-          'error'.tr,
-          'user_id_not_found'.tr,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red[700],
-          colorText: Colors.white,
+        MessagePopupController.showError(
+          messageKey: 'user_id_not_found',
+          titleKey: 'error',
         );
-        // Navigate back to forgot password screen
         Future.delayed(const Duration(seconds: 2), () {
           Get.offAllNamed(AppRoutes.FORGOT_PASSWORD);
         });
@@ -177,12 +174,9 @@ class OtpVerificationController extends GetxController {
       countdown.value = 60;
       _startCountdown();
     } else {
-      Get.snackbar(
-        'error'.tr,
-        result['error'] ?? 'failed_to_send_otp'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      MessagePopupController.showError(
+        messageKey: result['error'] ?? 'failed_to_send_otp',
+        titleKey: 'error',
       );
     }
   }
@@ -203,23 +197,17 @@ class OtpVerificationController extends GetxController {
     final code = otpController.text.trim();
 
     if (code.isEmpty) {
-      Get.snackbar(
-        'error'.tr,
-        'enter_otp_code'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      MessagePopupController.showError(
+        messageKey: 'enter_otp_code',
+        titleKey: 'error',
       );
       return;
     }
 
     if (code.length != 6) {
-      Get.snackbar(
-        'error'.tr,
-        'otp_must_be_6_digits'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      MessagePopupController.showError(
+        messageKey: 'otp_must_be_6_digits',
+        titleKey: 'error',
       );
       return;
     }
@@ -249,26 +237,19 @@ class OtpVerificationController extends GetxController {
         Get.offAllNamed(AppRoutes.HOME);
       }
     } else {
-      Get.snackbar(
-        'error'.tr,
-        result['error'] ?? 'invalid_otp_code'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      MessagePopupController.showError(
+        messageKey: result['error'] ?? 'invalid_otp_code',
+        titleKey: 'error',
       );
-
-      // Clear the OTP field
       otpController.clear();
     }
   }
 
   Future<void> resendOTP() async {
     if (countdown.value > 0) {
-      Get.snackbar(
-        'info'.tr,
-        'please_wait_before_resend'.tr.replaceAll('{seconds}', countdown.value.toString()),
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 2),
+      MessagePopupController.showInfo(
+        messageKey: 'please_wait_to_resend'.tr.replaceAll('{seconds}', countdown.value.toString()),
+        titleKey: 'info',
       );
       return;
     }

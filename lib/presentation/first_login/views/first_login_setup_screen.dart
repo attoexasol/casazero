@@ -4,6 +4,7 @@ import 'package:casazero/presentation/first_login/views/sections/first_login_pro
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import '../../../core/controllers/message_popup_controller.dart';
 import 'dart:ui';
 import 'dart:convert'; // For base64Decode
 import 'package:qr_flutter/qr_flutter.dart';
@@ -687,13 +688,9 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                           Clipboard.setData(
                             ClipboardData(text: controller.totpSecret.value),
                           );
-                          Get.snackbar(
-                            'success'.tr,
-                            'secret_copied'.tr,
-                            snackPosition: SnackPosition.BOTTOM,
-                            backgroundColor: Colors.green[700],
-                            colorText: Colors.white,
-                            duration: const Duration(seconds: 2),
+                          MessagePopupController.showSuccess(
+                            messageKey: 'secret_copied',
+                            titleKey: 'success',
                           );
                         },
                       ),

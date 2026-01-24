@@ -615,8 +615,8 @@ class DocumentsController extends GetxController {
   }
 
   /// Upload a document
-  /// Returns UploadResult - NO side effects, NO snackbars, NO UI updates
-  /// UI layer must handle snackbars and dialog closing
+  /// Returns UploadResult - NO side effects, NO popups, NO UI updates
+  /// UI layer must handle popups and dialog closing
   Future<UploadResult> uploadDocument({
     required File documentFile,
     required String documentTitle,
@@ -649,7 +649,7 @@ class DocumentsController extends GetxController {
       final bool isSuccess = result['success'] == true;
 
       // Defensive check: if message contains "successfully", treat as success
-      // This prevents success messages from being routed to error snackbar
+      // This prevents success messages from being routed to error popup
       final String? message = result['message'] as String?;
       final String? error = result['error'] as String?;
       final String? checkMessage = error ?? message;
@@ -768,9 +768,9 @@ class DocumentsController extends GetxController {
   }
 
   // -------------------------------------------------------------------------
-  // UPLOAD SNACKBARS REMOVED
+  // UPLOAD POPUPS HANDLED IN UI LAYER
   // -------------------------------------------------------------------------
-  // Snackbars are now handled ONLY in UI layer (AddDocumentDialog)
+  // Popups are now handled ONLY in UI layer (AddDocumentDialog)
   // Controller returns UploadResult - no side effects
 
   /// Delete a document

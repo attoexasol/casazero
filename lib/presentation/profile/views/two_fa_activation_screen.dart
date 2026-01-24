@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import '../../../core/controllers/message_popup_controller.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../app/theme/app_shadows.dart';
@@ -526,15 +527,9 @@ class TwoFAActivationScreen extends GetView<TwoFAManagementController> {
                           Clipboard.setData(
                             ClipboardData(text: controller.totpSecret.value),
                           );
-                          Get.snackbar(
-                            'success'.tr,
-                            'copied_to_clipboard'.tr,
-                            snackPosition: SnackPosition.BOTTOM,
-                            backgroundColor: AppColors.success,
-                            colorText: AppColors.surfaceWhite,
-                            margin: const EdgeInsets.all(16),
-                            borderRadius: 12,
-                            duration: const Duration(seconds: 2),
+                          MessagePopupController.showSuccess(
+                            messageKey: 'copied_to_clipboard',
+                            titleKey: 'success',
                           );
                         },
                         borderRadius: BorderRadius.circular(8),
@@ -877,16 +872,9 @@ class TwoFAActivationScreen extends GetView<TwoFAManagementController> {
                     child: TextButton(
                       onPressed: () async {
                         await controller.sendActivationOTP();
-                        Get.snackbar(
-                          'success'.tr,
-                          method.type == TwoFactorMethodType.sms
-                              ? 'sms_sent'.tr
-                              : 'email_sent'.tr,
-                          snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: AppColors.success,
-                          colorText: AppColors.surfaceWhite,
-                          margin: const EdgeInsets.all(16),
-                          borderRadius: 12,
+                        MessagePopupController.showSuccess(
+                          messageKey: method.type == TwoFactorMethodType.sms ? 'sms_sent' : 'email_sent',
+                          titleKey: 'success',
                         );
                       },
                       child: Text(

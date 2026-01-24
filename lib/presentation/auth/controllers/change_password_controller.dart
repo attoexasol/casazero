@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/controllers/message_popup_controller.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../core/utils/validators.dart';
 
@@ -134,27 +135,17 @@ class ChangePasswordController extends GetxController {
     isLoading.value = false;
 
     if (result['success'] == true) {
-      // Navigate back first, then show snackbar on previous screen
+      // Navigate back first, then show popup on previous screen
       onSuccess(result['message'] ?? 'password_changed'.tr);
     } else {
       _showError(result['error'] ?? 'password_requirements_not_met'.tr);
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // SNACKBARS
-  // ---------------------------------------------------------------------------
-
   void _showError(String message) {
-    Get.snackbar(
-      'error'.tr,
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.red.shade600,
-      colorText: Colors.white,
-      margin: const EdgeInsets.all(16),
-      borderRadius: 12,
-      duration: const Duration(seconds: 3),
+    MessagePopupController.showError(
+      messageKey: message,
+      titleKey: 'error',
     );
   }
 }

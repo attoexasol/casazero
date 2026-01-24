@@ -2,6 +2,7 @@
 import 'dart:io';
 import 'package:casazero/app/theme/app_colors.dart';
 import 'package:casazero/app/theme/app_text_styles.dart';
+import 'package:casazero/core/controllers/message_popup_controller.dart';
 import 'package:casazero/core/widgets/custom_text_field.dart';
 import 'package:casazero/core/widgets/gradient_button.dart';
 import 'package:casazero/core/widgets/outlined_custom_button.dart';
@@ -85,11 +86,9 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
       }
     } catch (e) {
       if (mounted) {
-        Get.snackbar(
-          'Error',
-          'Failed to pick file',
-          backgroundColor: AppColors.danger,
-          colorText: AppColors.surfaceWhite,
+        MessagePopupController.showError(
+          messageKey: 'failed_to_pick_file',
+          titleKey: 'error',
         );
       }
     }
@@ -142,13 +141,9 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
   Future<void> _selectLastMaintenanceDate() async {
     // Require due date to be selected first
     if (_selectedDueDate == null) {
-      Get.snackbar(
-        'Info',
-        'Please select due date first',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.orange[700],
-        colorText: Colors.white,
-        duration: const Duration(seconds: 2),
+      MessagePopupController.showInfo(
+        messageKey: 'please_select_due_date_first',
+        titleKey: 'info',
       );
       return;
     }
@@ -237,12 +232,9 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
     // Get residence ID
     final residence = _homeController.selectedResidence.value;
     if (residence == null) {
-      Get.snackbar(
-        'Error',
-        'Please select a residence',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      MessagePopupController.showError(
+        messageKey: 'please_select_residence',
+        titleKey: 'error',
       );
       return;
     }
@@ -262,11 +254,11 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
         residenceId: residence.id,
       );
 
-      // Close dialog only on success (snackbar is shown in controller)
+      // Close dialog only on success (popup is shown in controller)
       if (success && mounted) {
         widget.onClose();
       }
-      // On error, dialog stays open (snackbar shown in controller)
+      // On error, dialog stays open (popup shown in controller)
     } catch (e, stackTrace) {
       // Error handling is done in controller, but catch here to prevent crash
       print('❌ Error in dialog: $e');

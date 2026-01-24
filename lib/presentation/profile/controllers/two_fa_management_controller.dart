@@ -3,6 +3,7 @@
 import 'package:casazero/presentation/profile/controllers/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/controllers/message_popup_controller.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../data/repositories/profile_repository.dart';
 import '../../../core/services/storage_service.dart';
@@ -134,12 +135,9 @@ class TwoFAManagementController extends GetxController {
     final userId = userData?['id'];
 
     if (userId == null) {
-      Get.snackbar(
-        'error'.tr,
-        'User not found',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      MessagePopupController.showError(
+        messageKey: 'user_not_found',
+        titleKey: 'error',
       );
       isLoading.value = false;
       return;
@@ -160,14 +158,10 @@ class TwoFAManagementController extends GetxController {
 
       print('ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ QR Code generated successfully');
     } else {
-      Get.snackbar(
-        'error'.tr,
-        result['error'] ?? 'Failed to generate QR code',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      MessagePopupController.showError(
+        messageKey: result['error'] ?? 'failed_to_generate_qr',
+        titleKey: 'error',
       );
-      // Close dialog if failed
       Get.back();
     }
   }
@@ -185,12 +179,9 @@ class TwoFAManagementController extends GetxController {
     if (result['success']) {
       print('OTP sent for activation');
     } else {
-      Get.snackbar(
-        'error'.tr,
-        result['error'] ?? 'Failed to send OTP',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      MessagePopupController.showError(
+        messageKey: result['error'] ?? 'failed_to_send_otp',
+        titleKey: 'error',
       );
     }
   }
@@ -198,23 +189,17 @@ class TwoFAManagementController extends GetxController {
   /// Verify and activate 2FA
   Future<void> verifyAndActivate() async {
     if (selectedMethod.value == null) {
-      Get.snackbar(
-        'error'.tr,
-        'Please select a 2FA method',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      MessagePopupController.showError(
+        messageKey: 'please_select_2fa_method',
+        titleKey: 'error',
       );
       return;
     }
 
     if (verificationCodeController.text.length != 6) {
-      Get.snackbar(
-        'error'.tr,
-        'enter_verification_code'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      MessagePopupController.showError(
+        messageKey: 'enter_verification_code',
+        titleKey: 'error',
       );
       return;
     }
@@ -232,12 +217,9 @@ class TwoFAManagementController extends GetxController {
       await _updateProfileWith2FA(selectedMethod.value!.type.name);
     } else {
       isProcessing.value = false;
-      Get.snackbar(
-        'error'.tr,
-        result['error'] ?? 'invalid_verification_code'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      MessagePopupController.showError(
+        messageKey: result['error'] ?? 'invalid_verification_code',
+        titleKey: 'error',
       );
     }
   }
@@ -287,12 +269,9 @@ class TwoFAManagementController extends GetxController {
 
       Get.back(); // Close verification dialog
 
-      Get.snackbar(
-        'success'.tr,
-        isActivating ? '2FA activated successfully' : '2FA deactivated successfully',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green[700],
-        colorText: Colors.white,
+      MessagePopupController.showSuccess(
+        messageKey: isActivating ? '2fa_activated_successfully' : '2fa_deactivated_successfully',
+        titleKey: 'success',
       );
 
       // Refresh profile screen if controller exists
@@ -300,12 +279,9 @@ class TwoFAManagementController extends GetxController {
         Get.find<ProfileController>().loadUser();
       }
     } else {
-      Get.snackbar(
-        'error'.tr,
-        result['error'] ?? (method == 'none' ? 'Failed to deactivate 2FA' : 'Failed to activate 2FA'),
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      MessagePopupController.showError(
+        messageKey: result['error'] ?? (method == 'none' ? 'failed_to_deactivate_2fa' : 'failed_to_activate_2fa'),
+        titleKey: 'error',
       );
     }
   }
@@ -354,20 +330,14 @@ class TwoFAManagementController extends GetxController {
       countdown.value = 60;
       _startCountdown();
 
-      Get.snackbar(
-        'success'.tr,
-        'OTP sent successfully',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green[700],
-        colorText: Colors.white,
+      MessagePopupController.showSuccess(
+        messageKey: 'otp_sent_successfully',
+        titleKey: 'success',
       );
     } else {
-      Get.snackbar(
-        'error'.tr,
-        result['error'] ?? 'Failed to send OTP',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      MessagePopupController.showError(
+        messageKey: result['error'] ?? 'failed_to_send_otp',
+        titleKey: 'error',
       );
     }
   }
@@ -385,11 +355,9 @@ class TwoFAManagementController extends GetxController {
 
   Future<void> resendDeactivationOTP() async {
     if (countdown.value > 0) {
-      Get.snackbar(
-        'info'.tr,
-        'Please wait ${countdown.value} seconds before resending',
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 2),
+      MessagePopupController.showInfo(
+        messageKey: 'please_wait_to_resend'.tr.replaceAll('{seconds}', countdown.value.toString()),
+        titleKey: 'info',
       );
       return;
     }
@@ -403,23 +371,17 @@ class TwoFAManagementController extends GetxController {
     final code = otpController.text.trim();
 
     if (code.isEmpty) {
-      Get.snackbar(
-        'error'.tr,
-        'enter_otp_code'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      MessagePopupController.showError(
+        messageKey: 'enter_otp_code',
+        titleKey: 'error',
       );
       return false;
     }
 
     if (code.length != 6) {
-      Get.snackbar(
-        'error'.tr,
-        'OTP must be 6 digits',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      MessagePopupController.showError(
+        messageKey: 'otp_must_be_6_digits',
+        titleKey: 'error',
       );
       return false;
     }
@@ -434,12 +396,9 @@ class TwoFAManagementController extends GetxController {
 
     if (!verifyResult['success']) {
       isProcessing.value = false;
-      Get.snackbar(
-        'error'.tr,
-        verifyResult['error'] ?? 'Invalid OTP code',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      MessagePopupController.showError(
+        messageKey: verifyResult['error'] ?? 'invalid_otp_code',
+        titleKey: 'error',
       );
       otpController.clear();
       return false;
@@ -458,12 +417,9 @@ class TwoFAManagementController extends GetxController {
 
       if (!statusUpdateResult['success']) {
         isProcessing.value = false;
-        Get.snackbar(
-          'error'.tr,
-          statusUpdateResult['error'] ?? 'Failed to update 2FA status',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red[700],
-          colorText: Colors.white,
+        MessagePopupController.showError(
+          messageKey: statusUpdateResult['error'] ?? 'failed_to_update_2fa_status',
+          titleKey: 'error',
         );
         otpController.clear();
         return false;
@@ -491,13 +447,9 @@ class TwoFAManagementController extends GetxController {
       countdown.value = 0;
 
       // Show success message (but don't navigate back - let the screen handle it)
-      Get.snackbar(
-        'success'.tr,
-        disableResult['message'] ?? '2FA deactivated successfully',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green[700],
-        colorText: Colors.white,
-        duration: const Duration(seconds: 2),
+      MessagePopupController.showSuccess(
+        messageKey: disableResult['message'] ?? '2fa_deactivated_successfully',
+        titleKey: 'success',
       );
 
       // Refresh profile screen if controller exists
@@ -507,12 +459,9 @@ class TwoFAManagementController extends GetxController {
 
       return true;
     } else {
-      Get.snackbar(
-        'error'.tr,
-        disableResult['error'] ?? 'Failed to deactivate 2FA',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      MessagePopupController.showError(
+        messageKey: disableResult['error'] ?? 'failed_to_deactivate_2fa',
+        titleKey: 'error',
       );
       otpController.clear();
       return false;

@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/controllers/message_popup_controller.dart';
 import '../../../core/utils/validators.dart';
 import '../../../data/repositories/auth_repository.dart';
 
@@ -196,15 +197,9 @@ class DocumentPasswordController extends GetxController {
         showPasswordMatch.value = false;
 
         // Success feedback
-        Get.snackbar(
-          'success'.tr,
-          result['message'] ?? 'document_password_saved'.tr,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          margin: const EdgeInsets.all(16),
-          borderRadius: 12,
-          duration: const Duration(seconds: 3),
+        MessagePopupController.showSuccess(
+          messageKey: result['message'] ?? 'document_password_saved',
+          titleKey: 'success',
         );
 
         // Navigate back after success (give user time to see success message)
@@ -215,13 +210,13 @@ class DocumentPasswordController extends GetxController {
         });
       } else {
         // Show error message from API response
-        _showError(result['error'] ?? 'failed_to_save_document_password'.tr);
+        _showError(result['error'] ?? 'failed_to_save_document_password');
       }
     } catch (e) {
       isLoading.value = false;
       // Never log password in error messages - security best practice
       // Show generic error message to user
-      _showError('failed_to_save_document_password'.tr);
+      _showError('failed_to_save_document_password');
     }
   }
 
@@ -230,15 +225,9 @@ class DocumentPasswordController extends GetxController {
   // ---------------------------------------------------------------------------
 
   void _showError(String message) {
-    Get.snackbar(
-      'error'.tr,
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Get.theme.colorScheme.error,
-      colorText: Colors.white,
-      margin: const EdgeInsets.all(16),
-      borderRadius: 12,
-      duration: const Duration(seconds: 3),
+    MessagePopupController.showError(
+      messageKey: message,
+      titleKey: 'error',
     );
   }
 }

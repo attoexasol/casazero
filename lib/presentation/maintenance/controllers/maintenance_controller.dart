@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart'; // For compute()
 import 'package:dio/dio.dart' as dio;
+import '../../../core/controllers/message_popup_controller.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -261,14 +262,9 @@ class MaintenanceController extends GetxController {
           // Refresh maintenance list to include the new task
           await fetchMaintenanceTasks();
 
-          // Show success snackbar (top positioned)
-          Get.snackbar(
-            'Success',
-            responseData['message'] ?? 'Maintenance created successfully',
-            snackPosition: SnackPosition.TOP,
-            backgroundColor: Colors.green[700],
-            colorText: Colors.white,
-            duration: const Duration(seconds: 2),
+          MessagePopupController.showSuccess(
+            messageKey: responseData['message'] ?? 'maintenance_created_successfully',
+            titleKey: 'success',
           );
 
           return true;
@@ -283,7 +279,7 @@ class MaintenanceController extends GetxController {
     } catch (e) {
       print('❌ [MaintenanceController] Error creating maintenance task: $e');
 
-      // Show error snackbar (top positioned)
+      // Show error popup
       String errorMessage = 'Failed to create maintenance';
       if (e.toString().contains('Exception:')) {
         errorMessage = e.toString().replaceFirst('Exception: ', '');
@@ -291,13 +287,9 @@ class MaintenanceController extends GetxController {
         errorMessage = e.toString();
       }
 
-      Get.snackbar(
-        'Error',
-        errorMessage,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
+      MessagePopupController.showError(
+        messageKey: errorMessage,
+        titleKey: 'error',
       );
 
       return false;
@@ -377,22 +369,10 @@ class MaintenanceController extends GetxController {
           // Refresh maintenance list to get updated task with new status
           await fetchMaintenanceTasks();
 
-          // Show success snackbar
-          Get.snackbar(
-            'Success',
-            responseData['message'] ??
-                (isCompleted
-                    ? 'Task reverted to pending successfully'
-                    : 'Task marked as completed successfully'),
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.green[700],
-            colorText: Colors.white,
-            duration: const Duration(seconds: 2),
-            snackStyle: SnackStyle.FLOATING,
-            animationDuration: const Duration(milliseconds: 300),
-            forwardAnimationCurve: Curves.easeOut,
-            reverseAnimationCurve: Curves.easeIn,
-            maxWidth: 400,
+          MessagePopupController.showSuccess(
+            messageKey: responseData['message'] ??
+                (isCompleted ? 'task_reverted_successfully' : 'task_marked_completed_successfully'),
+            titleKey: 'success',
           );
         } else {
           throw Exception(
@@ -409,18 +389,9 @@ class MaintenanceController extends GetxController {
       }
     } catch (e) {
       print('❌ [MaintenanceController] Error updating task status: $e');
-      Get.snackbar(
-        'Error',
-        'Failed to update task status: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-        snackStyle: SnackStyle.FLOATING,
-        animationDuration: const Duration(milliseconds: 300),
-        forwardAnimationCurve: Curves.easeOut,
-        reverseAnimationCurve: Curves.easeIn,
-        maxWidth: 400,
+      MessagePopupController.showError(
+        messageKey: 'failed_to_update_task_status',
+        titleKey: 'error',
       );
     } finally {
       isLoadingTasks.value = false;
@@ -495,13 +466,9 @@ class MaintenanceController extends GetxController {
       await _updateTaskSchedule(taskId, formattedDate);
     } catch (e) {
       print('❌ Error scheduling visit: $e');
-      Get.snackbar(
-        'Error',
-        'Failed to schedule visit: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
+      MessagePopupController.showError(
+        messageKey: 'failed_to_schedule_visit',
+        titleKey: 'error',
       );
     }
   }
@@ -629,14 +596,9 @@ class MaintenanceController extends GetxController {
           // Refresh maintenance list to get updated task
           await fetchMaintenanceTasks();
 
-          // Show success snackbar
-          Get.snackbar(
-            'Success',
-            responseData['message'] ?? 'Schedule updated successfully',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.green[700],
-            colorText: Colors.white,
-            duration: const Duration(seconds: 2),
+          MessagePopupController.showSuccess(
+            messageKey: responseData['message'] ?? 'schedule_updated_successfully',
+            titleKey: 'success',
           );
         } else {
           throw Exception(
@@ -652,13 +614,9 @@ class MaintenanceController extends GetxController {
       }
     } catch (e) {
       print('❌ [MaintenanceController] Error updating task schedule: $e');
-      Get.snackbar(
-        'Error',
-        'Failed to update schedule: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
+      MessagePopupController.showError(
+        messageKey: 'failed_to_update_schedule',
+        titleKey: 'error',
       );
       rethrow;
     } finally {
@@ -699,14 +657,9 @@ class MaintenanceController extends GetxController {
           // Also refresh from API to ensure consistency
           await fetchMaintenanceTasks();
 
-          // Show success snackbar
-          Get.snackbar(
-            'Success',
-            responseData['message'] ?? 'Maintenance deleted successfully',
-            snackPosition: SnackPosition.TOP,
-            backgroundColor: Colors.green[700],
-            colorText: Colors.white,
-            duration: const Duration(seconds: 2),
+          MessagePopupController.showSuccess(
+            messageKey: responseData['message'] ?? 'maintenance_deleted_successfully',
+            titleKey: 'success',
           );
 
           return true;
@@ -721,7 +674,7 @@ class MaintenanceController extends GetxController {
     } catch (e) {
       print('❌ [MaintenanceController] Error deleting maintenance task: $e');
 
-      // Show error snackbar
+      // Show error popup
       String errorMessage = 'Failed to delete maintenance';
       if (e.toString().contains('Exception:')) {
         errorMessage = e.toString().replaceFirst('Exception: ', '');
@@ -729,13 +682,9 @@ class MaintenanceController extends GetxController {
         errorMessage = e.toString();
       }
 
-      Get.snackbar(
-        'Error',
-        errorMessage,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
+      MessagePopupController.showError(
+        messageKey: errorMessage,
+        titleKey: 'error',
       );
 
       return false;
@@ -1073,15 +1022,11 @@ class MaintenanceController extends GetxController {
       print('❌ [MaintenanceController] Error picking file: $e');
       print('❌ [MaintenanceController] Stack trace: $stackTrace');
 
-      // Only show snackbar if controller is still valid
+      // Only show popup if controller is still valid
       if (!isClosed) {
-        Get.snackbar(
-          'Error',
-          'Failed to pick file: ${e.toString()}',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
+        MessagePopupController.showError(
+          messageKey: 'failed_to_pick_file',
+          titleKey: 'error',
         );
       }
       return false;

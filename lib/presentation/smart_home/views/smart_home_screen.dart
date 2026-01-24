@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:get/get.dart';
+import '../../../core/controllers/message_popup_controller.dart';
 
 enum DeviceType { light, climate, security, appliance, blinds }
 
@@ -219,8 +221,9 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
         }
       }
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Good Night scene activated')),
+    MessagePopupController.showSuccess(
+      messageKey: 'good_night_scene_activated',
+      titleKey: 'success',
     );
   }
 
@@ -233,8 +236,9 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
         }
       }
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Good Morning scene activated')),
+    MessagePopupController.showSuccess(
+      messageKey: 'good_morning_scene_activated',
+      titleKey: 'success',
     );
   }
 
@@ -246,8 +250,9 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
         }
       }
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Leaving Home scene activated')),
+    MessagePopupController.showSuccess(
+      messageKey: 'leaving_home_scene_activated',
+      titleKey: 'success',
     );
   }
 

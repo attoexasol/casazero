@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/controllers/message_popup_controller.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../core/utils/validators.dart';
 import '../../../core/services/storage_service.dart';
@@ -89,20 +90,10 @@ class ForgotPasswordController extends GetxController {
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // SNACKBARS
-  // ---------------------------------------------------------------------------
-
   void _showError(String message) {
-    Get.snackbar(
-      'error'.tr,
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.red.shade600,
-      colorText: Colors.white,
-      margin: const EdgeInsets.all(16),
-      borderRadius: 12,
-      duration: const Duration(seconds: 3),
+    MessagePopupController.showError(
+      messageKey: message,
+      titleKey: 'error',
     );
   }
 }

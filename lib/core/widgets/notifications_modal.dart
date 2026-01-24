@@ -8,6 +8,7 @@ import 'dart:io';
 import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_text_styles.dart';
 import '../../app/theme/app_shadows.dart';
+import '../../core/controllers/message_popup_controller.dart';
 import '../../presentation/home/controllers/home_controller.dart';
 import '../../data/models/feed_item_model.dart';
 import '../../core/localization/locale_controller.dart';
@@ -364,15 +365,10 @@ class _NotificationsModalContentState
     try {
       // Check if notification has a URL
       if (notification.url == null || notification.url!.isEmpty) {
-        // If no URL, navigate to documents screen as fallback
         widget.controller.navigateToScreen(AppScreen.documents);
-        Get.snackbar(
-          'viewDocument'.tr.isEmpty ? 'View Document' : 'viewDocument'.tr,
-          'Document URL is not available',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
+        MessagePopupController.showError(
+          messageKey: 'documentUrlNotAvailable',
+          titleKey: 'viewDocument',
         );
         return;
       }
@@ -384,17 +380,11 @@ class _NotificationsModalContentState
       print('📥 [Notification] Starting download: $fileName');
       print('📥 [Notification] URL: ${notification.url}');
 
-      Get.snackbar(
-        'downloading'.tr,
-        notification.displayTitle,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.blue[700],
-        colorText: Colors.white,
-        duration: const Duration(seconds: 2),
-        icon: const Icon(Icons.download, color: Colors.white),
+      MessagePopupController.showDownloading(
+        messageKey: '${'downloading'.tr}: ${notification.displayTitle}',
+        titleKey: 'downloading',
       );
 
-      // Download the document
       final result = await _downloadService.downloadDocument(
         fileUrl: notification.url!,
         fileName: fileName,
@@ -403,45 +393,24 @@ class _NotificationsModalContentState
 
       if (result['success'] == true) {
         final filePath = result['filePath'] as String;
-
-        // Download successful - Show success snackbar
-        Get.snackbar(
-          'downloadSuccess'.tr,
-          '${'downloadComplete'.tr}: ${result['fileName']}',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 2),
-          icon: const Icon(Icons.check_circle, color: Colors.white),
-        );
-
+        MessagePopupController.closePopup();
         print('✅ [Notification] Download successful: $filePath');
-
-        // Show native bottom sheet with available apps to open the file
         await Future.delayed(const Duration(milliseconds: 500));
         await _showOpenFileBottomSheet(filePath, notification.displayTitle);
       } else {
-        Get.snackbar(
-          'downloadFailed'.tr,
-          result['error'] ?? 'downloadError'.tr,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
-          icon: const Icon(Icons.error, color: Colors.white),
+        MessagePopupController.closePopup();
+        MessagePopupController.showError(
+          messageKey: result['error'] ?? 'downloadError',
+          titleKey: 'downloadFailed',
         );
         print('❌ [Notification] Download failed: ${result['error']}');
       }
     } catch (e) {
       print('❌ [Notification] Error downloading document: $e');
-      Get.snackbar(
-        'downloadFailed'.tr,
-        'downloadError'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-        icon: const Icon(Icons.error, color: Colors.white),
+      MessagePopupController.closePopup();
+      MessagePopupController.showError(
+        messageKey: 'downloadError',
+        titleKey: 'downloadFailed',
       );
     }
   }
@@ -485,13 +454,9 @@ class _NotificationsModalContentState
     try {
       final file = File(filePath);
       if (!await file.exists()) {
-        Get.snackbar(
-          'openFileFailed'.tr,
-          'fileNotFound'.tr,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
+        MessagePopupController.showError(
+          messageKey: 'fileNotFound',
+          titleKey: 'openFileFailed',
         );
         return;
       }
@@ -505,50 +470,29 @@ class _NotificationsModalContentState
 
       // Handle the result
       if (result.type == ResultType.noAppToOpen) {
-        Get.snackbar(
-          'openFileFailed'.tr,
-          'noAppToOpen'.tr,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.orange[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
-          icon: const Icon(Icons.warning, color: Colors.white),
+        MessagePopupController.showWarning(
+          messageKey: 'noAppToOpen',
+          titleKey: 'openFileFailed',
         );
       } else if (result.type == ResultType.error || result.type == ResultType.fileNotFound) {
-        Get.snackbar(
-          'openFileFailed'.tr,
-          result.message.isNotEmpty ? result.message : 'openFileError'.tr,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red[700],
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
-          icon: const Icon(Icons.error, color: Colors.white),
+        MessagePopupController.showError(
+          messageKey: result.message.isNotEmpty ? result.message : 'openFileError',
+          titleKey: 'openFileFailed',
         );
       }
     } catch (e) {
       print('❌ [Notification] Error showing file chooser: $e');
-      Get.snackbar(
-        'openFileFailed'.tr,
-        'openFileError'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-        icon: const Icon(Icons.error, color: Colors.white),
+      MessagePopupController.showError(
+        messageKey: 'openFileError',
+        titleKey: 'openFileFailed',
       );
     }
   }
 
   void _deleteNotification(FeedItemModel notification) {
-    // Note: Delete functionality not implemented in API yet
-    // This is a placeholder for future implementation
-    Get.snackbar(
-      'Notification',
-      'Delete functionality coming soon',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: AppColors.neutralInk800,
-      colorText: AppColors.surfaceWhite,
-      duration: const Duration(seconds: 2),
+    MessagePopupController.showInfo(
+      messageKey: 'delete_functionality_coming_soon',
+      titleKey: 'notifications',
     );
   }
 }

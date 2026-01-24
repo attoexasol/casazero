@@ -1,6 +1,7 @@
 // presentation/first_login/controllers/first_login_controller.dart (WITH EMAIL OTP)
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/controllers/message_popup_controller.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../data/models/two_factor_method_model.dart';
 import '../../../core/services/storage_service.dart';
@@ -140,12 +141,9 @@ class FirstLoginController extends GetxController {
 
   Future<void> changePassword() async {
     if (!isPasswordFormValid.value) {
-      Get.snackbar(
-        'error'.tr,
-        'complete_fields'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      MessagePopupController.showError(
+        messageKey: 'complete_fields',
+        titleKey: 'error',
       );
       return;
     }
@@ -160,21 +158,15 @@ class FirstLoginController extends GetxController {
     isLoading.value = false;
 
     if (result['success']) {
-      Get.snackbar(
-        'success'.tr,
-        'password_changed'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green[700],
-        colorText: Colors.white,
+      MessagePopupController.showSuccess(
+        messageKey: 'password_changed',
+        titleKey: 'success',
       );
       currentStep.value = 2;
     } else {
-      Get.snackbar(
-        'error'.tr,
-        result['error'] ?? 'password_requirements_not_met'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      MessagePopupController.showError(
+        messageKey: result['error'] ?? 'password_requirements_not_met',
+        titleKey: 'error',
       );
     }
   }
@@ -220,12 +212,9 @@ class FirstLoginController extends GetxController {
       print('   QR Base64 Length: ${qrCodeData.value.length}');
       print('   OtpAuth URL: ${result['otpauth_url']}');
     } else {
-      Get.snackbar(
-        'error'.tr,
-        result['error'] ?? 'failed_to_generate_qr'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      MessagePopupController.showError(
+        messageKey: result['error'] ?? 'failed_to_generate_qr',
+        titleKey: 'error',
       );
     }
   }
@@ -234,12 +223,9 @@ class FirstLoginController extends GetxController {
   Future<void> sendVerificationCode() async {
     if (selectedMethod.value?.type == TwoFactorMethodType.sms) {
       if (phoneNumberController.text.trim().isEmpty) {
-        Get.snackbar(
-          'error'.tr,
-          'enter_phone_number'.tr,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red[700],
-          colorText: Colors.white,
+        MessagePopupController.showError(
+          messageKey: 'enter_phone_number',
+          titleKey: 'error',
         );
         return;
       }
@@ -261,20 +247,14 @@ class FirstLoginController extends GetxController {
       verificationCountdown.value = 60;
       _startCountdown();
 
-      Get.snackbar(
-        'success'.tr,
-        result['message'] ?? 'verification_code_sent'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green[700],
-        colorText: Colors.white,
+      MessagePopupController.showSuccess(
+        messageKey: result['message'] ?? 'verification_code_sent',
+        titleKey: 'success',
       );
     } else {
-      Get.snackbar(
-        'error'.tr,
-        result['error'] ?? 'failed_to_send_otp'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      MessagePopupController.showError(
+        messageKey: result['error'] ?? 'failed_to_send_otp',
+        titleKey: 'error',
       );
     }
   }
@@ -306,12 +286,9 @@ class FirstLoginController extends GetxController {
   /// Verify 2FA method - Email OTP using actual API
   Future<void> verify2FAMethod() async {
     if (verificationCodeController.text.length != 6) {
-      Get.snackbar(
-        'error'.tr,
-        'enter_verification_code'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      MessagePopupController.showError(
+        messageKey: 'enter_verification_code',
+        titleKey: 'error',
       );
       return;
     }
@@ -343,23 +320,17 @@ class FirstLoginController extends GetxController {
         await _storageService.saveUserData(userData);
       }
 
-      Get.snackbar(
-        'success'.tr,
-        result['message'] ?? '2fa_enabled'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green[700],
-        colorText: Colors.white,
+      MessagePopupController.showSuccess(
+        messageKey: result['message'] ?? '2fa_enabled',
+        titleKey: 'success',
       );
 
       // Complete setup
       await _completeSetup();
     } else {
-      Get.snackbar(
-        'error'.tr,
-        result['error'] ?? 'invalid_verification_code'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      MessagePopupController.showError(
+        messageKey: result['error'] ?? 'invalid_verification_code',
+        titleKey: 'error',
       );
     }
   }

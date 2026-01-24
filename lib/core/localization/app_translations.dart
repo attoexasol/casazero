@@ -120,6 +120,25 @@ class AppTranslations extends Translations {
     'home': 'Home',
     'home_page': 'Home Page',
     'residence': 'Residence',
+    'failed_to_load_residences': 'Failed to load residences',
+    'no_residences_available': 'No residences available',
+    'failed_to_load_home_data': 'Failed to load home data',
+    'failed_to_logout': 'Failed to logout',
+    'failed_to_pick_file': 'Failed to pick file',
+    'please_select_due_date_first': 'Please select due date first',
+    'please_select_residence': 'Please select a residence',
+    'maintenance_created_successfully': 'Maintenance created successfully',
+    'task_reverted_successfully': 'Task reverted to pending successfully',
+    'task_marked_completed_successfully': 'Task marked as completed successfully',
+    'failed_to_update_task_status': 'Failed to update task status',
+    'failed_to_schedule_visit': 'Failed to schedule visit',
+    'schedule_updated_successfully': 'Schedule updated successfully',
+    'failed_to_update_schedule': 'Failed to update schedule',
+    'maintenance_deleted_successfully': 'Maintenance deleted successfully',
+    'failed_to_open_dialer': 'Failed to open dialer. Please call manually.',
+    'good_night_scene_activated': 'Good Night scene activated',
+    'good_morning_scene_activated': 'Good Morning scene activated',
+    'leaving_home_scene_activated': 'Leaving Home scene activated',
     'welcome': 'Welcome,',
     'construction_progress': 'Construction Progress',
     'your_home_is_being_built': 'Your new home is taking shape',
@@ -162,6 +181,11 @@ class AppTranslations extends Translations {
     // Errors
     'something_went_wrong': 'Something went wrong',
     'network_error': 'Network error. Please try again.',
+    'failed_to_load_devices': 'Failed to load devices',
+    'device_removed_successfully': 'Device removed successfully',
+    'failed_to_remove_device': 'Failed to remove device',
+    'delete_functionality_coming_soon': 'Delete functionality coming soon',
+    'viewDocument': 'View Document',
     'connection_timeout':
         'Connection timeout. Please check your internet connection.',
 
@@ -184,6 +208,7 @@ class AppTranslations extends Translations {
     "update_personal_info": "Update your personal information",
     "save_changes": "Save",
     "please_enter_your_name": "Please enter your name",
+    "please_enter_email": "Please enter your email",
     "please_enter_phone_number": "Please enter your phone number",
 
     // Residence
@@ -223,8 +248,6 @@ class AppTranslations extends Translations {
     "trusted_devices_info_desc":
         "These devices have access to your account. You can remove any device you don't recognize.",
     "remove_device_title": "Remove Device?",
-    "device_removed_successfully": "Device removed successfully",
-    "failed_to_remove_device": "Failed to remove device",
 
     // Notifications
     "notification_preferences": "Notification Preferences",
@@ -397,6 +420,12 @@ class AppTranslations extends Translations {
     'otp_sent_successfully': 'OTP sent successfully',
     'failed_to_activate_2fa': 'Failed to activate 2FA',
     'failed_to_deactivate_2fa': 'Failed to deactivate 2FA',
+    'failed_to_generate_qr': 'Failed to generate QR code',
+    'failed_to_update_2fa_status': 'Failed to update 2FA status',
+    'user_not_found': 'User not found',
+    'please_select_2fa_method': 'Please select a 2FA method',
+    'verification_code_sent': 'Verification code sent',
+    'enter_phone_number': 'Please enter your phone number',
 
     // Info messages
     '2fa_adds_security': '2FA adds an extra layer of security to your account',
@@ -723,6 +752,7 @@ class AppTranslations extends Translations {
     "update_personal_info": "Aggiorna le tue informazioni personali",
     "save_changes": "Salva",
     "please_enter_your_name": "Inserisci il tuo nome",
+    "please_enter_email": "Inserisci la tua email",
     "please_enter_phone_number": "Inserisci il tuo numero di telefono",
 
     // Residence
@@ -761,8 +791,6 @@ class AppTranslations extends Translations {
     "trusted_devices_info_desc":
         "Questi dispositivi hanno accesso al tuo account. Puoi rimuovere qualsiasi dispositivo che non riconosci.",
     "remove_device_title": "Rimuovere Dispositivo?",
-    "device_removed_successfully": "Dispositivo rimosso con successo",
-    "failed_to_remove_device": "Impossibile rimuovere il dispositivo",
 
     // Notifications
     "notification_preferences": "Preferenze Notifiche",
@@ -910,6 +938,9 @@ class AppTranslations extends Translations {
     'otp_sent_successfully': 'OTP inviato con successo',
     'failed_to_activate_2fa': 'Impossibile attivare 2FA',
     'failed_to_deactivate_2fa': 'Impossibile disattivare 2FA',
+    'failed_to_update_2fa_status': 'Impossibile aggiornare lo stato 2FA',
+    'user_not_found': 'Utente non trovato',
+    'please_select_2fa_method': 'Seleziona un metodo 2FA',
 
     // Info messages
     '2fa_adds_security':
@@ -967,6 +998,25 @@ class AppTranslations extends Translations {
     'home': 'Casa',
     'home_page': 'Pagina Iniziale',
     'residence': 'Residenza',
+    'failed_to_load_residences': 'Impossibile caricare le residenze',
+    'no_residences_available': 'Nessuna residenza disponibile',
+    'failed_to_load_home_data': 'Impossibile caricare i dati della home',
+    'failed_to_logout': 'Impossibile disconnettersi',
+    'failed_to_pick_file': 'Impossibile selezionare il file',
+    'please_select_due_date_first': 'Seleziona prima la data di scadenza',
+    'please_select_residence': 'Seleziona una residenza',
+    'maintenance_created_successfully': 'Manutenzione creata con successo',
+    'task_reverted_successfully': 'Attività riportata in sospeso',
+    'task_marked_completed_successfully': 'Attività segnata come completata',
+    'failed_to_update_task_status': 'Impossibile aggiornare lo stato',
+    'failed_to_schedule_visit': 'Impossibile programmare la visita',
+    'schedule_updated_successfully': 'Programma aggiornato con successo',
+    'failed_to_update_schedule': 'Impossibile aggiornare il programma',
+    'maintenance_deleted_successfully': 'Manutenzione eliminata con successo',
+    'failed_to_open_dialer': 'Impossibile aprire il telefono. Chiama manualmente.',
+    'good_night_scene_activated': 'Scena Buonanotte attivata',
+    'good_morning_scene_activated': 'Scena Buongiorno attivata',
+    'leaving_home_scene_activated': 'Scena Uscita di casa attivata',
     'welcome': 'Benvenuto,',
     'construction_progress': 'Avanzamento Costruzione',
     'your_home_is_being_built': 'La tua nuova casa sta prendendo forma',
@@ -1010,6 +1060,11 @@ class AppTranslations extends Translations {
     // Errors (Italian)
     'something_went_wrong': 'Qualcosa è andato storto',
     'network_error': 'Errore di rete. Riprova.',
+    'failed_to_load_devices': 'Impossibile caricare i dispositivi',
+    'device_removed_successfully': 'Dispositivo rimosso con successo',
+    'failed_to_remove_device': 'Impossibile rimuovere il dispositivo',
+    'delete_functionality_coming_soon': 'Funzionalità di eliminazione in arrivo',
+    'viewDocument': 'Visualizza Documento',
     'connection_timeout':
         'Timeout di connessione. Controlla la tua connessione internet.',
 

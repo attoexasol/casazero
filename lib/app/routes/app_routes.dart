@@ -1,6 +1,7 @@
 // app/routes/app_routes.dart (ENHANCED WITH OTP VERIFICATION)
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../core/controllers/message_popup_controller.dart';
 import '../../presentation/auth/views/auth_screen.dart';
 import '../../presentation/auth/controllers/auth_controller.dart';
 import '../../presentation/auth/controllers/change_password_controller.dart';
@@ -108,19 +109,11 @@ class AppRoutes {
       page: () => ChangePasswordScreen(
         onBack: () => Get.back(),
         onSuccess: (String message) {
-          // Navigate back first
           Get.back();
-          // Then show snackbar on previous screen after a brief delay
           Future.delayed(const Duration(milliseconds: 300), () {
-            Get.snackbar(
-              'success'.tr,
-              message,
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: const Color(0xFF22C55E),
-              colorText: Colors.white,
-              margin: const EdgeInsets.all(16),
-              borderRadius: 12,
-              duration: const Duration(seconds: 3),
+            MessagePopupController.showSuccess(
+              messageKey: message,
+              titleKey: 'success',
             );
           });
         },
@@ -165,18 +158,11 @@ class AppRoutes {
       page: () => ForgotChangePasswordScreen(
         onBack: () => Get.back(),
         onSuccess: (String message) {
-          // Navigate back to auth screen after successful password reset
           Future.delayed(const Duration(milliseconds: 300), () {
             Get.offAllNamed(AUTH);
-            Get.snackbar(
-              'success'.tr,
-              message,
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: const Color(0xFF22C55E),
-              colorText: Colors.white,
-              margin: const EdgeInsets.all(16),
-              borderRadius: 12,
-              duration: const Duration(seconds: 3),
+            MessagePopupController.showSuccess(
+              messageKey: message,
+              titleKey: 'success',
             );
           });
         },

@@ -1,6 +1,7 @@
 import 'package:casazero/presentation/documents/controllers/documents_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/controllers/message_popup_controller.dart';
 import '../../../data/repositories/home_repository.dart';
 import '../../../data/repositories/document_repository.dart';
 import '../../../data/repositories/auth_repository.dart';
@@ -251,12 +252,9 @@ class HomeController extends GetxController {
         print('Loaded ${residences.length} residences');
       } else {
         print('Failed to fetch residences: ${result['error']}');
-        Get.snackbar(
-          'error'.tr,
-          result['error'] ?? 'Failed to load residences',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red[700],
-          colorText: Colors.white,
+        MessagePopupController.showError(
+          messageKey: result['error'] ?? 'failed_to_load_residences',
+          titleKey: 'error',
         );
       }
     } catch (e) {
@@ -278,10 +276,9 @@ class HomeController extends GetxController {
   /// Show residence selector dialog
   void showResidenceSelector(BuildContext context) {
     if (residences.isEmpty) {
-      Get.snackbar(
-        'info'.tr,
-        'No residences available',
-        snackPosition: SnackPosition.BOTTOM,
+      MessagePopupController.showInfo(
+        messageKey: 'no_residences_available',
+        titleKey: 'info',
       );
       return;
     }
@@ -361,10 +358,9 @@ class HomeController extends GetxController {
       isLoading.value = false;
     } catch (e) {
       isLoading.value = false;
-      Get.snackbar(
-        'Error',
-        'Failed to load home data: $e',
-        snackPosition: SnackPosition.BOTTOM,
+      MessagePopupController.showError(
+        messageKey: 'failed_to_load_home_data',
+        titleKey: 'error',
       );
     }
   }
@@ -727,10 +723,9 @@ class HomeController extends GetxController {
         Get.offAllNamed(AppRoutes.AUTH);
       } catch (clearError) {
         print('❌ Error clearing storage: $clearError');
-        Get.snackbar(
-          'Error',
-          'Failed to logout: $e',
-          snackPosition: SnackPosition.BOTTOM,
+        MessagePopupController.showError(
+          messageKey: 'failed_to_logout',
+          titleKey: 'error',
         );
       }
     }

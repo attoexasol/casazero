@@ -2,6 +2,7 @@
 import 'package:casazero/app/theme/app_colors.dart';
 import 'package:casazero/app/theme/app_shadows.dart';
 import 'package:casazero/app/theme/app_text_styles.dart';
+import 'package:casazero/core/controllers/message_popup_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -807,16 +808,9 @@ class MaintenanceTaskCard extends StatelessWidget {
                                             print(
                                               '❌ Error launching phone call: $e',
                                             );
-                                            Get.snackbar(
-                                              'Error',
-                                              'Failed to open dialer. Please call ${task.companyObj!.phone} manually.',
-                                              snackPosition:
-                                                  SnackPosition.BOTTOM,
-                                              backgroundColor: Colors.red[700],
-                                              colorText: Colors.white,
-                                              duration: const Duration(
-                                                seconds: 3,
-                                              ),
+                                            MessagePopupController.showError(
+                                              messageKey: 'failed_to_open_dialer',
+                                              titleKey: 'error',
                                             );
                                           }
                                         },

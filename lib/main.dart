@@ -303,7 +303,7 @@ class CasaZeroApp extends StatelessWidget {
             transitionDuration: const Duration(milliseconds: 300),
 
             // PLATFORM-SPECIFIC TEXT SCALER FIX
-            // Note: SafeArea removed from builder to allow GetX snackbars to display properly
+            // Note: SafeArea removed from builder to allow GetX popups to display properly
             // SafeArea should be applied at individual screen/widget level if needed
             builder: (context, widget) {
               // Ensure GetX has proper context for overlays

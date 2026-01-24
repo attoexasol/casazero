@@ -37,7 +37,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
       _controller = Get.find<DocumentsController>();
     }
     
-    // Snackbar listeners removed - snackbars now handled ONLY in AddDocumentDialog
+    // Popup messages are handled ONLY in AddDocumentDialog
   }
 
   @override

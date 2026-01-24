@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/controllers/message_popup_controller.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../core/localization/locale_controller.dart';
@@ -50,12 +51,9 @@ class AuthController extends GetxController {
 
   Future<void> login() async {
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
-      Get.snackbar(
-        'error'.tr,
-        'enter_email_password'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      MessagePopupController.showError(
+        messageKey: 'enter_email_password',
+        titleKey: 'error',
       );
       return;
     }
@@ -99,12 +97,9 @@ class AuthController extends GetxController {
       // Navigation logic based on user status and device trust
       _navigateBasedOnUserStatus(user, isTrusted);
     } else {
-      Get.snackbar(
-        'login_failed'.tr,
-        result['error'] ?? 'invalid_credentials'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[700],
-        colorText: Colors.white,
+      MessagePopupController.showError(
+        messageKey: result['error'] ?? 'invalid_credentials',
+        titleKey: 'login_failed',
       );
     }
   }

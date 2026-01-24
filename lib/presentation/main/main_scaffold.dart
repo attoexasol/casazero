@@ -1,3 +1,4 @@
+import 'package:casazero/core/controllers/message_popup_controller.dart';
 import 'package:casazero/core/widgets/bounce_glow_widget.dart';
 import 'package:casazero/core/widgets/notifications_modal.dart';
 import 'package:flutter/material.dart';
@@ -60,7 +61,7 @@ class MainScaffold extends GetView<HomeController> {
           // SINGLE PERSISTENT APP BAR FOR ALL SCREENS
           appBar: _buildAppBar(),
           // BODY - Contains all screens dynamically
-          // SafeArea applied here for Android devices (removed from main.dart to allow snackbars)
+          // SafeArea applied here for Android devices (removed from main.dart to allow popups)
           body: SafeArea(
             top: false, // AppBar handles top safe area
             bottom: true,
@@ -801,17 +802,10 @@ class MainScaffold extends GetView<HomeController> {
           onBack: () => controller.goBack(),
           onSuccess: (String message) {
             controller.goBack();
-            // Show snackbar after navigation completes
             Future.delayed(const Duration(milliseconds: 300), () {
-              Get.snackbar(
-                'success'.tr,
-                message,
-                snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: AppColors.brandSage600,
-                colorText: AppColors.surfaceWhite,
-                margin: const EdgeInsets.all(16),
-                borderRadius: 12,
-                duration: const Duration(seconds: 3),
+              MessagePopupController.showSuccess(
+                messageKey: message,
+                titleKey: 'success',
               );
             });
           },

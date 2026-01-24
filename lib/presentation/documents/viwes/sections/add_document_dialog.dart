@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/controllers/message_popup_controller.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_button.dart';
@@ -42,7 +43,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
     // Ensure categories are loaded when dialog opens
     _ensureCategoriesLoaded();
     
-    // Snackbar listeners removed - snackbars now handled directly in _handleUpload
+    // Popup messages are handled directly in _handleUpload
   }
 
   /// Ensure categories are loaded from API
@@ -89,11 +90,9 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
       }
     } catch (e) {
       if (mounted) {
-        Get.snackbar(
-          'error'.tr,
-          'filePickError'.tr,
-          backgroundColor: AppColors.danger,
-          colorText: AppColors.surfaceWhite,
+        MessagePopupController.showError(
+          messageKey: 'filePickError',
+          titleKey: 'error',
         );
       }
     }
@@ -150,10 +149,10 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
           : _descriptionController.text.trim(),
     );
 
-    // Handle result - snackbars shown ONLY here in UI layer
+    // Handle result - popups shown ONLY here in UI layer
     if (result.status == UploadStatus.success) {
-      // ✅ SUCCESS - Show success snackbar and close dialog
-      _showSuccessSnackbar();
+      // ✅ SUCCESS - Show success popup and close dialog
+      _showSuccessPopup();
       widget.onClose(); // Close dialog
       
       // Call upload callback if provided
@@ -168,48 +167,22 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
         });
       }
     } else {
-      // ❌ ERROR - Show error snackbar, keep dialog open
-      _showErrorSnackbar(result.message);
+      // ❌ ERROR - Show error popup, keep dialog open
+      _showErrorPopup(result.message);
     }
   }
 
-  /// Show success snackbar - ONLY place success snackbar is shown
-  void _showSuccessSnackbar() {
-    // Close any existing snackbars to prevent duplicates
-    if (Get.isSnackbarOpen ?? false) {
-      Get.closeAllSnackbars();
-    }
-    
-    Get.snackbar(
-      'Success',
-      'Document uploaded successfully',
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: const Color(0xFF2FB476),
-      colorText: Colors.white,
-      snackStyle: SnackStyle.FLOATING,
+  void _showSuccessPopup() {
+    MessagePopupController.showSuccess(
+      messageKey: 'documentUploadSuccess',
+      titleKey: 'success',
     );
   }
 
-  /// Show error snackbar - ONLY place error snackbar is shown
-  void _showErrorSnackbar(String message) {
-    // Close any existing snackbars to prevent duplicates
-    if (Get.isSnackbarOpen ?? false) {
-      Get.closeAllSnackbars();
-    }
-    
-    Get.snackbar(
-      'Error',
-      'Document upload failed',
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: AppColors.danger,
-      colorText: Colors.white,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-      borderRadius: 12,
-      duration: const Duration(seconds: 3),
-      icon: const Icon(Icons.error, color: Colors.white, size: 20),
-      shouldIconPulse: false,
-      isDismissible: true,
-      dismissDirection: DismissDirection.horizontal,
+  void _showErrorPopup(String message) {
+    MessagePopupController.showError(
+      messageKey: message,
+      titleKey: 'error',
     );
   }
 

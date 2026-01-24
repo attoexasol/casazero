@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_text_styles.dart';
 import '../../app/theme/app_shadows.dart';
+import '../../core/controllers/message_popup_controller.dart';
 import '../../presentation/profile/controllers/profile_controller.dart';
 import 'custom_text_field.dart';
 import 'custom_button.dart';
@@ -70,40 +71,25 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
 
     // Validate inputs
     if (fullName.isEmpty) {
-      Get.snackbar(
-        'error'.tr,
-        'please_enter_your_name'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.shade600,
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(16),
-        borderRadius: 12,
+      MessagePopupController.showError(
+        messageKey: 'please_enter_your_name',
+        titleKey: 'error',
       );
       return;
     }
 
     if (email.isEmpty) {
-      Get.snackbar(
-        'error'.tr,
-        'please_enter_email'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.shade600,
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(16),
-        borderRadius: 12,
+      MessagePopupController.showError(
+        messageKey: 'please_enter_email',
+        titleKey: 'error',
       );
       return;
     }
 
     if (phone.isEmpty) {
-      Get.snackbar(
-        'error'.tr,
-        'please_enter_phone_number'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.shade600,
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(16),
-        borderRadius: 12,
+      MessagePopupController.showError(
+        messageKey: 'please_enter_phone_number',
+        titleKey: 'error',
       );
       return;
     }
