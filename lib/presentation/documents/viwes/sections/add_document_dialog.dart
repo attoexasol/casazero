@@ -482,42 +482,51 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
       );
     } else {
       // Show file details for non-image files
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          // Reduce spacing when height is constrained
+          final isConstrained = constraints.maxHeight < 110;
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: AppColors.brandSage500.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  _getFileIcon(fileType),
-                  color: AppColors.brandSage500,
-                  size: 28,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(child: _buildFileInfoRow()),
-              IconButton(
-                onPressed: _removeFile,
-                icon: const Icon(Icons.close, size: 20),
-                color: AppColors.neutralInk400,
-                splashRadius: 20,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: isConstrained ? 48 : 56,
+                    height: isConstrained ? 48 : 56,
+                    decoration: BoxDecoration(
+                      color: AppColors.brandSage500.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      _getFileIcon(fileType),
+                      color: AppColors.brandSage500,
+                      size: isConstrained ? 24 : 28,
+                    ),
+                  ),
+                  SizedBox(width: isConstrained ? 8 : 12),
+                  Expanded(
+                    child: _buildFileInfoRow(isConstrained: isConstrained),
+                  ),
+                  IconButton(
+                    onPressed: _removeFile,
+                    icon: const Icon(Icons.close, size: 20),
+                    color: AppColors.neutralInk400,
+                    splashRadius: 20,
+                  ),
+                ],
               ),
             ],
-          ),
-        ],
+          );
+        },
       );
     }
   }
 
   /// Build file info row with name, size, and type
-  Widget _buildFileInfoRow() {
+  Widget _buildFileInfoRow({bool isConstrained = false}) {
     final fileType = _getFileType(_selectedFileName);
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -528,14 +537,15 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
           style: AppTextStyles.bodyMedium.copyWith(
             color: AppColors.neutralInk900,
             fontWeight: FontWeight.w600,
+            fontSize: isConstrained ? 13 : null,
           ),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
-        const SizedBox(height: 6),
+        SizedBox(height: isConstrained ? 4 : 6),
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: 6,
+          runSpacing: 6,
           children: [
             _buildInfoChip('Size', _selectedFileSize ?? ''),
             _buildInfoChip('Type', fileType),
