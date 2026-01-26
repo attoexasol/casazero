@@ -152,14 +152,24 @@ class HubScreen extends StatelessWidget {
             children: [
               const SizedBox(height: 40),
 
-              // TOP LOGO
+              // TOP LOGO with smooth scale-up animation
               SizedBox(
-                height: width >= 600 ? 180 : 140,
-                child:
-                CasaZeroLogo(
-                  assetPath: 'assets/images/green_logo.png',
-                  //maxLogoWidthFactor:1,
+                height: width >= 600 ? 160 : 145, // Adjusted for smaller logo
+                child: CasaZeroLogo(
+                  assetPath: 'assets/images/Hub_screen_logo_image.png', // Using PNG logo
+                  containerHeight: width >= 600 ? 145 : 110, // Reduced container height
                 )
+                    .animate()
+                    .scale(
+                      begin: const Offset(0.85, 0.85), // Start slightly smaller
+                      end: const Offset(1.0, 1.0), // Scale to full size
+                      duration: 600.ms, // Smooth 600ms animation
+                      curve: Curves.easeOutCubic, // Premium easing curve
+                    )
+                    .fadeIn(
+                      duration: 500.ms, // Fade in slightly faster
+                      curve: Curves.easeOut,
+                    ),
               ),
 
               const SizedBox(height: 10),
