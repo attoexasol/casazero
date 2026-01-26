@@ -60,19 +60,19 @@ class HubScreen extends StatelessWidget {
         show: permissions.canAccessAI,
         wrapIconInContainer: false,
       ),
-      HubCard(
-        id: 'smarthome',
-        screen: 'smarthome',
-        title: "Domotica",
-        //icon: Icons.home_outlined,
-        imagePath: "assets/images/home.svg",
-        gradient: const [Color(0xFFA855F7), Color(0xFF9333EA)],
-        bgGradient: const [Color(0xFFF3E8FF), Color(0xFFE9D5FF)],
-        shadowColor: const Color(0x4DA855F7),
-        hoverColor: const Color(0xFF9333EA),
-        show: permissions.canAccessSmartHome, // Now true for all roles
-        wrapIconInContainer: true,
-      ),
+      // HubCard(
+      //   id: 'smarthome',
+      //   screen: 'smarthome',
+      //   title: "Domotica",
+      //   //icon: Icons.home_outlined,
+      //   imagePath: "assets/images/home.svg",
+      //   gradient: const [Color(0xFFA855F7), Color(0xFF9333EA)],
+      //   bgGradient: const [Color(0xFFF3E8FF), Color(0xFFE9D5FF)],
+      //   shadowColor: const Color(0x4DA855F7),
+      //   hoverColor: const Color(0xFF9333EA),
+      //   show: permissions.canAccessSmartHome, // Now true for all roles
+      //   wrapIconInContainer: true,
+      // ),
       HubCard(
         id: 'chat',
         screen: 'chat',
