@@ -621,6 +621,7 @@ class AppTranslations extends Translations {
     // ---------------- HUB SCREEN ----------------
     'exploreFeatures':
         'Explore all the intelligent features of CasaZero to manage your home',
+    'ecosystemHub': 'Ecosystem Hub',
     'domotica': 'Smart Home',
     'chatCondominio': 'Condominium Chat',
     'assistenza': 'Support',
@@ -1259,6 +1260,7 @@ class AppTranslations extends Translations {
     // ---------------- HUB SCREEN (Italian) ----------------
     'exploreFeatures':
         'Esplora tutte le funzionalità intelligenti di CasaZero per gestire la tua casa',
+    'ecosystemHub': 'Hub Ecosistema',
     'domotica': 'Domotica',
     'chatCondominio': 'Chat Condominio',
     'assistenza': 'Assistenza',

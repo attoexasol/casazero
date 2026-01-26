@@ -108,7 +108,7 @@ class MainScaffold extends GetView<HomeController> {
         break;
 
       case AppScreen.hubScreen:
-        title = 'Ecosystem Hub';
+        title = 'ecosystemHub'.tr;
         showNotification = true; // Show notification on all screens
         showSearch = false;
         showResidenceSwitcher = false;
@@ -126,7 +126,7 @@ class MainScaffold extends GetView<HomeController> {
         break;
 
       case AppScreen.profile:
-        title = 'Profile';
+        title = 'profile'.tr;
         showNotification = true; // Show notification on all screens
         showSearch = false;
         showResidenceSwitcher = false;
@@ -135,7 +135,7 @@ class MainScaffold extends GetView<HomeController> {
         break;
 
       case AppScreen.smartHome:
-        title = 'Smart Home';
+        title = 'smartHome'.tr;
         showNotification = true; // Show notification on all screens
         showSearch = false;
         showResidenceSwitcher = false;
