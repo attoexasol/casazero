@@ -191,10 +191,20 @@ class DocumentPasswordController extends GetxController {
 
     // Navigate to dedicated 2FA verification screen for document password
     // Password will be saved only after successful 2FA verification
-    Get.toNamed(
+    final result = await Get.toNamed(
       AppRoutes.DOCUMENT_PASSWORD_2FA,
       arguments: {'fromDocumentPassword': true},
     );
+
+    // Handle 2FA verification result
+    // result will be true if 2FA succeeded, false/null if failed or cancelled
+    if (result == true) {
+      // 2FA verification successful - save the password
+      await savePasswordAfter2FA();
+    } else {
+      // 2FA failed or cancelled - clear pending passwords and stay on screen
+      _clearPendingPasswords();
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -240,12 +250,8 @@ class DocumentPasswordController extends GetxController {
           titleKey: 'success',
         );
 
-        // Navigate back after success (give user time to see success message)
-        Future.delayed(const Duration(milliseconds: 3000), () {
-          if (Get.isDialogOpen != true) {
-            Get.back();
-          }
-        });
+        // Stay on Document Password screen - do NOT navigate away
+        // User can manually go back when ready
       } else {
         // Show error message from API response
         _showError(result['error'] ?? 'failed_to_save_document_password');

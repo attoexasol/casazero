@@ -17,33 +17,40 @@ class DocumentPassword2FAVerificationScreen extends GetView<OtpVerificationContr
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surfaceWhite,
-      body: Column(
-        children: [
-          _buildHeader(),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildDescription(),
-                  SizedBox(height: 32.h),
-                  _buildMethodInfo(),
-                  SizedBox(height: 24.h),
-                  _buildOtpInput(),
-                  SizedBox(height: 16.h),
-                  _buildResendSection(),
-                  SizedBox(height: 32.h),
-                  _buildVerifyButton(),
-                  SizedBox(height: 16.h),
-                  _buildCancelButton(),
-                ],
+    return WillPopScope(
+      onWillPop: () async {
+        // If user presses back button, cancel the flow
+        _handleBackButton();
+        return false; // Prevent default back navigation
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.surfaceWhite,
+        body: Column(
+          children: [
+            _buildHeader(),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildDescription(),
+                    SizedBox(height: 32.h),
+                    _buildMethodInfo(),
+                    SizedBox(height: 24.h),
+                    _buildOtpInput(),
+                    SizedBox(height: 16.h),
+                    _buildResendSection(),
+                    SizedBox(height: 32.h),
+                    _buildVerifyButton(),
+                    SizedBox(height: 16.h),
+                    _buildCancelButton(),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -70,7 +77,7 @@ class DocumentPassword2FAVerificationScreen extends GetView<OtpVerificationContr
               IconButton(
                 icon: Icon(Icons.chevron_left, size: 24.sp),
                 color: AppColors.neutralInk900,
-                onPressed: () => _handleCancel(),
+                onPressed: () => _handleBackButton(),
               ),
               SizedBox(width: 8.w),
               // Title
@@ -405,19 +412,36 @@ class DocumentPassword2FAVerificationScreen extends GetView<OtpVerificationContr
           TextButton(
             onPressed: () {
               Get.back(); // Close dialog
-              // Cancel document password flow
+              // Cancel document password flow - return false result
               try {
                 final documentPasswordController = Get.find<DocumentPasswordController>();
                 documentPasswordController.cancel2FAFlow();
               } catch (e) {
                 // Controller might not be found, that's okay
               }
-              Get.back(); // Go back to document password screen
+              // Return false to indicate cancellation
+              Get.back(result: false);
             },
             child: Text('yes'.tr),
           ),
         ],
       ),
     );
+  }
+
+  // ============================================================================
+  // BACK BUTTON HANDLER
+  // ============================================================================
+
+  void _handleBackButton() {
+    // Cancel document password flow - return false result
+    try {
+      final documentPasswordController = Get.find<DocumentPasswordController>();
+      documentPasswordController.cancel2FAFlow();
+    } catch (e) {
+      // Controller might not be found, that's okay
+    }
+    // Return false to indicate cancellation
+    Get.back(result: false);
   }
 }

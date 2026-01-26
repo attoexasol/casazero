@@ -228,22 +228,10 @@ class OtpVerificationController extends GetxController {
     if (result['success']) {
       // Check if this is from document password flow
       if (fromDocumentPassword.value) {
-        // Navigate back to document password screen
-        Get.back();
-        
-        // Call document password controller to save password after 2FA success
-        await Future.delayed(const Duration(milliseconds: 300));
-        try {
-          // Import and call the save method
-          final documentPasswordController = Get.find<DocumentPasswordController>();
-          await documentPasswordController.savePasswordAfter2FA();
-        } catch (e) {
-          // If controller not found, show error
-          MessagePopupController.showError(
-            messageKey: 'failed_to_save_document_password',
-            titleKey: 'error',
-          );
-        }
+        // Return success result to Document Password screen
+        // The Document Password controller will handle saving the password
+        Get.back(result: true);
+        return;
       } else if (fromForgotPassword.value) {
         // Navigate to forgot change password screen
         await Future.delayed(const Duration(milliseconds: 500));
@@ -257,11 +245,24 @@ class OtpVerificationController extends GetxController {
         Get.offAllNamed(AppRoutes.HOME);
       }
     } else {
-      MessagePopupController.showError(
-        messageKey: result['error'] ?? 'invalid_otp_code',
-        titleKey: 'error',
-      );
-      otpController.clear();
+      // 2FA verification failed
+      if (fromDocumentPassword.value) {
+        // Return false result to Document Password screen
+        // Don't show error here - let the user try again or cancel
+        MessagePopupController.showError(
+          messageKey: result['error'] ?? 'invalid_otp_code',
+          titleKey: 'error',
+        );
+        otpController.clear();
+        // Stay on 2FA screen - user can retry or cancel
+      } else {
+        // For login flow, show error and stay on screen
+        MessagePopupController.showError(
+          messageKey: result['error'] ?? 'invalid_otp_code',
+          titleKey: 'error',
+        );
+        otpController.clear();
+      }
     }
   }
 
@@ -278,12 +279,12 @@ class OtpVerificationController extends GetxController {
   }
 
   void cancelVerification() {
-    // If from document password flow, just go back (don't logout)
+    // If from document password flow, just go back with false result (don't logout)
     if (fromDocumentPassword.value) {
       Get.dialog(
         AlertDialog(
           title: Text('cancel_verification'.tr),
-          content: Text('Are you sure you want to cancel? Your document password will not be saved.'.tr),
+          content: Text('document_password_2fa_cancel_message'.tr),
           actions: [
             TextButton(
               onPressed: () => Get.back(),
@@ -292,14 +293,15 @@ class OtpVerificationController extends GetxController {
             TextButton(
               onPressed: () {
                 Get.back(); // Close dialog
-                // Cancel document password flow
+                // Cancel document password flow - return false result
                 try {
                   final documentPasswordController = Get.find<DocumentPasswordController>();
                   documentPasswordController.cancel2FAFlow();
                 } catch (e) {
                   // Controller might not be found, that's okay
                 }
-                Get.back(); // Go back to document password screen
+                // Return false to indicate cancellation
+                Get.back(result: false);
               },
               child: Text('yes'.tr),
             ),
