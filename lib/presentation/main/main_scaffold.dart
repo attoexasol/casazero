@@ -23,6 +23,7 @@ import '../home/controllers/home_controller.dart';
 import '../profile/controllers/profile_controller.dart';
 import '../documents/controllers/documents_controller.dart';
 import '../maintenance/controllers/maintenance_controller.dart';
+import '../ai/controllers/ai_controller.dart';
 import '../../data/models/user_model.dart';
 import '../../data/models/feed_item_model.dart';
 import '../../core/utils/permissions.dart';
@@ -152,7 +153,7 @@ class MainScaffold extends GetView<HomeController> {
         canGoForward = controller.canGoForward;
         break;
       case AppScreen.ai:
-        title = 'AI Assistant';
+        title = 'casaZeroAI'.tr;
         showNotification = true; // Show notification on all screens
         showSearch = false;
         showResidenceSwitcher = false;
@@ -751,7 +752,7 @@ class MainScaffold extends GetView<HomeController> {
         return HubScreen(
           role: controller.currentUser.value?.role ?? Role.client,
           onNavigate: (screen) =>
-              controller.navigateToScreen(AppScreen.hubScreen),
+              controller.navigateToScreenByString(screen),
         );
 
       case AppScreen.maintenance:
@@ -810,6 +811,13 @@ class MainScaffold extends GetView<HomeController> {
             });
           },
         );
+
+      case AppScreen.ai:
+        // Ensure AiController is initialized
+        if (!Get.isRegistered<AiController>()) {
+          Get.put(AiController());
+        }
+        return const AIScreen();
 
       // case AppScreen.trustedDevices:
       //   return const TrustedDevicesScreen();
