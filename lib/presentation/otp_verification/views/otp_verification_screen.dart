@@ -416,11 +416,15 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
   }
 
   Widget _buildCancelButton() {
-    return TextButton(
-      onPressed: controller.cancelVerification,
-      child: Text(
-        'cancel_logout'.tr,
-        style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14),
+    return Obx(
+      () => TextButton(
+        onPressed: controller.cancelVerification,
+        child: Text(
+          controller.fromDocumentPassword.value
+              ? 'cancel'.tr
+              : 'cancel_logout'.tr,
+          style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14),
+        ),
       ),
     );
   }

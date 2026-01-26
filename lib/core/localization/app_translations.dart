@@ -226,6 +226,9 @@ class AppTranslations extends Translations {
     "passwords_do_not_match": "Passwords do not match",
     "document_password_saved": "Document password saved successfully",
     "failed_to_save_document_password": "Failed to save document password",
+    "verify_to_save_document_password": "Verify to Save Document Password",
+    "verify_document_password_subtitle": "Enter the verification code to confirm this change",
+    "document_password_2fa_cancel_message": "Are you sure you want to cancel? Your document password will not be saved.",
     'cancel_logout': 'Cancel and Logout',
 
     // Trusted Devices
@@ -413,6 +416,7 @@ class AppTranslations extends Translations {
 
     // OTP Resend
     'please_wait_to_resend': 'Please wait {seconds} seconds before resending',
+    'resend_code_in': 'Resend code in {seconds}s',
 
     // Success/Error messages
     '2fa_activated_successfully': '2FA activated successfully',
@@ -771,6 +775,9 @@ class AppTranslations extends Translations {
     "passwords_do_not_match": "Le password non corrispondono",
     "document_password_saved": "Password documento salvata con successo",
     "failed_to_save_document_password": "Impossibile salvare la password del documento",
+    "verify_to_save_document_password": "Verifica per Salvare la Password del Documento",
+    "verify_document_password_subtitle": "Inserisci il codice di verifica per confermare la modifica",
+    "document_password_2fa_cancel_message": "Sei sicuro di voler annullare? La password del documento non verrà salvata.",
 
     // Trusted Devices
     "trusted_devices": "Dispositivi Fidati",

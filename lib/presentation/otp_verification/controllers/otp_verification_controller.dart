@@ -8,6 +8,7 @@ import '../../../app/routes/app_routes.dart';
 import '../../documents/controllers/documents_controller.dart';
 import '../../../data/repositories/document_repository.dart';
 import '../../../data/models/document_model.dart';
+import '../../profile/controllers/document_password_controller.dart';
 
 class OtpVerificationController extends GetxController {
   final AuthRepository _authRepository = Get.find();
@@ -21,14 +22,16 @@ class OtpVerificationController extends GetxController {
   final RxString twoFaMethod = ''.obs;
   final RxString maskedContact = ''.obs;
   final RxBool fromForgotPassword = false.obs;
+  final RxBool fromDocumentPassword = false.obs;
 
   @override
   void onInit() {
     super.onInit();
-    // Check if this OTP verification is from forgot password flow
+    // Check if this OTP verification is from forgot password or document password flow
     final arguments = Get.arguments;
     if (arguments != null && arguments is Map) {
       fromForgotPassword.value = arguments['fromForgotPassword'] == true;
+      fromDocumentPassword.value = arguments['fromDocumentPassword'] == true;
     }
     _initializeVerification();
   }
@@ -223,8 +226,25 @@ class OtpVerificationController extends GetxController {
     isLoading.value = false;
     print(result.toString());
     if (result['success']) {
-      // Check if this is from forgot password flow
-      if (fromForgotPassword.value) {
+      // Check if this is from document password flow
+      if (fromDocumentPassword.value) {
+        // Navigate back to document password screen
+        Get.back();
+        
+        // Call document password controller to save password after 2FA success
+        await Future.delayed(const Duration(milliseconds: 300));
+        try {
+          // Import and call the save method
+          final documentPasswordController = Get.find<DocumentPasswordController>();
+          await documentPasswordController.savePasswordAfter2FA();
+        } catch (e) {
+          // If controller not found, show error
+          MessagePopupController.showError(
+            messageKey: 'failed_to_save_document_password',
+            titleKey: 'error',
+          );
+        }
+      } else if (fromForgotPassword.value) {
         // Navigate to forgot change password screen
         await Future.delayed(const Duration(milliseconds: 500));
         Get.offAllNamed(AppRoutes.FORGOT_CHANGE_PASSWORD);
@@ -258,25 +278,56 @@ class OtpVerificationController extends GetxController {
   }
 
   void cancelVerification() {
-    Get.dialog(
-      AlertDialog(
-        title: Text('cancel_verification'.tr),
-        content: Text('cancel_verification_message'.tr),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text('no'.tr),
-          ),
-          TextButton(
-            onPressed: () {
-              Get.back(); // Close dialog
-              _logout();
-            },
-            child: Text('yes'.tr),
-          ),
-        ],
-      ),
-    );
+    // If from document password flow, just go back (don't logout)
+    if (fromDocumentPassword.value) {
+      Get.dialog(
+        AlertDialog(
+          title: Text('cancel_verification'.tr),
+          content: Text('Are you sure you want to cancel? Your document password will not be saved.'.tr),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(),
+              child: Text('no'.tr),
+            ),
+            TextButton(
+              onPressed: () {
+                Get.back(); // Close dialog
+                // Cancel document password flow
+                try {
+                  final documentPasswordController = Get.find<DocumentPasswordController>();
+                  documentPasswordController.cancel2FAFlow();
+                } catch (e) {
+                  // Controller might not be found, that's okay
+                }
+                Get.back(); // Go back to document password screen
+              },
+              child: Text('yes'.tr),
+            ),
+          ],
+        ),
+      );
+    } else {
+      // For login flow, logout on cancel
+      Get.dialog(
+        AlertDialog(
+          title: Text('cancel_verification'.tr),
+          content: Text('cancel_verification_message'.tr),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(),
+              child: Text('no'.tr),
+            ),
+            TextButton(
+              onPressed: () {
+                Get.back(); // Close dialog
+                _logout();
+              },
+              child: Text('yes'.tr),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   /// Pre-load documents in background after OTP verification

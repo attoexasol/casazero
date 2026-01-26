@@ -26,6 +26,7 @@ import '../../presentation/trusted_device/views/trusted_devices_screen.dart';
 import '../../presentation/trusted_device/controllers/trusted_devices_controller.dart';
 import '../../presentation/profile/views/document_password_screen.dart';
 import '../../presentation/profile/controllers/document_password_controller.dart';
+import '../../presentation/profile/views/document_password_2fa_verification_screen.dart';
 
 class AppRoutes {
   static const String SPLASH = '/';
@@ -42,6 +43,7 @@ class AppRoutes {
       '/two-fa-deactivation-verification';
   static const String TRUSTED_DEVICES = '/trusted-devices';
   static const String DOCUMENT_PASSWORD = '/document-password';
+  static const String DOCUMENT_PASSWORD_2FA = '/document-password-2fa';
 
   static final routes = [
     GetPage(
@@ -150,6 +152,13 @@ class AppRoutes {
       page: () => const DocumentPasswordScreen(),
       binding: BindingsBuilder(() {
         Get.lazyPut(() => DocumentPasswordController());
+      }),
+    ),
+    GetPage(
+      name: DOCUMENT_PASSWORD_2FA,
+      page: () => const DocumentPassword2FAVerificationScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => OtpVerificationController());
       }),
     ),
 

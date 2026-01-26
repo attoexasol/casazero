@@ -5,12 +5,19 @@ import 'package:get/get.dart';
 import '../../../core/controllers/message_popup_controller.dart';
 import '../../../core/utils/validators.dart';
 import '../../../data/repositories/auth_repository.dart';
+import '../../../app/routes/app_routes.dart';
 
 class DocumentPasswordController extends GetxController {
   // ---------------------------------------------------------------------------
   // DEPENDENCIES
   // ---------------------------------------------------------------------------
   final AuthRepository _authRepository = Get.find();
+  
+  // ---------------------------------------------------------------------------
+  // TEMPORARY PASSWORD STORAGE (for 2FA flow)
+  // ---------------------------------------------------------------------------
+  String? _pendingPassword;
+  String? _pendingConfirmPassword;
   // ---------------------------------------------------------------------------
   // TEXT CONTROLLERS
   // ---------------------------------------------------------------------------
@@ -148,7 +155,7 @@ class DocumentPasswordController extends GetxController {
   }
 
   // ---------------------------------------------------------------------------
-  // SUBMIT HANDLER (API Integration - Production Ready)
+  // SUBMIT HANDLER (2FA-Protected - Production Ready)
   // ---------------------------------------------------------------------------
   Future<void> submitDocumentPassword() async {
     // Validate form state first
@@ -156,9 +163,48 @@ class DocumentPasswordController extends GetxController {
       return;
     }
 
-    // Double-check security requirements before API call
+    // Double-check security requirements before proceeding
     if (!canSubmit) {
       _showError('complete_fields'.tr);
+      return;
+    }
+
+    // Prevent multiple simultaneous submissions
+    if (isLoading.value) {
+      return;
+    }
+
+    // Get password values securely (never log them)
+    final newPassword = newPasswordController.text.trim();
+    final confirmPassword = confirmPasswordController.text.trim();
+
+    // Additional validation: ensure passwords match after trim
+    if (newPassword != confirmPassword) {
+      _showError('passwords_do_not_match'.tr);
+      return;
+    }
+
+    // Store passwords temporarily for use after 2FA verification
+    // These will be cleared immediately after use
+    _pendingPassword = newPassword;
+    _pendingConfirmPassword = confirmPassword;
+
+    // Navigate to dedicated 2FA verification screen for document password
+    // Password will be saved only after successful 2FA verification
+    Get.toNamed(
+      AppRoutes.DOCUMENT_PASSWORD_2FA,
+      arguments: {'fromDocumentPassword': true},
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // SAVE PASSWORD AFTER 2FA VERIFICATION (Called from OTP Controller)
+  // ---------------------------------------------------------------------------
+  Future<void> savePasswordAfter2FA() async {
+    // Security check: ensure passwords are still available
+    if (_pendingPassword == null || _pendingConfirmPassword == null) {
+      _showError('failed_to_save_document_password');
+      _clearPendingPasswords();
       return;
     }
 
@@ -170,22 +216,14 @@ class DocumentPasswordController extends GetxController {
     isLoading.value = true;
 
     try {
-      // Get password values securely (never log them)
-      final newPassword = newPasswordController.text.trim();
-      final confirmPassword = confirmPasswordController.text.trim();
-
-      // Additional validation: ensure passwords match after trim
-      if (newPassword != confirmPassword) {
-        isLoading.value = false;
-        _showError('passwords_do_not_match'.tr);
-        return;
-      }
-
       // Call API to set/update document password
       final result = await _authRepository.setDocumentPassword(
-        password: newPassword,
-        confirmPassword: confirmPassword,
+        password: _pendingPassword!,
+        confirmPassword: _pendingConfirmPassword!,
       );
+
+      // Clear pending passwords immediately after use (security best practice)
+      _clearPendingPasswords();
 
       isLoading.value = false;
 
@@ -214,10 +252,27 @@ class DocumentPasswordController extends GetxController {
       }
     } catch (e) {
       isLoading.value = false;
+      _clearPendingPasswords();
       // Never log password in error messages - security best practice
       // Show generic error message to user
       _showError('failed_to_save_document_password');
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // CLEAR PENDING PASSWORDS (Security)
+  // ---------------------------------------------------------------------------
+  void _clearPendingPasswords() {
+    _pendingPassword = null;
+    _pendingConfirmPassword = null;
+  }
+
+  // ---------------------------------------------------------------------------
+  // CANCEL 2FA FLOW (Called when user cancels 2FA verification)
+  // ---------------------------------------------------------------------------
+  void cancel2FAFlow() {
+    _clearPendingPasswords();
+    // User remains on document password screen
   }
 
   // ---------------------------------------------------------------------------
