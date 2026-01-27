@@ -170,13 +170,19 @@ class OtpVerificationController extends GetxController {
 
     isResending.value = false;
 
-    if (result['success']) {
-
+    if (result['success'] == true) {
+      // Show info message when OTP is sent successfully (not error)
+      // Use explicit info popup to ensure correct styling
+      MessagePopupController.showInfo(
+        messageKey: 'otp_sent_to_email',
+        titleKey: 'info',
+      );
 
       // Start countdown
       countdown.value = 60;
       _startCountdown();
     } else {
+      // Only show error for actual failures
       MessagePopupController.showError(
         messageKey: result['error'] ?? 'failed_to_send_otp',
         titleKey: 'error',

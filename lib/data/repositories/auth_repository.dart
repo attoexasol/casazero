@@ -506,15 +506,30 @@ class AuthRepository {
         data: {'user_id': userId},
       );
 
-      if (response.statusCode == 200 && response.data['Status'] == true) {
+      // Check for both 'Status' (capital) and 'status' (lowercase) to handle API variations
+      final status = response.data['Status'] ?? response.data['status'];
+      final isSuccess = response.statusCode == 200 && status == true;
+
+      if (isSuccess) {
         return {
           'success': true,
           'message': response.data['message'] ?? 'OTP sent to your email',
         };
       } else {
+        // Only return error if it's actually an error, not a success message
+        final errorMessage = response.data['message'] ?? 'Failed to send email OTP';
+        // If message contains "OTP sent" or "sent to", it's actually a success, not an error
+        if (errorMessage.toLowerCase().contains('otp sent') || 
+            errorMessage.toLowerCase().contains('sent to')) {
+          // Treat as success even if status check failed
+          return {
+            'success': true,
+            'message': errorMessage,
+          };
+        }
         return {
           'success': false,
-          'error': response.data['message'] ?? 'Failed to send email OTP',
+          'error': errorMessage,
         };
       }
     } catch (e) {
@@ -600,15 +615,30 @@ class AuthRepository {
         data: {'user_id': userId},
       );
 
-      if (response.statusCode == 200 && response.data['Status'] == true) {
+      // Check for both 'Status' (capital) and 'status' (lowercase) to handle API variations
+      final status = response.data['Status'] ?? response.data['status'];
+      final isSuccess = response.statusCode == 200 && status == true;
+
+      if (isSuccess) {
         return {
           'success': true,
           'message': response.data['message'] ?? 'OTP sent to your phone',
         };
       } else {
+        // Only return error if it's actually an error, not a success message
+        final errorMessage = response.data['message'] ?? 'Failed to send SMS OTP';
+        // If message contains "OTP sent" or "sent to", it's actually a success, not an error
+        if (errorMessage.toLowerCase().contains('otp sent') || 
+            errorMessage.toLowerCase().contains('sent to')) {
+          // Treat as success even if status check failed
+          return {
+            'success': true,
+            'message': errorMessage,
+          };
+        }
         return {
           'success': false,
-          'error': response.data['message'] ?? 'Failed to send SMS OTP',
+          'error': errorMessage,
         };
       }
     } catch (e) {
