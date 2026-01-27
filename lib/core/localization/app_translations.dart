@@ -603,6 +603,9 @@ class AppTranslations extends Translations {
     'ticketNoiseSubject': 'Excessive noise from upper unit',
     'ticketWaterLeakSubject': 'Water leak in bathroom',
     'aiMockResponse': 'I understand you\'re asking about {input}. Based on your residence data, I can help you. This is a demo response showing how CasaZero AI would provide contextual information about your home, documents, and maintenance needs.',
+    'aiProcessingResponse': 'I\'m processing your request. Please wait...',
+    'aiSendError': 'Failed to send message. Please check your connection and try again.',
+    'aiLoadHistoryError': 'Failed to load chat history. Please try again.',
 
     // ---------------- SMART HOME SCREEN ----------------
     'smartHome': 'Smart Home',
@@ -1217,6 +1220,9 @@ class AppTranslations extends Translations {
     'ticketNoiseSubject': 'Rumore eccessivo dall\'unità superiore',
     'ticketWaterLeakSubject': 'Perdita d\'acqua nel bagno',
     'aiMockResponse': 'Capisco che stai chiedendo informazioni su {input}. In base ai dati della tua residenza, posso aiutarti. Questa è una risposta demo che mostra come CasaZero AI fornirebbe informazioni contestuali sulla tua casa, documenti e necessità di manutenzione.',
+    'aiProcessingResponse': 'Sto elaborando la tua richiesta. Attendere prego...',
+    'aiSendError': 'Invio messaggio fallito. Controlla la connessione e riprova.',
+    'aiLoadHistoryError': 'Caricamento cronologia chat fallito. Riprova.',
     // Frequency mappings for API values
     'frequencyWeekly': 'Settimanale',
     'frequencyMonthly': 'Mensile',

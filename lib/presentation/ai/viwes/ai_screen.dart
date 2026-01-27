@@ -171,32 +171,48 @@ class AIScreen extends StatelessWidget {
   }
 
   Widget _buildMessagesArea(AiController controller) {
-    return Container(
-      color: AppColors.surfaceWhite,
-      child: ListView.builder(
-        controller: controller.scrollController,
-        padding: EdgeInsets.all(16.w),
-        itemCount: controller.messages.length + 
-                   (controller.isLoading.value ? 1 : 0) + 
-                   (controller.showAssistance.value && controller.messages.length == 1 ? 1 : 0),
-        itemBuilder: (context, index) {
-          // Show assistance section when no chat started
-          if (controller.showAssistance.value && 
-              controller.messages.length == 1 && 
-              index == controller.messages.length) {
-            return _buildAssistanceSection(controller);
-          }
+    return Obx(
+      () {
+        // Show loading state while history is loading
+        if (controller.isLoadingHistory.value) {
+          return Center(
+            child: Padding(
+              padding: EdgeInsets.all(24.w),
+              child: CircularProgressIndicator(
+                color: AppColors.brandSage500,
+              ),
+            ),
+          );
+        }
 
-          // Show loading indicator
-          if (controller.isLoading.value && index == controller.messages.length) {
-            return _buildLoadingIndicator(controller);
-          }
+        return Container(
+          color: AppColors.surfaceWhite,
+          child: ListView.builder(
+            controller: controller.scrollController,
+            padding: EdgeInsets.all(16.w),
+            itemCount: controller.messages.length + 
+                       (controller.isLoading.value ? 1 : 0) + 
+                       (controller.showAssistance.value && controller.messages.length == 1 ? 1 : 0),
+            itemBuilder: (context, index) {
+              // Show assistance section when no chat started
+              if (controller.showAssistance.value && 
+                  controller.messages.length == 1 && 
+                  index == controller.messages.length) {
+                return _buildAssistanceSection(controller);
+              }
 
-          // Show message
-          final message = controller.messages[index];
-          return _buildMessageBubble(message, index);
-        },
-      ),
+              // Show loading indicator
+              if (controller.isLoading.value && index == controller.messages.length) {
+                return _buildLoadingIndicator(controller);
+              }
+
+              // Show message
+              final message = controller.messages[index];
+              return _buildMessageBubble(message, index);
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -737,7 +753,7 @@ class AIScreen extends StatelessWidget {
               Expanded(
                 child: TextField(
                   controller: controller.inputController,
-                  enabled: !controller.isLoading.value,
+                  enabled: !controller.isLoading.value && !controller.isSending.value,
                   decoration: InputDecoration(
                     hintText: 'askAnything'.tr,
                     hintStyle: AppTextStyles.bodyMedium.copyWith(
@@ -795,8 +811,9 @@ class AIScreen extends StatelessWidget {
                   child: Obx(
                     () {
                       final isLoading = controller.isLoading.value;
+                      final isSending = controller.isSending.value;
                       final hasText = controller.inputText.value.trim().isNotEmpty;
-                      final isEnabled = hasText && !isLoading;
+                      final isEnabled = hasText && !isLoading && !isSending;
                       
                       return InkWell(
                         onTap: isEnabled ? controller.sendMessage : null,

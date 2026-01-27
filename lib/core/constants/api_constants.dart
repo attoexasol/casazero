@@ -369,6 +369,45 @@ class ApiConstants {
   static const String DELETE_MAINTENANCE_TASK = '/maintenance/delete';
 
   // ============================================================================
+  // AI CHAT ENDPOINTS
+  // ============================================================================
+
+  /// Send AI Message
+  /// POST /casazero-ai/send-message
+  /// Request: {
+  ///   "token": "<USER_API_TOKEN>",
+  ///   "message": "<USER_MESSAGE>"
+  /// }
+  /// Response: {
+  ///   "success": true,
+  ///   "chat_id": 10,
+  ///   "reply": "<AI_REPLY>",
+  ///   "image": null
+  /// }
+  static const String AI_SEND_MESSAGE = '/casazero-ai/send-message';
+
+  /// Get AI Message History
+  /// POST /casazero-ai/get-message
+  /// Request: {
+  ///   "token": "<USER_API_TOKEN>"
+  /// }
+  /// Response: {
+  ///   "success": true,
+  ///   "data": {
+  ///     "data": [
+  ///       {
+  ///         "id": 10,
+  ///         "user_message": "...",
+  ///         "ai_message": "...",
+  ///         "image": null,
+  ///         "created_at": "..."
+  ///       }
+  ///     ]
+  ///   }
+  /// }
+  static const String AI_GET_MESSAGE_HISTORY = '/casazero-ai/get-message';
+
+  // ============================================================================
   // ENDPOINT HELPER METHODS
   // ============================================================================
 
