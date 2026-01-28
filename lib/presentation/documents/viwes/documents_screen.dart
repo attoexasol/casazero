@@ -197,9 +197,11 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                                 }
                               }
                             : null,
-                        onDownload: () {
-                          _controller.downloadDocument(doc);
-                        },
+                        onDownload: () => _controller.downloadDocument(
+                          doc,
+                          showDownloadingPopup: false,
+                          skipOpenCancelConfirmation: true,
+                        ),
                         onShare: permissions.canSharedDocuments
                             ? () {
                                 _controller.shareDocument(doc);

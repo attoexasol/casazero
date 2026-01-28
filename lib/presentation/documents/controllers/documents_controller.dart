@@ -115,8 +115,13 @@ class DocumentsController extends GetxController {
   }
 
   /// Download a document
-  /// Shows loading dialog, downloads the file, and shows result with Open button
-  Future<void> downloadDocument(DocumentModel document) async {
+  /// When [showDownloadingPopup] is false, no "Downloading…" modal is shown (e.g. for button-level loader).
+  /// When [skipOpenCancelConfirmation] is true, after success goes directly to native app chooser (no Open/Cancel dialog).
+  Future<void> downloadDocument(
+    DocumentModel document, {
+    bool showDownloadingPopup = true,
+    bool skipOpenCancelConfirmation = false,
+  }) async {
     try {
       final documentId = int.tryParse(document.id);
       if (documentId == null) {
@@ -132,18 +137,19 @@ class DocumentsController extends GetxController {
 
       print('📥 Starting download: $fileName');
 
-      // 1. Show downloading popup (stays open)
-      MessagePopupController.showDownloading(
-        messageKey: 'downloading'.tr + ': ${document.title}',
-      );
+      if (showDownloadingPopup) {
+        MessagePopupController.showDownloading(
+          messageKey: 'downloading'.tr + ': ${document.title}',
+        );
+      }
 
-      // 2. Call API
+      // Call API
       final apiResult = await _repository.downloadDocument(
         documentId: documentId,
       );
 
       if (apiResult['success'] != true) {
-        MessagePopupController.closePopup();
+        if (showDownloadingPopup && (Get.isDialogOpen ?? false)) Get.back();
         await MessagePopupController.showError(
           messageKey: apiResult['error'] ?? 'downloadError'.tr,
           titleKey: 'downloadFailed'.tr,
@@ -154,7 +160,7 @@ class DocumentsController extends GetxController {
       // Get file bytes from API response
       final fileBytes = apiResult['data'] as List<int>?;
       if (fileBytes == null || fileBytes.isEmpty) {
-        if (Get.isDialogOpen ?? false) Get.back();
+        if (showDownloadingPopup && (Get.isDialogOpen ?? false)) Get.back();
         await MessagePopupController.showError(
           messageKey: 'noFileDataReceived'.tr,
           titleKey: 'downloadFailed'.tr,
@@ -181,7 +187,7 @@ class DocumentsController extends GetxController {
           print(
             '❌ [DocumentsController] File does not exist after save: $filePath',
           );
-          if (Get.isDialogOpen ?? false) Get.back();
+          if (showDownloadingPopup && (Get.isDialogOpen ?? false)) Get.back();
           await MessagePopupController.showError(
             messageKey: 'fileNotSavedCorrectly'.tr,
             titleKey: 'downloadFailed'.tr,
@@ -193,7 +199,7 @@ class DocumentsController extends GetxController {
         final fileSize = await savedFile.length();
         if (fileSize == 0) {
           print('❌ [DocumentsController] File is empty after save: $filePath');
-          if (Get.isDialogOpen ?? false) Get.back();
+          if (showDownloadingPopup && (Get.isDialogOpen ?? false)) Get.back();
           await MessagePopupController.showError(
             messageKey: 'fileEmptyPleaseDownloadAgain'.tr,
             titleKey: 'downloadFailed'.tr,
@@ -206,29 +212,26 @@ class DocumentsController extends GetxController {
           '✅ [DocumentsController] File verified: exists=${fileExists}, size=${fileSize} bytes',
         );
 
-        // Close "downloading" popup
-        if (Get.isDialogOpen ?? false) Get.back();
+        if (showDownloadingPopup && (Get.isDialogOpen ?? false)) Get.back();
 
-        // STEP 1: Native Open / Cancel confirmation (system dialog, not app chooser)
-        final userWantsOpen = await FileOpenerService.showNativeOpenCancelConfirmation(
-          title: 'downloadSuccess'.tr,
-          message: 'fileDownloadedSuccessfully'.tr.replaceAll(
-            '{fileName}',
-            document.title,
-          ),
-        );
-
-        if (!userWantsOpen) {
-          print(
-            '📂 User cancelled. File remains saved at: $filePath',
+        if (skipOpenCancelConfirmation) {
+          await _openFileFromLocalStorage(filePath, document.title);
+        } else {
+          final userWantsOpen = await FileOpenerService.showNativeOpenCancelConfirmation(
+            title: 'downloadSuccess'.tr,
+            message: 'fileDownloadedSuccessfully'.tr.replaceAll(
+              '{fileName}',
+              document.title,
+            ),
           );
-          return;
+          if (!userWantsOpen) {
+            print('📂 User cancelled. File remains saved at: $filePath');
+            return;
+          }
+          await _openFileFromLocalStorage(filePath, document.title);
         }
-
-        // STEP 2: Native app chooser (only after user tapped Open)
-        await _openFileFromLocalStorage(filePath, document.title);
       } else {
-        if (Get.isDialogOpen ?? false) Get.back();
+        if (showDownloadingPopup && (Get.isDialogOpen ?? false)) Get.back();
         await MessagePopupController.showError(
           messageKey: saveResult['error'] ?? 'downloadError'.tr,
           titleKey: 'downloadFailed'.tr,
@@ -237,7 +240,7 @@ class DocumentsController extends GetxController {
       }
     } catch (e) {
       print('❌ [DocumentsController] Error downloading document: $e');
-      if (Get.isDialogOpen ?? false) Get.back();
+      if (showDownloadingPopup && (Get.isDialogOpen ?? false)) Get.back();
       await MessagePopupController.showError(
         messageKey: 'downloadError'.tr,
         titleKey: 'downloadFailed'.tr,

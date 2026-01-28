@@ -3,10 +3,14 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../data/models/document_model.dart';
 import 'document_colors.dart';
 
+/// Callback that runs the download and completes when done (success or error).
+/// Used so the card can show a button-level loader and clear it when the future completes.
+typedef DownloadCallback = Future<void> Function();
+
 class DocumentCard extends StatefulWidget {
   final DocumentModel document;
   final VoidCallback? onView;
-  final VoidCallback? onDownload;
+  final DownloadCallback? onDownload;
   final VoidCallback? onShare;
   final VoidCallback? onChat;
   final VoidCallback? onDelete;
@@ -29,6 +33,7 @@ class DocumentCard extends StatefulWidget {
 
 class _DocumentCardState extends State<DocumentCard> {
   bool _isPressed = false;
+  bool _isDownloading = false;
 
   void _setPressed(bool value) {
     if (_isPressed == value) return;
@@ -204,13 +209,9 @@ class _DocumentCardState extends State<DocumentCard> {
                               },
                               child: Row(
                                 children: [
-                                  // Download Button
+                                  // Download Button (with optional in-button loader)
                                   if (widget.onDownload != null)
-                                    _actionBtn(
-                                      "assets/images/download.svg",
-                                      widget.onDownload!,
-                                      scale,
-                                    ),
+                                    _downloadActionBtn(scale),
 
                                   // Share Button
                                   if (widget.onShare != null)
@@ -266,6 +267,49 @@ class _DocumentCardState extends State<DocumentCard> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  /// Download action button: shows icon normally, shows in-button loader while downloading.
+  Widget _downloadActionBtn(double scale) {
+    final size = 20.0 * scale;
+    return Padding(
+      padding: EdgeInsets.only(right: 8 * scale),
+      child: GestureDetector(
+        onTap: _isDownloading
+            ? null
+            : () async {
+                print('🔘 [DocumentCard] Download button tapped');
+                setState(() => _isDownloading = true);
+                try {
+                  await widget.onDownload!();
+                } finally {
+                  if (mounted) setState(() => _isDownloading = false);
+                }
+              },
+        onTapDown: (_) {
+          if (!_isDownloading) print('🔘 [DocumentCard] Action button tap down: download');
+        },
+        behavior: HitTestBehavior.opaque,
+        child: SizedBox(
+          width: size,
+          height: size,
+          child: _isDownloading
+              ? SizedBox(
+                  width: size,
+                  height: size,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.grey.shade700),
+                  ),
+                )
+              : SvgPicture.asset(
+                  "assets/images/download.svg",
+                  width: size,
+                  height: size,
+                ),
         ),
       ),
     );
