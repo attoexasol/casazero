@@ -532,7 +532,7 @@ class MainScaffold extends GetView<HomeController> {
             children: [
               Icon(
                 Icons.notifications,
-                size: 32.sp,
+                size: 30.sp,
                 color: AppColors.brandSage600,
                 
               ),
