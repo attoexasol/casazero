@@ -1,12 +1,13 @@
 package com.example.casazero
 
+import android.app.AlertDialog
 import android.content.ContentValues
+import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
-import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -59,11 +60,10 @@ class MainActivity : FlutterActivity() {
             AlertDialog.Builder(this)
                 .setTitle(title)
                 .setMessage(message)
-                .setPositiveButton("Open") { _, _ ->
+                .setPositiveButton("Open") { _: DialogInterface?, _: Int ->
                     result.success(true)
                 }
-                .setNegativeButton("Cancel") { dialog, _ ->
-                    dialog.dismiss()
+                .setNegativeButton("Cancel") { _: DialogInterface?, _: Int ->
                     result.success(false)
                 }
                 .setOnCancelListener {
