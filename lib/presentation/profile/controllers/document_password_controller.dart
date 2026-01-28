@@ -21,12 +21,14 @@ class DocumentPasswordController extends GetxController {
   // ---------------------------------------------------------------------------
   // TEXT CONTROLLERS
   // ---------------------------------------------------------------------------
+  final currentPasswordController = TextEditingController();
   final newPasswordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
   // ---------------------------------------------------------------------------
   // OBSERVABLES FOR UI
   // ---------------------------------------------------------------------------
+  final RxBool showCurrentPassword = false.obs;
   final RxBool showNewPassword = false.obs;
   final RxBool showConfirmPassword = false.obs;
   final RxBool isLoading = false.obs;
@@ -58,13 +60,33 @@ class DocumentPasswordController extends GetxController {
     // Update GetBuilder UI for submit button / form state
     newPasswordController.addListener(() => update());
     confirmPasswordController.addListener(() => update());
+
+    // Fetch current document password for read-only display (do not block on failure)
+    _fetchCurrentDocumentPassword();
   }
 
   @override
   void onClose() {
+    currentPasswordController.dispose();
     newPasswordController.dispose();
     confirmPasswordController.dispose();
     super.onClose();
+  }
+
+  /// Fetch current document password from API and set in read-only field.
+  /// On failure, leave field empty; do not show popup or block the screen.
+  Future<void> _fetchCurrentDocumentPassword() async {
+    try {
+      final result = await _authRepository.getDocumentPassword();
+      if (result['success'] == true) {
+        final documentPassword = result['document_password']?.toString();
+        if (documentPassword != null && documentPassword.isNotEmpty) {
+          currentPasswordController.text = documentPassword;
+        }
+      }
+    } catch (_) {
+      // Leave field empty; do not log or show popup
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -99,6 +121,10 @@ class DocumentPasswordController extends GetxController {
   // ---------------------------------------------------------------------------
   // PASSWORD VISIBILITY
   // ---------------------------------------------------------------------------
+  void toggleCurrentPasswordVisibility() {
+    showCurrentPassword.value = !showCurrentPassword.value;
+  }
+
   void toggleNewPasswordVisibility() {
     showNewPassword.value = !showNewPassword.value;
   }

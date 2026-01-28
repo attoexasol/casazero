@@ -313,6 +313,35 @@ class AuthRepository {
     }
   }
 
+  /// Get Document Password (read-only; for display on document password screen)
+  /// POST /user/get-document-password
+  /// Request: { "token": "<stored_user_token>" }
+  /// Response: { "status": true, "document_password": "..." }
+  /// On failure or missing token, returns success: false; do not log or persist password.
+  Future<Map<String, dynamic>> getDocumentPassword() async {
+    try {
+      final accessToken = _storageService.getAccessToken();
+      if (accessToken == null || accessToken.isEmpty) {
+        return {'success': false};
+      }
+      final response = await _apiService.post(
+        ApiConstants.GET_DOCUMENT_PASSWORD,
+        data: {'token': accessToken},
+      );
+      if (response.statusCode == 200 &&
+          response.data != null &&
+          response.data['status'] == true) {
+        final documentPassword = response.data['document_password']?.toString();
+        if (documentPassword != null && documentPassword.isNotEmpty) {
+          return {'success': true, 'document_password': documentPassword};
+        }
+      }
+      return {'success': false};
+    } catch (_) {
+      return {'success': false};
+    }
+  }
+
   // Set Document Password
   /// POST /user/set-document-password
   /// API URL: https://smarthome.attoexasolutions.com/api/user/set-document-password

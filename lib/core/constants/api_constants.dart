@@ -10,6 +10,12 @@ class ApiConstants {
   static const String RESET_PASSWORD = '/auth/reset-password';
   static const String CHANGE_PASSWORD = '/user/forget_password';
 
+  /// Get Document Password (read-only, for display on document password screen)
+  /// POST /user/get-document-password
+  /// Request: { "token": "<stored_user_token>" }
+  /// Response: { "status": true, "document_password": "..." }
+  static const String GET_DOCUMENT_PASSWORD = '/user/get-document-password';
+
   /// Set Document Password
   /// POST /user/set-document-password
   /// API URL: https://smarthome.attoexasolutions.com/api/user/set-document-password

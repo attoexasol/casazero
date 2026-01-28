@@ -229,6 +229,7 @@ class AppTranslations extends Translations {
     "verify_to_save_document_password": "Verify to Save Document Password",
     "verify_document_password_subtitle": "Enter the verification code to confirm this change",
     "document_password_2fa_cancel_message": "Are you sure you want to cancel? Your document password will not be saved.",
+    "current_document_password_hint": "Your current document password",
     'cancel_logout': 'Cancel and Logout',
 
     // Trusted Devices
@@ -795,6 +796,7 @@ class AppTranslations extends Translations {
     "verify_to_save_document_password": "Verifica per Salvare la Password del Documento",
     "verify_document_password_subtitle": "Inserisci il codice di verifica per confermare la modifica",
     "document_password_2fa_cancel_message": "Sei sicuro di voler annullare? La password del documento non verrà salvata.",
+    "current_document_password_hint": "Password documento corrente",
 
     // Trusted Devices
     "trusted_devices": "Dispositivi Fidati",
