@@ -530,27 +530,34 @@ class MainScaffold extends GetView<HomeController> {
           child: Stack(
             clipBehavior: Clip.none,
             children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                width: 43.w,
-                height: 43.w,
-                decoration: BoxDecoration(
-                  color: AppColors.brandSage50,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  Icons.notifications,
-                  size: 25.sp,
-                  color: AppColors.brandSage600,
-                ),
+              Icon(
+                Icons.notifications,
+                size: 32.sp,
+                color: AppColors.brandSage600,
+                
               ),
+
+              // AnimatedContainer(
+              //   duration: const Duration(milliseconds: 300),
+              //   width: 43.w,
+              //   height: 43.w,
+              //   decoration: BoxDecoration(
+              //     color: AppColors.brandSage50,
+              //     shape: BoxShape.circle,
+              //     boxShadow: [
+              //       BoxShadow(
+              //         color: Colors.black.withOpacity(0.05),
+              //         blurRadius: 4,
+              //         offset: const Offset(0, 2),
+              //       ),
+              //     ],
+              //   ),
+              //   child: Icon(
+              //     Icons.notifications,
+              //     size: 25.sp,
+              //     color: AppColors.brandSage600,
+              //   ),
+              // ),
               // Notification Badge
               if (count > 0)
                 Positioned(
@@ -751,8 +758,7 @@ class MainScaffold extends GetView<HomeController> {
       case AppScreen.hubScreen:
         return HubScreen(
           role: controller.currentUser.value?.role ?? Role.client,
-          onNavigate: (screen) =>
-              controller.navigateToScreenByString(screen),
+          onNavigate: (screen) => controller.navigateToScreenByString(screen),
         );
 
       case AppScreen.maintenance:
