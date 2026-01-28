@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -20,6 +21,11 @@ class MainActivity : FlutterActivity() {
         
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
+                "showOpenCancelConfirmation" -> {
+                    val title = call.argument<String>("title") ?: "Open"
+                    val message = call.argument<String>("message") ?: "Open this file?"
+                    showNativeOpenCancelConfirmation(title, message, result)
+                }
                 "openWithChooser" -> {
                     val filePath = call.argument<String>("filePath")
                     if (filePath != null) {
@@ -41,6 +47,30 @@ class MainActivity : FlutterActivity() {
                     result.notImplemented()
                 }
             }
+        }
+    }
+
+    private fun showNativeOpenCancelConfirmation(
+        title: String,
+        message: String,
+        result: MethodChannel.Result
+    ) {
+        runOnUiThread {
+            AlertDialog.Builder(this)
+                .setTitle(title)
+                .setMessage(message)
+                .setPositiveButton("Open") { _, _ ->
+                    result.success(true)
+                }
+                .setNegativeButton("Cancel") { dialog, _ ->
+                    dialog.dismiss()
+                    result.success(false)
+                }
+                .setOnCancelListener {
+                    result.success(false)
+                }
+                .create()
+                .show()
         }
     }
 

@@ -7,6 +7,31 @@ import 'package:open_filex/open_filex.dart';
 class FileOpenerService {
   static const MethodChannel _channel = MethodChannel('com.example.casazero/file_opener');
 
+  /// Show native Open / Cancel confirmation (step 1 of two-step flow).
+  /// Returns true if user chose Open, false if Cancel or dismissed.
+  /// Uses platform-native dialog (Android AlertDialog / iOS UIAlertController).
+  static Future<bool> showNativeOpenCancelConfirmation({
+    String? title,
+    String? message,
+  }) async {
+    try {
+      if (Platform.isAndroid || Platform.isIOS) {
+        final result = await _channel.invokeMethod<bool>(
+          'showOpenCancelConfirmation',
+          <String, dynamic>{
+            if (title != null) 'title': title,
+            if (message != null) 'message': message,
+          },
+        );
+        return result == true;
+      }
+    } catch (e) {
+      // Platform not implemented or error: proceed to chooser so flow is not blocked
+      print('⚠️ Native Open/Cancel confirmation not available: $e');
+    }
+    return true;
+  }
+
   /// Open file with forced native chooser
   /// This will ALWAYS show the app chooser, even for images
   /// Uses platform channel on Android/iOS, falls back to OpenFilex if not available

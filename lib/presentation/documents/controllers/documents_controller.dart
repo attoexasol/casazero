@@ -5,7 +5,6 @@ import '../../../data/repositories/document_repository.dart';
 import '../../../core/services/download_service.dart';
 import '../../../core/services/file_opener_service.dart';
 import '../../../core/controllers/message_popup_controller.dart';
-import '../../../core/widgets/custom_message_popup.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:open_filex/open_filex.dart';
@@ -207,9 +206,27 @@ class DocumentsController extends GetxController {
           '✅ [DocumentsController] File verified: exists=${fileExists}, size=${fileSize} bytes',
         );
 
-        // Close "downloading" info, then show confirmation (no middle success message)
+        // Close "downloading" popup
         if (Get.isDialogOpen ?? false) Get.back();
-        await _showDownloadConfirmationDialog(filePath, document.title);
+
+        // STEP 1: Native Open / Cancel confirmation (system dialog, not app chooser)
+        final userWantsOpen = await FileOpenerService.showNativeOpenCancelConfirmation(
+          title: 'downloadSuccess'.tr,
+          message: 'fileDownloadedSuccessfully'.tr.replaceAll(
+            '{fileName}',
+            document.title,
+          ),
+        );
+
+        if (!userWantsOpen) {
+          print(
+            '📂 User cancelled. File remains saved at: $filePath',
+          );
+          return;
+        }
+
+        // STEP 2: Native app chooser (only after user tapped Open)
+        await _openFileFromLocalStorage(filePath, document.title);
       } else {
         if (Get.isDialogOpen ?? false) Get.back();
         await MessagePopupController.showError(
@@ -228,78 +245,7 @@ class DocumentsController extends GetxController {
     }
   }
 
-  /// Show download confirmation dialog with Open With and Cancel options
-  /// File is NOT opened automatically - only when user taps "Open With"
-  /// NOTE: File existence should be verified BEFORE calling this method
-  Future<void> _showDownloadConfirmationDialog(
-    String filePath,
-    String fileName,
-  ) async {
-    try {
-      // Double-check file exists (defensive programming)
-      final file = File(filePath);
-      final fileExists = await file.exists();
-
-      if (!fileExists) {
-        print(
-          '❌ [DocumentsController] File not found in confirmation dialog: $filePath',
-        );
-        MessagePopupController.showError(
-          messageKey: 'fileNotFoundInStorage'.tr,
-          titleKey: 'openFileFailed'.tr,
-        );
-        return;
-      }
-
-      // Verify file has content
-      final fileSize = await file.length();
-      if (fileSize == 0) {
-        print(
-          '❌ [DocumentsController] File is empty in confirmation dialog: $filePath',
-        );
-        MessagePopupController.showError(
-          messageKey: 'fileEmptyPleaseDownloadAgain'.tr,
-          titleKey: 'openFileFailed'.tr,
-        );
-        return;
-      }
-
-      print(
-        '✅ [DocumentsController] Showing confirmation dialog for file: $filePath (${fileSize} bytes)',
-      );
-
-      // Show confirmation popup using CustomMessagePopup
-      final shouldOpen = await MessagePopupController.showCustom(
-        messageKey: 'fileDownloadedSuccessfully'.tr.replaceAll(
-          '{fileName}',
-          fileName,
-        ),
-        titleKey: 'downloadSuccess'.tr,
-        messageType: MessageType.success,
-        primaryAction: PopupAction(labelKey: 'openWith', isPrimary: true),
-        secondaryAction: PopupAction(labelKey: 'cancel', isPrimary: false),
-        barrierDismissible: true,
-      );
-
-      // Only open file if user explicitly tapped "Open With"
-      if (shouldOpen == true) {
-        print('📂 User chose to open file: $fileName');
-        await _openFileFromLocalStorage(filePath, fileName);
-      } else {
-        print(
-          '📂 User cancelled file opening. File remains saved at: $filePath',
-        );
-      }
-    } catch (e) {
-      print('❌ Error showing download confirmation dialog: $e');
-      MessagePopupController.showError(
-        messageKey: 'anErrorOccurred'.tr,
-        titleKey: 'error'.tr,
-      );
-    }
-  }
-
-  /// Open file from local storage (only called when user explicitly chooses to open)
+  /// Open file from local storage (called after successful download to show native open/chooser)
   Future<void> _openFileFromLocalStorage(
     String filePath,
     String fileName,
