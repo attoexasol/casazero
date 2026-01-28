@@ -39,14 +39,17 @@ class CustomMessagePopup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final maxWidth = (screenWidth * 0.78).clamp(260.0, 360.0);
+
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24),
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 500),
+        constraints: BoxConstraints(maxWidth: maxWidth),
         decoration: BoxDecoration(
           color: AppColors.surfaceWhite,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
@@ -61,16 +64,17 @@ class CustomMessagePopup extends StatelessWidget {
           children: [
             // Header with icon and title
             _buildHeader(),
-            SizedBox(height: 5,),
+            const SizedBox(height: 4),
 
             // Message content
             Padding(
               padding: EdgeInsets.fromLTRB(
-                24,
-                0,
-                24,
-                (primaryAction != null || secondaryAction != null) ? 0 : 24,
+                16,
+                6,
+                16,
+                (primaryAction != null || secondaryAction != null) ? 0 : 16,
               ),
+
               child: Text(
                 messageKey.tr,
                 style: AppTextStyles.bodyMedium.copyWith(
@@ -79,7 +83,7 @@ class CustomMessagePopup extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
             ),
-            SizedBox(height: 10,),
+            const SizedBox(height: 8),
 
             // Action buttons only for confirmation (when primary/secondary provided)
             if (primaryAction != null || secondaryAction != null)
@@ -124,26 +128,26 @@ class CustomMessagePopup extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 15,vertical: 15),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         color: iconColor.withOpacity(0.1),
         borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(16),
-          topRight: Radius.circular(16),
+          topLeft: Radius.circular(14),
+          topRight: Radius.circular(14),
         ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: iconColor, size: 32),
-          const SizedBox(width: 12),
+          Icon(icon, color: iconColor, size: 22),
+          const SizedBox(width: 10),
           Flexible(
             child: Text(
               title,
               style: AppTextStyles.h4.copyWith(
                 fontWeight: FontWeight.w600,
                 color: AppColors.neutralInk900,
-                fontSize: 20,
+                fontSize: 17,
               ),
               textAlign: TextAlign.start,
             ),
@@ -176,7 +180,7 @@ class CustomMessagePopup extends StatelessWidget {
               style: AppTextStyles.button.copyWith(
                 color: AppColors.neutralInk700,
                 fontWeight: FontWeight.w800,
-                fontSize: 14
+                fontSize: 14,
               ),
             ),
           ),
@@ -216,14 +220,13 @@ class CustomMessagePopup extends StatelessWidget {
       );
     }
 
-    
-
     // Buttons only for confirmation; never show OK for info/error/success/warning
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+
       child: Row(
         children: actions.length > 1
-            ? [const Spacer(),...actions]
+            ? [const Spacer(), ...actions]
             : [const Spacer(), ...actions, const Spacer()],
       ),
     );
