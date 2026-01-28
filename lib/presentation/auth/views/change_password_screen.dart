@@ -1,10 +1,13 @@
 // presentation/auth/views/change_password_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
-import '../../../core/widgets/casazero_logo.dart';
-import '../../../core/widgets/password_input.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import '../../../app/theme/app_colors.dart';
+import '../../../app/theme/app_text_styles.dart';
+import '../../../core/widgets/custom_text_field.dart';
+import '../../../core/widgets/custom_button.dart';
 import '../controllers/change_password_controller.dart';
 
 class ChangePasswordScreen extends GetView<ChangePasswordController> {
@@ -20,69 +23,210 @@ class ChangePasswordScreen extends GetView<ChangePasswordController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
+      backgroundColor: AppColors.surfaceWhite,
+      body: Column(
         children: [
-          _buildBackground(),
-          SafeArea(child: _buildContent()),
+          _buildHeader(),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildDescription(),
+                  SizedBox(height: 32.h),
+                  _buildPasswordFields(),
+                  // Password Requirements
+                  Obx(() {
+                    if (!controller.hasPasswordInput.value) {
+                      return const SizedBox.shrink();
+                    }
+                    return Column(
+                      children: [
+                        SizedBox(height: 20.h),
+                        _buildPasswordRequirements(),
+                      ],
+                    );
+                  }),
+                  // Password Match Indicator
+                  Obx(() {
+                    if (!controller.showPasswordMatch.value) {
+                      return const SizedBox.shrink();
+                    }
+                    return Column(
+                      children: [
+                        SizedBox(height: 12.h),
+                        _buildPasswordMatchIndicator(),
+                      ],
+                    );
+                  }),
+                  SizedBox(height: 32.h),
+                  _buildSaveButton(),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  // --------------------------
-  // BACKGROUND
-  // --------------------------
-  Widget _buildBackground() {
-    return Positioned.fill(
-      child: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/login_bg.png'),
-            fit: BoxFit.cover,
-          ),
+  // ============================================================================
+  // HEADER
+  // ============================================================================
+
+  Widget _buildHeader() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceWhite,
+        border: Border(
+          bottom: BorderSide(color: AppColors.neutralLine200, width: 1),
         ),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.black.withOpacity(0.2),
-                Colors.black.withOpacity(0.1),
-                Colors.black.withOpacity(0.3),
-              ],
-            ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+          child: Row(
+            children: [
+              // Back button
+              IconButton(
+                icon: Icon(Icons.chevron_left, size: 24.sp),
+                color: AppColors.neutralInk900,
+                onPressed: onBack,
+              ),
+              SizedBox(width: 8.w),
+              // Title
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'secure_your_account'.tr,
+                      style: AppTextStyles.h4.copyWith(
+                        color: AppColors.neutralInk900,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    SizedBox(height: 2.h),
+                    Text(
+                      'first_login_password_change'.tr,
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.neutralInk500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  // --------------------------
-  // MAIN CONTENT
-  // --------------------------
-  Widget _buildContent() {
+  // ============================================================================
+  // DESCRIPTION
+  // ============================================================================
+
+  Widget _buildDescription() {
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: AppColors.brandSage50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.brandSage300, width: 1),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline, color: AppColors.brandSage600, size: 20.sp),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Text(
+              'first_login_password_change'.tr,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.neutralInk700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================================
+  // PASSWORD FIELDS
+  // ============================================================================
+
+  Widget _buildPasswordFields() {
     return Column(
       children: [
-        _buildBackButton(),
-        Expanded(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 430),
-                child: Column(
-                  children: [
-                    CasaZeroLogo(
-                      assetPath: 'assets/images/white_logo.png',
-                      maxLogoWidthFactor: 0.4,
-                      showTagline: false,
-                    ),
-                    const SizedBox(height: 40),
-                    _buildGlassCard(),
-                  ],
-                ),
+        // Current Password Field
+        Obx(
+          () => CustomTextField(
+            label: 'current_password'.tr,
+            hint: '••••••••',
+            controller: controller.currentPasswordController,
+            obscureText: !controller.showCurrentPassword.value,
+            backgroundColor: AppColors.surfaceWhite,
+            borderColor: AppColors.neutralLine200,
+            textColor: AppColors.neutralInk900,
+            labelColor: AppColors.neutralInk900,
+            suffixIcon: IconButton(
+              icon: Icon(
+                controller.showCurrentPassword.value
+                    ? Icons.visibility_off
+                    : Icons.visibility,
+                color: AppColors.neutralInk500,
               ),
+              onPressed: () => controller.togglePasswordVisibility('current'),
+            ),
+          ),
+        ),
+        SizedBox(height: 20.h),
+        // New Password Field
+        Obx(
+          () => CustomTextField(
+            label: 'new_password'.tr,
+            hint: '••••••••',
+            controller: controller.newPasswordController,
+            obscureText: !controller.showNewPassword.value,
+            backgroundColor: AppColors.surfaceWhite,
+            borderColor: AppColors.neutralLine200,
+            textColor: AppColors.neutralInk900,
+            labelColor: AppColors.neutralInk900,
+            suffixIcon: IconButton(
+              icon: Icon(
+                controller.showNewPassword.value
+                    ? Icons.visibility_off
+                    : Icons.visibility,
+                color: AppColors.neutralInk500,
+              ),
+              onPressed: () => controller.togglePasswordVisibility('new'),
+            ),
+          ),
+        ),
+        SizedBox(height: 20.h),
+        // Confirm Password Field
+        Obx(
+          () => CustomTextField(
+            label: 'confirm_password'.tr,
+            hint: '••••••••',
+            controller: controller.confirmPasswordController,
+            obscureText: !controller.showConfirmPassword.value,
+            backgroundColor: AppColors.surfaceWhite,
+            borderColor: AppColors.neutralLine200,
+            textColor: AppColors.neutralInk900,
+            labelColor: AppColors.neutralInk900,
+            suffixIcon: IconButton(
+              icon: Icon(
+                controller.showConfirmPassword.value
+                    ? Icons.visibility_off
+                    : Icons.visibility,
+                color: AppColors.neutralInk500,
+              ),
+              onPressed: () => controller.togglePasswordVisibility('confirm'),
             ),
           ),
         ),
@@ -90,300 +234,137 @@ class ChangePasswordScreen extends GetView<ChangePasswordController> {
     );
   }
 
-  Widget _buildBackButton() {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child:
-            InkWell(
-                  onTap: onBack,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.arrow_back,
-                        color: Colors.white.withOpacity(0.9),
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'back'.tr,
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-                .animate()
-                .fadeIn(duration: 500.ms, delay: 200.ms)
-                .slideX(begin: -0.2, delay: 200.ms),
-      ),
-    );
-  }
+  // ============================================================================
+  // PASSWORD REQUIREMENTS
+  // ============================================================================
 
-  // --------------------------
-  // GLASSMORPHIC CARD
-  // --------------------------
-  Widget _buildGlassCard() {
-    return Container(
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.white.withOpacity(0.2)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: Container(
-              padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.white.withOpacity(0.2),
-                    Colors.white.withOpacity(0.05),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: _buildFormContent(),
-            ),
-          ),
-        )
-        .animate()
-        .fadeIn(duration: 600.ms, delay: 400.ms)
-        .slideY(begin: 0.2, delay: 400.ms);
-  }
-
-  // --------------------------
-  // FORM CONTENT
-  // --------------------------
-  Widget _buildFormContent() {
-    return GetBuilder<ChangePasswordController>(
-      builder: (ctrl) {
-        return Column(
+  Widget _buildPasswordRequirements() {
+    return Obx(() {
+      return Container(
+        padding: EdgeInsets.all(16.w),
+        decoration: BoxDecoration(
+          color: AppColors.neutralInk300,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.neutralLine200, width: 1),
+        ),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'secure_your_account'.tr,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white.withOpacity(0.95),
+              'password_requirements'.tr,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.neutralInk700,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              'first_login_password_change'.tr,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.white.withOpacity(0.7),
-              ),
-            ),
-            const SizedBox(height: 32),
-
-            // PASSWORD FIELDS
-            Column(
-              children: [
-                // Current Password
-                PasswordInputField(
-                  label: 'current_password'.tr,
-                  controller: ctrl.currentPasswordController,
-                  isVisible: ctrl.showCurrentPassword,
-                  onToggle: () => ctrl.togglePasswordVisibility('current'),
-                ),
-
-                const SizedBox(height: 20),
-
-                // New Password
-                PasswordInputField(
-                  label: 'new_password'.tr,
-                  controller: ctrl.newPasswordController,
-                  isVisible: ctrl.showNewPassword,
-                  onToggle: () => ctrl.togglePasswordVisibility('new'),
-                ),
-
-                const SizedBox(height: 20),
-
-                // Confirm Password
-                PasswordInputField(
-                  label: 'confirm_password'.tr,
-                  controller: ctrl.confirmPasswordController,
-                  isVisible: ctrl.showConfirmPassword,
-                  onToggle: () => ctrl.togglePasswordVisibility('confirm'),
-                ),
-
-                // Requirements
-                Obx(() {
-                  if (!ctrl.hasPasswordInput.value) {
-                    return const SizedBox.shrink();
-                  }
-                  return Column(
-                    children: [
-                      const SizedBox(height: 20),
-                      _passwordRequirements(ctrl),
-                    ],
-                  );
-                }),
-
-                // Password Match
-                Obx(() {
-                  if (!ctrl.showPasswordMatch.value) {
-                    return const SizedBox.shrink();
-                  }
-                  return Column(
-                    children: [
-                      const SizedBox(height: 12),
-                      _passwordMatchIndicator(ctrl),
-                    ],
-                  );
-                }),
-              ],
-            ),
-
-            const SizedBox(height: 32),
-
-            // Submit Button
-            Obx(() => _submitButton(ctrl)),
-          ],
-        );
-      },
-    );
-  }
-
-  // --------------------------
-  // PASSWORD REQUIREMENTS
-  // --------------------------
-  Widget _passwordRequirements(ChangePasswordController ctrl) {
-    return Obx(() {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'password_requirements'.tr,
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.white.withOpacity(0.8),
-            ),
-          ),
-          const SizedBox(height: 8),
-          ...ctrl.passwordRequirements.asMap().entries.map((entry) {
-            final index = entry.key;
-            final req = entry.value;
-            return Row(
+            SizedBox(height: 12.h),
+            ...controller.passwordRequirements.map((req) {
+              return Padding(
+                padding: EdgeInsets.only(bottom: 8.h),
+                child: Row(
                   children: [
                     Container(
-                      width: 16,
-                      height: 16,
+                      width: 16.w,
+                      height: 16.h,
                       decoration: BoxDecoration(
                         color: req.isMet
-                            ? const Color(0xFF22C55E)
-                            : Colors.white.withOpacity(0.3),
+                            ? AppColors.success
+                            : AppColors.neutralInk300,
                         shape: BoxShape.circle,
                       ),
                       child: req.isMet
-                          ? const Icon(
+                          ? Icon(
                               Icons.check,
-                              size: 12,
-                              color: Colors.white,
+                              size: 12.sp,
+                              color: AppColors.surfaceWhite,
                             )
                           : null,
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      req.label.tr,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: req.isMet
-                            ? const Color(0xFF22C55E)
-                            : Colors.white.withOpacity(0.7),
+                    SizedBox(width: 8.w),
+                    Expanded(
+                      child: Text(
+                        req.label.tr,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: req.isMet
+                              ? AppColors.success
+                              : AppColors.neutralInk700,
+                        ),
                       ),
                     ),
                   ],
-                )
-                .animate()
-                .fadeIn(delay: (index * 50).ms)
-                .slideX(begin: -0.1, delay: (index * 50).ms);
-          }),
-        ],
+                ),
+              );
+            }),
+          ],
+        ),
       );
     });
   }
 
-  // --------------------------
-  // MATCH INDICATOR
-  // --------------------------
-  Widget _passwordMatchIndicator(ChangePasswordController ctrl) {
-    final match = ctrl.passwordsMatch;
-    return Row(
-      children: [
-        Icon(
-          match ? Icons.check : Icons.close,
-          color: match ? const Color(0xFF22C55E) : const Color(0xFFE11D48),
-          size: 16,
-        ),
-        const SizedBox(width: 8),
-        Text(
-          match ? 'passwords_match'.tr : 'passwords_no_match'.tr,
-          style: TextStyle(
-            fontSize: 11,
-            color: match ? const Color(0xFF22C55E) : const Color(0xFFE11D48),
+  // ============================================================================
+  // PASSWORD MATCH INDICATOR
+  // ============================================================================
+
+  Widget _buildPasswordMatchIndicator() {
+    return Obx(() {
+      final _ = controller.showPasswordMatch.value;
+      final match = controller.passwordsMatch;
+      return Container(
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+        decoration: BoxDecoration(
+          color: match
+              ? AppColors.success.withOpacity(0.1)
+              : AppColors.danger.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: match
+                ? AppColors.success.withOpacity(0.3)
+                : AppColors.danger.withOpacity(0.3),
+            width: 1,
           ),
         ),
-      ],
-    ).animate().fadeIn();
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              match ? Icons.check_circle : Icons.error_outline,
+              color: match ? AppColors.success : AppColors.danger,
+              size: 16.sp,
+            ),
+            SizedBox(width: 8.w),
+            Text(
+              match ? 'passwords_match'.tr : 'passwords_no_match'.tr,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: match ? AppColors.success : AppColors.danger,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      );
+    });
   }
 
-  // --------------------------
-  // SUBMIT BUTTON
-  // --------------------------
-  Widget _submitButton(ChangePasswordController ctrl) {
-    return SizedBox(
-      width: double.infinity,
-      height: 48,
-      child: ElevatedButton(
-        onPressed: ctrl.canSubmit && !ctrl.isLoading.value
-            ? () => ctrl.handleChangePassword(onSuccess: onSuccess)
-            : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: ctrl.canSubmit
-              ? const Color(0xFF22C55E)
-              : const Color(0xFF9CA3AF),
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+  // ============================================================================
+  // SAVE BUTTON
+  // ============================================================================
+
+  Widget _buildSaveButton() {
+    return GetBuilder<ChangePasswordController>(
+      builder: (ctrl) {
+        return Obx(
+          () => CustomButton(
+            text: 'change_password'.tr,
+            onPressed: ctrl.canSubmit && !ctrl.isLoading.value
+                ? () => ctrl.handleChangePassword(onSuccess: onSuccess)
+                : null,
+            isLoading: ctrl.isLoading.value,
+            backgroundColor: AppColors.brandSage500,
+            textColor: AppColors.surfaceWhite,
+            height: 48.h,
           ),
-          elevation: 8,
-          shadowColor: ctrl.canSubmit
-              ? const Color(0xFF22C55E).withOpacity(0.4)
-              : Colors.transparent,
-        ),
-        child: ctrl.isLoading.value
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : Text(
-                'change_password'.tr,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-      ),
+        );
+      },
     );
   }
 }
