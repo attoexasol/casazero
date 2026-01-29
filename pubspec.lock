@@ -10,7 +10,7 @@ packages:
     source: hosted
     version: "1.3.64"
   archive:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: archive
       sha256: "2fde1607386ab523f7a36bb3e7edb43bd58e6edaf2ffb29d8a6d578b297fdbbd"
@@ -154,7 +154,7 @@ packages:
     source: hosted
     version: "7.0.3"
   dio:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: dio
       sha256: d90ee57923d1828ac14e492ca49440f65477f4bb1263575900be731a3dac66a9
@@ -649,7 +649,7 @@ packages:
     source: hosted
     version: "2.1.0"
   open_filex:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: open_filex
       sha256: "9976da61b6a72302cf3b1efbce259200cd40232643a467aac7370addf94d6900"

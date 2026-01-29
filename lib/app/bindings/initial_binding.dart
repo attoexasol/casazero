@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/device_info_service.dart';
 import '../../core/services/download_service.dart';
+import '../../core/services/zip_download_service.dart';
 import '../../core/services/fcm_service.dart';
 import '../../core/localization/locale_controller.dart';
 import '../../core/services/storage_service.dart';
@@ -33,6 +34,9 @@ class InitialBinding extends Bindings {
 
     // DownloadService for document downloads
     Get.put<DownloadService>(DownloadService(), permanent: true);
+
+    // ZipDownloadService for encrypted ZIP download + open (OS prompts for password)
+    Get.put<ZipDownloadService>(ZipDownloadService(), permanent: true);
 
     // FCM Service for push notifications (with error handling)
     Get.putAsync(() async {
