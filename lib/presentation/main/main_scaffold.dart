@@ -31,6 +31,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../trusted_device/views/trusted_devices_screen.dart';
 import '../chat/views/chat_screen.dart';
+import '../tickets/views/tickets_screen.dart';
 
 // Screen identifiers
 enum AppScreen {
@@ -44,6 +45,7 @@ enum AppScreen {
   changePassword,
   hubScreen,
   chat,
+  tickets,
   //trustedDevices,
   // Add more screens as needed
 }
@@ -176,6 +178,15 @@ class MainScaffold extends GetView<HomeController> {
 
       case AppScreen.chat:
         title = 'groupChat'.tr;
+        showNotification = true;
+        showSearch = false;
+        showResidenceSwitcher = false;
+        canGoBack = controller.canGoBack;
+        canGoForward = controller.canGoForward;
+        break;
+
+      case AppScreen.tickets:
+        title = 'tickets'.tr.isEmpty ? 'Tickets' : 'tickets'.tr;
         showNotification = true;
         showSearch = false;
         showResidenceSwitcher = false;
@@ -844,6 +855,12 @@ class MainScaffold extends GetView<HomeController> {
           onBack: () => controller.goBack(),
         );
 
+      case AppScreen.tickets:
+        return TicketsScreen(
+          role: controller.currentUser.value?.role ?? Role.client,
+          onBack: () => controller.goBack(),
+        );
+
       // case AppScreen.trustedDevices:
       //   return const TrustedDevicesScreen();
 
@@ -879,6 +896,7 @@ class MainScaffold extends GetView<HomeController> {
       AppScreen.smartHome,
       AppScreen.changePassword,
       AppScreen.chat,
+      AppScreen.tickets,
       // AppScreen.trustedDevices,
       // Add other screens where you want to hide bottom nav
     ];
