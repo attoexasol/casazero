@@ -159,29 +159,29 @@ class DocumentPasswordScreen extends GetView<DocumentPasswordController> {
     return Column(
       children: [
         // Current Password Field (read-only, prefilled from API)
-        Obx(
-          () => CustomTextField(
-            label: 'current_password'.tr,
-            hint: 'current_document_password_hint'.tr,
-            controller: controller.currentPasswordController,
-            obscureText: !controller.showCurrentPassword.value,
-            readOnly: true,
-            backgroundColor: AppColors.surfaceWhite,
-            borderColor: AppColors.neutralLine200,
-            textColor: AppColors.neutralInk900,
-            labelColor: AppColors.neutralInk900,
-            suffixIcon: IconButton(
-              icon: Icon(
-                controller.showCurrentPassword.value
-                    ? Icons.visibility_off
-                    : Icons.visibility,
-                color: AppColors.neutralInk500,
-              ),
-              onPressed: controller.toggleCurrentPasswordVisibility,
-            ),
-          ),
-        ),
-        SizedBox(height: 20.h),
+        // Obx(
+        //   () => CustomTextField(
+        //     label: 'current_password'.tr,
+        //     hint: 'current_document_password_hint'.tr,
+        //     controller: controller.currentPasswordController,
+        //     obscureText: !controller.showCurrentPassword.value,
+        //     readOnly: true,
+        //     backgroundColor: AppColors.surfaceWhite,
+        //     borderColor: AppColors.neutralLine200,
+        //     textColor: AppColors.neutralInk900,
+        //     labelColor: AppColors.neutralInk900,
+        //     suffixIcon: IconButton(
+        //       icon: Icon(
+        //         controller.showCurrentPassword.value
+        //             ? Icons.visibility_off
+        //             : Icons.visibility,
+        //         color: AppColors.neutralInk500,
+        //       ),
+        //       onPressed: controller.toggleCurrentPasswordVisibility,
+        //     ),
+        //   ),
+        // ),
+        // SizedBox(height: 20.h),
         // New Password Field
         Obx(
           () => CustomTextField(
