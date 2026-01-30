@@ -129,7 +129,8 @@ class AppTranslations extends Translations {
     'please_select_residence': 'Please select a residence',
     'maintenance_created_successfully': 'Maintenance created successfully',
     'task_reverted_successfully': 'Task reverted to pending successfully',
-    'task_marked_completed_successfully': 'Task marked as completed successfully',
+    'task_marked_completed_successfully':
+        'Task marked as completed successfully',
     'failed_to_update_task_status': 'Failed to update task status',
     'failed_to_schedule_visit': 'Failed to schedule visit',
     'schedule_updated_successfully': 'Schedule updated successfully',
@@ -227,8 +228,10 @@ class AppTranslations extends Translations {
     "document_password_saved": "Document password saved successfully",
     "failed_to_save_document_password": "Failed to save document password",
     "verify_to_save_document_password": "Verify to Save Document Password",
-    "verify_document_password_subtitle": "Enter the verification code to confirm this change",
-    "document_password_2fa_cancel_message": "Are you sure you want to cancel? Your document password will not be saved.",
+    "verify_document_password_subtitle":
+        "Enter the verification code to confirm this change",
+    "document_password_2fa_cancel_message":
+        "Are you sure you want to cancel? Your document password will not be saved.",
     "current_document_password_hint": "Your current document password",
     'cancel_logout': 'Cancel and Logout',
 
@@ -470,7 +473,8 @@ class AppTranslations extends Translations {
     'noAppToOpen': 'No app available to open this file type',
     'openWith': 'Open With',
     'fileDownloadedSuccessfully': 'File downloaded successfully: {fileName}',
-    'fileNotFoundInStorage': 'File not found in local storage. Please download again.',
+    'fileNotFoundInStorage':
+        'File not found in local storage. Please download again.',
     'fileEmptyPleaseDownloadAgain': 'File is empty. Please download again.',
     'fileNotSavedCorrectly': 'File was not saved correctly. Please try again.',
     'noFileDataReceived': 'No file data received from server',
@@ -478,6 +482,9 @@ class AppTranslations extends Translations {
     'anErrorOccurred': 'An error occurred',
     'documentUrlNotAvailable': 'Document URL is not available',
     'deleteFailed': 'Delete Failed',
+    'delete_document': 'Delete Document',
+    'delete_document_confirmation':
+        'Are you sure you want to delete this document?',
     'documentDeleted': 'Document Deleted',
     'failedToDeleteDocument': 'Failed to delete document',
     'errorDeletingDocument': 'An error occurred while deleting the document',
@@ -584,7 +591,8 @@ class AppTranslations extends Translations {
     'casaZeroAI': 'CasaZero AI',
     'yourIntelligentAssistant': 'Your intelligent assistant',
     'aiGreeting': 'Hello! How can I help you today?',
-    'aiInfoAlert': 'AI responses are generated based on your residence data. For critical decisions, verify with official documents.',
+    'aiInfoAlert':
+        'AI responses are generated based on your residence data. For critical decisions, verify with official documents.',
     'askAnything': 'Ask me anything about your home...',
     'thinking': 'Thinking...',
     'documentLocation': 'Where can I find my contract?',
@@ -604,9 +612,11 @@ class AppTranslations extends Translations {
     'statusResolved': 'Resolved',
     'ticketNoiseSubject': 'Excessive noise from upper unit',
     'ticketWaterLeakSubject': 'Water leak in bathroom',
-    'aiMockResponse': 'I understand you\'re asking about {input}. Based on your residence data, I can help you. This is a demo response showing how CasaZero AI would provide contextual information about your home, documents, and maintenance needs.',
+    'aiMockResponse':
+        'I understand you\'re asking about {input}. Based on your residence data, I can help you. This is a demo response showing how CasaZero AI would provide contextual information about your home, documents, and maintenance needs.',
     'aiProcessingResponse': 'I\'m processing your request. Please wait...',
-    'aiSendError': 'Failed to send message. Please check your connection and try again.',
+    'aiSendError':
+        'Failed to send message. Please check your connection and try again.',
     'aiLoadHistoryError': 'Failed to load chat history. Please try again.',
 
     // ---------------- SMART HOME SCREEN ----------------
@@ -787,15 +797,20 @@ class AppTranslations extends Translations {
     // Security
     "security": "Sicurezza",
     "document_password": "Password Documenti",
-    "document_password_description": "Imposta una password per proteggere i tuoi documenti",
+    "document_password_description":
+        "Imposta una password per proteggere i tuoi documenti",
     "new_password_required": "La nuova password è obbligatoria",
     "confirm_password_required": "Conferma la tua password",
     "passwords_do_not_match": "Le password non corrispondono",
     "document_password_saved": "Password documento salvata con successo",
-    "failed_to_save_document_password": "Impossibile salvare la password del documento",
-    "verify_to_save_document_password": "Verifica per Salvare la Password del Documento",
-    "verify_document_password_subtitle": "Inserisci il codice di verifica per confermare la modifica",
-    "document_password_2fa_cancel_message": "Sei sicuro di voler annullare? La password del documento non verrà salvata.",
+    "failed_to_save_document_password":
+        "Impossibile salvare la password del documento",
+    "verify_to_save_document_password":
+        "Verifica per Salvare la Password del Documento",
+    "verify_document_password_subtitle":
+        "Inserisci il codice di verifica per confermare la modifica",
+    "document_password_2fa_cancel_message":
+        "Sei sicuro di voler annullare? La password del documento non verrà salvata.",
     "current_document_password_hint": "Password documento corrente",
 
     // Trusted Devices
@@ -1041,7 +1056,8 @@ class AppTranslations extends Translations {
     'schedule_updated_successfully': 'Programma aggiornato con successo',
     'failed_to_update_schedule': 'Impossibile aggiornare il programma',
     'maintenance_deleted_successfully': 'Manutenzione eliminata con successo',
-    'failed_to_open_dialer': 'Impossibile aprire il telefono. Chiama manualmente.',
+    'failed_to_open_dialer':
+        'Impossibile aprire il telefono. Chiama manualmente.',
     'good_night_scene_activated': 'Scena Buonanotte attivata',
     'good_morning_scene_activated': 'Scena Buongiorno attivata',
     'leaving_home_scene_activated': 'Scena Uscita di casa attivata',
@@ -1091,7 +1107,8 @@ class AppTranslations extends Translations {
     'failed_to_load_devices': 'Impossibile caricare i dispositivi',
     'device_removed_successfully': 'Dispositivo rimosso con successo',
     'failed_to_remove_device': 'Impossibile rimuovere il dispositivo',
-    'delete_functionality_coming_soon': 'Funzionalità di eliminazione in arrivo',
+    'delete_functionality_coming_soon':
+        'Funzionalità di eliminazione in arrivo',
     'viewDocument': 'Visualizza Documento',
     'connection_timeout':
         'Timeout di connessione. Controlla la tua connessione internet.',
@@ -1128,23 +1145,32 @@ class AppTranslations extends Translations {
     'noAppToOpen': 'Nessuna app disponibile per aprire questo tipo di file',
     'openWith': 'Apri con',
     'fileDownloadedSuccessfully': 'File scaricato con successo: {fileName}',
-    'fileNotFoundInStorage': 'File non trovato nella memoria locale. Scarica di nuovo.',
+    'fileNotFoundInStorage':
+        'File non trovato nella memoria locale. Scarica di nuovo.',
     'fileEmptyPleaseDownloadAgain': 'Il file è vuoto. Scarica di nuovo.',
-    'fileNotSavedCorrectly': 'Il file non è stato salvato correttamente. Riprova.',
+    'fileNotSavedCorrectly':
+        'Il file non è stato salvato correttamente. Riprova.',
     'noFileDataReceived': 'Nessun dato del file ricevuto dal server',
     'invalidDocumentId': 'ID documento non valido',
     'anErrorOccurred': 'Si è verificato un errore',
     'documentUrlNotAvailable': 'URL del documento non disponibile',
     'deleteFailed': 'Eliminazione Fallita',
+    'delete_document': 'Elimina documento',
+    'delete_document_confirmation':
+        'Sei sicuro di voler eliminare questo documento?',
     'documentDeleted': 'Documento Eliminato',
     'failedToDeleteDocument': 'Impossibile eliminare il documento',
-    'errorDeletingDocument': 'Si è verificato un errore durante l\'eliminazione del documento',
+    'errorDeletingDocument':
+        'Si è verificato un errore durante l\'eliminazione del documento',
     'documentDeletedSuccessfully': '{title} è stato eliminato con successo',
     'failedToFetchCategories': 'Impossibile recuperare le categorie',
-    'errorFetchingCategories': 'Si è verificato un errore durante il recupero delle categorie',
+    'errorFetchingCategories':
+        'Si è verificato un errore durante il recupero delle categorie',
     'failedToFetchDocuments': 'Impossibile recuperare i documenti',
-    'errorFetchingDocuments': 'Si è verificato un errore durante il recupero dei documenti',
-    'invalidDocumentCategorySelected': 'Categoria documento non valida selezionata',
+    'errorFetchingDocuments':
+        'Si è verificato un errore durante il recupero dei documenti',
+    'invalidDocumentCategorySelected':
+        'Categoria documento non valida selezionata',
 
     'permissionDenied': 'Permesso Negato',
     'permissionDeniedMessage':
@@ -1198,12 +1224,13 @@ class AppTranslations extends Translations {
     'scheduleVisit': 'Programma',
     'askAI': 'Chiedi AI',
     'viewDetails': 'Visualizza Dettagli',
-    
+
     // ---------------- AI SCREEN (Italian) ----------------
     'casaZeroAI': 'CasaZero AI',
     'yourIntelligentAssistant': 'Il tuo assistente intelligente',
     'aiGreeting': 'Ciao! Come posso aiutarti oggi?',
-    'aiInfoAlert': 'Le risposte AI sono generate in base ai dati della tua residenza. Per decisioni critiche, verifica con documenti ufficiali.',
+    'aiInfoAlert':
+        'Le risposte AI sono generate in base ai dati della tua residenza. Per decisioni critiche, verifica con documenti ufficiali.',
     'askAnything': 'Chiedimi qualsiasi cosa sulla tua casa...',
     'thinking': 'Sto pensando...',
     'documentLocation': 'Dove posso trovare il mio contratto?',
@@ -1223,9 +1250,12 @@ class AppTranslations extends Translations {
     'statusResolved': 'Risolto',
     'ticketNoiseSubject': 'Rumore eccessivo dall\'unità superiore',
     'ticketWaterLeakSubject': 'Perdita d\'acqua nel bagno',
-    'aiMockResponse': 'Capisco che stai chiedendo informazioni su {input}. In base ai dati della tua residenza, posso aiutarti. Questa è una risposta demo che mostra come CasaZero AI fornirebbe informazioni contestuali sulla tua casa, documenti e necessità di manutenzione.',
-    'aiProcessingResponse': 'Sto elaborando la tua richiesta. Attendere prego...',
-    'aiSendError': 'Invio messaggio fallito. Controlla la connessione e riprova.',
+    'aiMockResponse':
+        'Capisco che stai chiedendo informazioni su {input}. In base ai dati della tua residenza, posso aiutarti. Questa è una risposta demo che mostra come CasaZero AI fornirebbe informazioni contestuali sulla tua casa, documenti e necessità di manutenzione.',
+    'aiProcessingResponse':
+        'Sto elaborando la tua richiesta. Attendere prego...',
+    'aiSendError':
+        'Invio messaggio fallito. Controlla la connessione e riprova.',
     'aiLoadHistoryError': 'Caricamento cronologia chat fallito. Riprova.',
     // Frequency mappings for API values
     'frequencyWeekly': 'Settimanale',

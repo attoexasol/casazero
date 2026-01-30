@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_text_styles.dart';
+import '../localization/locale_controller.dart';
 
 /// Message types for different popup styles
 enum MessageType { success, error, warning, info, confirmation }
@@ -58,38 +59,41 @@ class CustomMessagePopup extends StatelessWidget {
             ),
           ],
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Header with icon and title
-            _buildHeader(),
-            const SizedBox(height: 4),
+        child: Obx(() {
+          // Rebuild when locale changes so title/message/buttons show in current language (en vs it)
+          final _ = Get.find<LocaleController>().locale;
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Header with icon and title
+              _buildHeader(),
+              const SizedBox(height: 4),
 
-            // Message content
-            Padding(
-              padding: EdgeInsets.fromLTRB(
-                16,
-                6,
-                16,
-                (primaryAction != null || secondaryAction != null) ? 0 : 16,
-              ),
-
-              child: Text(
-                messageKey.tr,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.neutralInk700,
+              // Message content (localized)
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  6,
+                  16,
+                  (primaryAction != null || secondaryAction != null) ? 0 : 16,
                 ),
-                textAlign: TextAlign.center,
+                child: Text(
+                  messageKey.tr,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.neutralInk700,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
+              const SizedBox(height: 8),
 
-            // Action buttons only for confirmation (when primary/secondary provided)
-            if (primaryAction != null || secondaryAction != null)
-              _buildActions(),
-          ],
-        ),
+              // Action buttons only for confirmation (when primary/secondary provided)
+              if (primaryAction != null || secondaryAction != null)
+                _buildActions(),
+            ],
+          );
+        }),
       ),
     );
   }

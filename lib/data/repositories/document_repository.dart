@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart' as dio;
-import 'package:intl/intl.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/storage_service.dart';
 import '../../core/constants/api_constants.dart';
@@ -13,6 +12,7 @@ import '../models/document_model.dart';
 enum DocumentUploadMethod {
   /// Base64 encoded string in JSON payload (default, mobile-friendly)
   base64,
+
   /// Multipart/form-data with File (Postman-compatible)
   multipart,
 }
@@ -133,9 +133,7 @@ class DocumentRepository {
   /// }
   Future<Map<String, dynamic>> getAllDocuments() async {
     try {
-      final response = await _apiService.get(
-        ApiConstants.GET_DOCUMENTS,
-      );
+      final response = await _apiService.get(ApiConstants.GET_DOCUMENTS);
 
       if (response.statusCode == 200 && response.data['status'] == true) {
         final List<dynamic> documentsData = response.data['data'] ?? [];
@@ -144,10 +142,7 @@ class DocumentRepository {
             .map((item) => DocumentModel.fromJson(item as Map<String, dynamic>))
             .toList();
 
-        return {
-          'success': true,
-          'data': documents,
-        };
+        return {'success': true, 'data': documents};
       } else {
         return {
           'success': false,
@@ -207,10 +202,7 @@ class DocumentRepository {
           );
         }
 
-        return {
-          'success': true,
-          'data': documents,
-        };
+        return {'success': true, 'data': documents};
       } else {
         return {
           'success': false,
@@ -259,7 +251,9 @@ class DocumentRepository {
         };
       }
 
-      print('📄 Fetching documents by unit with token: ${token.substring(0, 10)}...');
+      print(
+        '📄 Fetching documents by unit with token: ${token.substring(0, 10)}...',
+      );
 
       final response = await _apiService.post(
         ApiConstants.GET_DOCUMENTS_BY_UNIT,
@@ -268,22 +262,19 @@ class DocumentRepository {
 
       if (response.statusCode == 200 && response.data['status'] == true) {
         // Handle new response format with 'documents' array and 'unit_id'
-        final List<dynamic> documentsData = response.data['documents'] ?? response.data['data'] ?? [];
+        final List<dynamic> documentsData =
+            response.data['documents'] ?? response.data['data'] ?? [];
         final int? unitId = response.data['unit_id'];
 
         final documents = documentsData
-            .map(
-              (item) => DocumentModel.fromJson(item as Map<String, dynamic>),
-            )
+            .map((item) => DocumentModel.fromJson(item as Map<String, dynamic>))
             .toList();
 
-        print('✅ Successfully fetched ${documents.length} documents by unit (unit_id: $unitId)');
+        print(
+          '✅ Successfully fetched ${documents.length} documents by unit (unit_id: $unitId)',
+        );
 
-        return {
-          'success': true,
-          'data': documents,
-          'unit_id': unitId,
-        };
+        return {'success': true, 'data': documents, 'unit_id': unitId};
       } else {
         print('⚠️ API Error: ${response.data['message']}');
         return {
@@ -302,16 +293,16 @@ class DocumentRepository {
 
   /// Upload User Document
   /// POST /user_document_upload
-  /// 
+  ///
   /// PRIMARY METHOD: Multipart/form-data (matches Postman - GUARANTEED TO WORK)
-  /// 
+  ///
   /// Request format (multipart/form-data):
   /// - token: Text
   /// - document_file: File (actual file, NOT base64)
   /// - document_title: Text
   /// - document_category: Int
   /// - document_description: Text (optional)
-  /// 
+  ///
   /// Response: {
   ///   "status": true,
   ///   "message": "Document uploaded successfully",
@@ -322,7 +313,7 @@ class DocumentRepository {
   ///     ...
   ///   }
   /// }
-  /// 
+  ///
   /// ALTERNATIVE: Base64 upload (only if backend explicitly supports it)
   /// Request format (application/json):
   /// - token: String
@@ -335,7 +326,8 @@ class DocumentRepository {
     required String documentTitle,
     required int documentCategory,
     String? documentDescription,
-    DocumentUploadMethod uploadMethod = DocumentUploadMethod.multipart, // DEFAULT: multipart (Postman-compatible)
+    DocumentUploadMethod uploadMethod = DocumentUploadMethod
+        .multipart, // DEFAULT: multipart (Postman-compatible)
   }) async {
     try {
       final storageService = Get.find<StorageService>();
@@ -357,7 +349,7 @@ class DocumentRepository {
       }
 
       final fileBytes = await documentFile.readAsBytes();
-      
+
       if (fileBytes.isEmpty) {
         return {
           'success': false,
@@ -396,10 +388,7 @@ class DocumentRepository {
     } catch (e) {
       print('❌ [DocumentRepository] Error uploading document: $e');
       print('📚 [DocumentRepository] Error stack trace: ${StackTrace.current}');
-      return {
-        'success': false,
-        'error': 'Upload failed: ${e.toString()}',
-      };
+      return {'success': false, 'error': 'Upload failed: ${e.toString()}'};
     }
   }
 
@@ -420,7 +409,7 @@ class DocumentRepository {
       // STEP 1: Convert to base64 (ensure no whitespace)
       // ============================================
       final base64String = base64Encode(fileBytes);
-      
+
       if (base64String.isEmpty) {
         return {
           'success': false,
@@ -430,7 +419,7 @@ class DocumentRepository {
 
       // Remove any whitespace/newlines that might have been introduced
       final cleanBase64 = base64String.replaceAll(RegExp(r'\s+'), '');
-      
+
       if (cleanBase64.isEmpty) {
         return {
           'success': false,
@@ -450,12 +439,15 @@ class DocumentRepository {
           };
         }
         if (decodedBytes.length != fileBytes.length) {
-          print('⚠️ [DocumentRepository] WARNING: Decoded size (${decodedBytes.length}) != original size (${fileBytes.length})');
+          print(
+            '⚠️ [DocumentRepository] WARNING: Decoded size (${decodedBytes.length}) != original size (${fileBytes.length})',
+          );
         }
       } catch (e) {
         return {
           'success': false,
-          'error': 'Base64 string is invalid and cannot be decoded: ${e.toString()}',
+          'error':
+              'Base64 string is invalid and cannot be decoded: ${e.toString()}',
         };
       }
 
@@ -465,7 +457,7 @@ class DocumentRepository {
       // Format: "data:image/jpeg;base64,{base64_string}"
       // ============================================
       final documentFileDataUri = 'data:$mimeType;base64,$cleanBase64';
-      
+
       // Verify the data URI format is correct
       final expectedPrefix = 'data:$mimeType;base64,';
       if (!documentFileDataUri.startsWith(expectedPrefix)) {
@@ -474,7 +466,7 @@ class DocumentRepository {
           'error': 'Failed to format data URI correctly.',
         };
       }
-      
+
       if (documentFileDataUri.length <= expectedPrefix.length) {
         return {
           'success': false,
@@ -529,7 +521,7 @@ class DocumentRepository {
         print('   Message: ${dioError.message}');
         print('   Response: ${dioError.response?.data}');
         print('   Status Code: ${dioError.response?.statusCode}');
-        
+
         String errorMessage = 'Failed to upload document';
         if (dioError.response?.data != null) {
           final responseData = dioError.response!.data;
@@ -541,11 +533,8 @@ class DocumentRepository {
         } else if (dioError.message != null) {
           errorMessage = dioError.message!;
         }
-        
-        return {
-          'success': false,
-          'error': errorMessage,
-        };
+
+        return {'success': false, 'error': errorMessage};
       } catch (e) {
         print('❌ [DocumentRepository] Error in Base64 upload: $e');
         print('📚 [DocumentRepository] Stack trace: ${StackTrace.current}');
@@ -598,10 +587,14 @@ class DocumentRepository {
       // ============================================
       print('═══════════════════════════════════════════════════════════');
       print('📤 [DocumentRepository] MULTIPART UPLOAD REQUEST');
-      print('📤 [DocumentRepository] Format: multipart/form-data (Postman-compatible)');
+      print(
+        '📤 [DocumentRepository] Format: multipart/form-data (Postman-compatible)',
+      );
       print('═══════════════════════════════════════════════════════════');
       print('📄 File: $fileName');
-      print('📏 File size: ${fileBytes.length} bytes (${(fileBytes.length / 1024 / 1024).toStringAsFixed(2)} MB)');
+      print(
+        '📏 File size: ${fileBytes.length} bytes (${(fileBytes.length / 1024 / 1024).toStringAsFixed(2)} MB)',
+      );
       print('📋 MIME type: $mimeType');
       print('🏷️  Document title: $documentTitle');
       print('📂 Category ID: $documentCategory');
@@ -629,7 +622,7 @@ class DocumentRepository {
       print('   Message: ${dioError.message}');
       print('   Response: ${dioError.response?.data}');
       print('   Status Code: ${dioError.response?.statusCode}');
-      
+
       String errorMessage = 'Failed to upload document';
       if (dioError.response?.data != null) {
         final responseData = dioError.response!.data;
@@ -641,18 +634,21 @@ class DocumentRepository {
       } else if (dioError.message != null) {
         errorMessage = dioError.message!;
       }
-      
-      return {
-        'success': false,
-        'error': errorMessage,
-      };
+
+      return {'success': false, 'error': errorMessage};
     } catch (e) {
+      // ApiService throws the server message string on DioException, so we often
+      // get a plain string (e.g. "Upload failed") instead of DioException here.
+      final message = e.toString();
       print('❌ [DocumentRepository] Error in multipart upload: $e');
       print('📚 [DocumentRepository] Stack trace: ${StackTrace.current}');
-      return {
-        'success': false,
-        'error': 'Multipart upload failed: ${e.toString()}',
-      };
+      if (e is! dio.DioException) {
+        print(
+          '📌 [DocumentRepository] Message may be from server. Check [API ERROR RESPONSE] logs above for status and body.',
+        );
+      }
+      final errorText = e is String ? e : 'Multipart upload failed: $message';
+      return {'success': false, 'error': errorText};
     }
   }
 
@@ -670,20 +666,20 @@ class DocumentRepository {
     // ============================================
     if (response.statusCode == 200 && response.data['status'] == true) {
       final responseData = response.data['data'];
-      
+
       // CRITICAL: Verify that backend stored file metadata correctly
       if (responseData != null) {
         final fileUrl = responseData['file_url'];
         final fileType = responseData['file_type'];
         final fileSize = responseData['file_size'];
-        
+
         print('═══════════════════════════════════════════════════════════');
         print('📋 [DocumentRepository] DATABASE VERIFICATION ($uploadMethod)');
         print('═══════════════════════════════════════════════════════════');
         print('📁 file_url: ${fileUrl ?? '❌ NULL'}');
         print('📄 file_type: ${fileType ?? '❌ NULL'}');
         print('📏 file_size: ${fileSize ?? '❌ NULL'}');
-        
+
         // Check if any critical fields are missing
         bool hasIssues = false;
         if (fileUrl == null || fileUrl.toString().isEmpty) {
@@ -698,18 +694,22 @@ class DocumentRepository {
           print('⚠️ [DocumentRepository] WARNING: file_size is NULL or empty');
           hasIssues = true;
         }
-        
+
         // If all fields are present, log success
         if (!hasIssues) {
-          print('✅ [DocumentRepository] All file metadata fields are populated correctly');
+          print(
+            '✅ [DocumentRepository] All file metadata fields are populated correctly',
+          );
         } else {
           print('❌ [DocumentRepository] Some file metadata fields are missing');
-          print('   Backend may not have processed $uploadMethod upload correctly');
+          print(
+            '   Backend may not have processed $uploadMethod upload correctly',
+          );
           print('   Check backend logic for $uploadMethod file handling');
         }
         print('═══════════════════════════════════════════════════════════');
       }
-      
+
       return {
         'success': true,
         'message': response.data['message'] ?? 'Document uploaded successfully',
@@ -771,10 +771,13 @@ class DocumentRepository {
         print('✅ [DocumentRepository] Document deleted successfully');
         return {
           'success': true,
-          'message': response.data['message'] ?? 'Document deleted successfully',
+          'message':
+              response.data['message'] ?? 'Document deleted successfully',
         };
       } else {
-        print('⚠️ [DocumentRepository] Delete failed: ${response.data['message']}');
+        print(
+          '⚠️ [DocumentRepository] Delete failed: ${response.data['message']}',
+        );
         return {
           'success': false,
           'error': response.data['message'] ?? 'Failed to delete document',
@@ -810,8 +813,12 @@ class DocumentRepository {
         };
       }
 
-      print('📥 [DocumentRepository] Downloading document with ID: $documentId');
-      print('🔑 [DocumentRepository] Using token: ${token.substring(0, 10)}...');
+      print(
+        '📥 [DocumentRepository] Downloading document with ID: $documentId',
+      );
+      print(
+        '🔑 [DocumentRepository] Using token: ${token.substring(0, 10)}...',
+      );
 
       // Use Dio directly to get bytes response
       final dioInstance = dio.Dio(
@@ -826,31 +833,31 @@ class DocumentRepository {
 
       final response = await dioInstance.post(
         ApiConstants.DOWNLOAD_DOCUMENT,
-        data: {
-          'token': token,
-          'document_id': documentId,
-        },
-        options: dio.Options(
-          responseType: dio.ResponseType.bytes,
-        ),
+        data: {'token': token, 'document_id': documentId},
+        options: dio.Options(responseType: dio.ResponseType.bytes),
       );
 
       if (response.statusCode == 200) {
-        print('✅ [DocumentRepository] Document downloaded successfully (${response.data.length} bytes)');
+        print(
+          '✅ [DocumentRepository] Document downloaded successfully (${response.data.length} bytes)',
+        );
         return {
           'success': true,
           'data': response.data as List<int>, // File bytes
         };
       } else {
-        print('⚠️ [DocumentRepository] Download failed: Status ${response.statusCode}');
+        print(
+          '⚠️ [DocumentRepository] Download failed: Status ${response.statusCode}',
+        );
         return {
           'success': false,
-          'error': 'Failed to download document. Server returned status ${response.statusCode}',
+          'error':
+              'Failed to download document. Server returned status ${response.statusCode}',
         };
       }
     } catch (e) {
       print('❌ [DocumentRepository] Error downloading document: $e');
-      
+
       String errorMessage = 'Failed to download document. Please try again.';
       if (e is dio.DioException) {
         if (e.type == dio.DioExceptionType.connectionTimeout ||
@@ -870,10 +877,7 @@ class DocumentRepository {
         }
       }
 
-      return {
-        'success': false,
-        'error': errorMessage,
-      };
+      return {'success': false, 'error': errorMessage};
     }
   }
 }

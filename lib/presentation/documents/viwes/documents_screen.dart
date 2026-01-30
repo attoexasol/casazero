@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 
+import '../../../core/controllers/message_popup_controller.dart';
 import '../../../core/utils/permissions.dart';
 import '../controllers/documents_controller.dart';
 
@@ -26,7 +27,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
   bool showUploadDialog = false;
 
   late final DocumentsController _controller;
-  
+
   @override
   void initState() {
     super.initState();
@@ -36,7 +37,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
     } else {
       _controller = Get.find<DocumentsController>();
     }
-    
+
     // Popup messages are handled ONLY in AddDocumentDialog
   }
 
@@ -71,7 +72,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
             Expanded(
               child: Obx(() {
                 // Show error state if there's an error
-                if (_controller.hasError.value && 
+                if (_controller.hasError.value &&
                     _controller.documents.isEmpty &&
                     !_controller.isLoadingDocuments.value) {
                   return Center(
@@ -168,30 +169,16 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                         },
                         onDelete: permissions.canDeleteDocuments
                             ? () async {
-                                // Show confirmation dialog
-                                final confirmed = await Get.dialog<bool>(
-                                  AlertDialog(
-                                    title: const Text('Delete Document'),
-                                    content: Text(
-                                      'Are you sure you want to delete this document?',
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Get.back(result: false),
-                                        child: const Text('Cancel'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () => Get.back(result: true),
-                                        style: TextButton.styleFrom(
-                                          foregroundColor: Colors.red,
-                                        ),
-                                        child: const Text('Delete'),
-                                      ),
-                                    ],
-                                  ),
-                                );
+                                // Show localized confirmation (en/it from language settings)
+                                final confirmed =
+                                    await MessagePopupController.showConfirmation(
+                                      titleKey: 'delete_document',
+                                      messageKey:
+                                          'delete_document_confirmation',
+                                      primaryButtonKey: 'delete',
+                                      secondaryButtonKey: 'cancel',
+                                    );
 
-                                // Only delete if user confirmed
                                 if (confirmed == true) {
                                   await _controller.deleteDocument(doc);
                                 }

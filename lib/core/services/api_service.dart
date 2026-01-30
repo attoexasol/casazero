@@ -121,7 +121,6 @@ class ApiService extends getx.GetxService {
   // Generic POST request
   Future<Response> post(String endpoint, {dynamic data}) async {
     try {
-     
       print(data);
       final response = await _dio.post(endpoint, data: data);
       return response;
@@ -159,7 +158,10 @@ class ApiService extends getx.GetxService {
           'Connection timeout. Please check your internet connection.';
     } else if (error.type == DioExceptionType.badResponse) {
       final statusCode = error.response?.statusCode;
-      
+      // Log full error response for debugging (e.g. document upload failures)
+      print('❌ [API ERROR RESPONSE] Status: $statusCode');
+      print('❌ [API ERROR RESPONSE] Body: ${error.response?.data}');
+
       // Handle specific HTTP status codes
       if (statusCode == 403) {
         errorMessage = 'Access forbidden. Please check your permissions.';
@@ -170,19 +172,19 @@ class ApiService extends getx.GetxService {
       } else if (statusCode != null && statusCode >= 500) {
         errorMessage = 'Server error. Please try again later.';
       }
-      
+
       // Safely extract error message from response
       if (error.response?.data != null) {
         final responseData = error.response!.data;
         if (responseData is Map<String, dynamic>) {
-          final extractedMessage = responseData['message'] ?? 
-                        responseData['error'];
+          final extractedMessage =
+              responseData['message'] ?? responseData['error'];
           if (extractedMessage != null) {
             errorMessage = extractedMessage;
           }
         } else if (responseData is String) {
           // Check if response is HTML (like 403 Forbidden page)
-          if (responseData.trim().startsWith('<!DOCTYPE') || 
+          if (responseData.trim().startsWith('<!DOCTYPE') ||
               responseData.trim().startsWith('<html')) {
             // Don't return HTML, use status code based message
             if (statusCode == 403) {
@@ -198,7 +200,7 @@ class ApiService extends getx.GetxService {
           }
         }
       }
-      
+
       // Fallback if no specific message was set
       if (errorMessage == 'An error occurred') {
         errorMessage = 'Server error occurred';
