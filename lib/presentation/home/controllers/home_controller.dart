@@ -622,6 +622,10 @@ class HomeController extends GetxController {
         navigateToScreen(AppScreen.changePassword);
         break;
 
+      case 'chat':
+        navigateToScreen(AppScreen.chat);
+        break;
+
       case 'buildings':
         // Handle buildings navigation
         navigateToScreen(AppScreen.home);

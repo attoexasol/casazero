@@ -30,6 +30,7 @@ import '../../core/utils/permissions.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../trusted_device/views/trusted_devices_screen.dart';
+import '../chat/views/chat_screen.dart';
 
 // Screen identifiers
 enum AppScreen {
@@ -42,6 +43,7 @@ enum AppScreen {
   trustedDevices,
   changePassword,
   hubScreen,
+  chat,
   //trustedDevices,
   // Add more screens as needed
 }
@@ -59,8 +61,10 @@ class MainScaffold extends GetView<HomeController> {
         },
         child: Scaffold(
           backgroundColor: AppColors.surfaceWhite,
-          // SINGLE PERSISTENT APP BAR FOR ALL SCREENS
-          appBar: _buildAppBar(),
+          // Hide app bar on ChatScreen (it has its own header)
+          appBar: controller.currentScreen.value == AppScreen.chat
+              ? null
+              : _buildAppBar(),
           // BODY - Contains all screens dynamically
           // SafeArea applied here for Android devices (removed from main.dart to allow popups)
           body: SafeArea(
@@ -164,6 +168,15 @@ class MainScaffold extends GetView<HomeController> {
       case AppScreen.trustedDevices:
         title = 'trusted_devices'.tr;
         showNotification = true; // Show notification on all screens
+        showSearch = false;
+        showResidenceSwitcher = false;
+        canGoBack = controller.canGoBack;
+        canGoForward = controller.canGoForward;
+        break;
+
+      case AppScreen.chat:
+        title = 'groupChat'.tr;
+        showNotification = true;
         showSearch = false;
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
@@ -825,6 +838,12 @@ class MainScaffold extends GetView<HomeController> {
         }
         return const AIScreen();
 
+      case AppScreen.chat:
+        return ChatScreen(
+          role: controller.currentUser.value?.role ?? Role.client,
+          onBack: () => controller.goBack(),
+        );
+
       // case AppScreen.trustedDevices:
       //   return const TrustedDevicesScreen();
 
@@ -859,6 +878,7 @@ class MainScaffold extends GetView<HomeController> {
     final hideBottomNavScreens = [
       AppScreen.smartHome,
       AppScreen.changePassword,
+      AppScreen.chat,
       // AppScreen.trustedDevices,
       // Add other screens where you want to hide bottom nav
     ];
