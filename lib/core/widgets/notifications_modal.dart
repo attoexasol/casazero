@@ -368,7 +368,7 @@ class _NotificationsModalContentState
         widget.controller.navigateToScreen(AppScreen.documents);
         MessagePopupController.showError(
           messageKey: 'documentUrlNotAvailable',
-          titleKey: 'viewDocument',
+          titleKey: 'downloadFailed',
         );
         return;
       }
@@ -400,7 +400,7 @@ class _NotificationsModalContentState
       } else {
         MessagePopupController.closePopup();
         MessagePopupController.showError(
-          messageKey: result['error'] ?? 'downloadError',
+          messageKey: 'downloadError',
           titleKey: 'downloadFailed',
         );
         print('❌ [Notification] Download failed: ${result['error']}');
@@ -476,7 +476,7 @@ class _NotificationsModalContentState
         );
       } else if (result.type == ResultType.error || result.type == ResultType.fileNotFound) {
         MessagePopupController.showError(
-          messageKey: result.message.isNotEmpty ? result.message : 'openFileError',
+          messageKey: 'openFileError',
           titleKey: 'openFileFailed',
         );
       }

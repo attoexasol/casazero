@@ -128,6 +128,8 @@ class AppTranslations extends Translations {
     'please_select_due_date_first': 'Please select due date first',
     'please_select_residence': 'Please select a residence',
     'maintenance_created_successfully': 'Maintenance created successfully',
+    'failed_to_create_maintenance': 'Failed to create maintenance',
+    'failed_to_delete_maintenance': 'Failed to delete maintenance',
     'task_reverted_successfully': 'Task reverted to pending successfully',
     'task_marked_completed_successfully':
         'Task marked as completed successfully',
@@ -507,6 +509,8 @@ class AppTranslations extends Translations {
     'downloadFailed': 'Download Failed',
     'downloadSuccess': 'Document downloaded successfully',
     'downloadError': 'Failed to download document',
+    'download_failed': 'Download failed',
+    'download_or_extraction_failed': 'Download or extraction failed',
     'enter_6_digit_code': 'Enter 6-digit code',
 
     // OPEN FILE KEYS  ← ADD HERE
@@ -543,6 +547,11 @@ class AppTranslations extends Translations {
     'permissionDeniedMessage':
         'Storage permission is required to download files',
     'openSettings': 'Open Settings',
+
+    'shareError': 'Failed to share document',
+    'shareFailed': 'Share Failed',
+    'preparingShare': 'Preparing to share',
+    'sharingDocument': 'Sharing document',
 
     // ADD DOCUMENT DIALOG - NEW KEYS
     'optional': 'Optional',
@@ -1099,6 +1108,8 @@ class AppTranslations extends Translations {
     'please_select_due_date_first': 'Seleziona prima la data di scadenza',
     'please_select_residence': 'Seleziona una residenza',
     'maintenance_created_successfully': 'Manutenzione creata con successo',
+    'failed_to_create_maintenance': 'Impossibile creare la manutenzione',
+    'failed_to_delete_maintenance': 'Impossibile eliminare la manutenzione',
     'task_reverted_successfully': 'Attività riportata in sospeso',
     'task_marked_completed_successfully': 'Attività segnata come completata',
     'failed_to_update_task_status': 'Impossibile aggiornare lo stato',
@@ -1224,6 +1235,8 @@ class AppTranslations extends Translations {
     'downloadFailed': 'Download Fallito',
     'downloadSuccess': 'Documento scaricato con successo',
     'downloadError': 'Impossibile scaricare il documento',
+    'download_failed': 'Download fallito',
+    'download_or_extraction_failed': 'Download o estrazione falliti',
 
     // OPEN FILE KEYS  ← ADD HERE
     'openFile': 'Apri',
@@ -1264,6 +1277,11 @@ class AppTranslations extends Translations {
     'permissionDeniedMessage':
         'È necessario il permesso di archiviazione per scaricare i file',
     'openSettings': 'Apri Impostazioni',
+
+    'shareError': 'Impossibile condividere il documento',
+    'shareFailed': 'Condivisione fallita',
+    'preparingShare': 'Preparazione condivisione',
+    'sharingDocument': 'Condivisione documento',
 
     // ADD DOCUMENT DIALOG - NEW KEYS (ITALIAN)
     'optional': 'Facoltativo',

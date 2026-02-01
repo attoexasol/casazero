@@ -159,7 +159,7 @@ class TwoFAManagementController extends GetxController {
       print('ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ QR Code generated successfully');
     } else {
       MessagePopupController.showError(
-        messageKey: result['error'] ?? 'failed_to_generate_qr',
+        messageKey: 'failed_to_generate_qr',
         titleKey: 'error',
       );
       Get.back();
@@ -180,7 +180,7 @@ class TwoFAManagementController extends GetxController {
       print('OTP sent for activation');
     } else {
       MessagePopupController.showError(
-        messageKey: result['error'] ?? 'failed_to_send_otp',
+        messageKey: 'failed_to_send_otp',
         titleKey: 'error',
       );
     }
@@ -280,7 +280,7 @@ class TwoFAManagementController extends GetxController {
       }
     } else {
       MessagePopupController.showError(
-        messageKey: result['error'] ?? (method == 'none' ? 'failed_to_deactivate_2fa' : 'failed_to_activate_2fa'),
+        messageKey: method == 'none' ? 'failed_to_deactivate_2fa' : 'failed_to_activate_2fa',
         titleKey: 'error',
       );
     }
@@ -336,7 +336,7 @@ class TwoFAManagementController extends GetxController {
       );
     } else {
       MessagePopupController.showError(
-        messageKey: result['error'] ?? 'failed_to_send_otp',
+        messageKey: 'failed_to_send_otp',
         titleKey: 'error',
       );
     }

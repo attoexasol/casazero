@@ -272,7 +272,7 @@ class DocumentPasswordController extends GetxController {
 
         // Success feedback
         MessagePopupController.showSuccess(
-          messageKey: result['message'] ?? 'document_password_saved',
+          messageKey: 'document_password_saved',
           titleKey: 'success',
         );
 
@@ -280,7 +280,7 @@ class DocumentPasswordController extends GetxController {
         // User can manually go back when ready
       } else {
         // Show error message from API response
-        _showError(result['error'] ?? 'failed_to_save_document_password');
+        _showError('failed_to_save_document_password');
       }
     } catch (e) {
       isLoading.value = false;

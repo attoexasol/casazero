@@ -126,8 +126,8 @@ class DocumentsController extends GetxController {
       final documentId = int.tryParse(document.id);
       if (documentId == null) {
         MessagePopupController.showError(
-          messageKey: 'invalidDocumentId'.tr,
-          titleKey: 'downloadError'.tr,
+          messageKey: 'invalidDocumentId',
+          titleKey: 'downloadFailed',
         );
         return;
       }
@@ -151,8 +151,8 @@ class DocumentsController extends GetxController {
       if (apiResult['success'] != true) {
         if (showDownloadingPopup && (Get.isDialogOpen ?? false)) Get.back();
         await MessagePopupController.showError(
-          messageKey: apiResult['error'] ?? 'downloadError'.tr,
-          titleKey: 'downloadFailed'.tr,
+          messageKey: 'downloadError',
+          titleKey: 'downloadFailed',
         );
         return;
       }
@@ -162,8 +162,8 @@ class DocumentsController extends GetxController {
       if (fileBytes == null || fileBytes.isEmpty) {
         if (showDownloadingPopup && (Get.isDialogOpen ?? false)) Get.back();
         await MessagePopupController.showError(
-          messageKey: 'noFileDataReceived'.tr,
-          titleKey: 'downloadFailed'.tr,
+          messageKey: 'noFileDataReceived',
+          titleKey: 'downloadFailed',
         );
         print('❌ [DocumentsController] No file bytes received');
         return;
@@ -189,8 +189,8 @@ class DocumentsController extends GetxController {
           );
           if (showDownloadingPopup && (Get.isDialogOpen ?? false)) Get.back();
           await MessagePopupController.showError(
-            messageKey: 'fileNotSavedCorrectly'.tr,
-            titleKey: 'downloadFailed'.tr,
+            messageKey: 'fileNotSavedCorrectly',
+            titleKey: 'downloadFailed',
           );
           return;
         }
@@ -201,8 +201,8 @@ class DocumentsController extends GetxController {
           print('❌ [DocumentsController] File is empty after save: $filePath');
           if (showDownloadingPopup && (Get.isDialogOpen ?? false)) Get.back();
           await MessagePopupController.showError(
-            messageKey: 'fileEmptyPleaseDownloadAgain'.tr,
-            titleKey: 'downloadFailed'.tr,
+            messageKey: 'fileEmptyPleaseDownloadAgain',
+            titleKey: 'downloadFailed',
           );
           return;
         }
@@ -233,8 +233,8 @@ class DocumentsController extends GetxController {
       } else {
         if (showDownloadingPopup && (Get.isDialogOpen ?? false)) Get.back();
         await MessagePopupController.showError(
-          messageKey: saveResult['error'] ?? 'downloadError'.tr,
-          titleKey: 'downloadFailed'.tr,
+          messageKey: 'downloadError',
+          titleKey: 'downloadFailed',
         );
         print('❌ [DocumentsController] Save failed: ${saveResult['error']}');
       }
@@ -242,8 +242,8 @@ class DocumentsController extends GetxController {
       print('❌ [DocumentsController] Error downloading document: $e');
       if (showDownloadingPopup && (Get.isDialogOpen ?? false)) Get.back();
       await MessagePopupController.showError(
-        messageKey: 'downloadError'.tr,
-        titleKey: 'downloadFailed'.tr,
+        messageKey: 'downloadError',
+        titleKey: 'downloadFailed',
       );
     }
   }
@@ -263,8 +263,8 @@ class DocumentsController extends GetxController {
           '❌ [DocumentsController] File not found when trying to open: $filePath',
         );
         MessagePopupController.showError(
-          messageKey: 'fileNotFoundInStorage'.tr,
-          titleKey: 'openFileFailed'.tr,
+          messageKey: 'fileNotFoundInStorage',
+          titleKey: 'openFileFailed',
         );
         return;
       }
@@ -276,8 +276,8 @@ class DocumentsController extends GetxController {
           '❌ [DocumentsController] File is empty when trying to open: $filePath',
         );
         MessagePopupController.showError(
-          messageKey: 'fileEmptyPleaseDownloadAgain'.tr,
-          titleKey: 'openFileFailed'.tr,
+          messageKey: 'fileEmptyPleaseDownloadAgain',
+          titleKey: 'openFileFailed',
         );
         return;
       }
@@ -299,16 +299,14 @@ class DocumentsController extends GetxController {
         // Handle the result
         if (result.type == ResultType.noAppToOpen) {
           MessagePopupController.showWarning(
-            messageKey: 'noAppToOpen'.tr,
-            titleKey: 'openFileFailed'.tr,
+            messageKey: 'noAppToOpen',
+            titleKey: 'openFileFailed',
           );
         } else if (result.type == ResultType.error ||
             result.type == ResultType.fileNotFound) {
           MessagePopupController.showError(
-            messageKey: result.message.isNotEmpty
-                ? result.message
-                : 'openFileError'.tr,
-            titleKey: 'openFileFailed'.tr,
+            messageKey: 'openFileError',
+            titleKey: 'openFileFailed',
           );
         } else if (result.type == ResultType.done) {
           print('✅ [DocumentsController] File chooser shown successfully');
@@ -316,8 +314,8 @@ class DocumentsController extends GetxController {
       } catch (e) {
         print('❌ [DocumentsController] Error opening file: $e');
         MessagePopupController.showError(
-          messageKey: 'openFileError'.tr,
-          titleKey: 'openFileFailed'.tr,
+          messageKey: 'openFileError',
+          titleKey: 'openFileFailed',
         );
       }
     } catch (e) {
@@ -325,8 +323,8 @@ class DocumentsController extends GetxController {
         '❌ [DocumentsController] Error opening file from local storage: $e',
       );
       MessagePopupController.showError(
-        messageKey: 'openFileError'.tr,
-        titleKey: 'openFileFailed'.tr,
+        messageKey: 'openFileError',
+        titleKey: 'openFileFailed',
       );
     }
   }
@@ -364,17 +362,15 @@ class DocumentsController extends GetxController {
       } else if (result.type == ResultType.error ||
           result.type == ResultType.fileNotFound) {
         MessagePopupController.showError(
-          messageKey: result.message.isNotEmpty
-              ? result.message
-              : 'openFileError'.tr,
-          titleKey: 'openFileFailed'.tr,
+          messageKey: 'openFileError',
+          titleKey: 'openFileFailed',
         );
       }
     } catch (e) {
       print('❌ Error showing file chooser: $e');
       MessagePopupController.showError(
-        messageKey: 'openFileError'.tr,
-        titleKey: 'openFileFailed'.tr,
+        messageKey: 'openFileError',
+        titleKey: 'openFileFailed',
       );
     }
   }
@@ -389,8 +385,8 @@ class DocumentsController extends GetxController {
       final file = File(filePath);
       if (!await file.exists()) {
         MessagePopupController.showError(
-          messageKey: 'fileNotFound'.tr,
-          titleKey: 'openFileFailed'.tr,
+          messageKey: 'fileNotFound',
+          titleKey: 'openFileFailed',
         );
         print('❌ File not found: $filePath');
         return;
@@ -417,8 +413,8 @@ class DocumentsController extends GetxController {
 
         case ResultType.noAppToOpen:
           MessagePopupController.showWarning(
-            messageKey: 'noAppToOpen'.tr,
-            titleKey: 'openFileFailed'.tr,
+            messageKey: 'noAppToOpen',
+            titleKey: 'openFileFailed',
           );
           break;
 
@@ -439,8 +435,8 @@ class DocumentsController extends GetxController {
     } catch (e) {
       print('❌ Error opening file: $e');
       MessagePopupController.showError(
-        messageKey: 'openFileError'.tr,
-        titleKey: 'openFileFailed'.tr,
+        messageKey: 'openFileError',
+        titleKey: 'openFileFailed',
       );
     }
   }
@@ -451,8 +447,8 @@ class DocumentsController extends GetxController {
     try {
       if (document.fileUrl == null || document.fileUrl!.isEmpty) {
         MessagePopupController.showError(
-          messageKey: 'documentUrlNotAvailable'.tr,
-          titleKey: 'shareError'.tr,
+          messageKey: 'documentUrlNotAvailable',
+          titleKey: 'shareFailed',
         );
         return;
       }
@@ -503,8 +499,8 @@ class DocumentsController extends GetxController {
       } else {
         if (Get.isDialogOpen ?? false) Get.back();
         await MessagePopupController.showError(
-          messageKey: result['error'] ?? 'shareError'.tr,
-          titleKey: 'shareFailed'.tr,
+          messageKey: 'shareError',
+          titleKey: 'shareFailed',
         );
         print('❌ Share failed: ${result['error']}');
       }
@@ -512,8 +508,8 @@ class DocumentsController extends GetxController {
       print('❌ Error sharing document: $e');
       if (Get.isDialogOpen ?? false) Get.back();
       await MessagePopupController.showError(
-        messageKey: 'shareError'.tr,
-        titleKey: 'shareFailed'.tr,
+        messageKey: 'shareError',
+        titleKey: 'shareFailed',
       );
     }
   }
@@ -731,8 +727,8 @@ class DocumentsController extends GetxController {
       if (documentId == null) {
         print('❌ [DocumentsController] Invalid document ID: ${document.id}');
         MessagePopupController.showError(
-          messageKey: 'invalidDocumentId'.tr,
-          titleKey: 'deleteFailed'.tr,
+          messageKey: 'invalidDocumentId',
+          titleKey: 'deleteFailed',
         );
         return false;
       }
@@ -762,15 +758,15 @@ class DocumentsController extends GetxController {
             '{title}',
             document.title,
           ),
-          titleKey: 'documentDeleted'.tr,
+          titleKey: 'documentDeleted',
         );
 
         return true;
       } else {
         // Show error popup
         MessagePopupController.showError(
-          messageKey: result['error'] ?? 'failedToDeleteDocument'.tr,
-          titleKey: 'deleteFailed'.tr,
+          messageKey: 'failedToDeleteDocument',
+          titleKey: 'deleteFailed',
         );
         print('❌ [DocumentsController] Delete failed: ${result['error']}');
         return false;
@@ -778,8 +774,8 @@ class DocumentsController extends GetxController {
     } catch (e) {
       print('❌ [DocumentsController] Error deleting document: $e');
       MessagePopupController.showError(
-        messageKey: 'errorDeletingDocument'.tr,
-        titleKey: 'deleteFailed'.tr,
+        messageKey: 'errorDeletingDocument',
+        titleKey: 'deleteFailed',
       );
       return false;
     }

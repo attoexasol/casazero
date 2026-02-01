@@ -181,9 +181,9 @@ class ProfileController extends GetxController {
           forceReloadUser();
         }
         
-        _showSuccess(result['message'] ?? 'profile_image_updated');
+        _showSuccess('profile_image_updated');
       } else {
-        _showError(result['error'] ?? 'failed_to_upload_image');
+        _showError('failed_to_upload_image');
       }
     } catch (e) {
       _showError('error_uploading_image');
@@ -217,10 +217,10 @@ class ProfileController extends GetxController {
         final localeController = Get.find<LocaleController>();
         await localeController.changeLocale(lang);
 
-        _showSuccess(result['message'] ?? 'language_updated_successfully');
+        _showSuccess('language_updated_successfully');
         update();
       } else {
-        _showError(result['error'] ?? 'failed_to_update_language');
+        _showError('failed_to_update_language');
       }
     } catch (e) {
       _showError('error_updating_language');
@@ -326,10 +326,10 @@ class ProfileController extends GetxController {
         loadUser();
         // Ensure the UI updates immediately by triggering a rebuild
         update();
-        _showSuccess(result['message'] ?? 'profile_updated_successfully');
+        _showSuccess('profile_updated_successfully');
         return true;
       } else {
-        _showError(result['error'] ?? 'failed_to_update_profile');
+        _showError('failed_to_update_profile');
         return false;
       }
     } catch (e) {
@@ -421,12 +421,12 @@ class ProfileController extends GetxController {
 
         print('✅ [ProfileController] All settings saved successfully');
         print('   Settings persisted to: Local storage + Server API');
-        _showSuccess(result['message'] ?? 'settings_saved_successfully');
+        _showSuccess('settings_saved_successfully');
       } else {
         print(
           '❌ [ProfileController] Failed to save settings: ${result['error']}',
         );
-        _showError(result['error'] ?? 'failed_to_save_settings');
+        _showError('failed_to_save_settings');
       }
     } catch (e, stackTrace) {
       print('❌ [ProfileController] Exception in saveSettings(): $e');

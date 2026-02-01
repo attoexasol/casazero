@@ -141,9 +141,9 @@ class ForgotChangePasswordController extends GetxController {
     isLoading.value = false;
 
     if (result['success'] == true) {
-      onSuccess(result['message'] ?? 'password_reset_successful');
+      onSuccess('password_reset_successful');
     } else {
-      _showError(result['error'] ?? 'password_reset_failed');
+      _showError('password_reset_failed');
     }
   }
 

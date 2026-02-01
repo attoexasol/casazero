@@ -355,10 +355,10 @@ class AiController extends GetxController {
       isLoading.value = false;
       errorMessage.value = 'An unexpected error occurred. Please try again.';
       
-      MessagePopupController.showError(
-        messageKey: 'aiSendError'.tr,
-        titleKey: 'error',
-      );
+        MessagePopupController.showError(
+          messageKey: 'aiSendError',
+          titleKey: 'error',
+        );
     } finally {
       isSending.value = false;
     }

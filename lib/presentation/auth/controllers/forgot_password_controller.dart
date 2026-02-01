@@ -84,9 +84,9 @@ class ForgotPasswordController extends GetxController {
       await _storageService.saveUserData(userData);
 
       // Navigate to OTP verification screen
-      onSuccess(result['message'] ?? 'password_reset_successful');
+      onSuccess('password_reset_successful');
     } else {
-      _showError(result['error'] ?? 'password_reset_failed');
+      _showError('password_reset_failed');
     }
   }
 

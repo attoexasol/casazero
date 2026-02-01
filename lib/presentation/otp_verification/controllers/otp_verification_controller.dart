@@ -184,7 +184,7 @@ class OtpVerificationController extends GetxController {
     } else {
       // Only show error for actual failures
       MessagePopupController.showError(
-        messageKey: result['error'] ?? 'failed_to_send_otp',
+        messageKey: 'failed_to_send_otp',
         titleKey: 'error',
       );
     }
@@ -256,7 +256,7 @@ class OtpVerificationController extends GetxController {
         // Return false result to Document Password screen
         // Don't show error here - let the user try again or cancel
         MessagePopupController.showError(
-          messageKey: result['error'] ?? 'invalid_otp_code',
+          messageKey: 'invalid_otp_code',
           titleKey: 'error',
         );
         otpController.clear();
@@ -264,7 +264,7 @@ class OtpVerificationController extends GetxController {
       } else {
         // For login flow, show error and stay on screen
         MessagePopupController.showError(
-          messageKey: result['error'] ?? 'invalid_otp_code',
+          messageKey: 'invalid_otp_code',
           titleKey: 'error',
         );
         otpController.clear();

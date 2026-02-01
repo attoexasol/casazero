@@ -136,9 +136,9 @@ class ChangePasswordController extends GetxController {
 
     if (result['success'] == true) {
       // Navigate back first, then show popup on previous screen
-      onSuccess(result['message'] ?? 'password_changed');
+      onSuccess('password_changed');
     } else {
-      _showError(result['error'] ?? 'password_requirements_not_met');
+      _showError('password_requirements_not_met');
     }
   }
 

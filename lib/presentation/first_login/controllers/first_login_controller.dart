@@ -165,7 +165,7 @@ class FirstLoginController extends GetxController {
       currentStep.value = 2;
     } else {
       MessagePopupController.showError(
-        messageKey: result['error'] ?? 'password_requirements_not_met',
+        messageKey: 'password_requirements_not_met',
         titleKey: 'error',
       );
     }
@@ -213,7 +213,7 @@ class FirstLoginController extends GetxController {
       print('   OtpAuth URL: ${result['otpauth_url']}');
     } else {
       MessagePopupController.showError(
-        messageKey: result['error'] ?? 'failed_to_generate_qr',
+        messageKey: 'failed_to_generate_qr',
         titleKey: 'error',
       );
     }
@@ -248,12 +248,12 @@ class FirstLoginController extends GetxController {
       _startCountdown();
 
       MessagePopupController.showSuccess(
-        messageKey: result['message'] ?? 'verification_code_sent',
+        messageKey: 'verification_code_sent',
         titleKey: 'success',
       );
     } else {
       MessagePopupController.showError(
-        messageKey: result['error'] ?? 'failed_to_send_otp',
+        messageKey: 'failed_to_send_otp',
         titleKey: 'error',
       );
     }
@@ -321,7 +321,7 @@ class FirstLoginController extends GetxController {
       }
 
       MessagePopupController.showSuccess(
-        messageKey: result['message'] ?? '2fa_enabled',
+        messageKey: '2fa_enabled',
         titleKey: 'success',
       );
 
@@ -329,7 +329,7 @@ class FirstLoginController extends GetxController {
       await _completeSetup();
     } else {
       MessagePopupController.showError(
-        messageKey: result['error'] ?? 'invalid_verification_code',
+        messageKey: 'invalid_verification_code',
         titleKey: 'error',
       );
     }

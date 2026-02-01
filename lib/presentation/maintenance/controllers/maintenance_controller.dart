@@ -263,7 +263,7 @@ class MaintenanceController extends GetxController {
           await fetchMaintenanceTasks();
 
           MessagePopupController.showSuccess(
-            messageKey: responseData['message'] ?? 'maintenance_created_successfully',
+            messageKey: 'maintenance_created_successfully',
             titleKey: 'success',
           );
 
@@ -279,16 +279,8 @@ class MaintenanceController extends GetxController {
     } catch (e) {
       print('❌ [MaintenanceController] Error creating maintenance task: $e');
 
-      // Show error popup
-      String errorMessage = 'Failed to create maintenance';
-      if (e.toString().contains('Exception:')) {
-        errorMessage = e.toString().replaceFirst('Exception: ', '');
-      } else if (e.toString().isNotEmpty) {
-        errorMessage = e.toString();
-      }
-
       MessagePopupController.showError(
-        messageKey: errorMessage,
+        messageKey: 'failed_to_create_maintenance',
         titleKey: 'error',
       );
 
@@ -370,8 +362,7 @@ class MaintenanceController extends GetxController {
           await fetchMaintenanceTasks();
 
           MessagePopupController.showSuccess(
-            messageKey: responseData['message'] ??
-                (isCompleted ? 'task_reverted_successfully' : 'task_marked_completed_successfully'),
+            messageKey: isCompleted ? 'task_reverted_successfully' : 'task_marked_completed_successfully',
             titleKey: 'success',
           );
         } else {
@@ -597,7 +588,7 @@ class MaintenanceController extends GetxController {
           await fetchMaintenanceTasks();
 
           MessagePopupController.showSuccess(
-            messageKey: responseData['message'] ?? 'schedule_updated_successfully',
+            messageKey: 'schedule_updated_successfully',
             titleKey: 'success',
           );
         } else {
@@ -658,7 +649,7 @@ class MaintenanceController extends GetxController {
           await fetchMaintenanceTasks();
 
           MessagePopupController.showSuccess(
-            messageKey: responseData['message'] ?? 'maintenance_deleted_successfully',
+            messageKey: 'maintenance_deleted_successfully',
             titleKey: 'success',
           );
 
@@ -674,16 +665,8 @@ class MaintenanceController extends GetxController {
     } catch (e) {
       print('❌ [MaintenanceController] Error deleting maintenance task: $e');
 
-      // Show error popup
-      String errorMessage = 'Failed to delete maintenance';
-      if (e.toString().contains('Exception:')) {
-        errorMessage = e.toString().replaceFirst('Exception: ', '');
-      } else if (e.toString().isNotEmpty) {
-        errorMessage = e.toString();
-      }
-
       MessagePopupController.showError(
-        messageKey: errorMessage,
+        messageKey: 'failed_to_delete_maintenance',
         titleKey: 'error',
       );
 

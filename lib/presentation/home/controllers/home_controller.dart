@@ -253,7 +253,7 @@ class HomeController extends GetxController {
       } else {
         print('Failed to fetch residences: ${result['error']}');
         MessagePopupController.showError(
-          messageKey: result['error'] ?? 'failed_to_load_residences',
+          messageKey: 'failed_to_load_residences',
           titleKey: 'error',
         );
       }

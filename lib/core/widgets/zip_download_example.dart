@@ -59,14 +59,14 @@ class _ZipDownloadExampleState extends State<ZipDownloadExample> {
         // ZIP downloaded, extracted, and first file opened with native "open with".
       } else {
         MessagePopupController.showError(
-          messageKey: result['error']?.toString() ?? 'Download or extraction failed',
+          messageKey: 'download_or_extraction_failed',
           titleKey: 'error',
         );
       }
     } catch (e) {
       if (mounted) setState(() => _loading = false);
       MessagePopupController.showError(
-        messageKey: 'Download failed',
+        messageKey: 'download_failed',
         titleKey: 'error',
       );
     }

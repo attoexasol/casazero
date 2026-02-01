@@ -41,7 +41,7 @@ class TrustedDevicesController extends GetxController {
     } else {
       errorMessage.value = result['error'] ?? 'failed_to_load_devices';
       MessagePopupController.showError(
-        messageKey: result['error'] ?? 'failed_to_load_devices',
+        messageKey: 'failed_to_load_devices',
         titleKey: 'error',
       );
     }
@@ -124,7 +124,7 @@ class TrustedDevicesController extends GetxController {
       await loadTrustedDevices();
     } else {
       MessagePopupController.showError(
-        messageKey: result['error'] ?? 'failed_to_remove_device',
+        messageKey: 'failed_to_remove_device',
         titleKey: 'error',
       );
     }

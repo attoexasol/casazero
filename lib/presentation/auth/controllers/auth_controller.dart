@@ -98,7 +98,7 @@ class AuthController extends GetxController {
       _navigateBasedOnUserStatus(user, isTrusted);
     } else {
       MessagePopupController.showError(
-        messageKey: result['error'] ?? 'invalid_credentials',
+        messageKey: 'invalid_credentials',
         titleKey: 'login_failed',
       );
     }
