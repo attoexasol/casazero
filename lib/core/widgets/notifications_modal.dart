@@ -381,7 +381,7 @@ class _NotificationsModalContentState
       print('📥 [Notification] URL: ${notification.url}');
 
       MessagePopupController.showDownloading(
-        messageKey: '${'downloading'.tr}: ${notification.displayTitle}',
+        messageKey: 'downloading'.tr + ': ' + notification.localizedDisplayTitle,
         titleKey: 'downloading',
       );
 
@@ -537,17 +537,16 @@ class _NotificationCard extends StatelessWidget {
       iconColor = AppColors.neutralInk500;
     }
 
-    // Get action label based on type (matching React component)
+    // Get action label based on type (localized)
     String? actionLabel;
     if (type == 'maintenance') {
-      actionLabel = 'View Task'; // Matches React: actionLabel: 'View Task'
+      actionLabel = 'viewTask'.tr;
     } else if (type == 'document' || type == 'documents') {
-      actionLabel =
-          'View Document'; // Matches React: actionLabel: 'View Document'
+      actionLabel = 'viewDocument'.tr;
     } else if (type == 'chat' || type == 'message' || type == 'messages') {
-      actionLabel = 'Open Chat'; // Matches React: actionLabel: 'Open Chat'
+      actionLabel = 'openChat'.tr;
     } else if (type == 'ticket' || type == 'tickets') {
-      actionLabel = 'View Ticket'; // Matches React: actionLabel: 'View Ticket'
+      actionLabel = 'viewTicket'.tr;
     }
 
     return Container(
@@ -593,8 +592,8 @@ class _NotificationCard extends StatelessWidget {
                 final localeController = Get.find<LocaleController>();
                 final _ = localeController.locale; // Trigger reactivity
 
-                final displayTitle = notification.displayTitle;
-                final displayContent = notification.displayContent;
+                final displayTitle = notification.localizedDisplayTitle;
+                final displayContent = notification.localizedDisplayContent;
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

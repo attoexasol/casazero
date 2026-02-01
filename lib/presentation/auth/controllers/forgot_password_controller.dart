@@ -57,7 +57,7 @@ class ForgotPasswordController extends GetxController {
   }) async {
     // Empty fields
     if (!canSubmit) {
-      _showError('complete_fields'.tr);
+      _showError('complete_fields');
       return;
     }
 
@@ -84,9 +84,9 @@ class ForgotPasswordController extends GetxController {
       await _storageService.saveUserData(userData);
 
       // Navigate to OTP verification screen
-      onSuccess(result['message'] ?? 'password_reset_successful'.tr);
+      onSuccess(result['message'] ?? 'password_reset_successful');
     } else {
-      _showError(result['error'] ?? 'password_reset_failed'.tr);
+      _showError(result['error'] ?? 'password_reset_failed');
     }
   }
 

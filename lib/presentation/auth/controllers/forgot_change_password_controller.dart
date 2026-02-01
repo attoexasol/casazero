@@ -117,7 +117,7 @@ class ForgotChangePasswordController extends GetxController {
   }) async {
     // Empty fields
     if (!canSubmit) {
-      _showError('complete_fields'.tr);
+      _showError('complete_fields');
       return;
     }
 
@@ -129,7 +129,7 @@ class ForgotChangePasswordController extends GetxController {
 
     if (email.isEmpty) {
       isLoading.value = false;
-      _showError('email_not_found'.tr);
+      _showError('email_not_found');
       return;
     }
 
@@ -141,9 +141,9 @@ class ForgotChangePasswordController extends GetxController {
     isLoading.value = false;
 
     if (result['success'] == true) {
-      onSuccess(result['message'] ?? 'password_reset_successful'.tr);
+      onSuccess(result['message'] ?? 'password_reset_successful');
     } else {
-      _showError(result['error'] ?? 'password_reset_failed'.tr);
+      _showError(result['error'] ?? 'password_reset_failed');
     }
   }
 

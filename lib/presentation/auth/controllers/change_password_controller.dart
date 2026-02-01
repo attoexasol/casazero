@@ -121,7 +121,7 @@ class ChangePasswordController extends GetxController {
   }) async {
     // Empty fields
     if (!canSubmit) {
-      _showError('complete_fields'.tr);
+      _showError('complete_fields');
       return;
     }
 
@@ -136,9 +136,9 @@ class ChangePasswordController extends GetxController {
 
     if (result['success'] == true) {
       // Navigate back first, then show popup on previous screen
-      onSuccess(result['message'] ?? 'password_changed'.tr);
+      onSuccess(result['message'] ?? 'password_changed');
     } else {
-      _showError(result['error'] ?? 'password_requirements_not_met'.tr);
+      _showError(result['error'] ?? 'password_requirements_not_met');
     }
   }
 

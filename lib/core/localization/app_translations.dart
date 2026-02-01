@@ -167,12 +167,50 @@ class AppTranslations extends Translations {
     'announcement': 'Announcement',
 
     // Time Ago
+    'year_ago': 'year ago',
     'years_ago': 'years ago',
+    'month_ago': 'month ago',
     'months_ago': 'months ago',
+    'day_ago': 'day ago',
     'days_ago': 'days ago',
+    'hour_ago': 'hour ago',
     'hours_ago': 'hours ago',
+    'minute_ago': 'minute ago',
     'minutes_ago': 'minutes ago',
     'just_now': 'Just now',
+
+    // Notification types (for cards when API has no bilingual)
+    'notification_document_uploaded': 'New Document Uploaded',
+    'notification_maintenance_updated': 'Maintenance status updated',
+    'notification_announcement': 'Community Announcement',
+    'notification_generic': 'Notification',
+    'notification_document_description': 'A new document has been uploaded.',
+    'notification_maintenance_description': 'Maintenance status has been updated.',
+    'notification_announcement_description': 'A new announcement has been posted.',
+    'notification_generic_description': 'Tap to view details.',
+
+    // Notification type labels (accessibility)
+    'notification_type_maintenance': 'Maintenance notification',
+    'notification_type_document': 'Document notification',
+    'notification_type_payment': 'Payment notification',
+    'notification_type_message': 'Message notification',
+    'notification_type_booking': 'Booking notification',
+    'notification_type_security': 'Security notification',
+    'notification_type_system': 'System notification',
+    'notification_type_generic': 'Notification',
+
+    // Notification action labels (viewDocument already exists above)
+    'viewTask': 'View Task',
+    'openChat': 'Open Chat',
+    'viewTicket': 'View Ticket',
+
+    // Popup messages (bilingual)
+    'maintenance_status_updated_successfully': 'Maintenance status updated successfully',
+    'document_uploaded_successfully': 'Document uploaded successfully',
+    'otp_sent_to_your_email': 'OTP sent to your email',
+    'operation_failed': 'Operation failed',
+    'are_you_sure_you_want_to_delete': 'Are you sure you want to delete?',
+    'failed_to_logout_please_try_again': 'Failed to logout. Please try again.',
 
     // Status
     'active': 'Active',
@@ -291,6 +329,12 @@ class AppTranslations extends Translations {
     "error_saving_settings": "Error saving settings. Please try again.",
     "no_user_data": "No user data found",
     "profile_updated_successfully": "Profile updated successfully!",
+    "profile_image_updated": "Profile image updated successfully",
+    "language_updated_successfully": "Language updated successfully",
+    "failed_to_upload_image": "Failed to upload image",
+    "error_uploading_image": "Error uploading image. Please try again.",
+    "failed_to_update_language": "Failed to update language",
+    "error_updating_language": "Error updating language. Please try again.",
     "failed_to_update_profile": "Failed to update profile",
     "error_updating_profile": "Error updating profile. Please try again.",
 
@@ -869,6 +913,12 @@ class AppTranslations extends Translations {
     "error_saving_settings": "Errore nel salvare le impostazioni. Riprova.",
     "no_user_data": "Nessun dato utente trovato",
     "profile_updated_successfully": "Profilo aggiornato con successo!",
+    "profile_image_updated": "Immagine profilo aggiornata con successo",
+    "language_updated_successfully": "Lingua aggiornata con successo",
+    "failed_to_upload_image": "Impossibile caricare l'immagine",
+    "error_uploading_image": "Errore nel caricamento dell'immagine. Riprova.",
+    "failed_to_update_language": "Impossibile aggiornare la lingua",
+    "error_updating_language": "Errore nell'aggiornamento della lingua. Riprova.",
     "failed_to_update_profile": "Impossibile aggiornare il profilo",
     "error_updating_profile": "Errore nell'aggiornamento del profilo. Riprova.",
 
@@ -1089,12 +1139,50 @@ class AppTranslations extends Translations {
     'announcement': 'Annuncio',
 
     // Time Ago (Italian)
+    'year_ago': 'anno fa',
     'years_ago': 'anni fa',
+    'month_ago': 'mese fa',
     'months_ago': 'mesi fa',
+    'day_ago': 'giorno fa',
     'days_ago': 'giorni fa',
+    'hour_ago': 'ora fa',
     'hours_ago': 'ore fa',
+    'minute_ago': 'minuto fa',
     'minutes_ago': 'minuti fa',
     'just_now': 'Proprio ora',
+
+    // Notification types (Italian)
+    'notification_document_uploaded': 'Nuovo documento caricato',
+    'notification_maintenance_updated': 'Stato manutenzione aggiornato',
+    'notification_announcement': 'Annuncio della comunità',
+    'notification_generic': 'Notifica',
+    'notification_document_description': 'È stato caricato un nuovo documento.',
+    'notification_maintenance_description': 'Lo stato della manutenzione è stato aggiornato.',
+    'notification_announcement_description': 'È stato pubblicato un nuovo annuncio.',
+    'notification_generic_description': 'Tocca per visualizzare i dettagli.',
+
+    // Notification type labels (Italian)
+    'notification_type_maintenance': 'Notifica manutenzione',
+    'notification_type_document': 'Notifica documento',
+    'notification_type_payment': 'Notifica pagamento',
+    'notification_type_message': 'Notifica messaggio',
+    'notification_type_booking': 'Notifica prenotazione',
+    'notification_type_security': 'Notifica sicurezza',
+    'notification_type_system': 'Notifica di sistema',
+    'notification_type_generic': 'Notifica',
+
+    // Notification action labels (Italian) - viewDocument already exists above
+    'viewTask': 'Visualizza Attività',
+    'openChat': 'Apri Chat',
+    'viewTicket': 'Visualizza Ticket',
+
+    // Popup messages (Italian)
+    'maintenance_status_updated_successfully': 'Stato della manutenzione aggiornato correttamente',
+    'document_uploaded_successfully': 'Documento caricato correttamente',
+    'otp_sent_to_your_email': 'OTP inviato alla tua email',
+    'operation_failed': 'Operazione non riuscita',
+    'are_you_sure_you_want_to_delete': 'Sei sicuro di voler eliminare?',
+    'failed_to_logout_please_try_again': 'Disconnessione non riuscita. Riprova.',
 
     // Status (Italian)
     'active': 'Attivo',

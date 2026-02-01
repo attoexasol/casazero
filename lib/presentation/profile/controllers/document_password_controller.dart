@@ -191,7 +191,7 @@ class DocumentPasswordController extends GetxController {
 
     // Double-check security requirements before proceeding
     if (!canSubmit) {
-      _showError('complete_fields'.tr);
+      _showError('complete_fields');
       return;
     }
 
@@ -206,7 +206,7 @@ class DocumentPasswordController extends GetxController {
 
     // Additional validation: ensure passwords match after trim
     if (newPassword != confirmPassword) {
-      _showError('passwords_do_not_match'.tr);
+      _showError('passwords_do_not_match');
       return;
     }
 

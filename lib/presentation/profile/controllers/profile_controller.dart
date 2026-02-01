@@ -139,7 +139,7 @@ class ProfileController extends GetxController {
   /// Pick and upload profile image
   Future<void> pickAndUploadProfileImage() async {
     if (user.value == null) {
-      _showError('no_user_data'.tr);
+      _showError('no_user_data');
       return;
     }
 
@@ -181,12 +181,12 @@ class ProfileController extends GetxController {
           forceReloadUser();
         }
         
-        _showSuccess(result['message'] ?? 'profile_image_updated'.tr);
+        _showSuccess(result['message'] ?? 'profile_image_updated');
       } else {
-        _showError(result['error'] ?? 'failed_to_upload_image'.tr);
+        _showError(result['error'] ?? 'failed_to_upload_image');
       }
     } catch (e) {
-      _showError('error_uploading_image'.tr);
+      _showError('error_uploading_image');
       print('Error uploading profile image: $e');
     } finally {
       isUploadingImage.value = false;
@@ -196,7 +196,7 @@ class ProfileController extends GetxController {
   /// Update language and call API to save to database
   Future<void> changeLanguage(String lang) async {
     if (user.value == null) {
-      _showError('no_user_data'.tr);
+      _showError('no_user_data');
       return;
     }
 
@@ -217,13 +217,13 @@ class ProfileController extends GetxController {
         final localeController = Get.find<LocaleController>();
         await localeController.changeLocale(lang);
 
-        _showSuccess(result['message'] ?? 'language_updated_successfully'.tr);
+        _showSuccess(result['message'] ?? 'language_updated_successfully');
         update();
       } else {
-        _showError(result['error'] ?? 'failed_to_update_language'.tr);
+        _showError(result['error'] ?? 'failed_to_update_language');
       }
     } catch (e) {
-      _showError('error_updating_language'.tr);
+      _showError('error_updating_language');
       print('Error changing language: $e');
     } finally {
       isChangingLanguage.value = false;
@@ -306,7 +306,7 @@ class ProfileController extends GetxController {
     String? phone,
   }) async {
     if (user.value == null) {
-      _showError('no_user_data'.tr);
+      _showError('no_user_data');
       return false;
     }
 
@@ -326,14 +326,14 @@ class ProfileController extends GetxController {
         loadUser();
         // Ensure the UI updates immediately by triggering a rebuild
         update();
-        _showSuccess(result['message'] ?? 'profile_updated_successfully'.tr);
+        _showSuccess(result['message'] ?? 'profile_updated_successfully');
         return true;
       } else {
-        _showError(result['error'] ?? 'failed_to_update_profile'.tr);
+        _showError(result['error'] ?? 'failed_to_update_profile');
         return false;
       }
     } catch (e) {
-      _showError('error_updating_profile'.tr);
+      _showError('error_updating_profile');
       print('Error updating profile: $e');
       return false;
     } finally {
@@ -349,7 +349,7 @@ class ProfileController extends GetxController {
 
     if (user.value == null) {
       print('❌ [ProfileController] User is null, cannot save settings');
-      _showError('no_user_data'.tr);
+      _showError('no_user_data');
       return;
     }
 
@@ -421,17 +421,17 @@ class ProfileController extends GetxController {
 
         print('✅ [ProfileController] All settings saved successfully');
         print('   Settings persisted to: Local storage + Server API');
-        _showSuccess(result['message'] ?? 'settings_saved_successfully'.tr);
+        _showSuccess(result['message'] ?? 'settings_saved_successfully');
       } else {
         print(
           '❌ [ProfileController] Failed to save settings: ${result['error']}',
         );
-        _showError(result['error'] ?? 'failed_to_save_settings'.tr);
+        _showError(result['error'] ?? 'failed_to_save_settings');
       }
     } catch (e, stackTrace) {
       print('❌ [ProfileController] Exception in saveSettings(): $e');
       print('📚 [ProfileController] Stack trace: $stackTrace');
-      _showError('error_saving_settings'.tr);
+      _showError('error_saving_settings');
     } finally {
       isSaving.value = false;
       print('🏁 [ProfileController] saveSettings() completed');
@@ -469,7 +469,7 @@ class ProfileController extends GetxController {
         Get.offAllNamed(AppRoutes.AUTH);
       } catch (clearError) {
         print('❌ Error clearing storage: $clearError');
-        _showError('Failed to logout. Please try again.');
+        _showError('failed_to_logout_please_try_again');
       }
     }
   }
@@ -485,16 +485,16 @@ class ProfileController extends GetxController {
   // POPUP MESSAGES
   // -------------------------------------------------------------------------
 
-  void _showError(String message) {
+  void _showError(String messageKey) {
     MessagePopupController.showError(
-      messageKey: message,
-      titleKey: 'error'.tr,
+      messageKey: messageKey,
+      titleKey: 'error',
     );
   }
 
-  void _showSuccess(String message) {
+  void _showSuccess(String messageKey) {
     MessagePopupController.showSuccess(
-      messageKey: message,
+      messageKey: messageKey,
       titleKey: '',
     );
   }

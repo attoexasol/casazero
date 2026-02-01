@@ -290,8 +290,8 @@ class _LatestNotificationCardState extends State<_LatestNotificationCard> {
                             final _ =
                                 localeController.locale; // Trigger reactivity
 
-                            final displayTitle = notification.displayTitle;
-                            final displayContent = notification.displayContent;
+                            final displayTitle = notification.localizedDisplayTitle;
+                            final displayContent = notification.localizedDisplayContent;
 
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,

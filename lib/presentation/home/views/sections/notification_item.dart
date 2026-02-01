@@ -82,10 +82,10 @@ class NotificationItem extends StatelessWidget {
                     // Use computed bilingual getters from model
                     // These getters check LocaleController internally, but we ensure reactivity here
                     final displayTitle = item is FeedItemModel 
-                        ? item.displayTitle 
+                        ? item.localizedDisplayTitle 
                         : item.title;
                     final displayContent = item is FeedItemModel 
-                        ? item.displayContent 
+                        ? item.localizedDisplayContent 
                         : item.description;
                     
                     // Use currentLocale to ensure Obx tracks the change (triggers rebuild on language change)
@@ -271,29 +271,29 @@ class NotificationItem extends StatelessWidget {
     );
   }
 
-  /// Get semantic label for accessibility
+  /// Get semantic label for accessibility (localized)
   String _getNotificationSemanticLabel(String type) {
     switch (type.toLowerCase()) {
       case 'maintenance':
-        return 'Maintenance notification';
+        return 'notification_type_maintenance'.tr;
       case 'documents':
       case 'document':
-        return 'Document notification';
+        return 'notification_type_document'.tr;
       case 'payments':
       case 'payment':
-        return 'Payment notification';
+        return 'notification_type_payment'.tr;
       case 'messages':
       case 'message':
-        return 'Message notification';
+        return 'notification_type_message'.tr;
       case 'booking':
       case 'bookings':
-        return 'Booking notification';
+        return 'notification_type_booking'.tr;
       case 'security':
-        return 'Security notification';
+        return 'notification_type_security'.tr;
       case 'system':
-        return 'System notification';
+        return 'notification_type_system'.tr;
       default:
-        return 'Notification';
+        return 'notification_type_generic'.tr;
     }
   }
 

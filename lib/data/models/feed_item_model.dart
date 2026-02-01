@@ -165,18 +165,67 @@ class FeedItemModel {
     final difference = DateTime.now().difference(timestamp);
 
     if (difference.inDays > 365) {
-      return '${(difference.inDays / 365).floor()} years ago';
+      final n = (difference.inDays / 365).floor();
+      return '$n ${n == 1 ? 'year_ago'.tr : 'years_ago'.tr}';
     } else if (difference.inDays > 30) {
-      return '${(difference.inDays / 30).floor()} months ago';
+      final n = (difference.inDays / 30).floor();
+      return '$n ${n == 1 ? 'month_ago'.tr : 'months_ago'.tr}';
     } else if (difference.inDays > 0) {
-      return '${difference.inDays} days ago';
+      final n = difference.inDays;
+      return '$n ${n == 1 ? 'day_ago'.tr : 'days_ago'.tr}';
     } else if (difference.inHours > 0) {
-      return '${difference.inHours} hours ago';
+      final n = difference.inHours;
+      return '$n ${n == 1 ? 'hour_ago'.tr : 'hours_ago'.tr}';
     } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} minutes ago';
+      final n = difference.inMinutes;
+      return '$n ${n == 1 ? 'minute_ago'.tr : 'minutes_ago'.tr}';
     } else {
-      return 'Just now';
+      return 'just_now'.tr;
     }
+  }
+
+  /// Localization key for notification title when API has no bilingual fields.
+  String get notificationTitleKey {
+    switch (type.toLowerCase()) {
+      case 'document':
+      case 'documents':
+        return 'notification_document_uploaded';
+      case 'maintenance':
+        return 'notification_maintenance_updated';
+      case 'announcement':
+        return 'notification_announcement';
+      default:
+        return 'notification_generic';
+    }
+  }
+
+  /// Localization key for notification description when API has no bilingual fields.
+  String get notificationDescriptionKey {
+    switch (type.toLowerCase()) {
+      case 'document':
+      case 'documents':
+        return 'notification_document_description';
+      case 'maintenance':
+        return 'notification_maintenance_description';
+      case 'announcement':
+        return 'notification_announcement_description';
+      default:
+        return 'notification_generic_description';
+    }
+  }
+
+  /// Returns localized title: uses displayTitle when API has bilingual; else type-based key.
+  String get localizedDisplayTitle {
+    if (titleEn != null && titleEn!.isNotEmpty) return displayTitle;
+    if (titleIt != null && titleIt!.isNotEmpty) return displayTitle;
+    return notificationTitleKey.tr;
+  }
+
+  /// Returns localized description: uses displayContent when API has bilingual; else type-based key.
+  String get localizedDisplayContent {
+    if (contentEn != null && contentEn!.isNotEmpty) return displayContent;
+    if (contentIt != null && contentIt!.isNotEmpty) return displayContent;
+    return notificationDescriptionKey.tr;
   }
 
   /// Create a copy with updated fields (for marking as read)
