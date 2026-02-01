@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/controllers/message_popup_controller.dart';
+import '../../../../core/localization/locale_controller.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/gradient_button.dart';
@@ -803,10 +804,18 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 borderRadius: BorderRadius.circular(25),
                 items: _controller.categories.map((category) {
+                  final localeController = Get.find<LocaleController>();
+                  final _ = localeController.locale; // Observe locale for rebuild on language change
+                  final isItalian = localeController.isItalian;
+                  final displayName = isItalian
+                      ? (category.categoryNameIt.isNotEmpty
+                          ? category.categoryNameIt
+                          : category.categoryName)
+                      : category.categoryName;
                   return DropdownMenuItem<int>(
                     value: category.id,
                     child: Text(
-                      category.categoryName,
+                      displayName,
                       style: AppTextStyles.bodyMedium.copyWith(
                         color: AppColors.neutralInk900,
                       ),
