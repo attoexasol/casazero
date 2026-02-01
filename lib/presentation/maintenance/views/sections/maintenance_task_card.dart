@@ -755,7 +755,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
-                                    const SizedBox(height: 8),
+                                    //const SizedBox(height: 2),
                                   ],
                                   // Company Phone
                                   Row(
