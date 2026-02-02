@@ -480,10 +480,12 @@ class _ChatScreenState extends State<ChatScreen> {
             color: Colors.transparent,
             child: IconButton(
               onPressed: () {},
-              icon: Icon(
-                LucideIcons.paperclip,
-                size: 22.sp,
+              icon: Image.asset(
+                'assets/images/chat_pin_icon.png',
+                width: 22.sp,
+                height: 22.sp,
                 color: AppColors.neutralInk700,
+                colorBlendMode: BlendMode.srcIn,
               ),
               padding: EdgeInsets.zero,
               constraints: BoxConstraints(minWidth: 40.w, minHeight: 40.w),
@@ -546,10 +548,12 @@ class _ChatScreenState extends State<ChatScreen> {
                   ],
                 ),
                 alignment: Alignment.center,
-                child: Icon(
-                  LucideIcons.send,
-                  size: 20.sp,
+                child: Image.asset(
+                  'assets/images/chat_send_icon.png',
+                  width: 20.sp,
+                  height: 20.sp,
                   color: hasText ? AppColors.surfaceWhite : AppColors.surfaceWhite.withOpacity(0.6),
+                  colorBlendMode: BlendMode.srcIn,
                 ),
               ),
             ),
