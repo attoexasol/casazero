@@ -1,6 +1,7 @@
 // presentation/auth/controllers/auth_controller.dart
 // UPDATED WITH PHONE SUPPORT FOR LOGIN
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/controllers/message_popup_controller.dart';
@@ -87,6 +88,19 @@ class AuthController extends GetxController {
 
       await _storageService.saveUserData(user.toJson());
       await _storageService.setFirstLogin(user.isFirstLogin);
+
+      // Sign in to Firebase with custom token (Laravel returns firebase_token)
+      final firebaseToken = result['firebase_token']?.toString();
+      if (firebaseToken != null && firebaseToken.isNotEmpty) {
+        try {
+          await FirebaseAuth.instance.signInWithCustomToken(firebaseToken);
+          print('✅ Firebase Auth: Signed in with custom token');
+          final fbUser = FirebaseAuth.instance.currentUser;
+          print('🔥 FIREBASE UID = ${fbUser?.uid}');
+        } catch (e) {
+          print('⚠️ Firebase Auth: Failed to sign in with custom token: $e');
+        }
+      }
 
       // Set user's preferred language from API
       await _localeController.changeLocale(user.language);

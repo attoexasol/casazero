@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -9,8 +10,7 @@ import '../../../core/utils/permissions.dart';
 import '../controllers/chat_controller.dart';
 import '../models/chat_message_model.dart';
 
-/// Flutter ChatScreen converted from React ChatScreen.tsx.
-/// UI matches React 1:1 (header, message list, input area).
+/// Real-time condominium group chat using Firebase Firestore.
 /// Uses GetX ChatController for state management.
 class ChatScreen extends GetView<ChatController> {
   final Role role;
@@ -33,7 +33,6 @@ class ChatScreen extends GetView<ChatController> {
     );
   }
 
-  /// Header: Group Chat, Online Now, right-side Demo button (light green, gear + Demo).
   Widget _buildHeader(BuildContext context) {
     return Container(
       width: double.infinity,
@@ -121,15 +120,66 @@ class ChatScreen extends GetView<ChatController> {
   }
 
   Widget _buildMessageList() {
-    return Obx(() => ListView.builder(
+    return StreamBuilder<List<ChatMessage>>(
+      stream: controller.messagesStream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(color: AppColors.brandSage500),
+          );
+        }
+        if (snapshot.hasError) {
+          return Center(
+            child: Padding(
+              padding: EdgeInsets.all(24.w),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 48.sp, color: AppColors.danger),
+                  SizedBox(height: 16.h),
+                  Text(
+                    'Unable to load messages',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.neutralInk700,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 8.h),
+                  Text(
+                    snapshot.error.toString(),
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.neutralInk500,
+                      fontSize: 11,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+        final messages = snapshot.data ?? [];
+        if (messages.isEmpty) {
+          return Center(
+            child: Text(
+              'No messages yet. Say hello!',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.neutralInk500,
+              ),
+            ),
+          );
+        }
+        return ListView.builder(
           controller: controller.scrollController,
           padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-          itemCount: controller.messages.length,
+          itemCount: messages.length,
           itemBuilder: (context, index) {
-            final msg = controller.messages[index];
-            final isOwnMessage = msg.sender == 'You';
+            final msg = messages[index];
+            final isOwnMessage = controller.isOwnMessage(msg.senderId);
             final showAvatar = index == 0 ||
-                controller.messages[index - 1].sender != msg.sender;
+                messages[index - 1].senderId != msg.senderId;
 
             if (msg.type == 'announcement') {
               return _buildAnnouncementCard(msg);
@@ -142,7 +192,7 @@ class ChatScreen extends GetView<ChatController> {
                     isOwnMessage ? MainAxisAlignment.end : MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  if (!isOwnMessage && showAvatar) _buildAvatar(msg.sender),
+                  if (!isOwnMessage && showAvatar) _buildAvatar(msg.senderName),
                   if (!isOwnMessage && !showAvatar) SizedBox(width: 32.w),
                   if (!isOwnMessage) SizedBox(width: 8.w),
                   Flexible(
@@ -158,7 +208,7 @@ class ChatScreen extends GetView<ChatController> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  msg.sender,
+                                  msg.senderName,
                                   style: AppTextStyles.caption.copyWith(
                                     fontSize: 12.sp,
                                     color: AppColors.neutralInk700,
@@ -201,16 +251,7 @@ class ChatScreen extends GetView<ChatController> {
                                   ),
                             borderRadius: BorderRadius.circular(16.r),
                           ),
-                          child: Text(
-                            msg.content,
-                            style: AppTextStyles.bodyMedium.copyWith(
-                              fontSize: 14.sp,
-                              height: 1.4,
-                              color: isOwnMessage
-                                  ? AppColors.surfaceWhite
-                                  : AppColors.neutralInk900,
-                            ),
-                          ),
+                          child: _buildMessageContent(msg, isOwnMessage),
                         ),
                         SizedBox(height: 4.h),
                         Text(
@@ -228,7 +269,66 @@ class ChatScreen extends GetView<ChatController> {
               ),
             );
           },
-        ));
+        );
+      },
+    );
+  }
+
+  Widget _buildMessageContent(ChatMessage msg, bool isOwnMessage) {
+    final textColor = isOwnMessage
+        ? AppColors.surfaceWhite
+        : AppColors.neutralInk900;
+
+    if (msg.type == 'image' && msg.imageUrl != null && msg.imageUrl!.isNotEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8.r),
+            child: CachedNetworkImage(
+              imageUrl: msg.imageUrl!,
+              width: 200.w,
+              height: 200.w,
+              fit: BoxFit.cover,
+              placeholder: (_, __) => Container(
+                width: 200.w,
+                height: 200.w,
+                color: AppColors.neutralLine100,
+                child: const Center(
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+              errorWidget: (_, __, ___) => Icon(
+                Icons.broken_image,
+                size: 48.sp,
+                color: AppColors.neutralInk400,
+              ),
+            ),
+          ),
+          if (msg.text != null && msg.text!.isNotEmpty) ...[
+            SizedBox(height: 8.h),
+            Text(
+              msg.text!,
+              style: AppTextStyles.bodyMedium.copyWith(
+                fontSize: 14.sp,
+                height: 1.4,
+                color: textColor,
+              ),
+            ),
+          ],
+        ],
+      );
+    }
+
+    return Text(
+      msg.content,
+      style: AppTextStyles.bodyMedium.copyWith(
+        fontSize: 14.sp,
+        height: 1.4,
+        color: textColor,
+      ),
+    );
   }
 
   Widget _buildAnnouncementCard(ChatMessage msg) {
@@ -288,7 +388,7 @@ class ChatScreen extends GetView<ChatController> {
                           borderRadius: BorderRadius.circular(6.r),
                         ),
                         child: Text(
-                          msg.sender,
+                          msg.senderName,
                           style: AppTextStyles.caption.copyWith(
                             fontSize: 11.sp,
                             fontWeight: FontWeight.w500,
@@ -301,6 +401,19 @@ class ChatScreen extends GetView<ChatController> {
                     ],
                   ),
                   SizedBox(height: 6.h),
+                  if (msg.imageUrl != null && msg.imageUrl!.isNotEmpty)
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 8.h),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8.r),
+                        child: CachedNetworkImage(
+                          imageUrl: msg.imageUrl!,
+                          width: double.infinity,
+                          height: 120.h,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
                   Text(
                     msg.content,
                     style: AppTextStyles.bodyMedium.copyWith(
@@ -341,7 +454,6 @@ class ChatScreen extends GetView<ChatController> {
     );
   }
 
-  /// Input area: paperclip, rounded field "Type a message...", green circular send.
   Widget _buildInputArea(BuildContext context) {
     return Container(
       padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 12.h + MediaQuery.of(context).padding.bottom),
@@ -352,21 +464,32 @@ class ChatScreen extends GetView<ChatController> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Material(
+          Obx(() => Material(
             color: Colors.transparent,
             child: IconButton(
-              onPressed: () {},
-              icon: Image.asset(
-                'assets/images/chat_pin_icon.png',
-                width: 22.sp,
-                height: 22.sp,
-                color: AppColors.neutralInk700,
-                colorBlendMode: BlendMode.srcIn,
-              ),
+              onPressed: controller.isUploadingImage.value
+                  ? null
+                  : controller.sendImage,
+              icon: controller.isUploadingImage.value
+                  ? SizedBox(
+                      width: 22.sp,
+                      height: 22.sp,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.neutralInk700,
+                      ),
+                    )
+                  : Image.asset(
+                      'assets/images/chat_pin_icon.png',
+                      width: 22.sp,
+                      height: 22.sp,
+                      color: AppColors.neutralInk700,
+                      colorBlendMode: BlendMode.srcIn,
+                    ),
               padding: EdgeInsets.zero,
               constraints: BoxConstraints(minWidth: 40.w, minHeight: 40.w),
             ),
-          ),
+          )),
           SizedBox(width: 8.w),
           Expanded(
             child: Container(
@@ -395,7 +518,7 @@ class ChatScreen extends GetView<ChatController> {
                 ),
                 maxLines: 4,
                 minLines: 1,
-                onSubmitted: (_) => controller.handleSend(),
+                onSubmitted: (_) => controller.sendText(),
               ),
             ),
           ),
@@ -404,36 +527,49 @@ class ChatScreen extends GetView<ChatController> {
             id: 'input',
             builder: (_) {
               final hasText = controller.hasMessageText;
-              return Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: hasText ? controller.handleSend : null,
-                  borderRadius: BorderRadius.circular(22.r),
-                  child: Container(
-                    width: 44.w,
-                    height: 44.w,
-                    decoration: BoxDecoration(
-                      color: AppColors.brandSage500,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    alignment: Alignment.center,
-                    child: Image.asset(
-                      'assets/images/chat_send_icon.png',
-                      width: 20.sp,
-                      height: 20.sp,
-                      color: hasText ? AppColors.surfaceWhite : AppColors.surfaceWhite.withOpacity(0.6),
-                      colorBlendMode: BlendMode.srcIn,
+              return Obx(() {
+                final sending = controller.isSending.value;
+                final canSend = hasText && !sending;
+                return Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: canSend ? controller.sendText : null,
+                    borderRadius: BorderRadius.circular(22.r),
+                    child: Container(
+                      width: 44.w,
+                      height: 44.w,
+                      decoration: BoxDecoration(
+                        color: AppColors.brandSage500,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.08),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: sending
+                          ? SizedBox(
+                              width: 20.sp,
+                              height: 20.sp,
+                              child: const CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : Image.asset(
+                              'assets/images/chat_send_icon.png',
+                              width: 20.sp,
+                              height: 20.sp,
+                              color: hasText ? AppColors.surfaceWhite : AppColors.surfaceWhite.withOpacity(0.6),
+                              colorBlendMode: BlendMode.srcIn,
+                            ),
                     ),
                   ),
-                ),
-              );
+                );
+              });
             },
           ),
         ],
