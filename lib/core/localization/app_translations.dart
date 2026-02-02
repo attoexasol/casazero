@@ -668,6 +668,7 @@ class AppTranslations extends Translations {
     'aiMockResponse':
         'I understand you\'re asking about {input}. Based on your residence data, I can help you. This is a demo response showing how CasaZero AI would provide contextual information about your home, documents, and maintenance needs.',
     'aiProcessingResponse': 'I\'m processing your request. Please wait...',
+    'remainingCredits': 'Credits left',
     'aiSendError':
         'Failed to send message. Please check your connection and try again.',
     'aiLoadHistoryError': 'Failed to load chat history. Please try again.',
@@ -1360,6 +1361,7 @@ class AppTranslations extends Translations {
         'Capisco che stai chiedendo informazioni su {input}. In base ai dati della tua residenza, posso aiutarti. Questa è una risposta demo che mostra come CasaZero AI fornirebbe informazioni contestuali sulla tua casa, documenti e necessità di manutenzione.',
     'aiProcessingResponse':
         'Sto elaborando la tua richiesta. Attendere prego...',
+    'remainingCredits': 'Crediti rimasti',
     'aiSendError':
         'Invio messaggio fallito. Controlla la connessione e riprova.',
     'aiLoadHistoryError': 'Caricamento cronologia chat fallito. Riprova.',

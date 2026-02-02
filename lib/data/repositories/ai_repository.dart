@@ -155,16 +155,31 @@ class AiRepository {
           chatId = null;
         }
 
+        // Extract remaining_ai_credit (int or null)
+        final dynamic remainingCreditRaw = response.data['remaining_ai_credit'];
+        final int? remainingAiCredit;
+        if (remainingCreditRaw == null) {
+          remainingAiCredit = null;
+        } else if (remainingCreditRaw is int) {
+          remainingAiCredit = remainingCreditRaw;
+        } else if (remainingCreditRaw is num) {
+          remainingAiCredit = remainingCreditRaw.toInt();
+        } else {
+          remainingAiCredit = int.tryParse(remainingCreditRaw.toString());
+        }
+
         print('✅ [AiRepository] Response validated:');
         print('   - chat_id: $chatId (type: ${chatId.runtimeType})');
         print('   - reply: ${replyText.length} chars (type: ${replyText.runtimeType})');
         print('   - image: ${imageUrl ?? 'null'} (type: ${imageUrl?.runtimeType ?? 'null'})');
+        print('   - remaining_ai_credit: $remainingAiCredit (type: ${remainingAiCredit.runtimeType})');
 
         return {
           'success': true,
           'chat_id': chatId,
           'reply': replyText,
           'image': imageUrl,
+          'remaining_ai_credit': remainingAiCredit,
         };
       } else {
         // Extract error message from various possible response formats

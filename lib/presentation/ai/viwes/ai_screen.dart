@@ -304,14 +304,33 @@ class AIScreen extends StatelessWidget {
                         : AppColors.neutralInk900,
                   ),
                 ),
-                SizedBox(height: 8.h),
-                Text(
-                  '${message.timestamp.hour.toString().padLeft(2, '0')}:${message.timestamp.minute.toString().padLeft(2, '0')}',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    fontSize: 11.sp,
-                    color: isUser
-                        ? AppColors.surfaceWhite.withOpacity(0.7)
-                        : AppColors.neutralInk400,
+                Padding(
+                  padding: EdgeInsets.only(top: 8.h),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                      Text(
+                        '${message.timestamp.hour.toString().padLeft(2, '0')}:${message.timestamp.minute.toString().padLeft(2, '0')}',
+                        style: AppTextStyles.caption.copyWith(
+                          color: isUser
+                              ? AppColors.surfaceWhite.withOpacity(0.7)
+                              : AppColors.neutralInk400,
+                        ),
+                      ),
+                      const Spacer(),
+                      if (!isUser && message.remainingAiCredit != null)
+                        Text(
+                          '${'remainingCredits'.tr}: ${message.remainingAiCredit}',
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.neutralInk700,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          textDirection: TextDirection.ltr,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],

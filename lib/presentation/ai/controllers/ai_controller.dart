@@ -10,6 +10,7 @@ class Message {
   final String content;
   final DateTime timestamp;
   final String? imageUrl; // For future image support
+  final int? remainingAiCredit; // AI credits left after this response
 
   Message({
     this.id,
@@ -17,6 +18,7 @@ class Message {
     required this.content,
     required this.timestamp,
     this.imageUrl,
+    this.remainingAiCredit,
   });
 
   /// Create message from API response
@@ -27,6 +29,7 @@ class Message {
     String? image,
     required String createdAt,
     bool isUser = false,
+    int? remainingAiCredit,
   }) {
     return Message(
       id: chatId?.toString(),
@@ -34,6 +37,7 @@ class Message {
       content: isUser ? userMessage : (aiMessage ?? ''),
       timestamp: Message._parseDateTime(createdAt),
       imageUrl: image,
+      remainingAiCredit: remainingAiCredit,
     );
   }
 
@@ -295,6 +299,10 @@ class AiController extends GetxController {
         final aiReply = result['reply']?.toString() ?? '';
         final chatId = result['chat_id'];
         final image = result['image'];
+        final rawCredit = result['remaining_ai_credit'];
+        final remainingAiCredit = rawCredit is int
+            ? rawCredit
+            : (rawCredit is num ? rawCredit.toInt() : null);
 
         if (aiReply.isNotEmpty) {
           // Add AI response
@@ -304,6 +312,7 @@ class AiController extends GetxController {
             content: aiReply,
             timestamp: DateTime.now(),
             imageUrl: image,
+            remainingAiCredit: remainingAiCredit,
           );
 
           messages.add(aiMessage);
@@ -335,6 +344,7 @@ class AiController extends GetxController {
             content: 'aiProcessingResponse'.tr,
             timestamp: DateTime.now(),
             imageUrl: image,
+            remainingAiCredit: remainingAiCredit,
           ));
         }
       } else {
