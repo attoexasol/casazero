@@ -24,6 +24,7 @@ import '../profile/controllers/profile_controller.dart';
 import '../documents/controllers/documents_controller.dart';
 import '../maintenance/controllers/maintenance_controller.dart';
 import '../ai/controllers/ai_controller.dart';
+import '../chat/controllers/chat_controller.dart';
 import '../../data/models/user_model.dart';
 import '../../data/models/feed_item_model.dart';
 import '../../core/utils/permissions.dart';
@@ -850,6 +851,9 @@ class MainScaffold extends GetView<HomeController> {
         return const AIScreen();
 
       case AppScreen.chat:
+        if (!Get.isRegistered<ChatController>()) {
+          Get.put(ChatController());
+        }
         return ChatScreen(
           role: controller.currentUser.value?.role ?? Role.client,
           onBack: () => controller.goBack(),

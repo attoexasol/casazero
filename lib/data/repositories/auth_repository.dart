@@ -74,6 +74,9 @@ class AuthRepository {
       print('  Message: ${response.data['message']}');
       print('  Is Trusted: ${response.data['is_trusted']}');
       print('  Access Token (response.token): ${response.data['token']}');
+      if (response.data['firebase_token'] != null) {
+        print('  Firebase Token: ${response.data['firebase_token']}');
+      }
 
       if (response.statusCode == 200 && response.data['status'] == true) {
         // Save the new token from response for next login
