@@ -5,150 +5,43 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
-import '../../../core/utils/permissions.dart';
-
-/// Ticket model matching React Ticket interface.
-class TicketModel {
-  final String id;
-  final String title;
-  final String category;
-  final String description;
-  final String status; // 'open' | 'in-progress' | 'resolved'
-  final String? priority;
-  final String created;
-  final String updated;
-  final int? attachments;
-  final int? updates;
-  final String? assignedTo;
-  final String? createdBy;
-
-  const TicketModel({
-    required this.id,
-    required this.title,
-    required this.category,
-    required this.description,
-    required this.status,
-    this.priority,
-    required this.created,
-    required this.updated,
-    this.attachments,
-    this.updates,
-    this.assignedTo,
-    this.createdBy,
-  });
-}
+import '../controllers/tickets_controller.dart';
+import '../models/ticket_model.dart';
 
 /// Flutter TicketsScreen converted from React TicketsScreen.tsx.
 /// UI matches React 1:1 (filter tabs, Create Ticket button, ticket cards).
-class TicketsScreen extends StatefulWidget {
-  final Role role;
+class TicketsScreen extends GetView<TicketsController> {
   final VoidCallback onBack;
 
   const TicketsScreen({
     super.key,
-    required this.role,
     required this.onBack,
   });
 
   @override
-  State<TicketsScreen> createState() => _TicketsScreenState();
-}
-
-class _TicketsScreenState extends State<TicketsScreen> {
-  String _filter = 'all'; // 'all' | 'open' | 'in-progress' | 'resolved'
-
-  static final List<TicketModel> _allTickets = [
-    const TicketModel(
-      id: '1',
-      title: 'Bathroom sink faucet leaking',
-      category: 'Plumbing',
-      description:
-          'The main bathroom sink faucet has a slow leak that needs attention.',
-      status: 'in-progress',
-      priority: 'high',
-      created: 'Oct 30, 2025',
-      updated: '2 hours ago',
-      attachments: 2,
-      updates: 3,
-      assignedTo: 'Mario Rossi - Plumber',
-      createdBy: 'Marco (Unit 4B)',
-    ),
-    const TicketModel(
-      id: '2',
-      title: 'Living room light switch not working',
-      category: 'Electrical',
-      description: 'The main light switch in the living room is unresponsive.',
-      status: 'open',
-      priority: 'medium',
-      created: 'Nov 1, 2025',
-      updated: '1 day ago',
-      attachments: 1,
-      createdBy: 'Marco (Unit 4B)',
-    ),
-    const TicketModel(
-      id: '3',
-      title: 'Window condensation issue',
-      category: 'Building Envelope',
-      description: 'Excessive condensation forming on bedroom windows.',
-      status: 'resolved',
-      priority: 'low',
-      created: 'Oct 15, 2025',
-      updated: '5 days ago',
-      attachments: 3,
-      updates: 5,
-      assignedTo: 'Giuseppe Verdi - Building Manager',
-      createdBy: 'Marco (Unit 4B)',
-    ),
-    const TicketModel(
-      id: '4',
-      title: 'Common area heating not working',
-      category: 'HVAC',
-      description: 'Hallway heating system needs attention.',
-      status: 'open',
-      priority: 'high',
-      created: 'Nov 2, 2025',
-      updated: '3 hours ago',
-      createdBy: 'Lucia (Unit 2A)',
-    ),
-  ];
-
-  List<TicketModel> get _filteredTickets {
-    if (_filter == 'all') return _allTickets;
-    return _allTickets.where((t) => t.status == _filter).toList();
-  }
-
-  String _tabLabel(String key) {
-    if (key == 'all') return 'tutte'.tr.isEmpty ? 'All' : 'tutte'.tr;
-    if (key == 'open') return 'open'.tr.isEmpty ? 'Open' : 'open'.tr;
-    if (key == 'in-progress') {
-      return 'inProgress'.tr.isEmpty ? 'In Progress' : 'inProgress'.tr;
-    }
-    return 'resolved'.tr.isEmpty ? 'Resolved' : 'resolved'.tr;
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final permissions = Permissions.fromRole(widget.role);
-
-    return Column(
-      children: [
-        _buildFilterTabs(),
-        Expanded(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 24.h + MediaQuery.of(context).padding.bottom),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (permissions.canCreateTickets) _buildCreateTicketButton(),
-                if (permissions.canCreateTickets) SizedBox(height: 16.h),
-                if (_filteredTickets.isEmpty) _buildEmptyState(),
-                ..._filteredTickets.map((t) => _buildTicketCard(t)),
-              ],
+    return Obx(() {
+      final permissions = controller.permissions;
+      return Column(
+        children: [
+          _buildFilterTabs(),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 24.h + MediaQuery.of(context).padding.bottom),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (permissions.canCreateTickets) _buildCreateTicketButton(),
+                  if (permissions.canCreateTickets) SizedBox(height: 16.h),
+                  if (controller.filteredTickets.isEmpty) _buildEmptyState(),
+                  ...controller.filteredTickets.map((t) => _buildTicketCard(t)),
+                ],
+              ),
             ),
           ),
-        ),
-      ],
-    );
+        ],
+      );
+    });
   }
 
   /// Filter tabs: All / Open / In Progress / Resolved — pill style, active green.
@@ -166,13 +59,13 @@ class _TicketsScreenState extends State<TicketsScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: tabs.map((f) {
-            final isActive = _filter == f;
+            final isActive = controller.filter.value == f;
             return Padding(
               padding: EdgeInsets.only(right: 8.w),
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: () => setState(() => _filter = f),
+                  onTap: () => controller.setFilter(f),
                   borderRadius: BorderRadius.circular(999),
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
@@ -188,7 +81,7 @@ class _TicketsScreenState extends State<TicketsScreen> {
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
-                      _tabLabel(f),
+                      controller.tabLabel(f),
                       style: AppTextStyles.bodyMedium.copyWith(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w500,

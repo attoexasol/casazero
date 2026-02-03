@@ -25,6 +25,8 @@ import '../documents/controllers/documents_controller.dart';
 import '../maintenance/controllers/maintenance_controller.dart';
 import '../ai/controllers/ai_controller.dart';
 import '../chat/controllers/chat_controller.dart';
+import '../hub/controllers/hub_controller.dart';
+import '../tickets/controllers/tickets_controller.dart';
 import '../../data/models/user_model.dart';
 import '../../data/models/feed_item_model.dart';
 import '../../core/utils/permissions.dart';
@@ -781,8 +783,10 @@ class MainScaffold extends GetView<HomeController> {
         );
 
       case AppScreen.hubScreen:
+        if (!Get.isRegistered<HubController>()) {
+          Get.put(HubController());
+        }
         return HubScreen(
-          role: controller.currentUser.value?.role ?? Role.client,
           onNavigate: (screen) => controller.navigateToScreenByString(screen),
         );
 
@@ -860,8 +864,10 @@ class MainScaffold extends GetView<HomeController> {
         );
 
       case AppScreen.tickets:
+        if (!Get.isRegistered<TicketsController>()) {
+          Get.put(TicketsController());
+        }
         return TicketsScreen(
-          role: controller.currentUser.value?.role ?? Role.client,
           onBack: () => controller.goBack(),
         );
 
@@ -884,8 +890,10 @@ class MainScaffold extends GetView<HomeController> {
       }
 
       if (user.residenceStatus == ResidenceStatus.completed) {
+        if (!Get.isRegistered<HubController>()) {
+          Get.put(HubController());
+        }
         return HubScreen(
-          role: user.role ?? Role.client,
           onNavigate: (destination) =>
               controller.navigateToScreenByString(destination),
         );

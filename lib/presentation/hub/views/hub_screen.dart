@@ -1,107 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../../core/utils/permissions.dart';
+import 'package:get/get.dart';
+
 import '../../../core/widgets/casazero_logo.dart';
-import '../../../data/models/hub_card_model.dart';
+import '../controllers/hub_controller.dart';
 import 'sections/hub_card_widget.dart';
 
-class HubScreen extends StatelessWidget {
-  final Role role;
+class HubScreen extends GetView<HubController> {
   final Function(String) onNavigate;
 
-  const HubScreen({super.key, required this.role, required this.onNavigate});
-
-  // -------------------------------
-  // RESPONSIVE BREAKPOINTS
-  // -------------------------------
-  int _getGridCount(double width) {
-    // For mobile, show 2 columns to ensure cards are visible
-    // For larger screens, show more columns
-    if (width >= 1100) return 4; // Desktop - show all 4 cards in one row
-    if (width >= 800) return 3; // Tablet Landscape - 3 columns
-    if (width >= 600) return 2; // Tablet Portrait - 2 columns
-    return 2; // Mobile - 2 columns (cards will wrap to 2 rows)
-  }
-
-  double _getCardHeight(double width) {
-    if (width >= 1100) return 220;
-    if (width >= 800) return 200;
-    if (width >= 600) return 180;
-    return 160;
-  }
-
-  EdgeInsets _getHorizontalPadding(double width) {
-    if (width >= 1100) return const EdgeInsets.symmetric(horizontal: 120);
-    if (width >= 800) return const EdgeInsets.symmetric(horizontal: 80);
-    if (width >= 600) return const EdgeInsets.symmetric(horizontal: 40);
-    return const EdgeInsets.symmetric(horizontal: 24);
-  }
+  const HubScreen({super.key, required this.onNavigate});
 
   @override
   Widget build(BuildContext context) {
-    final permissions = Permissions.fromRole(role);
+    final hubCards = controller.hubCards;
 
-    final hubCards = [
-      HubCard(
-        id: 'ai',
-        screen: 'aichat',
-        title: "CasaZero AI",
-        isImage: true,
-        imagePath: "assets/images/thumb_cubo.png",
-        gradient: const [Color(0xFF6B8E23), Color(0xFF9ACD32)],
-        bgGradient: const [Color(0xFFEFF8E6), Color(0xFFF3FBEA)],
-        shadowColor: const Color(0x4D4CAF47),
-        hoverColor: const Color(0xFF4CAF47),
-        show: permissions.canAccessAI,
-        wrapIconInContainer: false,
-      ),
-      // HubCard(
-      //   id: 'smarthome',
-      //   screen: 'smarthome',
-      //   title: "Domotica",
-      //   //icon: Icons.home_outlined,
-      //   imagePath: "assets/images/home.svg",
-      //   gradient: const [Color(0xFFA855F7), Color(0xFF9333EA)],
-      //   bgGradient: const [Color(0xFFF3E8FF), Color(0xFFE9D5FF)],
-      //   shadowColor: const Color(0x4DA855F7),
-      //   hoverColor: const Color(0xFF9333EA),
-      //   show: permissions.canAccessSmartHome, // Now true for all roles
-      //   wrapIconInContainer: true,
-      // ),
-      HubCard(
-        id: 'chat',
-        screen: 'chat',
-        title: "Chat Condominio",
-        //icon: Icons.chat_outlined,
-        imagePath: "assets/images/Chat_icon.svg",
-        gradient: const [Color(0xFF3B82F6), Color(0xFF2563EB)],
-        bgGradient: const [Color(0xFFEFF6FF), Color(0xFFDBEAFE)],
-        shadowColor: const Color(0x4D3B82F6),
-        hoverColor: const Color(0xFF3B82F6),
-        show: permissions.canAccessChat,
-        wrapIconInContainer: true,
-      ),
-      HubCard(
-        id: 'assistenza',
-        screen: 'tickets',
-        title: "Assistenza",
-        icon: Icons.help_outline,
-        gradient: const [Color(0xFFF59E0B), Color(0xFFEA580C)],
-        bgGradient: const [Color(0xFFFFF7ED), Color(0xFFFFEDD5)],
-        shadowColor: const Color(0x4DF59E0B),
-        hoverColor: const Color(0xFFF59E0B),
-        show: permissions.canCreateTickets,
-        wrapIconInContainer: true,
-      ),
-    ].where((c) => c.show).toList();
-
-    // Debug: Print card count
     print('🔍 HubScreen: Showing ${hubCards.length} cards out of 4 total');
     for (var card in hubCards) {
       print('  - ${card.title} (${card.id})');
     }
 
-    // Show empty state if no cards are available
     if (hubCards.isEmpty) {
       return Center(
         child: Padding(
@@ -134,79 +52,34 @@ class HubScreen extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        final gridCount = _getGridCount(width);
-        final cardHeight = _getCardHeight(width);
-        final horizontalPadding = _getHorizontalPadding(width);
+        final gridCount = controller.getGridCount(width);
+        final cardHeight = controller.getCardHeight(width);
+        final horizontalPadding = controller.getHorizontalPadding(width);
 
         return SingleChildScrollView(
           padding: const EdgeInsets.only(bottom: 40),
           child: Column(
             children: [
               const SizedBox(height: 40),
-
-              // TOP LOGO with smooth scale-up animation
               SizedBox(
-                height: width >= 600 ? 160 : 145, // Adjusted for smaller logo
-                child:
-                    CasaZeroLogo(
-                          assetPath:
-                              'assets/images/smart_area_logo.png', // Using PNG logo
-                          containerHeight: width >= 600
-                              ? 145
-                              : 110, // Reduced container height
-                        )
-                        .animate()
-                        .scale(
-                          begin: const Offset(
-                            0.85,
-                            0.85,
-                          ), // Start slightly smaller
-                          end: const Offset(1.0, 1.0), // Scale to full size
-                          duration: 600.ms, // Smooth 600ms animation
-                          curve: Curves.easeOutCubic, // Premium easing curve
-                        )
-                        .fadeIn(
-                          duration: 500.ms, // Fade in slightly faster
-                          curve: Curves.easeOut,
-                        ),
+                height: width >= 600 ? 160 : 145,
+                child: CasaZeroLogo(
+                  assetPath: 'assets/images/smart_area_logo.png',
+                  containerHeight: width >= 600 ? 145 : 110,
+                )
+                    .animate()
+                    .scale(
+                      begin: const Offset(0.85, 0.85),
+                      end: const Offset(1.0, 1.0),
+                      duration: 600.ms,
+                      curve: Curves.easeOutCubic,
+                    )
+                    .fadeIn(
+                      duration: 500.ms,
+                      curve: Curves.easeOut,
+                    ),
               ),
-
               const SizedBox(height: 10),
-
-              // RESPONSIVE GRID
-              // Padding(
-              //   padding: horizontalPadding,
-              //   child: LayoutBuilder(
-              //     builder: (context, constraints) {
-              //       // Calculate available width after padding
-              //       final availableWidth = constraints.maxWidth;
-              //       // Calculate card width (accounting for spacing)
-              //       final cardWidth = (availableWidth - (gridCount - 1) * 20) / gridCount;
-              //       // Calculate aspect ratio: width / height
-              //       final aspectRatio = cardWidth / cardHeight;
-
-              //       return GridView.builder(
-              //         shrinkWrap: true,
-              //         physics: const NeverScrollableScrollPhysics(),
-              //         itemCount: hubCards.length,
-              //         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              //           crossAxisCount: gridCount,
-              //           crossAxisSpacing: 20,
-              //           mainAxisSpacing: 20,
-              //           childAspectRatio: aspectRatio,
-              //         ),
-              //         itemBuilder: (_, index) {
-              //           return HubCardWidget(
-              //             card: hubCards[index],
-              //             index: index,
-              //             onTap: () => onNavigate(hubCards[index].screen),
-              //             wrapIconInContainer: hubCards[index].wrapIconInContainer,
-              //           );
-              //         },
-              //       );
-              //     },
-              //   ),
-              // ),
               Padding(
                 padding: horizontalPadding,
                 child: LayoutBuilder(
@@ -216,13 +89,11 @@ class HubScreen extends StatelessWidget {
                     final isPyramid = isMobile && hubCards.length == 3;
 
                     if (isPyramid) {
-                      // --- PYRAMID LAYOUT ---
                       final cardWidth = (availableWidth - 20) / 2;
                       final aspectRatio = cardWidth / cardHeight;
 
                       return Column(
                         children: [
-                          // Top card (centered)
                           SizedBox(
                             width: cardWidth,
                             child: AspectRatio(
@@ -236,10 +107,7 @@ class HubScreen extends StatelessWidget {
                               ),
                             ),
                           ),
-
                           const SizedBox(height: 20),
-
-                          // Bottom row (2 cards)
                           Row(
                             children: [
                               Expanded(
@@ -273,7 +141,6 @@ class HubScreen extends StatelessWidget {
                       );
                     }
 
-                    // --- NORMAL RESPONSIVE GRID ---
                     final cardWidth =
                         (availableWidth - (gridCount - 1) * 20) / gridCount;
                     final aspectRatio = cardWidth / cardHeight;
@@ -301,11 +168,9 @@ class HubScreen extends StatelessWidget {
                   },
                 ),
               ),
-
               const SizedBox(height: 32),
-
-              // INFO BANNER
-              Padding(padding: horizontalPadding, child: _buildInfoBanner()),
+              Padding(
+                  padding: horizontalPadding, child: _buildInfoBanner()),
             ],
           ),
         );
@@ -313,71 +178,6 @@ class HubScreen extends StatelessWidget {
     );
   }
 
-  // -------------------------------
-  // LOGO HEADER
-  // -------------------------------
-  Widget _buildHeader(double width) {
-    final size = width >= 600 ? 110.0 : 80.0;
-    final glowSize = size * 1.6;
-    final ringSize = size * 1.4;
-
-    return Center(
-      child: SizedBox(
-        width: glowSize,
-        height: glowSize,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-                  width: glowSize,
-                  height: glowSize,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [Color(0xFF6B8E23), Color(0xFF9ACD32)],
-                    ),
-                  ),
-                )
-                .animate(onPlay: (c) => c.repeat(reverse: true))
-                .scale(
-                  begin: const Offset(1, 1),
-                  end: const Offset(1.12, 1.12),
-                  duration: 2.seconds,
-                )
-                .fade(begin: 0.3, end: 0.6),
-
-            Image.asset(
-              "assets/images/casazero_logo.png",
-              height: size * 0.55,
-            ).animate().fadeIn().scale(duration: 600.ms),
-
-            Container(
-                  width: ringSize,
-                  height: ringSize,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: const Color(0xFF6B8E23).withOpacity(0.3),
-                      width: 2,
-                    ),
-                  ),
-                )
-                .animate(onPlay: (c) => c.repeat(reverse: true))
-                .scale(
-                  begin: const Offset(1, 1),
-                  end: const Offset(1.12, 1.12),
-                  duration: 2.seconds,
-                )
-                .fade(begin: 0.3, end: 0.5),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // -------------------------------
-  // INFO BANNER
-  // -------------------------------
   Widget _buildInfoBanner() {
     return Container(
       padding: const EdgeInsets.all(16),
