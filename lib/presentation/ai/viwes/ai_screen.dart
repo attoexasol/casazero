@@ -46,20 +46,20 @@ class AIScreen extends StatelessWidget {
                 Row(
                   children: [
                     // Back button - returns to previous screen (uses HomeController screen history)
-                    IconButton(
-                      onPressed: () => Get.find<HomeController>().goBack(),
-                      icon: Icon(
-                        Icons.arrow_back_ios_new,
-                        size: 22.sp,
-                        color: AppColors.neutralInk700,
-                      ),
-                      padding: EdgeInsets.zero,
-                      constraints: BoxConstraints(
-                        minWidth: 40.w,
-                        minHeight: 40.h,
-                      ),
-                    ),
-                    SizedBox(width: 8.w),
+                    // IconButton(
+                    //   onPressed: () => Get.find<HomeController>().goBack(),
+                    //   icon: Icon(
+                    //     Icons.arrow_back_ios_new,
+                    //     size: 22.sp,
+                    //     color: AppColors.neutralInk700,
+                    //   ),
+                    //   padding: EdgeInsets.zero,
+                    //   constraints: BoxConstraints(
+                    //     minWidth: 40.w,
+                    //     minHeight: 40.h,
+                    //   ),
+                    // ),
+                    // SizedBox(width: 8.w),
                     // Animated AI Cube Icon
                     _buildAnimatedAIIcon(),
                     SizedBox(width: 16.w),
@@ -311,24 +311,24 @@ class AIScreen extends StatelessWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                      Text(
-                        '${message.timestamp.hour.toString().padLeft(2, '0')}:${message.timestamp.minute.toString().padLeft(2, '0')}',
-                        style: AppTextStyles.caption.copyWith(
-                          color: isUser
-                              ? AppColors.surfaceWhite.withOpacity(0.7)
-                              : AppColors.neutralInk400,
-                        ),
-                      ),
-                      const Spacer(),
-                      if (!isUser && message.remainingAiCredit != null)
                         Text(
-                          '${'remainingCredits'.tr}: ${message.remainingAiCredit}',
+                          '${message.timestamp.hour.toString().padLeft(2, '0')}:${message.timestamp.minute.toString().padLeft(2, '0')}',
                           style: AppTextStyles.caption.copyWith(
-                            color: AppColors.neutralInk700,
-                            fontWeight: FontWeight.w500,
+                            color: isUser
+                                ? AppColors.surfaceWhite.withOpacity(0.7)
+                                : AppColors.neutralInk400,
                           ),
-                          textDirection: TextDirection.ltr,
                         ),
+                        const Spacer(),
+                        if (!isUser && message.remainingAiCredit != null)
+                          Text(
+                            '${'remainingCredits'.tr}: ${message.remainingAiCredit}',
+                            style: AppTextStyles.caption.copyWith(
+                              color: AppColors.neutralInk700,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            textDirection: TextDirection.ltr,
+                          ),
                       ],
                     ),
                   ),

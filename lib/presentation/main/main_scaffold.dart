@@ -1,6 +1,7 @@
 import 'package:casazero/core/controllers/message_popup_controller.dart';
 import 'package:casazero/core/widgets/bounce_glow_widget.dart';
 import 'package:casazero/core/widgets/notifications_modal.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -66,10 +67,7 @@ class MainScaffold extends GetView<HomeController> {
         },
         child: Scaffold(
           backgroundColor: AppColors.surfaceWhite,
-          // Hide app bar on ChatScreen (it has its own header)
-          appBar: controller.currentScreen.value == AppScreen.chat
-              ? null
-              : _buildAppBar(),
+          appBar: _buildAppBar(),
           // BODY - Contains all screens dynamically
           // SafeArea applied here for Android devices (removed from main.dart to allow popups)
           body: SafeArea(
@@ -199,6 +197,11 @@ class MainScaffold extends GetView<HomeController> {
     }
 
     final showNavigationControls = canGoBack || canGoForward;
+    final currentScreen = controller.currentScreen.value;
+    final showBackButton = canGoBack &&
+        (currentScreen == AppScreen.ai ||
+            currentScreen == AppScreen.chat ||
+            currentScreen == AppScreen.tickets);
     final statusBarHeight = MediaQuery.of(Get.context!).padding.top;
 
     return PreferredSize(
@@ -238,27 +241,21 @@ class MainScaffold extends GetView<HomeController> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Navigation Controls (Back/Forward)
-                          // if (showNavigationControls) ...[
-                          //   _buildNavButton(
-                          //     icon: Icons.arrow_back,
-                          //     enabled: canGoBack,
-                          //     onTap: canGoBack
-                          //         ? () => controller.goBack()
-                          //         : null,
-                          //     tooltip: 'Go back (Alt+←)',
-                          //   ),
-                          //   SizedBox(width: 6.w),
-                          //   _buildNavButton(
-                          //     icon: Icons.arrow_forward,
-                          //     enabled: canGoForward,
-                          //     onTap: canGoForward
-                          //         ? () => controller.goForward()
-                          //         : null,
-                          //     tooltip: 'Go forward (Alt+→)',
-                          //   ),
-                          //   SizedBox(width: 8.w),
-                          // ],
+                          if (showBackButton)
+                            IconButton(
+                              onPressed: () => controller.goBack(),
+                              icon: Icon(
+                                CupertinoIcons.back,
+                                size: 24.sp,
+                                color: AppColors.neutralInk900,
+                              ),
+                              padding: EdgeInsets.zero,
+                              constraints: BoxConstraints(
+                                minWidth: 44.w,
+                                minHeight: 44.w,
+                              ),
+                            ),
+                          if (showBackButton) SizedBox(width: 4.w),
 
                           // Logo/Title Section (only for non-title cases like logo/residence switcher)
                           if (variant == 'branded' && !showNavigationControls ||
