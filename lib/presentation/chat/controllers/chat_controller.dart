@@ -1,41 +1,44 @@
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
 
+import '../../../core/services/firebase_auth_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../home/controllers/home_controller.dart';
 import '../models/chat_message_model.dart';
 
+enum ChatState {
+  initial,
+  ready,
+  noAuth,
+  noGroup,
+  permissionDenied,
+  networkError,
+}
+
+/// Text-only real-time chat. Uses FirebaseAuthService.firebaseUid.
+/// No Firestore listeners if firebaseUid is null.
 class ChatController extends GetxController {
   final TextEditingController messageController = TextEditingController();
   final ScrollController scrollController = ScrollController();
 
+  final FirebaseAuthService _firebaseAuthService = Get.find();
   final StorageService _storageService = Get.find();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   Stream<List<ChatMessage>>? _messagesStream;
   final RxBool isSending = false.obs;
-  final RxBool isUploadingImage = false.obs;
+  final Rx<ChatState> chatState = ChatState.initial.obs;
 
   String? _groupId;
-  String? _currentUserId;
-  String? _currentUserName;
-  String? _currentUserRole;
 
   @override
   void onInit() {
     super.onInit();
     messageController.addListener(_onMessageChanged);
-    _initCurrentUser();
     _resolveGroupId();
     _subscribeToMessages();
-    final fbUser = FirebaseAuth.instance.currentUser;
-    print('🔥 FIREBASE UID = ${fbUser?.uid}');
   }
 
   @override
@@ -48,39 +51,99 @@ class ChatController extends GetxController {
 
   void _onMessageChanged() => update(['input']);
 
-  void _initCurrentUser() {
-    final userData = _storageService.getUserData();
-    _currentUserId = userData?['id']?.toString();
-    _currentUserName = userData?['user_name']?.toString() ?? 'You';
-    final role = userData?['role']?.toString() ?? 'client';
-    _currentUserRole = role == 'admin' ? 'admin' : 'resident';
-  }
-
   void _resolveGroupId() {
     try {
       final homeController = Get.find<HomeController>();
+      int? residenceId;
+
       final residence = homeController.selectedResidence.value;
       if (residence != null) {
-        _groupId = 'group_${residence.id}';
-      } else {
-        final userData = _storageService.getUserData();
-        final residenceId = userData?['residence_id'] ?? userData?['unit_id'];
-        _groupId = residenceId != null ? 'group_$residenceId' : 'group_1';
+        residenceId = residence.id;
       }
-      print('💬 [ChatController] Group ID: $_groupId');
+      if (residenceId == null) {
+        final residenceData = homeController.residenceData.value;
+        if (residenceData != null && residenceData['id'] != null) {
+          residenceId = residenceData['id'] is int
+              ? residenceData['id'] as int
+              : int.tryParse(residenceData['id'].toString());
+        }
+      }
+      if (residenceId == null) {
+        final userData = _storageService.getUserData();
+        final rid = userData?['residence_id'] ?? userData?['unit_id'];
+        residenceId = rid is int ? rid : int.tryParse(rid?.toString() ?? '');
+      }
+
+      _groupId = residenceId != null ? 'group_$residenceId' : null;
+      debugPrint('💬 [ChatController] Group ID: $_groupId');
     } catch (e) {
-      _groupId = 'group_1';
-      print('⚠️ [ChatController] Using default group_1: $e');
+      _groupId = null;
+      debugPrint('⚠️ [ChatController] Failed to resolve group ID: $e');
     }
   }
 
   void _subscribeToMessages() {
-    if (_groupId == null) return;
-    _messagesStream = streamMessages(_groupId!);
+    if (_groupId == null) {
+      chatState.value = ChatState.noGroup;
+      _messagesStream = Stream.value([]);
+      debugPrint('❌ Chat blocked: No residence-based group ID');
+      return;
+    }
+
+    final uid = firebaseUid;
+    if (uid == null) {
+      debugPrint('❌ Chat blocked: Firebase UID is null');
+      chatState.value = ChatState.noAuth;
+      _messagesStream = Stream.value([]);
+      return;
+    }
+
+    debugPrint('✅ Chat allowed for UID: $uid');
+    _validateGroupAndSubscribe();
   }
 
-  /// Stream messages from Firestore (real-time)
-  Stream<List<ChatMessage>> streamMessages(String groupId) {
+  Future<void> _validateGroupAndSubscribe() async {
+    if (_groupId == null) return;
+    try {
+      final groupDoc = await _firestore
+          .collection('groups')
+          .doc(_groupId!)
+          .get();
+      if (!groupDoc.exists) {
+        chatState.value = ChatState.noGroup;
+        _messagesStream = Stream.value([]);
+        debugPrint('⚠️ [ChatController] Group $_groupId does not exist');
+        return;
+      }
+      debugPrint('✅ Group validation passed');
+      chatState.value = ChatState.ready;
+      _messagesStream = _streamMessages(_groupId!).map((messages) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
+        });
+        return messages;
+      });
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied') {
+        chatState.value = ChatState.permissionDenied;
+      } else if (e.code == 'unavailable' || e.code == 'resource-exhausted') {
+        chatState.value = ChatState.networkError;
+      } else {
+        chatState.value = ChatState.permissionDenied;
+      }
+      _messagesStream = Stream.value([]);
+      debugPrint('⚠️ [ChatController] Group validation failed: ${e.code}');
+    } catch (e) {
+      final err = e.toString().toLowerCase();
+      chatState.value = err.contains('network') || err.contains('socket')
+          ? ChatState.networkError
+          : ChatState.permissionDenied;
+      _messagesStream = Stream.value([]);
+      debugPrint('⚠️ [ChatController] Group validation error: $e');
+    }
+  }
+
+  Stream<List<ChatMessage>> _streamMessages(String groupId) {
     return _firestore
         .collection('groups')
         .doc(groupId)
@@ -94,14 +157,14 @@ class ChatController extends GetxController {
   Stream<List<ChatMessage>> get messagesStream =>
       _messagesStream ?? Stream.value([]);
 
-  String get groupId => _groupId ?? 'group_1';
+  String get groupId => _groupId ?? '';
 
-  bool get isFirebaseSignedIn => FirebaseAuth.instance.currentUser != null;
+  bool get isFirebaseSignedIn => _firebaseAuthService.isSignedIn;
 
-  String get currentUserId => _currentUserId ?? '';
+  String? get firebaseUid => _firebaseAuthService.firebaseUid;
 
   bool isOwnMessage(String senderId) =>
-      _currentUserId != null && senderId == _currentUserId;
+      firebaseUid != null && senderId == firebaseUid;
 
   String formatTime(DateTime date) {
     final now = DateTime.now();
@@ -118,17 +181,21 @@ class ChatController extends GetxController {
     return '${months[date.month - 1]} ${date.day}';
   }
 
-  Future<void> sendText() async {
+  String _senderRole() {
+    final userData = _storageService.getUserData();
+    final role = userData?['role']?.toString().toLowerCase() ?? 'client';
+    return role == 'admin' ? 'admin' : 'user';
+  }
+
+  String _senderName() =>
+      _storageService.getUserData()?['user_name']?.toString() ?? 'You';
+
+  Future<void> sendTextMessage() async {
     final text = messageController.text.trim();
     if (text.isEmpty) return;
-    if (!isFirebaseSignedIn) {
-      print('⚠️ [ChatController] Cannot send: not signed in to Firebase');
-      return;
-    }
-    if (_currentUserId == null || _currentUserName == null) {
-      print('⚠️ [ChatController] Cannot send: user data missing');
-      return;
-    }
+    final uid = firebaseUid;
+    if (uid == null) return;
+    if (_groupId == null || _groupId!.isEmpty) return;
 
     isSending.value = true;
     messageController.clear();
@@ -139,63 +206,25 @@ class ChatController extends GetxController {
           .doc(groupId)
           .collection('messages')
           .add({
-        'senderId': _currentUserId,
-        'senderName': _currentUserName,
-        'senderRole': _currentUserRole ?? 'resident',
-        'type': 'chat',
         'text': text,
+        'senderId': uid,
+        'senderRole': _senderRole(),
+        'senderName': _senderName(),
         'createdAt': FieldValue.serverTimestamp(),
       });
       _scrollToBottom();
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied') {
+        chatState.value = ChatState.permissionDenied;
+      } else if (e.code == 'unavailable') {
+        chatState.value = ChatState.networkError;
+      }
+      messageController.text = text;
     } catch (e) {
-      print('❌ [ChatController] Send text error: $e');
-      messageController.text = text; // Restore on error
+      messageController.text = text;
     } finally {
       isSending.value = false;
       update(['input']);
-    }
-  }
-
-  Future<void> sendImage() async {
-    if (!isFirebaseSignedIn) {
-      print('⚠️ [ChatController] Cannot send image: not signed in to Firebase');
-      return;
-    }
-    if (_currentUserId == null || _currentUserName == null) return;
-
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
-    if (picked == null) return;
-
-    isUploadingImage.value = true;
-    try {
-      final file = File(picked.path);
-      final ref = _storage
-          .ref()
-          .child('chat')
-          .child(groupId)
-          .child('${DateTime.now().millisecondsSinceEpoch}_${picked.name}');
-
-      await ref.putFile(file);
-      final imageUrl = await ref.getDownloadURL();
-
-      await _firestore
-          .collection('groups')
-          .doc(groupId)
-          .collection('messages')
-          .add({
-        'senderId': _currentUserId,
-        'senderName': _currentUserName,
-        'senderRole': _currentUserRole ?? 'resident',
-        'type': 'image',
-        'imageUrl': imageUrl,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-      _scrollToBottom();
-    } catch (e) {
-      print('❌ [ChatController] Send image error: $e');
-    } finally {
-      isUploadingImage.value = false;
     }
   }
 

@@ -6,6 +6,7 @@ import '../../core/services/zip_download_service.dart';
 import '../../core/services/fcm_service.dart';
 import '../../core/localization/locale_controller.dart';
 import '../../core/services/storage_service.dart';
+import '../../core/services/firebase_auth_service.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/home_repository.dart';
 import '../../data/repositories/profile_repository.dart';
@@ -24,6 +25,8 @@ class InitialBinding extends Bindings {
     Get.put<ApiService>(ApiService(), permanent: true);
 
     Get.put<DeviceInfoService>(DeviceInfoService(), permanent: true);
+
+    Get.put<FirebaseAuthService>(FirebaseAuthService(), permanent: true);
 
     // StorageService must be initialized before LocaleController
     // (StorageService is already initialized in main.dart, but ensure it's registered here)

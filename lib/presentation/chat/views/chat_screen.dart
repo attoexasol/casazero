@@ -1,8 +1,6 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
@@ -10,8 +8,7 @@ import '../../../core/utils/permissions.dart';
 import '../controllers/chat_controller.dart';
 import '../models/chat_message_model.dart';
 
-/// Real-time condominium group chat using Firebase Firestore.
-/// Uses GetX ChatController for state management.
+/// Text-only real-time chat using Firestore. No mock data.
 class ChatScreen extends GetView<ChatController> {
   final Role role;
   final VoidCallback onBack;
@@ -74,52 +71,99 @@ class ChatScreen extends GetView<ChatController> {
               ],
             ),
           ),
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () {},
-              borderRadius: BorderRadius.circular(12.r),
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-                decoration: BoxDecoration(
-                  color: AppColors.brandSage100,
-                  borderRadius: BorderRadius.circular(12.r),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.06),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      LucideIcons.settings,
-                      size: 18.sp,
-                      color: AppColors.neutralInk900,
-                    ),
-                    SizedBox(width: 6.w),
-                    Text(
-                      'Demo',
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.neutralInk900,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );
   }
 
   Widget _buildMessageList() {
+    return Obx(() {
+      final state = controller.chatState.value;
+      if (state == ChatState.noAuth) {
+        return _buildErrorState(
+          icon: Icons.chat_bubble_outline,
+          title: 'Chat unavailable',
+          subtitle: 'Please sign in again to use chat.',
+        );
+      }
+      if (state == ChatState.noGroup) {
+        return _buildErrorState(
+          icon: Icons.group_off,
+          title: 'Chat not available',
+          subtitle: 'Group not initialized.',
+        );
+      }
+      if (state == ChatState.permissionDenied) {
+        return _buildErrorState(
+          icon: Icons.lock_outline,
+          title: 'Access denied',
+          subtitle: 'You are not a group member.',
+        );
+      }
+      if (state == ChatState.networkError) {
+        return _buildErrorState(
+          icon: Icons.wifi_off,
+          title: 'Connection issue',
+          subtitle: 'Check your network and try again.',
+        );
+      }
+      if (state != ChatState.ready && state != ChatState.initial) {
+        return _buildErrorState(
+          icon: Icons.error_outline,
+          title: 'Something went wrong',
+          subtitle: 'Please try again later.',
+        );
+      }
+
+      return _buildMessageStream();
+    });
+  }
+
+  Widget _buildErrorState({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(24.w),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 48.sp, color: AppColors.neutralInk400),
+            SizedBox(height: 16.h),
+            Text(
+              title,
+              style: AppTextStyles.bodyMedium.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.neutralInk700,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              subtitle,
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.neutralInk500,
+                fontSize: 13,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMessageStream() {
+    if (!controller.isFirebaseSignedIn) {
+      return _buildErrorState(
+        icon: Icons.chat_bubble_outline,
+        title: 'Chat unavailable',
+        subtitle: 'Please sign in again to use chat.',
+      );
+    }
+
     return StreamBuilder<List<ChatMessage>>(
       stream: controller.messagesStream,
       builder: (context, snapshot) {
@@ -129,35 +173,22 @@ class ChatScreen extends GetView<ChatController> {
           );
         }
         if (snapshot.hasError) {
-          return Center(
-            child: Padding(
-              padding: EdgeInsets.all(24.w),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 48.sp, color: AppColors.danger),
-                  SizedBox(height: 16.h),
-                  Text(
-                    'Unable to load messages',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.neutralInk700,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 8.h),
-                  Text(
-                    snapshot.error.toString(),
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.neutralInk500,
-                      fontSize: 11,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
+          final err = snapshot.error.toString().toLowerCase();
+          final isPermission = err.contains('permission');
+          final isNetwork = err.contains('network') ||
+              err.contains('unavailable') ||
+              err.contains('socket');
+          if (isPermission) {
+            controller.chatState.value = ChatState.permissionDenied;
+          } else if (isNetwork) {
+            controller.chatState.value = ChatState.networkError;
+          }
+          return _buildErrorState(
+            icon: Icons.error_outline,
+            title: isPermission ? 'Access denied' : 'Connection issue',
+            subtitle: isPermission
+                ? 'You are not a group member.'
+                : 'Check your network and try again.',
           );
         }
         final messages = snapshot.data ?? [];
@@ -178,18 +209,15 @@ class ChatScreen extends GetView<ChatController> {
           itemBuilder: (context, index) {
             final msg = messages[index];
             final isOwnMessage = controller.isOwnMessage(msg.senderId);
-            final showAvatar = index == 0 ||
-                messages[index - 1].senderId != msg.senderId;
-
-            if (msg.type == 'announcement') {
-              return _buildAnnouncementCard(msg);
-            }
+            final showAvatar =
+                index == 0 || messages[index - 1].senderId != msg.senderId;
 
             return Padding(
               padding: EdgeInsets.only(bottom: 16.h),
               child: Row(
-                mainAxisAlignment:
-                    isOwnMessage ? MainAxisAlignment.end : MainAxisAlignment.start,
+                mainAxisAlignment: isOwnMessage
+                    ? MainAxisAlignment.end
+                    : MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   if (!isOwnMessage && showAvatar) _buildAvatar(msg.senderName),
@@ -251,11 +279,20 @@ class ChatScreen extends GetView<ChatController> {
                                   ),
                             borderRadius: BorderRadius.circular(16.r),
                           ),
-                          child: _buildMessageContent(msg, isOwnMessage),
+                          child: Text(
+                            msg.text,
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              fontSize: 14.sp,
+                              height: 1.4,
+                              color: isOwnMessage
+                                  ? AppColors.surfaceWhite
+                                  : AppColors.neutralInk900,
+                            ),
+                          ),
                         ),
                         SizedBox(height: 4.h),
                         Text(
-                          controller.formatTime(msg.timestamp),
+                          controller.formatTime(msg.createdAt),
                           style: AppTextStyles.caption.copyWith(
                             fontSize: 11.sp,
                             color: AppColors.neutralInk400,
@@ -271,170 +308,6 @@ class ChatScreen extends GetView<ChatController> {
           },
         );
       },
-    );
-  }
-
-  Widget _buildMessageContent(ChatMessage msg, bool isOwnMessage) {
-    final textColor = isOwnMessage
-        ? AppColors.surfaceWhite
-        : AppColors.neutralInk900;
-
-    if (msg.type == 'image' && msg.imageUrl != null && msg.imageUrl!.isNotEmpty) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8.r),
-            child: CachedNetworkImage(
-              imageUrl: msg.imageUrl!,
-              width: 200.w,
-              height: 200.w,
-              fit: BoxFit.cover,
-              placeholder: (_, __) => Container(
-                width: 200.w,
-                height: 200.w,
-                color: AppColors.neutralLine100,
-                child: const Center(
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
-              errorWidget: (_, __, ___) => Icon(
-                Icons.broken_image,
-                size: 48.sp,
-                color: AppColors.neutralInk400,
-              ),
-            ),
-          ),
-          if (msg.text != null && msg.text!.isNotEmpty) ...[
-            SizedBox(height: 8.h),
-            Text(
-              msg.text!,
-              style: AppTextStyles.bodyMedium.copyWith(
-                fontSize: 14.sp,
-                height: 1.4,
-                color: textColor,
-              ),
-            ),
-          ],
-        ],
-      );
-    }
-
-    return Text(
-      msg.content,
-      style: AppTextStyles.bodyMedium.copyWith(
-        fontSize: 14.sp,
-        height: 1.4,
-        color: textColor,
-      ),
-    );
-  }
-
-  Widget _buildAnnouncementCard(ChatMessage msg) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 16.h),
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.all(16.w),
-        decoration: BoxDecoration(
-          color: AppColors.warning.withOpacity(0.1),
-          border: Border.all(
-            color: AppColors.warning.withOpacity(0.2),
-            width: 1,
-          ),
-          borderRadius: BorderRadius.circular(12.r),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 32.w,
-              height: 32.w,
-              decoration: BoxDecoration(
-                color: AppColors.warning.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(8.r),
-              ),
-              alignment: Alignment.center,
-              child: Text('📢', style: TextStyle(fontSize: 14.sp)),
-            ),
-            SizedBox(width: 12.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          'communityAnnouncement'.tr.isEmpty
-                              ? 'Community Announcement'
-                              : 'communityAnnouncement'.tr,
-                          style: AppTextStyles.caption.copyWith(
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.warning,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                      ),
-                      SizedBox(width: 8.w),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 8.w, vertical: 2.h),
-                        decoration: BoxDecoration(
-                          color: AppColors.brandSage100,
-                          borderRadius: BorderRadius.circular(6.r),
-                        ),
-                        child: Text(
-                          msg.senderName,
-                          style: AppTextStyles.caption.copyWith(
-                            fontSize: 11.sp,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.brandSage600,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 6.h),
-                  if (msg.imageUrl != null && msg.imageUrl!.isNotEmpty)
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 8.h),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8.r),
-                        child: CachedNetworkImage(
-                          imageUrl: msg.imageUrl!,
-                          width: double.infinity,
-                          height: 120.h,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                  Text(
-                    msg.content,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      fontSize: 14.sp,
-                      color: AppColors.neutralInk900,
-                    ),
-                  ),
-                  SizedBox(height: 6.h),
-                  Text(
-                    controller.formatTime(msg.timestamp),
-                    style: AppTextStyles.caption.copyWith(
-                      fontSize: 11.sp,
-                      color: AppColors.neutralInk400,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -456,41 +329,16 @@ class ChatScreen extends GetView<ChatController> {
 
   Widget _buildInputArea(BuildContext context) {
     return Container(
-      padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 12.h + MediaQuery.of(context).padding.bottom),
+      padding: EdgeInsets.fromLTRB(
+          16.w, 12.h, 16.w, 12.h + MediaQuery.of(context).padding.bottom),
       decoration: BoxDecoration(
         color: AppColors.surfaceWhite,
-        border: Border(top: BorderSide(color: AppColors.neutralLine200, width: 1)),
+        border: Border(
+            top: BorderSide(color: AppColors.neutralLine200, width: 1)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Obx(() => Material(
-            color: Colors.transparent,
-            child: IconButton(
-              onPressed: controller.isUploadingImage.value
-                  ? null
-                  : controller.sendImage,
-              icon: controller.isUploadingImage.value
-                  ? SizedBox(
-                      width: 22.sp,
-                      height: 22.sp,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.neutralInk700,
-                      ),
-                    )
-                  : Image.asset(
-                      'assets/images/chat_pin_icon.png',
-                      width: 22.sp,
-                      height: 22.sp,
-                      color: AppColors.neutralInk700,
-                      colorBlendMode: BlendMode.srcIn,
-                    ),
-              padding: EdgeInsets.zero,
-              constraints: BoxConstraints(minWidth: 40.w, minHeight: 40.w),
-            ),
-          )),
-          SizedBox(width: 8.w),
           Expanded(
             child: Container(
               constraints: BoxConstraints(minHeight: 44.h),
@@ -501,7 +349,9 @@ class ChatScreen extends GetView<ChatController> {
               child: TextField(
                 controller: controller.messageController,
                 decoration: InputDecoration(
-                  hintText: 'typeMessage'.tr.isEmpty ? 'Type a message...' : 'typeMessage'.tr,
+                  hintText: 'typeMessage'.tr.isEmpty
+                      ? 'Type a message...'
+                      : 'typeMessage'.tr,
                   hintStyle: AppTextStyles.bodyMedium.copyWith(
                     fontSize: 14.sp,
                     color: AppColors.neutralInk400,
@@ -518,7 +368,7 @@ class ChatScreen extends GetView<ChatController> {
                 ),
                 maxLines: 4,
                 minLines: 1,
-                onSubmitted: (_) => controller.sendText(),
+                onSubmitted: (_) => controller.sendTextMessage(),
               ),
             ),
           ),
@@ -529,11 +379,12 @@ class ChatScreen extends GetView<ChatController> {
               final hasText = controller.hasMessageText;
               return Obx(() {
                 final sending = controller.isSending.value;
-                final canSend = hasText && !sending;
+                final canSend =
+                    hasText && !sending && controller.isFirebaseSignedIn;
                 return Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    onTap: canSend ? controller.sendText : null,
+                    onTap: canSend ? controller.sendTextMessage : null,
                     borderRadius: BorderRadius.circular(22.r),
                     child: Container(
                       width: 44.w,
@@ -556,14 +407,17 @@ class ChatScreen extends GetView<ChatController> {
                               height: 20.sp,
                               child: const CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
                             )
                           : Image.asset(
                               'assets/images/chat_send_icon.png',
                               width: 20.sp,
                               height: 20.sp,
-                              color: hasText ? AppColors.surfaceWhite : AppColors.surfaceWhite.withOpacity(0.6),
+                              color: hasText
+                                  ? AppColors.surfaceWhite
+                                  : AppColors.surfaceWhite.withOpacity(0.6),
                               colorBlendMode: BlendMode.srcIn,
                             ),
                     ),

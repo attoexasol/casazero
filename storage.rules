@@ -1,0 +1,12 @@
+rules_version = '2';
+// Storage rules for chat_images/{groupId}/{fileName}
+// Same UID logic as Firestore: request.auth.uid must be in group.members
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /chat_images/{groupId}/{fileName} {
+      allow read, write: if request.auth != null &&
+        firestore.get(/databases/(default)/documents/groups/$(groupId)).data != null &&
+        request.auth.uid in firestore.get(/databases/(default)/documents/groups/$(groupId)).data.members;
+    }
+  }
+}

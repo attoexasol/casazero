@@ -1,72 +1,59 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// Chat message model matching Firestore structure.
-/// Supports text and image messages.
+/// Text-only chat message. Firestore: groups/{groupId}/messages/{messageId}
 class ChatMessage {
   final String id;
+  final String text;
   final String senderId;
+  final String senderRole; // "user" | "admin"
   final String senderName;
-  final String senderRole; // 'admin' | 'resident' | 'user'
-  final String type; // 'chat' | 'announcement' | 'image'
-  final String? text;
-  final String? imageUrl;
-  final DateTime timestamp;
+  final DateTime createdAt;
 
   const ChatMessage({
     required this.id,
+    required this.text,
     required this.senderId,
-    required this.senderName,
     required this.senderRole,
-    required this.type,
-    this.text,
-    this.imageUrl,
-    required this.timestamp,
+    required this.senderName,
+    required this.createdAt,
   });
 
-  /// Display name (alias for senderName)
   String get sender => senderName;
 
-  /// Display content: text or placeholder for image
-  String get content {
-    if (text != null && text!.isNotEmpty) return text!;
-    if (type == 'image' && imageUrl != null) return '[Image]';
-    return '';
-  }
+  String get content => text;
 
-  /// Create from Firestore document
+  DateTime get timestamp => createdAt;
+
   factory ChatMessage.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>? ?? {};
-    final createdAt = data['createdAt'];
-    DateTime timestamp = DateTime.now();
-    if (createdAt != null) {
-      if (createdAt is Timestamp) {
-        timestamp = createdAt.toDate();
-      } else if (createdAt is DateTime) {
-        timestamp = createdAt;
+    final createdAtRaw = data['createdAt'];
+    DateTime createdAt = DateTime.now();
+    if (createdAtRaw != null) {
+      if (createdAtRaw is Timestamp) {
+        createdAt = createdAtRaw.toDate();
+      } else if (createdAtRaw is DateTime) {
+        createdAt = createdAtRaw;
       }
     }
+    final role = data['senderRole']?.toString().toLowerCase() ?? 'user';
+    final senderRole = role == 'admin' ? 'admin' : 'user';
     return ChatMessage(
       id: doc.id,
+      text: data['text']?.toString() ?? '',
       senderId: data['senderId']?.toString() ?? '',
+      senderRole: senderRole,
       senderName: data['senderName']?.toString() ?? 'Unknown',
-      senderRole: data['senderRole']?.toString() ?? 'user',
-      type: data['type']?.toString() ?? 'chat',
-      text: data['text']?.toString(),
-      imageUrl: data['imageUrl']?.toString(),
-      timestamp: timestamp,
+      createdAt: createdAt,
     );
   }
 
-  /// Convert to Firestore map for writing
   Map<String, dynamic> toFirestore() {
     return {
+      'text': text,
       'senderId': senderId,
-      'senderName': senderName,
       'senderRole': senderRole,
-      'type': type,
-      if (text != null && text!.isNotEmpty) 'text': text,
-      if (imageUrl != null && imageUrl!.isNotEmpty) 'imageUrl': imageUrl,
-      'createdAt': Timestamp.fromDate(timestamp),
+      'senderName': senderName,
+      'createdAt': FieldValue.serverTimestamp(),
     };
   }
 }
