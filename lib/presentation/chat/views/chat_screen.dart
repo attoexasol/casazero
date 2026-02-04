@@ -53,7 +53,7 @@ class ChatScreen extends GetView<ChatController> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'groupChat'.tr.isEmpty ? 'Group Chat' : 'groupChat'.tr,
+                  'groupChat'.tr,
                   style: AppTextStyles.CardHeaderText.copyWith(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w600,
@@ -62,7 +62,7 @@ class ChatScreen extends GetView<ChatController> {
                 ),
                 SizedBox(height: 2.h),
                 Text(
-                  'onlineNow'.tr.isEmpty ? 'Online Now' : 'onlineNow'.tr,
+                  'onlineNow'.tr,
                   style: AppTextStyles.caption.copyWith(
                     fontSize: 12.sp,
                     color: AppColors.neutralInk500,
@@ -82,36 +82,36 @@ class ChatScreen extends GetView<ChatController> {
       if (state == ChatState.noAuth) {
         return _buildErrorState(
           icon: Icons.chat_bubble_outline,
-          title: 'Chat unavailable',
-          subtitle: 'Please sign in again to use chat.',
+          title: 'chatUnavailable'.tr,
+          subtitle: 'chatUnavailableSubtitle'.tr,
         );
       }
       if (state == ChatState.noGroup) {
         return _buildErrorState(
           icon: Icons.group_off,
-          title: 'Chat not available',
-          subtitle: 'Group not initialized.',
+          title: 'chatNotAvailable'.tr,
+          subtitle: 'groupNotInitialized'.tr,
         );
       }
       if (state == ChatState.permissionDenied) {
         return _buildErrorState(
           icon: Icons.lock_outline,
-          title: 'Access denied',
-          subtitle: 'You are not a group member.',
+          title: 'accessDenied'.tr,
+          subtitle: 'notGroupMember'.tr,
         );
       }
       if (state == ChatState.networkError) {
         return _buildErrorState(
           icon: Icons.wifi_off,
-          title: 'Connection issue',
-          subtitle: 'Check your network and try again.',
+          title: 'connectionIssue'.tr,
+          subtitle: 'checkNetworkAndRetry'.tr,
         );
       }
       if (state != ChatState.ready && state != ChatState.initial) {
         return _buildErrorState(
           icon: Icons.error_outline,
-          title: 'Something went wrong',
-          subtitle: 'Please try again later.',
+          title: 'something_went_wrong'.tr,
+          subtitle: 'tryAgainLater'.tr,
         );
       }
 
@@ -157,11 +157,11 @@ class ChatScreen extends GetView<ChatController> {
 
   Widget _buildMessageStream() {
     if (!controller.isFirebaseSignedIn) {
-      return _buildErrorState(
-        icon: Icons.chat_bubble_outline,
-        title: 'Chat unavailable',
-        subtitle: 'Please sign in again to use chat.',
-      );
+          return _buildErrorState(
+            icon: Icons.chat_bubble_outline,
+            title: 'chatUnavailable'.tr,
+            subtitle: 'chatUnavailableSubtitle'.tr,
+          );
     }
 
     return StreamBuilder<List<ChatMessage>>(
@@ -185,17 +185,17 @@ class ChatScreen extends GetView<ChatController> {
           }
           return _buildErrorState(
             icon: Icons.error_outline,
-            title: isPermission ? 'Access denied' : 'Connection issue',
+            title: isPermission ? 'accessDenied'.tr : 'connectionIssue'.tr,
             subtitle: isPermission
-                ? 'You are not a group member.'
-                : 'Check your network and try again.',
+                ? 'notGroupMember'.tr
+                : 'checkNetworkAndRetry'.tr,
           );
         }
         final messages = snapshot.data ?? [];
         if (messages.isEmpty) {
           return Center(
             child: Text(
-              'No messages yet. Say hello!',
+              'noMessagesYet'.tr,
               style: AppTextStyles.bodyMedium.copyWith(
                 color: AppColors.neutralInk500,
               ),
@@ -252,7 +252,7 @@ class ChatScreen extends GetView<ChatController> {
                                       borderRadius: BorderRadius.circular(6.r),
                                     ),
                                     child: Text(
-                                      'Admin',
+                                      'admin'.tr,
                                       style: AppTextStyles.caption.copyWith(
                                         fontSize: 11.sp,
                                         fontWeight: FontWeight.w500,
@@ -349,9 +349,7 @@ class ChatScreen extends GetView<ChatController> {
               child: TextField(
                 controller: controller.messageController,
                 decoration: InputDecoration(
-                  hintText: 'typeMessage'.tr.isEmpty
-                      ? 'Type a message...'
-                      : 'typeMessage'.tr,
+                  hintText: 'typeMessage'.tr,
                   hintStyle: AppTextStyles.bodyMedium.copyWith(
                     fontSize: 14.sp,
                     color: AppColors.neutralInk400,

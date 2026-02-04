@@ -33,13 +33,13 @@ class HubScreen extends GetView<HubController> {
                 color: Colors.grey,
               ),
               const SizedBox(height: 16),
-              const Text(
-                'No Services Available',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              Text(
+                'noServicesAvailable'.tr,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
               Text(
-                'You don\'t have access to any services at the moment.',
+                'noServicesAvailableDesc'.tr,
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.grey.shade600),
               ),
@@ -206,10 +206,10 @@ class HubScreen extends GetView<HubController> {
             ),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Text(
-              "Esplora tutte le funzionalità intelligenti di CasaZero per gestire la tua casa",
-              style: TextStyle(fontSize: 13, height: 1.4),
+              'exploreFeatures'.tr,
+              style: const TextStyle(fontSize: 13, height: 1.4),
             ),
           ),
         ],

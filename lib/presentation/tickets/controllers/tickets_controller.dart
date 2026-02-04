@@ -77,11 +77,9 @@ class TicketsController extends GetxController {
   }
 
   String tabLabel(String key) {
-    if (key == 'all') return 'tutte'.tr.isEmpty ? 'All' : 'tutte'.tr;
-    if (key == 'open') return 'open'.tr.isEmpty ? 'Open' : 'open'.tr;
-    if (key == 'in-progress') {
-      return 'inProgress'.tr.isEmpty ? 'In Progress' : 'inProgress'.tr;
-    }
-    return 'resolved'.tr.isEmpty ? 'Resolved' : 'resolved'.tr;
+    if (key == 'all') return 'tutte'.tr;
+    if (key == 'open') return 'open'.tr;
+    if (key == 'in-progress') return 'inProgress'.tr;
+    return 'resolved'.tr;
   }
 }

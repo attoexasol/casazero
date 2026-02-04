@@ -14,7 +14,7 @@ class HubController extends GetxController {
       HubCard(
         id: 'ai',
         screen: 'aichat',
-        title: "CasaZero AI",
+        title: 'casaZeroAICard'.tr,
         isImage: true,
         imagePath: "assets/images/thumb_cubo.png",
         gradient: const [Color(0xFF6B8E23), Color(0xFF9ACD32)],
@@ -27,7 +27,7 @@ class HubController extends GetxController {
       HubCard(
         id: 'chat',
         screen: 'chat',
-        title: "Chat Condominio",
+        title: 'chatCondominio'.tr,
         imagePath: "assets/images/Chat_icon.svg",
         gradient: const [Color(0xFF3B82F6), Color(0xFF2563EB)],
         bgGradient: const [Color(0xFFEFF6FF), Color(0xFFDBEAFE)],
@@ -39,7 +39,7 @@ class HubController extends GetxController {
       HubCard(
         id: 'assistenza',
         screen: 'tickets',
-        title: "Assistenza",
+        title: 'assistenza'.tr,
         icon: Icons.help_outline,
         gradient: const [Color(0xFFF59E0B), Color(0xFFEA580C)],
         bgGradient: const [Color(0xFFFFF7ED), Color(0xFFFFEDD5)],

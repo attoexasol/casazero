@@ -102,7 +102,7 @@ class TicketsScreen extends GetView<TicketsController> {
 
   /// Full-width green "+ Create Ticket" button.
   Widget _buildCreateTicketButton() {
-    final label = 'createTicket'.tr.isEmpty ? 'Create Ticket' : 'createTicket'.tr;
+    final label = 'createTicket'.tr;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -149,9 +149,7 @@ class TicketsScreen extends GetView<TicketsController> {
           Icon(Icons.inbox_outlined, size: 48.sp, color: AppColors.neutralInk400),
           SizedBox(height: 16.h),
           Text(
-            'noTicketsInCategory'.tr.isEmpty
-                ? 'No tickets in this category'
-                : 'noTicketsInCategory'.tr,
+            'noTicketsInCategory'.tr,
             style: AppTextStyles.CardHeaderText.copyWith(
               fontSize: 16.sp,
               color: AppColors.neutralInk900,
@@ -159,9 +157,7 @@ class TicketsScreen extends GetView<TicketsController> {
           ),
           SizedBox(height: 8.h),
           Text(
-            'createNewTicketIfNeeded'.tr.isEmpty
-                ? 'Create a new ticket if you need assistance'
-                : 'createNewTicketIfNeeded'.tr,
+            'createNewTicketIfNeeded'.tr,
             style: AppTextStyles.bodyMedium.copyWith(
               fontSize: 14.sp,
               color: AppColors.neutralInk500,
@@ -255,7 +251,7 @@ class TicketsScreen extends GetView<TicketsController> {
                   ),
                 ),
                 child: Text(
-                  'viewDetails'.tr.isEmpty ? 'View Details' : 'viewDetails'.tr,
+                  'viewDetails'.tr,
                   style: AppTextStyles.bodyMedium.copyWith(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w500,
@@ -296,17 +292,17 @@ class TicketsScreen extends GetView<TicketsController> {
       case 'open':
         bg = AppColors.neutralLine100;
         textColor = AppColors.neutralInk700;
-        label = 'open'.tr.isEmpty ? 'Open' : 'open'.tr;
+        label = 'open'.tr;
         break;
       case 'in-progress':
         bg = AppColors.info.withOpacity(0.15);
         textColor = AppColors.info;
-        label = 'inProgress'.tr.isEmpty ? 'In Progress' : 'inProgress'.tr;
+        label = 'inProgress'.tr;
         break;
       case 'resolved':
         bg = AppColors.success.withOpacity(0.15);
         textColor = AppColors.success;
-        label = 'resolved'.tr.isEmpty ? 'Resolved' : 'resolved'.tr;
+        label = 'resolved'.tr;
         break;
       default:
         bg = AppColors.neutralLine100;
@@ -343,7 +339,7 @@ class TicketsScreen extends GetView<TicketsController> {
               Icon(LucideIcons.clock, size: 14.sp, color: AppColors.neutralInk500),
               SizedBox(width: 4.w),
               Text(
-                'Created ${ticket.created}',
+                'ticketCreated'.tr.replaceAll('{date}', ticket.created),
                 style: AppTextStyles.caption.copyWith(
                   fontSize: 12.sp,
                   color: AppColors.neutralInk500,
@@ -358,7 +354,10 @@ class TicketsScreen extends GetView<TicketsController> {
                 Icon(LucideIcons.image, size: 14.sp, color: AppColors.neutralInk500),
                 SizedBox(width: 4.w),
                 Text(
-                  '${ticket.attachments} photo${ticket.attachments! > 1 ? 's' : ''}',
+                  (ticket.attachments! > 1
+                          ? 'ticketPhotosPlural'.tr
+                          : 'ticketPhotos'.tr)
+                      .replaceAll('{count}', ticket.attachments.toString()),
                   style: AppTextStyles.caption.copyWith(
                     fontSize: 12.sp,
                     color: AppColors.neutralInk500,
@@ -373,7 +372,10 @@ class TicketsScreen extends GetView<TicketsController> {
                 Icon(LucideIcons.messageCircle, size: 14.sp, color: AppColors.neutralInk500),
                 SizedBox(width: 4.w),
                 Text(
-                  '${ticket.updates} update${ticket.updates! > 1 ? 's' : ''}',
+                  (ticket.updates! > 1
+                          ? 'ticketUpdates'.tr
+                          : 'ticketUpdate'.tr)
+                      .replaceAll('{count}', ticket.updates.toString()),
                   style: AppTextStyles.caption.copyWith(
                     fontSize: 12.sp,
                     color: AppColors.neutralInk500,
@@ -396,7 +398,7 @@ class TicketsScreen extends GetView<TicketsController> {
         border: Border.all(color: AppColors.info.withOpacity(0.2)),
       ),
       child: Text(
-        'Update: Technician assigned. Expected visit on Nov 5, 2025.',
+        'technicianUpdate'.tr,
         style: AppTextStyles.caption.copyWith(
           fontSize: 12.sp,
           color: AppColors.info,
@@ -421,7 +423,7 @@ class TicketsScreen extends GetView<TicketsController> {
           SizedBox(width: 8.w),
           Expanded(
             child: Text(
-              'Resolved: Issue fixed on ${ticket.updated}',
+              'resolvedIssueFixed'.tr.replaceAll('{date}', ticket.updated),
               style: AppTextStyles.caption.copyWith(
                 fontSize: 12.sp,
                 color: AppColors.success,

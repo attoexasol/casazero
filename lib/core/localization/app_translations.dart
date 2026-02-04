@@ -705,12 +705,51 @@ class AppTranslations extends Translations {
     'leavingHomeActivated': 'Leaving Home scene activated',
 
     // ---------------- HUB SCREEN ----------------
+    'noServicesAvailable': 'No Services Available',
+    'noServicesAvailableDesc':
+        'You don\'t have access to any services at the moment.',
     'exploreFeatures':
         'Explore all the intelligent features of CasaZero to manage your home',
     'ecosystemHub': 'Smart Area',
     'domotica': 'Smart Home',
     'chatCondominio': 'Condominium Chat',
     'assistenza': 'Support',
+    'casaZeroAICard': 'CasaZero AI',
+
+    // ---------------- CHAT SCREEN ----------------
+    'groupChat': 'Group Chat',
+    'onlineNow': 'Online Now',
+    'chatUnavailable': 'Chat unavailable',
+    'chatUnavailableSubtitle': 'Please sign in again to use chat.',
+    'chatNotAvailable': 'Chat not available',
+    'groupNotInitialized': 'Group not initialized.',
+    'accessDenied': 'Access denied',
+    'notGroupMember': 'You are not a group member.',
+    'connectionIssue': 'Connection issue',
+    'checkNetworkAndRetry': 'Check your network and try again.',
+    'tryAgainLater': 'Please try again later.',
+    'noMessagesYet': 'No messages yet. Say hello!',
+    'admin': 'Admin',
+    'typeMessage': 'Type a message...',
+
+    // ---------------- TICKETS SCREEN ----------------
+    'tickets': 'Tickets',
+    'tutte': 'All',
+    'open': 'Open',
+    'inProgress': 'In Progress',
+    'resolved': 'Resolved',
+    'createTicket': 'Create Ticket',
+    'noTicketsInCategory': 'No tickets in this category',
+    'createNewTicketIfNeeded':
+        'Create a new ticket if you need assistance',
+    'ticketCreated': 'Created {date}',
+    'ticketPhotos': '{count} photo',
+    'ticketPhotosPlural': '{count} photos',
+    'ticketUpdate': '{count} update',
+    'ticketUpdates': '{count} updates',
+    'technicianUpdate':
+        'Update: Technician assigned. Expected visit on Nov 5, 2025.',
+    'resolvedIssueFixed': 'Resolved: Issue fixed on {date}',
 
     // 2FA Deactivation - Security Warnings
     // 'security_warning': 'Security Warning',
@@ -1439,12 +1478,51 @@ class AppTranslations extends Translations {
     'leavingHomeActivated': 'Scena Uscendo di Casa attivata',
 
     // ---------------- HUB SCREEN (Italian) ----------------
+    'noServicesAvailable': 'Nessun servizio disponibile',
+    'noServicesAvailableDesc':
+        'Non hai accesso a nessun servizio al momento.',
     'exploreFeatures':
         'Esplora tutte le funzionalità intelligenti di CasaZero per gestire la tua casa',
     'ecosystemHub': 'Area Intelligente',
     'domotica': 'Domotica',
     'chatCondominio': 'Chat Condominio',
     'assistenza': 'Assistenza',
+    'casaZeroAICard': 'CasaZero AI',
+
+    // ---------------- CHAT SCREEN (Italian) ----------------
+    'groupChat': 'Chat di Gruppo',
+    'onlineNow': 'Online ora',
+    'chatUnavailable': 'Chat non disponibile',
+    'chatUnavailableSubtitle': 'Accedi di nuovo per utilizzare la chat.',
+    'chatNotAvailable': 'Chat non disponibile',
+    'groupNotInitialized': 'Gruppo non inizializzato.',
+    'accessDenied': 'Accesso negato',
+    'notGroupMember': 'Non sei un membro del gruppo.',
+    'connectionIssue': 'Problema di connessione',
+    'checkNetworkAndRetry': 'Controlla la connessione e riprova.',
+    'tryAgainLater': 'Riprova più tardi.',
+    'noMessagesYet': 'Ancora nessun messaggio. Saluta!',
+    'admin': 'Admin',
+    'typeMessage': 'Scrivi un messaggio...',
+
+    // ---------------- TICKETS SCREEN (Italian) ----------------
+    'tickets': 'Ticket',
+    'tutte': 'Tutti',
+    'open': 'Aperti',
+    'inProgress': 'In Corso',
+    'resolved': 'Risolti',
+    'createTicket': 'Crea Ticket',
+    'noTicketsInCategory': 'Nessun ticket in questa categoria',
+    'createNewTicketIfNeeded':
+        'Crea un nuovo ticket se hai bisogno di assistenza',
+    'ticketCreated': 'Creato il {date}',
+    'ticketPhotos': '{count} foto',
+    'ticketPhotosPlural': '{count} foto',
+    'ticketUpdate': '{count} aggiornamento',
+    'ticketUpdates': '{count} aggiornamenti',
+    'technicianUpdate':
+        'Aggiornamento: Tecnico assegnato. Visita prevista il 5 nov 2025.',
+    'resolvedIssueFixed': 'Risolto: Problema risolto il {date}',
 
     // 2FA Deactivation - Security Warnings
     // 'security_warning': 'Avviso di Sicurezza',

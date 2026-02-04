@@ -187,7 +187,7 @@ class MainScaffold extends GetView<HomeController> {
         break;
 
       case AppScreen.tickets:
-        title = 'tickets'.tr.isEmpty ? 'Tickets' : 'tickets'.tr;
+        title = 'tickets'.tr;
         showNotification = true;
         showSearch = false;
         showResidenceSwitcher = false;
