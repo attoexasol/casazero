@@ -178,7 +178,7 @@ class MainScaffold extends GetView<HomeController> {
         break;
 
       case AppScreen.chat:
-        title = 'groupChat'.tr;
+        title = 'appbargroupChat'.tr;
         showNotification = true;
         showSearch = false;
         showResidenceSwitcher = false;
@@ -198,7 +198,8 @@ class MainScaffold extends GetView<HomeController> {
 
     final showNavigationControls = canGoBack || canGoForward;
     final currentScreen = controller.currentScreen.value;
-    final showBackButton = canGoBack &&
+    final showBackButton =
+        canGoBack &&
         (currentScreen == AppScreen.ai ||
             currentScreen == AppScreen.chat ||
             currentScreen == AppScreen.tickets);
@@ -558,7 +559,6 @@ class MainScaffold extends GetView<HomeController> {
                 Icons.notifications,
                 size: 30.sp,
                 color: AppColors.brandSage600,
-                
               ),
 
               // AnimatedContainer(
@@ -864,9 +864,7 @@ class MainScaffold extends GetView<HomeController> {
         if (!Get.isRegistered<TicketsController>()) {
           Get.put(TicketsController());
         }
-        return TicketsScreen(
-          onBack: () => controller.goBack(),
-        );
+        return TicketsScreen(onBack: () => controller.goBack());
 
       // case AppScreen.trustedDevices:
       //   return const TrustedDevicesScreen();

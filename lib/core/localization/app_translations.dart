@@ -187,8 +187,10 @@ class AppTranslations extends Translations {
     'notification_announcement': 'Community Announcement',
     'notification_generic': 'Notification',
     'notification_document_description': 'A new document has been uploaded.',
-    'notification_maintenance_description': 'Maintenance status has been updated.',
-    'notification_announcement_description': 'A new announcement has been posted.',
+    'notification_maintenance_description':
+        'Maintenance status has been updated.',
+    'notification_announcement_description':
+        'A new announcement has been posted.',
     'notification_generic_description': 'Tap to view details.',
 
     // Notification type labels (accessibility)
@@ -207,7 +209,8 @@ class AppTranslations extends Translations {
     'viewTicket': 'View Ticket',
 
     // Popup messages (bilingual)
-    'maintenance_status_updated_successfully': 'Maintenance status updated successfully',
+    'maintenance_status_updated_successfully':
+        'Maintenance status updated successfully',
     'document_uploaded_successfully': 'Document uploaded successfully',
     'otp_sent_to_your_email': 'OTP sent to your email',
     'operation_failed': 'Operation failed',
@@ -717,6 +720,7 @@ class AppTranslations extends Translations {
     'casaZeroAICard': 'CasaZero AI',
 
     // ---------------- CHAT SCREEN ----------------
+    'appbargroupChat': 'Condominium Chat',
     'groupChat': 'Group Chat',
     'onlineNow': 'Online Now',
     'chatUnavailable': 'Chat unavailable',
@@ -740,8 +744,7 @@ class AppTranslations extends Translations {
     'resolved': 'Resolved',
     'createTicket': 'Create Ticket',
     'noTicketsInCategory': 'No tickets in this category',
-    'createNewTicketIfNeeded':
-        'Create a new ticket if you need assistance',
+    'createNewTicketIfNeeded': 'Create a new ticket if you need assistance',
     'ticketCreated': 'Created {date}',
     'ticketPhotos': '{count} photo',
     'ticketPhotosPlural': '{count} photos',
@@ -967,7 +970,8 @@ class AppTranslations extends Translations {
     "failed_to_upload_image": "Impossibile caricare l'immagine",
     "error_uploading_image": "Errore nel caricamento dell'immagine. Riprova.",
     "failed_to_update_language": "Impossibile aggiornare la lingua",
-    "error_updating_language": "Errore nell'aggiornamento della lingua. Riprova.",
+    "error_updating_language":
+        "Errore nell'aggiornamento della lingua. Riprova.",
     "failed_to_update_profile": "Impossibile aggiornare il profilo",
     "error_updating_profile": "Errore nell'aggiornamento del profilo. Riprova.",
 
@@ -1208,8 +1212,10 @@ class AppTranslations extends Translations {
     'notification_announcement': 'Annuncio della comunità',
     'notification_generic': 'Notifica',
     'notification_document_description': 'È stato caricato un nuovo documento.',
-    'notification_maintenance_description': 'Lo stato della manutenzione è stato aggiornato.',
-    'notification_announcement_description': 'È stato pubblicato un nuovo annuncio.',
+    'notification_maintenance_description':
+        'Lo stato della manutenzione è stato aggiornato.',
+    'notification_announcement_description':
+        'È stato pubblicato un nuovo annuncio.',
     'notification_generic_description': 'Tocca per visualizzare i dettagli.',
 
     // Notification type labels (Italian)
@@ -1228,12 +1234,14 @@ class AppTranslations extends Translations {
     'viewTicket': 'Visualizza Ticket',
 
     // Popup messages (Italian)
-    'maintenance_status_updated_successfully': 'Stato della manutenzione aggiornato correttamente',
+    'maintenance_status_updated_successfully':
+        'Stato della manutenzione aggiornato correttamente',
     'document_uploaded_successfully': 'Documento caricato correttamente',
     'otp_sent_to_your_email': 'OTP inviato alla tua email',
     'operation_failed': 'Operazione non riuscita',
     'are_you_sure_you_want_to_delete': 'Sei sicuro di voler eliminare?',
-    'failed_to_logout_please_try_again': 'Disconnessione non riuscita. Riprova.',
+    'failed_to_logout_please_try_again':
+        'Disconnessione non riuscita. Riprova.',
 
     // Status (Italian)
     'active': 'Attivo',
@@ -1479,8 +1487,7 @@ class AppTranslations extends Translations {
 
     // ---------------- HUB SCREEN (Italian) ----------------
     'noServicesAvailable': 'Nessun servizio disponibile',
-    'noServicesAvailableDesc':
-        'Non hai accesso a nessun servizio al momento.',
+    'noServicesAvailableDesc': 'Non hai accesso a nessun servizio al momento.',
     'exploreFeatures':
         'Esplora tutte le funzionalità intelligenti di CasaZero per gestire la tua casa',
     'ecosystemHub': 'Area Intelligente',
@@ -1490,6 +1497,7 @@ class AppTranslations extends Translations {
     'casaZeroAICard': 'CasaZero AI',
 
     // ---------------- CHAT SCREEN (Italian) ----------------
+    'appbargroupChat': 'Chat Condomino',
     'groupChat': 'Chat di Gruppo',
     'onlineNow': 'Online ora',
     'chatUnavailable': 'Chat non disponibile',
