@@ -32,6 +32,9 @@ void main() async {
 
   // 🔥 Initialize Firebase with timeout and error handling
   // Check if Firebase is already initialized (e.g., by AppDelegate on iOS)
+  if (defaultTargetPlatform == TargetPlatform.iOS) {
+    print("🔍 iOS: Checking Firebase init...");
+  }
   print("🔍 Checking Firebase initialization status...");
   print("🔍 Firebase.apps.length: ${Firebase.apps.length}");
 
@@ -61,6 +64,9 @@ void main() async {
     for (var app in Firebase.apps) {
       print("✅ Firebase app name: ${app.name}");
     }
+  }
+  if (defaultTargetPlatform == TargetPlatform.iOS) {
+    print("✅ iOS Firebase apps: ${Firebase.apps.length}");
   }
 
   // Set background message handler only if Firebase is initialized

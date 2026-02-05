@@ -1,9 +1,9 @@
 // data/repositories/auth_repository.dart
 // UPDATED WITH FCM TOKEN AND NEW API STRUCTURE
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import '../../core/services/api_service.dart';
+import '../../core/services/firebase_auth_service.dart';
 import '../../core/services/device_info_service.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/services/storage_service.dart';
@@ -150,9 +150,9 @@ class AuthRepository {
         // Clear device token on logout
         await _storageService.clearDeviceToken();
 
-        // Sign out from Firebase
+        // Sign out from Firebase (use FirebaseAuthService to clear _lastSignedInUid)
         try {
-          await FirebaseAuth.instance.signOut();
+          await Get.find<FirebaseAuthService>().signOut();
           print('✅ Firebase Auth: Signed out');
         } catch (e) {
           print('⚠️ Firebase Auth: Sign out error (ignored): $e');
