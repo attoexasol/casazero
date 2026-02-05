@@ -1,6 +1,7 @@
 // presentation/auth/controllers/auth_controller.dart
 // UPDATED WITH PHONE SUPPORT FOR LOGIN
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -92,9 +93,13 @@ class AuthController extends GetxController {
       await _storageService.setFirstLogin(user.isFirstLogin);
 
       debugPrint('Laravel login success');
-      final firebaseToken = result['firebase_token']?.toString() ?? '';
+      final firebaseToken = result['firebase_token']?.toString().trim() ?? '';
       if (firebaseToken.isNotEmpty) {
         await _firebaseAuthService.signInWithCustomToken(firebaseToken);
+        final uid = FirebaseAuth.instance.currentUser?.uid;
+        print('Firebase UID after login: $uid');
+      } else {
+        print('⚠️ Firebase token empty - cannot sign in to Firebase. Chat will not work.');
       }
       // Must complete before navigating to home/chat
 
