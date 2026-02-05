@@ -1,6 +1,7 @@
 // presentation/auth/controllers/auth_controller.dart
 // UPDATED WITH PHONE SUPPORT FOR LOGIN
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -92,31 +93,14 @@ class AuthController extends GetxController {
       await _storageService.setFirstLogin(user.isFirstLogin);
 
       debugPrint('Laravel login success');
-      final firebaseToken = result['firebase_token']?.toString() ?? '';
-
-      // REQUIRE firebase_token for chat (Firebase Auth). Fail loudly if missing.
-      if (firebaseToken.isEmpty) {
-        print('❌ Firebase token missing from API. Login blocked.');
-        MessagePopupController.showError(
-          messageKey: 'firebase_token_missing',
-          titleKey: 'error',
-        );
-        return;
+      final firebaseToken = result['firebase_token']?.toString().trim() ?? '';
+      if (firebaseToken.isNotEmpty) {
+        await _firebaseAuthService.signInWithCustomToken(firebaseToken);
+        final uid = FirebaseAuth.instance.currentUser?.uid;
+        print('Firebase UID after login: $uid');
+      } else {
+        print('⚠️ Firebase token empty - cannot sign in to Firebase. Chat will not work.');
       }
-
-      print('🔥 BEFORE signInWithCustomToken: Platform=$defaultTargetPlatform, firebase_token exists=${firebaseToken.isNotEmpty}');
-      await _firebaseAuthService.signInWithCustomToken(firebaseToken);
-      final uid = _firebaseAuthService.firebaseUid;
-      print('🔥 AFTER signInWithCustomToken: Firebase UID=${uid ?? "null"}');
-      if (uid == null) {
-        print('❌ Firebase UID is null after sign-in. Login blocked.');
-        MessagePopupController.showError(
-          messageKey: 'firebase_token_missing',
-          titleKey: 'error',
-        );
-        return;
-      }
-
       // Must complete before navigating to home/chat
 
       // Set user's preferred language from API

@@ -38,6 +38,12 @@ class ApiConstants {
   /// Response: { "status": true, "message": "...", "data": {...} }
   static const String GET_USER_PROFILE = '/user/profile';
 
+  /// Get Firebase Custom Token (for app restart when Firebase Auth state was lost)
+  /// POST /user/firebase-token
+  /// Request: { "token": "USER_API_TOKEN" }
+  /// Response: { "status": true, "firebase_token": "..." }
+  static const String GET_FIREBASE_TOKEN = '/user/firebase-token';
+
   /// Update User Profile
   /// POST /user/profile_data/update/{user_id}
   /// Request: Full user profile data including notifications, residence, etc.

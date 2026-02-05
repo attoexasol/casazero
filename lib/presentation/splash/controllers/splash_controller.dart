@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../core/services/storage_service.dart';
+import '../../../core/services/firebase_auth_service.dart';
+import '../../../data/repositories/auth_repository.dart';
 
 class SplashController extends GetxController {
   final StorageService _storageService = Get.find();
@@ -29,7 +31,7 @@ class SplashController extends GetxController {
   }
 
   /// Check if user is already authenticated and navigate accordingly
-  void _checkAuthenticationAndNavigate() {
+  void _checkAuthenticationAndNavigate() async {
     print('🔐 SplashController: Checking authentication status...');
 
     // Check for stored access token
@@ -40,13 +42,36 @@ class SplashController extends GetxController {
     print('  - User Data: ${userData != null ? "Found" : "Not found"}');
 
     if (accessToken != null && accessToken.isNotEmpty && userData != null) {
-      // User is authenticated - navigate to HOME
+      // User is authenticated - ensure Firebase is signed in for chat
+      await _ensureFirebaseSignedIn();
       print('  ✅ User authenticated - navigating to HOME');
       _navigateToHome();
     } else {
       // No authentication data - navigate to AUTH
       print('  ❌ No authentication found - navigating to AUTH');
       _navigateToAuth();
+    }
+  }
+
+  /// When app restarts with valid session, Firebase Auth may have been cleared.
+  /// Fetch firebase_token from API and sign in so chat works.
+  Future<void> _ensureFirebaseSignedIn() async {
+    try {
+      final firebaseAuthService = Get.find<FirebaseAuthService>();
+      if (firebaseAuthService.isSignedIn) {
+        print('  🔥 Firebase already signed in');
+        return;
+      }
+      final authRepo = Get.find<AuthRepository>();
+      final firebaseToken = await authRepo.getFirebaseToken();
+      if (firebaseToken != null && firebaseToken.isNotEmpty) {
+        await firebaseAuthService.signInWithCustomToken(firebaseToken);
+        print('Firebase UID after login: ${firebaseAuthService.firebaseUid}');
+      } else {
+        print('  ⚠️ No firebase token from API - chat may not work');
+      }
+    } catch (e) {
+      print('  ⚠️ Firebase sign-in on splash failed: $e');
     }
   }
 

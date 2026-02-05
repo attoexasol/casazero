@@ -88,11 +88,15 @@ class AuthRepository {
           );
         }
 
+        // firebase_token may be at top level or in data
+        final firebaseToken = response.data['firebase_token'] ??
+            response.data['data']?['firebase_token'];
+
         return {
           'success': true,
           'user': UserModel.fromJson(response.data['user']),
           'access_token': response.data['token'],
-          'firebase_token': response.data['firebase_token'],
+          'firebase_token': firebaseToken,
           'is_trusted': response.data['is_trusted'] ?? false,
           'message': response.data['message'],
         };
@@ -182,6 +186,31 @@ class AuthRepository {
       print('❌ Error during logout API call: $e');
       // Even if API fails, we should still clear local storage
       return {'success': false, 'error': 'Failed to logout. Please try again.'};
+    }
+  }
+
+  /// Get Firebase custom token for existing session (e.g. app restart).
+  /// POST /user/firebase-token with { "token": "USER_API_TOKEN" }
+  /// Returns firebase_token string or null if API fails.
+  Future<String?> getFirebaseToken() async {
+    try {
+      final token = _storageService.getAccessToken();
+      if (token == null || token.isEmpty) return null;
+
+      final response = await _apiService.post(
+        ApiConstants.GET_FIREBASE_TOKEN,
+        data: {'token': token},
+      );
+
+      if (response.statusCode == 200 &&
+          response.data['status'] == true &&
+          response.data['firebase_token'] != null) {
+        return response.data['firebase_token'].toString().trim();
+      }
+      return null;
+    } catch (e) {
+      print('⚠️ getFirebaseToken failed: $e');
+      return null;
     }
   }
 
