@@ -177,6 +177,11 @@ class ApiConstants {
   // Home Endpoints
   static const String GET_RESIDENCE_INFO = '/residences/{residenceId}';
 
+  /// Get Single Residence by ID
+  /// GET /single_residence/{id}
+  /// Response: { "status": true, "data": { "id": 48, "residence_name": "POLICE PARK", ... } }
+  static const String GET_SINGLE_RESIDENCE = '/single_residence';
+
   /// Get User Residences
   /// PUT /residences/by-token
   /// Request: { "token": "USER_AUTH_TOKEN_HERE" }

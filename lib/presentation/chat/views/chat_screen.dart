@@ -13,11 +13,7 @@ class ChatScreen extends GetView<ChatController> {
   final Role role;
   final VoidCallback onBack;
 
-  const ChatScreen({
-    super.key,
-    required this.role,
-    required this.onBack,
-  });
+  const ChatScreen({super.key, required this.role, required this.onBack});
 
   @override
   Widget build(BuildContext context) {
@@ -52,14 +48,14 @@ class ChatScreen extends GetView<ChatController> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  'groupChat'.tr,
+                Obx(() => Text(
+                  controller.residenceName.value,
                   style: AppTextStyles.CardHeaderText.copyWith(
-                    fontSize: 16.sp,
+                    fontSize: 18.sp,
                     fontWeight: FontWeight.w600,
                     color: AppColors.neutralInk900,
                   ),
-                ),
+                )),
                 SizedBox(height: 2.h),
                 Text(
                   'onlineNow'.tr,
@@ -157,11 +153,11 @@ class ChatScreen extends GetView<ChatController> {
 
   Widget _buildMessageStream() {
     if (!controller.isFirebaseSignedIn) {
-          return _buildErrorState(
-            icon: Icons.chat_bubble_outline,
-            title: 'chatUnavailable'.tr,
-            subtitle: 'chatUnavailableSubtitle'.tr,
-          );
+      return _buildErrorState(
+        icon: Icons.chat_bubble_outline,
+        title: 'chatUnavailable'.tr,
+        subtitle: 'chatUnavailableSubtitle'.tr,
+      );
     }
 
     return StreamBuilder<List<ChatMessage>>(
@@ -175,7 +171,8 @@ class ChatScreen extends GetView<ChatController> {
         if (snapshot.hasError) {
           final err = snapshot.error.toString().toLowerCase();
           final isPermission = err.contains('permission');
-          final isNetwork = err.contains('network') ||
+          final isNetwork =
+              err.contains('network') ||
               err.contains('unavailable') ||
               err.contains('socket');
           if (isPermission) {
@@ -246,7 +243,9 @@ class ChatScreen extends GetView<ChatController> {
                                   SizedBox(width: 6.w),
                                   Container(
                                     padding: EdgeInsets.symmetric(
-                                        horizontal: 6.w, vertical: 2.h),
+                                      horizontal: 6.w,
+                                      vertical: 2.h,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: AppColors.brandSage100,
                                       borderRadius: BorderRadius.circular(6.r),
@@ -266,7 +265,9 @@ class ChatScreen extends GetView<ChatController> {
                           ),
                         Container(
                           padding: EdgeInsets.symmetric(
-                              horizontal: 16.w, vertical: 10.h),
+                            horizontal: 16.w,
+                            vertical: 10.h,
+                          ),
                           decoration: BoxDecoration(
                             color: isOwnMessage
                                 ? AppColors.brandSage600
@@ -330,11 +331,16 @@ class ChatScreen extends GetView<ChatController> {
   Widget _buildInputArea(BuildContext context) {
     return Container(
       padding: EdgeInsets.fromLTRB(
-          16.w, 12.h, 16.w, 12.h + MediaQuery.of(context).padding.bottom),
+        16.w,
+        12.h,
+        16.w,
+        12.h + MediaQuery.of(context).padding.bottom,
+      ),
       decoration: BoxDecoration(
         color: AppColors.surfaceWhite,
         border: Border(
-            top: BorderSide(color: AppColors.neutralLine200, width: 1)),
+          top: BorderSide(color: AppColors.neutralLine200, width: 1),
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -405,19 +411,21 @@ class ChatScreen extends GetView<ChatController> {
                               height: 20.sp,
                               child: const CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor:
-                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
                               ),
                             )
-                          : Image.asset(
-                              'assets/images/chat_send_icon.png',
-                              width: 20.sp,
-                              height: 20.sp,
-                              color: hasText
-                                  ? AppColors.surfaceWhite
-                                  : AppColors.surfaceWhite.withOpacity(0.6),
-                              colorBlendMode: BlendMode.srcIn,
-                            ),
+                          : Icon(Icons.send, color: Colors.white,size: 20,),
+                      // Image.asset(
+                      //     'assets/images/chat_send_icon.png',
+                      //     width: 20.sp,
+                      //     height: 20.sp,
+                      //     color: hasText
+                      //         ? AppColors.surfaceWhite
+                      //         : AppColors.surfaceWhite.withOpacity(0.6),
+                      //     colorBlendMode: BlendMode.srcIn,
+                      //   ),
                     ),
                   ),
                 );

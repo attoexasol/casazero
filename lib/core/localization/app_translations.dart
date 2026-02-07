@@ -59,7 +59,8 @@ class AppTranslations extends Translations {
     'check_email': 'Check your email for reset instructions',
     'login_failed': 'Login Failed',
     'invalid_credentials': 'Invalid credentials',
-    'firebase_token_missing': 'Chat unavailable: Firebase token missing from server. Please contact support.',
+    'firebase_token_missing':
+        'Chat unavailable: Firebase token missing from server. Please contact support.',
     'enter_email_password': 'Please enter email and password',
     'enter_email': 'Please enter your email',
     'failed_reset_email': 'Failed to send reset email',
@@ -721,7 +722,7 @@ class AppTranslations extends Translations {
     'casaZeroAICard': 'CasaZero AI',
 
     // ---------------- CHAT SCREEN ----------------
-    'appbargroupChat': 'Condominium Chat',
+    'appbargroupChat': 'Group Chat',
     'groupChat': 'Group Chat',
     'onlineNow': 'Online Now',
     'chatUnavailable': 'Chat unavailable',
@@ -851,7 +852,8 @@ class AppTranslations extends Translations {
     'check_email': 'Controlla la tua email per le istruzioni di reset',
     'login_failed': 'Accesso Fallito',
     'invalid_credentials': 'Credenziali non valide',
-    'firebase_token_missing': 'Chat non disponibile: token Firebase mancante dal server. Contattare l\'assistenza.',
+    'firebase_token_missing':
+        'Chat non disponibile: token Firebase mancante dal server. Contattare l\'assistenza.',
     'enter_email_password': 'Inserisci email e password',
     'enter_email': 'Inserisci la tua email',
     'failed_reset_email': 'Impossibile inviare email di reset',
@@ -1499,7 +1501,7 @@ class AppTranslations extends Translations {
     'casaZeroAICard': 'CasaZero AI',
 
     // ---------------- CHAT SCREEN (Italian) ----------------
-    'appbargroupChat': 'Chat Condomino',
+    'appbargroupChat': 'Chat di Gruppo',
     'groupChat': 'Chat di Gruppo',
     'onlineNow': 'Online ora',
     'chatUnavailable': 'Chat non disponibile',

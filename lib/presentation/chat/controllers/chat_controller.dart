@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../core/constants/api_constants.dart';
+import '../../../core/services/api_service.dart';
 import '../../../core/services/firebase_auth_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../home/controllers/home_controller.dart';
@@ -25,11 +27,13 @@ class ChatController extends GetxController {
 
   final FirebaseAuthService _firebaseAuthService = Get.find();
   final StorageService _storageService = Get.find();
+  final ApiService _apiService = Get.find();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Stream<List<ChatMessage>>? _messagesStream;
   final RxBool isSending = false.obs;
   final Rx<ChatState> chatState = ChatState.initial.obs;
+  final RxString residenceName = ''.obs;
 
   String? _groupId;
 
@@ -39,6 +43,28 @@ class ChatController extends GetxController {
     messageController.addListener(_onMessageChanged);
     _resolveGroupId();
     _subscribeToMessages();
+    _fetchResidenceName();
+  }
+
+  Future<void> _fetchResidenceName() async {
+    if (_groupId == null || !_groupId!.startsWith('group_')) return;
+    final idStr = _groupId!.replaceFirst('group_', '');
+    final residenceId = int.tryParse(idStr);
+    if (residenceId == null) return;
+    try {
+      final endpoint = '${ApiConstants.GET_SINGLE_RESIDENCE}/$residenceId';
+      final response = await _apiService.get(endpoint);
+      if (response.statusCode == 200 &&
+          response.data['status'] == true &&
+          response.data['data'] != null) {
+        final name = response.data['data']['residence_name']?.toString();
+        if (name != null && name.isNotEmpty) {
+          residenceName.value = name;
+        }
+      }
+    } catch (_) {
+      residenceName.value = '';
+    }
   }
 
   @override
