@@ -12,15 +12,13 @@ class FirebaseAuthService extends GetxService {
   bool get isSignedIn => FirebaseAuth.instance.currentUser != null;
 
   /// Call immediately after Laravel login success. Must be awaited before navigation.
-  /// Avoids duplicate sign-in when already signed in with the same UID.
+  /// Always signs out first to ensure correct user when switching accounts (uid 17 vs 19).
   Future<void> signInWithCustomToken(String token) async {
     if (token.isEmpty) return;
 
-    final currentUid = FirebaseAuth.instance.currentUser?.uid;
-    if (currentUid != null) {
-      debugPrint('🔥 Firebase already signed in. UID = $currentUid (skipping duplicate sign-in)');
-      return;
-    }
+    // Always sign out first so account switch works: if user 19 was signed in
+    // and user 17 logs in, we must clear 19 and sign in 17 (skip caused wrong UID).
+    await FirebaseAuth.instance.signOut();
 
     await FirebaseAuth.instance.signInWithCustomToken(token);
     final uid = FirebaseAuth.instance.currentUser?.uid;
