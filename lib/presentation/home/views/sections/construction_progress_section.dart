@@ -355,10 +355,13 @@ class _ConstructionProgressSectionState
                     children: [
                       Row(
                         children: [
-                          Text(
-                            'construction_progress'.tr,
-                            style: AppTextStyles.h4.copyWith(
-                              color: AppColors.neutralInk900,
+                          Expanded(
+                            child: Text(
+                              'construction_progress'.tr,
+                              style: AppTextStyles.h4.copyWith(
+                                color: AppColors.neutralInk900,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           const SizedBox(width: 8),
