@@ -567,7 +567,12 @@ class HomeController extends GetxController {
         print(
           '✅ [HomeController] Residence data loaded: ${residenceData.value}',
         );
-        // Temporary log: Confirm residence_photo is available
+        // Sync residence_status from API into currentUser so UI (e.g. Construction Progress) reacts
+        final statusStr = residenceData.value?['residence_status']?.toString();
+        final status = UserModel.parseResidenceStatus(statusStr);
+        if (status != null && currentUser.value != null) {
+          currentUser.value = currentUser.value!.copyWith(residenceStatus: status);
+        }
         final photo = residenceData.value?['residence_photo'];
         print('🏠 [HomeController] Residence image URL from data: $photo');
       } else {

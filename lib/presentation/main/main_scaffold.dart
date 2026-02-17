@@ -865,22 +865,13 @@ class MainScaffold extends GetView<HomeController> {
   }
 
   Widget _buildHomeScreen() {
-    // Show Hub for completed residence, dashboard for under construction
+    // Home tab always shows HomeScreen. Residence status only affects
+    // Construction Progress visibility (handled inside HomeScreen).
     return Obx(() {
       final user = controller.currentUser.value;
       if (user == null) {
         return const Center(
           child: CircularProgressIndicator(color: AppColors.brandSage500),
-        );
-      }
-
-      if (user.residenceStatus == ResidenceStatus.completed) {
-        if (!Get.isRegistered<HubController>()) {
-          Get.put(HubController());
-        }
-        return HubScreen(
-          onNavigate: (destination) =>
-              controller.navigateToScreenByString(destination),
         );
       }
       return const HomeScreen();

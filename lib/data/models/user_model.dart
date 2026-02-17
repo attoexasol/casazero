@@ -115,14 +115,23 @@ class UserModel {
     return false;
   }
 
-  // Helper method to parse residence status
-  static ResidenceStatus? _parseResidenceStatus(String? statusStr) {
-    switch (statusStr?.toLowerCase()) {
+  // Helper method to parse residence status (used in fromJson)
+  static ResidenceStatus? _parseResidenceStatus(String? statusStr) =>
+      parseResidenceStatus(statusStr);
+
+  /// Parse API residence_status string to enum. Use when syncing from residence API.
+  static ResidenceStatus? parseResidenceStatus(String? statusStr) {
+    if (statusStr == null || statusStr.toString().trim().isEmpty) return null;
+    final normalized = statusStr.toString().toLowerCase().trim();
+    switch (normalized) {
       case 'completed':
         return ResidenceStatus.completed;
+      case 'under construction':
       case 'under-construction':
       case 'under_construction':
         return ResidenceStatus.underConstruction;
+      case 'pending':
+        return ResidenceStatus.pending;
       default:
         return null;
     }

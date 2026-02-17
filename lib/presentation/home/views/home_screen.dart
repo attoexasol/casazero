@@ -15,14 +15,11 @@ import 'sections/residence_name.dart';
 import 'sections/hero_image.dart';
 import 'sections/welcome_message.dart';
 import 'sections/welcome_user_section.dart';
-import 'sections/construction_progress.dart';
 import 'sections/construction_progress_section.dart';
 import 'sections/view_all_buildings_card.dart';
 import 'sections/quick_tiles.dart';
 import 'sections/latest_notifications.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../demo/widgets/demo_home_wrapper.dart';
-import '../../demo/controllers/demo_controller.dart';
 
 class HomeScreen extends GetView<HomeController> {
   const HomeScreen({super.key});
@@ -34,21 +31,16 @@ class HomeScreen extends GetView<HomeController> {
       if (controller.isLoading.value) {
         return const LoadingIndicator(message: 'loading');
       }
-      return DemoHomeWrapper(
-        child: RefreshIndicator(
-          onRefresh: controller.refreshData,
-          color: AppColors.brandSage500,
-          child: _buildBody(),
-        ),
+      return RefreshIndicator(
+        onRefresh: controller.refreshData,
+        color: AppColors.brandSage500,
+        child: _buildBody(),
       );
     });
   }
 
   Widget _buildBody() {
     final user = controller.currentUser.value;
-    final isCompleted = user?.residenceStatus == ResidenceStatus.completed;
-    final isUnderConstruction =
-        user?.residenceStatus == ResidenceStatus.underConstruction;
 
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -90,13 +82,11 @@ class HomeScreen extends GetView<HomeController> {
           //     .fadeIn(duration: 500.ms)
           //     .scale(begin: const Offset(0.9, 0.9)),
 
-          // Demo-controlled Construction Progress (only when Under construction in Demo panel)
+          // Construction Progress: shown when API residence_status is Under Construction
           Obx(() {
-            if (!Get.isRegistered<DemoController>()) return const SizedBox.shrink();
-            final demoCtrl = Get.find<DemoController>();
-            if (demoCtrl.selectedStatus.value != DemoPropertyStatus.underConstruction) {
-              return const SizedBox.shrink();
-            }
+            final isUnderConstructionFromApi =
+                controller.currentUser.value?.residenceStatus == ResidenceStatus.underConstruction;
+            if (isUnderConstructionFromApi != true) return const SizedBox.shrink();
             return ConstructionProgressSection(
               onViewBuildings: () => controller.navigateToScreen(AppScreen.ai),
             );
@@ -133,20 +123,7 @@ class HomeScreen extends GetView<HomeController> {
           // const SizedBox(height: 80),
           //],
 
-          // UNDER CONSTRUCTION DASHBOARD
-          if (isUnderConstruction) ...[
-            ConstructionProgress(
-              phases: controller.constructionPhases,
-              canManageBuildings: controller.permissions.canManageBuildings,
-              onViewBuildings: () => controller.navigateToScreen(AppScreen.ai),
-            ).animate(delay: 100.ms).fadeIn().slideY(begin: 0.15),
-
-            const LatestNotifications()
-                .animate(delay: 100.ms)
-                .fadeIn()
-                .slideY(begin: 0.15),
-            const SizedBox(height: 80),
-          ],
+          // Under-construction content is handled above (ConstructionProgressSection + single LatestNotifications)
         ],
       ),
     );
