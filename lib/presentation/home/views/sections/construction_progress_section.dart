@@ -1,50 +1,42 @@
 // lib/presentation/home/views/sections/construction_progress_section.dart
-// Demo-controlled Construction Progress. UI matches design: card radius 24,
-// vertical aqua timeline, 42px circles, step cards with status.
+// Construction Progress from API (status-with-phases). UI matches design: card radius 24,
+// vertical aqua timeline, 42px circles, step cards with status; plus document view section.
 
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../app/theme/app_shadows.dart';
 import '../../../../data/models/construction_phase_model.dart';
+import '../../../../data/models/residence_status_phase_model.dart';
+import '../../controllers/home_controller.dart';
 
-/// Placeholder phases with optional date for display.
-List<ConstructionPhaseModel> _placeholderPhases() => [
-  ConstructionPhaseModel(
-    id: '1',
-    name: 'Foundation',
-    status: 'completed',
-    progress: 100,
-    startDate: DateTime(2025, 9, 1),
-    endDate: DateTime(2025, 10, 15),
-  ),
-  ConstructionPhaseModel(
-    id: '2',
-    name: 'Structure',
-    status: 'completed',
-    progress: 100,
-    startDate: DateTime(2025, 10, 20),
-    endDate: DateTime(2025, 12, 1),
-  ),
-  ConstructionPhaseModel(
-    id: '3',
-    name: 'Facades',
-    status: 'in-progress',
-    progress: 65,
-    startDate: DateTime(2026, 1, 10),
-  ),
-  ConstructionPhaseModel(
-    id: '4',
-    name: 'Finishes',
-    status: 'pending',
-    progress: 0,
-    startDate: null,
-  ),
-];
+/// Map API phase to display model (locale-aware name, status, date, imageUrl).
+ConstructionPhaseModel _phaseToDisplayModel(ResidenceStatusPhaseModel p) {
+  final isIt = Get.locale?.languageCode == 'it';
+  final name = (isIt && p.phaseNameIt.isNotEmpty)
+      ? p.phaseNameIt
+      : p.phaseNameEn;
+  final status = p.isCompleted ? 'completed' : 'in-progress';
+  DateTime? startDate;
+  if (p.status?.statusDate != null && p.status!.statusDate!.isNotEmpty) {
+    startDate = DateTime.tryParse(p.status!.statusDate!);
+  }
+  return ConstructionPhaseModel(
+    id: p.phaseId.toString(),
+    name: name,
+    status: status,
+    progress: p.isCompleted ? 100 : 0,
+    startDate: startDate,
+    endDate: null,
+    description: p.status?.statusDescription,
+    imageUrl: p.status?.image,
+  );
+}
 
 /// Sparkles: very subtle rotation, smooth and slow.
 double _sparkleDegrees(double t) {
@@ -64,7 +56,7 @@ const double _circleDiameter = 42;
 const double _lineWidth = 2;
 const double _stepSpacing = 24;
 const double _indicatorWidth = 42;
-const double _timelineRowHeight = 88;
+const double _timelineRowHeight = 118;
 
 /// Vertical line + circular node. Line does not extend beyond first/last circle.
 /// [rowHeight] is required so we avoid LayoutBuilder (incompatible with IntrinsicHeight).
@@ -169,11 +161,15 @@ class _TimelineCircle extends StatelessWidget {
   }
 }
 
-/// Step card: rounded rect, padding 16–18, title left, date below, status right.
+/// Step card: rounded rect, padding 16–18, title left, date below, optional View document, status right.
 class _StepCard extends StatelessWidget {
-  const _StepCard({required this.phase});
+  const _StepCard({
+    required this.phase,
+    this.onViewDocument,
+  });
 
   final ConstructionPhaseModel phase;
+  final VoidCallback? onViewDocument;
 
   @override
   Widget build(BuildContext context) {
@@ -194,7 +190,7 @@ class _StepCard extends StatelessWidget {
         : '';
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: AppColors.surfaceWhite,
         borderRadius: BorderRadius.circular(18),
@@ -214,21 +210,24 @@ class _StepCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  phase.name,
+            child: ClipRect(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    phase.name,
                   style: AppTextStyles.bodyMedium.copyWith(
                     fontWeight: FontWeight.w600,
                     color: isFuture
                         ? AppColors.neutralInk500
                         : AppColors.neutralInk900,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 if (dateStr.isNotEmpty) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Text(
                     dateStr,
                     style: AppTextStyles.bodySmall.copyWith(
@@ -237,7 +236,39 @@ class _StepCard extends StatelessWidget {
                     ),
                   ),
                 ],
-              ],
+                if (onViewDocument != null) ...[
+                  const SizedBox(height: 6),
+                  GestureDetector(
+                    onTap: onViewDocument,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.description_outlined,
+                          size: 16,
+                          color: AppColors.aquaGreen600,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'view_document'.tr,
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.aquaGreen600,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(width: 2),
+                        Icon(
+                          Icons.open_in_new,
+                          size: 14,
+                          color: AppColors.aquaGreen600,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                ], // close Column children
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -304,171 +335,186 @@ class _ConstructionProgressSectionState
 
   @override
   Widget build(BuildContext context) {
-    final phases = _placeholderPhases();
+    final controller = Get.find<HomeController>();
 
-    return Container(
-          margin: const EdgeInsets.only(top: 32, left: 24, right: 24),
-          child: Container(
-            decoration: BoxDecoration(
-              color: AppColors.surfaceWhite,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: AppColors.neutralLine100),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            clipBehavior: Clip.hardEdge,
-            child: Stack(
-              children: [
-                Positioned(
-                  top: 0,
-                  right: 0,
-                  child: IgnorePointer(
-                    child: ImageFiltered(
-                      imageFilter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-                      child: Container(
-                        width: 128,
-                        height: 128,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: RadialGradient(
-                            center: Alignment.topRight,
-                            radius: 0.8,
-                            colors: [
-                              AppColors.aquaGreen100.withOpacity(0.3),
-                              AppColors.aquaGreen100.withOpacity(0.0),
-                            ],
+    return Obx(() {
+      final apiPhases = controller.constructionPhasesFromApi;
+      final loading = controller.constructionPhasesLoading.value;
+      final displayPhases = apiPhases.map(_phaseToDisplayModel).toList();
+
+      return Container(
+            margin: const EdgeInsets.only(top: 32, left: 24, right: 24),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.surfaceWhite,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: AppColors.neutralLine100),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              clipBehavior: Clip.hardEdge,
+              child: Stack(
+                children: [
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: IgnorePointer(
+                      child: ImageFiltered(
+                        imageFilter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+                        child: Container(
+                          width: 128,
+                          height: 128,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: RadialGradient(
+                              center: Alignment.topRight,
+                              radius: 0.8,
+                              colors: [
+                                AppColors.aquaGreen100.withOpacity(0.3),
+                                AppColors.aquaGreen100.withOpacity(0.0),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'construction_progress'.tr,
-                              style: AppTextStyles.h4.copyWith(
-                                color: AppColors.neutralInk900,
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'construction_progress'.tr,
+                                style: AppTextStyles.h4.copyWith(
+                                  color: AppColors.neutralInk900,
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          AnimatedBuilder(
-                            animation: _sparkleController,
-                            builder: (context, child) {
-                              final t = _sparkleController.value;
-                              final deg = t <= 0.4
-                                  ? _sparkleDegrees(t / 0.4)
-                                  : 0.0;
-                              return Transform.rotate(
-                                angle: deg * 3.1415926535 / 180,
-                                child: child,
-                              );
-                            },
-                            child: const Icon(
-                              Icons.auto_awesome,
-                              color: AppColors.aquaGreen500,
-                              size: 20,
+                            const SizedBox(width: 8),
+                            AnimatedBuilder(
+                              animation: _sparkleController,
+                              builder: (context, child) {
+                                final t = _sparkleController.value;
+                                final deg = t <= 0.4
+                                    ? _sparkleDegrees(t / 0.4)
+                                    : 0.0;
+                                return Transform.rotate(
+                                  angle: deg * 3.1415926535 / 180,
+                                  child: child,
+                                );
+                              },
+                              child: const Icon(
+                                Icons.auto_awesome,
+                                color: AppColors.aquaGreen500,
+                                size: 20,
+                              ),
                             ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'your_home_is_being_built'.tr,
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.neutralInk500,
                           ),
+                        ),
+                        const SizedBox(height: 20),
+                        if (loading)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 24),
+                            child: Center(
+                              child: SizedBox(
+                                width: 28,
+                                height: 28,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.aquaGreen500,
+                                ),
+                              ),
+                            ),
+                          )
+                        else if (displayPhases.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            child: Text(
+                              'no_construction_phases'.tr,
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: AppColors.neutralInk500,
+                              ),
+                            ),
+                          )
+                        else
+                          ...displayPhases.asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final phase = entry.value;
+                            final isFirst = index == 0;
+                            final isLast =
+                                index == displayPhases.length - 1;
+                            return Padding(
+                              padding: EdgeInsets.only(
+                                bottom: isLast ? 0 : _stepSpacing,
+                              ),
+                              child: SizedBox(
+                                height: _timelineRowHeight,
+                                child: Row(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    _TimelineIndicator(
+                                      isFirst: isFirst,
+                                      isLast: isLast,
+                                      status: phase.status,
+                                      rowHeight: _timelineRowHeight,
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: _StepCard(
+                                        phase: phase,
+                                        onViewDocument:
+                                            phase.imageUrl != null &&
+                                                    phase.imageUrl!.isNotEmpty
+                                                ? () => _openDocument(
+                                                    phase.imageUrl!)
+                                                : null,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }),
                         ],
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'your_home_is_being_built'.tr,
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.neutralInk500,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      // Timeline: Row(TimelineIndicator, SizedBox(16), Expanded(StepCard)) per phase.
-                      // Fixed row height to avoid IntrinsicHeight + LayoutBuilder (unsupported).
-                      ...phases.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final phase = entry.value;
-                        final isFirst = index == 0;
-                        final isLast = index == phases.length - 1;
-                        return Padding(
-                          padding: EdgeInsets.only(
-                            bottom: isLast ? 0 : _stepSpacing,
-                          ),
-                          child: SizedBox(
-                            height: _timelineRowHeight,
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                _TimelineIndicator(
-                                  isFirst: isFirst,
-                                  isLast: isLast,
-                                  status: phase.status,
-                                  rowHeight: _timelineRowHeight,
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(child: _StepCard(phase: phase)),
-                              ],
-                            ),
-                          ),
-                        );
-                      }),
-                      const SizedBox(height: 24),
-                      // SizedBox(
-                      //   width: double.infinity,
-                      //   height: 48,
-                      //   child: Material(
-                      //     color: AppColors.aquaGreen600,
-                      //     borderRadius: BorderRadius.circular(12),
-                      //     elevation: 1,
-                      //     shadowColor: Colors.black.withOpacity(0.06),
-                      //     child: InkWell(
-                      //       onTap: widget.onViewBuildings,
-                      //       borderRadius: BorderRadius.circular(12),
-                      //       child: Padding(
-                      //         padding: const EdgeInsets.symmetric(
-                      //           horizontal: 16,
-                      //         ),
-                      //         child: Row(
-                      //           mainAxisAlignment: MainAxisAlignment.center,
-                      //           children: [
-                      //             const Icon(
-                      //               Icons.business,
-                      //               size: 16,
-                      //               color: AppColors.surfaceWhite,
-                      //             ),
-                      //             const SizedBox(width: 8),
-                      //             Text(
-                      //               'view_all_buildings'.tr,
-                      //               style: AppTextStyles.button.copyWith(
-                      //                 color: AppColors.surfaceWhite,
-                      //                 fontSize: 16,
-                      //               ),
-                      //             ),
-                      //           ],
-                      //         ),
-                      //       ),
-                      //     ),
-                      //   ),
-                      // ),
-                    ],
-                  ),
-                ),
-              ],
+                    ),
+                ],
+              ),
             ),
-          ),
-        )
-        .animate()
-        .fadeIn(duration: 300.ms, curve: Curves.easeOut)
-        .slideY(begin: 0.1, end: 0, duration: 300.ms, curve: Curves.easeOut);
+          )
+          .animate()
+          .fadeIn(duration: 300.ms, curve: Curves.easeOut)
+          .slideY(begin: 0.1, end: 0, duration: 300.ms, curve: Curves.easeOut);
+    });
+  }
+
+  Future<void> _openDocument(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri == null) return;
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      debugPrint('ConstructionProgressSection _openDocument: $e');
+    }
   }
 }

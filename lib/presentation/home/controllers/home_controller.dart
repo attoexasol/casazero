@@ -10,6 +10,7 @@ import '../../../data/models/user_model.dart';
 import '../../../data/models/feed_item_model.dart';
 import '../../../data/models/construction_phase_model.dart';
 import '../../../data/models/residence_model.dart';
+import '../../../data/models/residence_status_phase_model.dart';
 import '../../../data/models/document_model.dart';
 import '../../../core/utils/permissions.dart';
 import '../../../app/routes/app_routes.dart';
@@ -24,6 +25,10 @@ class HomeController extends GetxController {
   final currentUser = Rx<UserModel?>(null);
   final feedItems = <FeedItemModel>[].obs;
   final constructionPhases = <ConstructionPhaseModel>[].obs;
+
+  /// Construction phases from API (status-with-phases). Used for Construction Progress section.
+  final constructionPhasesFromApi = <ResidenceStatusPhaseModel>[].obs;
+  final constructionPhasesLoading = false.obs;
 
   // Unread notification count from API (single source of truth)
   final unreadCount = 0.obs;
@@ -575,6 +580,9 @@ class HomeController extends GetxController {
         }
         final photo = residenceData.value?['residence_photo'];
         print('🏠 [HomeController] Residence image URL from data: $photo');
+        if (currentUser.value?.residenceStatus == ResidenceStatus.underConstruction) {
+          fetchConstructionPhases();
+        }
       } else {
         print(
           '❌ [HomeController] Failed to fetch residence data: ${result['error']}',
@@ -584,6 +592,36 @@ class HomeController extends GetxController {
     } catch (e) {
       print('❌ [HomeController] Error fetching residence data: $e');
       // Log error but don't show UI - as per requirements
+    }
+  }
+
+  /// Fetch construction phases (status-with-phases) when residence is under construction.
+  Future<void> fetchConstructionPhases() async {
+    if (apiToken.value.isEmpty) return;
+    final residenceId = residenceData.value?['id'];
+    if (residenceId == null) return;
+    final id = residenceId is int
+        ? residenceId
+        : int.tryParse(residenceId.toString());
+    if (id == null) return;
+
+    constructionPhasesLoading.value = true;
+    try {
+      final result = await _homeRepository.getResidenceStatusWithPhases(
+        apiToken: apiToken.value,
+        residenceId: id,
+      );
+      if (result['success'] == true && result['data'] is List) {
+        constructionPhasesFromApi.value =
+            (result['data'] as List).cast<ResidenceStatusPhaseModel>();
+      } else {
+        constructionPhasesFromApi.clear();
+      }
+    } catch (e) {
+      print('❌ [HomeController] fetchConstructionPhases: $e');
+      constructionPhasesFromApi.clear();
+    } finally {
+      constructionPhasesLoading.value = false;
     }
   }
 

@@ -6,6 +6,8 @@ class ConstructionPhaseModel {
   final DateTime? startDate;
   final DateTime? endDate;
   final String? description;
+  /// URL for phase document/image (e.g. from construction status API).
+  final String? imageUrl;
 
   ConstructionPhaseModel({
     required this.id,
@@ -15,6 +17,7 @@ class ConstructionPhaseModel {
     this.startDate,
     this.endDate,
     this.description,
+    this.imageUrl,
   });
 
   factory ConstructionPhaseModel.fromJson(Map<String, dynamic> json) {
@@ -30,6 +33,7 @@ class ConstructionPhaseModel {
           ? DateTime.parse(json['end_date'])
           : null,
       description: json['description'],
+      imageUrl: json['image_url']?.toString(),
     );
   }
 
@@ -42,6 +46,7 @@ class ConstructionPhaseModel {
       'start_date': startDate?.toIso8601String(),
       'end_date': endDate?.toIso8601String(),
       'description': description,
+      if (imageUrl != null) 'image_url': imageUrl,
     };
   }
 }

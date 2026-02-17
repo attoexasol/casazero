@@ -203,6 +203,12 @@ class ApiConstants {
   /// }
   static const String GET_USER_RESIDENCES = '/residences/by-token';
 
+  /// Get residence status with phases (construction progress)
+  /// POST /residence/status-with-phases
+  /// Request: { "api_token": "<TOKEN>", "residence_id": <ID> }
+  static const String GET_RESIDENCE_STATUS_WITH_PHASES =
+      '/residence/status-with-phases';
+
   static const String GET_FEED_ITEMS = '/feed';
   static const String GET_CONSTRUCTION_PHASES =
       '/residences/{residenceId}/construction';

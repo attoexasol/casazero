@@ -6,6 +6,7 @@ import '../../core/services/storage_service.dart';
 import '../models/feed_item_model.dart';
 import '../models/construction_phase_model.dart';
 import '../models/residence_model.dart';
+import '../models/residence_status_phase_model.dart';
 
 class HomeRepository {
   final ApiService _apiService = Get.find();
@@ -615,6 +616,62 @@ class HomeRepository {
       return {
         'success': false,
         'error': 'Failed to fetch residence data. Please try again.',
+      };
+    }
+  }
+
+  /// Get residence status with phases (construction progress)
+  /// POST /residence/status-with-phases
+  /// Request: { "api_token": "<TOKEN>", "residence_id": <ID> }
+  Future<Map<String, dynamic>> getResidenceStatusWithPhases({
+    required String apiToken,
+    required int residenceId,
+  }) async {
+    try {
+      print(
+          '📐 [HomeRepository] getResidenceStatusWithPhases residenceId=$residenceId');
+      final endpoint = ApiConstants.GET_RESIDENCE_STATUS_WITH_PHASES;
+      final response = await _apiService.post(
+        endpoint,
+        data: {
+          'api_token': apiToken,
+          'residence_id': residenceId,
+        },
+      );
+
+      if (response.statusCode == 200 &&
+          response.data is Map &&
+          response.data['status'] == true) {
+        final List<dynamic> rawList =
+            (response.data['data'] as List?) ?? [];
+        final phases = rawList
+            .map((e) => ResidenceStatusPhaseModel.fromJson(
+                Map<String, dynamic>.from(e as Map)))
+            .toList();
+        print(
+            '✅ [HomeRepository] getResidenceStatusWithPhases parsed ${phases.length} phases');
+        return {'success': true, 'data': phases};
+      }
+      final errorMessage = response.data['message'] ??
+          response.data['error'] ??
+          'Failed to fetch construction phases';
+      print('❌ [HomeRepository] getResidenceStatusWithPhases: $errorMessage');
+      return {'success': false, 'error': errorMessage};
+    } on DioException catch (e) {
+      print(
+          '❌ [HomeRepository] DioException getResidenceStatusWithPhases: $e');
+      String errorMessage = 'Failed to fetch construction phases.';
+      if (e.response?.data is Map) {
+        errorMessage = (e.response!.data as Map)['message']?.toString() ??
+            (e.response!.data as Map)['error']?.toString() ??
+            errorMessage;
+      }
+      return {'success': false, 'error': errorMessage};
+    } catch (e) {
+      print('❌ [HomeRepository] getResidenceStatusWithPhases: $e');
+      return {
+        'success': false,
+        'error': 'Failed to fetch construction phases. Please try again.',
       };
     }
   }
