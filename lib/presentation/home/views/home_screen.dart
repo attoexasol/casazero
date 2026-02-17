@@ -16,11 +16,13 @@ import 'sections/hero_image.dart';
 import 'sections/welcome_message.dart';
 import 'sections/welcome_user_section.dart';
 import 'sections/construction_progress.dart';
+import 'sections/construction_progress_section.dart';
 import 'sections/view_all_buildings_card.dart';
 import 'sections/quick_tiles.dart';
 import 'sections/latest_notifications.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../demo/widgets/demo_home_wrapper.dart';
+import '../../demo/controllers/demo_controller.dart';
 
 class HomeScreen extends GetView<HomeController> {
   const HomeScreen({super.key});
@@ -87,6 +89,18 @@ class HomeScreen extends GetView<HomeController> {
           //     .animate()
           //     .fadeIn(duration: 500.ms)
           //     .scale(begin: const Offset(0.9, 0.9)),
+
+          // Demo-controlled Construction Progress (only when Under construction in Demo panel)
+          Obx(() {
+            if (!Get.isRegistered<DemoController>()) return const SizedBox.shrink();
+            final demoCtrl = Get.find<DemoController>();
+            if (demoCtrl.selectedStatus.value != DemoPropertyStatus.underConstruction) {
+              return const SizedBox.shrink();
+            }
+            return ConstructionProgressSection(
+              onViewBuildings: () => controller.navigateToScreen(AppScreen.ai),
+            );
+          }),
 
           // COMPLETED DASHBOARD
           //if (isCompleted) ...[
