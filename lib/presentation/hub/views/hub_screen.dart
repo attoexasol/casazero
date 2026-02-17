@@ -90,7 +90,10 @@ class HubScreen extends GetView<HubController> {
 
                     if (isPyramid) {
                       final cardWidth = (availableWidth - 20) / 2;
-                      final aspectRatio = cardWidth / cardHeight;
+                      final rawRatio = cardHeight > 0 ? cardWidth / cardHeight : 1.0;
+                      final aspectRatio = rawRatio > 0 && rawRatio.isFinite
+                          ? rawRatio
+                          : 1.0;
 
                       return Column(
                         children: [
@@ -143,7 +146,10 @@ class HubScreen extends GetView<HubController> {
 
                     final cardWidth =
                         (availableWidth - (gridCount - 1) * 20) / gridCount;
-                    final aspectRatio = cardWidth / cardHeight;
+                    final rawRatio = cardHeight > 0 ? cardWidth / cardHeight : 1.0;
+                    final aspectRatio = rawRatio > 0 && rawRatio.isFinite
+                        ? rawRatio
+                        : 1.0;
 
                     return GridView.builder(
                       shrinkWrap: true,

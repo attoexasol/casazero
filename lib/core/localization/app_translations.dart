@@ -219,6 +219,21 @@ class AppTranslations extends Translations {
     'are_you_sure_you_want_to_delete': 'Are you sure you want to delete?',
     'failed_to_logout_please_try_again': 'Failed to logout. Please try again.',
 
+    // Demo Controls
+    'demo': 'Demo',
+    'demo_controls': 'Demo Controls',
+    'demo_controls_subtitle':
+        'Switch between different roles and property states to test the app.',
+    'demo_user_role': 'User Role',
+    'demo_resident_client': 'Resident / Client',
+    'demo_standard_user_access': 'Standard user access.',
+    'demo_manage_properties': 'Manage properties.',
+    'demo_property_status': 'Property Status',
+    'demo_move_in_ready': 'Move-in ready.',
+    'demo_building_in_progress': 'Building in progress.',
+    'demo_note':
+        'This demo control panel allows you to test different user roles and property states. In production, these would be determined by authentication and database records.',
+
     // Status
     'active': 'Active',
     'inactive': 'Inactive',
@@ -1246,6 +1261,21 @@ class AppTranslations extends Translations {
     'are_you_sure_you_want_to_delete': 'Sei sicuro di voler eliminare?',
     'failed_to_logout_please_try_again':
         'Disconnessione non riuscita. Riprova.',
+
+    // Demo Controls (Italian)
+    'demo': 'Demo',
+    'demo_controls': 'Controlli Demo',
+    'demo_controls_subtitle':
+        'Passa tra diversi ruoli e stati della proprietà per testare l\'app.',
+    'demo_user_role': 'Ruolo Utente',
+    'demo_resident_client': 'Residente / Cliente',
+    'demo_standard_user_access': 'Accesso utente standard.',
+    'demo_manage_properties': 'Gestisci le proprietà.',
+    'demo_property_status': 'Stato Proprietà',
+    'demo_move_in_ready': 'Pronto per l\'ingresso.',
+    'demo_building_in_progress': 'Costruzione in corso.',
+    'demo_note':
+        'Questo pannello di controllo demo consente di testare diversi ruoli utente e stati della proprietà. In produzione, questi sarebbero determinati da autenticazione e record del database.',
 
     // Status (Italian)
     'active': 'Attivo',

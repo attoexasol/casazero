@@ -69,9 +69,8 @@ class MainScaffold extends GetView<HomeController> {
           backgroundColor: AppColors.surfaceWhite,
           appBar: _buildAppBar(),
           // BODY - Contains all screens dynamically
-          // SafeArea applied here for Android devices (removed from main.dart to allow popups)
           body: SafeArea(
-            top: false, // AppBar handles top safe area
+            top: false,
             bottom: true,
             left: false,
             right: false,
@@ -310,15 +309,6 @@ class MainScaffold extends GetView<HomeController> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Search button - shown only on Documents and Maintenance screens
-                          // if (showSearch) ...[
-                          //   _buildSearchButton(
-                          //     onTap: () {
-                          //       // TODO: Implement search functionality
-                          //     },
-                          //   ),
-                          //   SizedBox(width: 8.w),
-                          // ],
                           // Notification button - shown on ALL screens
                           if (showNotification)
                             Obx(() {

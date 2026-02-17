@@ -20,6 +20,7 @@ import 'sections/view_all_buildings_card.dart';
 import 'sections/quick_tiles.dart';
 import 'sections/latest_notifications.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../demo/widgets/demo_home_wrapper.dart';
 
 class HomeScreen extends GetView<HomeController> {
   const HomeScreen({super.key});
@@ -31,10 +32,12 @@ class HomeScreen extends GetView<HomeController> {
       if (controller.isLoading.value) {
         return const LoadingIndicator(message: 'loading');
       }
-      return RefreshIndicator(
-        onRefresh: controller.refreshData,
-        color: AppColors.brandSage500,
-        child: _buildBody(),
+      return DemoHomeWrapper(
+        child: RefreshIndicator(
+          onRefresh: controller.refreshData,
+          color: AppColors.brandSage500,
+          child: _buildBody(),
+        ),
       );
     });
   }
