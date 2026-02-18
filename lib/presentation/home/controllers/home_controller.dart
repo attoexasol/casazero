@@ -386,6 +386,8 @@ class HomeController extends GetxController {
     await fetchResidenceData();
     await fetchNotifications(); // Refresh notifications on pull-to-refresh
     await fetchUnreadCount(); // Refresh unread count on pull-to-refresh
+    // Always refetch construction progress on refresh so user sees updated phases
+    await fetchConstructionPhases();
   }
 
   /// Fetch notifications from API (user-wise)

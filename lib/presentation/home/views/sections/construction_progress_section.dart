@@ -15,27 +15,68 @@ import '../../../../data/models/construction_phase_model.dart';
 import '../../../../data/models/residence_status_phase_model.dart';
 import '../../controllers/home_controller.dart';
 
-/// Map API phase to display model (locale-aware name, status, date, imageUrl).
-ConstructionPhaseModel _phaseToDisplayModel(ResidenceStatusPhaseModel p) {
-  final isIt = Get.locale?.languageCode == 'it';
-  final name = (isIt && p.phaseNameIt.isNotEmpty)
-      ? p.phaseNameIt
-      : p.phaseNameEn;
-  final status = p.isCompleted ? 'completed' : 'in-progress';
-  DateTime? startDate;
-  if (p.status?.statusDate != null && p.status!.statusDate!.isNotEmpty) {
-    startDate = DateTime.tryParse(p.status!.statusDate!);
+/// Find index of the last phase with is_completed == true (that one shows as "in progress").
+int _lastCompletedIndex(List<ResidenceStatusPhaseModel> apiPhases) {
+  for (int i = apiPhases.length - 1; i >= 0; i--) {
+    if (apiPhases[i].isCompleted) return i;
   }
-  return ConstructionPhaseModel(
-    id: p.phaseId.toString(),
-    name: name,
-    status: status,
-    progress: p.isCompleted ? 100 : 0,
-    startDate: startDate,
-    endDate: null,
-    description: p.status?.statusDescription,
-    imageUrl: p.status?.image,
-  );
+  return -1;
+}
+
+/// Map API phases to display models: last is_completed true → in-progress, previous completed → completed, is_completed false → upcoming (pending).
+List<ConstructionPhaseModel> _apiPhasesToDisplayModels(
+    List<ResidenceStatusPhaseModel> apiPhases) {
+  final lastCompletedIdx = _lastCompletedIndex(apiPhases);
+  final isIt = Get.locale?.languageCode == 'it';
+
+  return apiPhases.asMap().entries.map((entry) {
+    final index = entry.key;
+    final p = entry.value;
+    String status;
+    if (!p.isCompleted) {
+      status = 'pending'; // upcoming – grey
+    } else if (index == lastCompletedIdx) {
+      status = 'in-progress'; // last completed shows as in progress
+    } else {
+      status = 'completed';
+    }
+
+    final name = (isIt && p.phaseNameIt.isNotEmpty)
+        ? p.phaseNameIt
+        : p.phaseNameEn;
+    DateTime? startDate;
+    if (p.status?.statusDate != null && p.status!.statusDate!.isNotEmpty) {
+      startDate = DateTime.tryParse(p.status!.statusDate!);
+    }
+    return ConstructionPhaseModel(
+      id: p.phaseId.toString(),
+      name: name,
+      status: status,
+      progress: status == 'completed' ? 100 : (status == 'in-progress' ? 50 : 0),
+      startDate: startDate,
+      endDate: null,
+      description: p.status?.statusDescription,
+      imageUrl: p.status?.image,
+    );
+  }).toList();
+}
+
+/// Month abbreviations (no intl locale data required).
+const List<String> _monthAbbrEn = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+];
+const List<String> _monthAbbrIt = [
+  'Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu',
+  'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic',
+];
+
+/// Short date for timeline (e.g. "Jan 15", "15 Gen"). No intl locale init needed.
+String _formatPhaseDate(DateTime date) {
+  final isIt = Get.locale?.languageCode == 'it';
+  final abbr = isIt ? _monthAbbrIt : _monthAbbrEn;
+  final month = abbr[date.month - 1];
+  return '${date.day} $month';
 }
 
 /// Sparkles: very subtle rotation, smooth and slow.
@@ -47,16 +88,16 @@ double _sparkleDegrees(double t) {
   return 0;
 }
 
-// Soft aqua for line and accents (not strong green).
+// Soft aqua for line and accents (Figma: not strong green / not Material teal).
 const Color _timelineLineColor = AppColors.aquaGreen200;
 const Color _circleAquaFill = AppColors.aquaGreen500;
 const Color _circleAquaLight = AppColors.aquaGreen100;
 const Color _circleGrey = AppColors.neutralLine200;
-const double _circleDiameter = 42;
+const double _circleDiameter = 44;
 const double _lineWidth = 2;
 const double _stepSpacing = 24;
-const double _indicatorWidth = 42;
-const double _timelineRowHeight = 118;
+const double _indicatorWidth = 44;
+const double _timelineRowHeight = 132;
 
 /// Vertical line + circular node. Line does not extend beyond first/last circle.
 /// [rowHeight] is required so we avoid LayoutBuilder (incompatible with IntrinsicHeight).
@@ -130,7 +171,7 @@ class _TimelineCircle extends StatelessWidget {
       bgColor = _circleAquaLight;
       borderColor = _circleAquaFill;
       iconColor = _circleAquaFill;
-      iconData = Icons.build;
+      iconData = Icons.construction;
       elevation = 2;
     } else {
       bgColor = _circleGrey;
@@ -140,7 +181,7 @@ class _TimelineCircle extends StatelessWidget {
       elevation = 0;
     }
 
-    return Container(
+    final circle = Container(
       width: _circleDiameter,
       height: _circleDiameter,
       decoration: BoxDecoration(
@@ -148,16 +189,27 @@ class _TimelineCircle extends StatelessWidget {
         color: bgColor,
         border: Border.all(color: borderColor, width: isActive ? 2 : 1),
         boxShadow: [
-          if (elevation > 0)
+          if (elevation == 1)
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          if (elevation == 2)
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 6,
               offset: const Offset(0, 2),
             ),
         ],
       ),
-      child: Icon(iconData, color: iconColor, size: 20),
+      child: Icon(iconData, color: iconColor, size: 19),
     );
+
+    if (isFuture) {
+      return Opacity(opacity: 0.85, child: circle);
+    }
+    return circle;
   }
 }
 
@@ -183,28 +235,38 @@ class _StepCard extends StatelessWidget {
     else if (isActive)
       statusLabel = 'inProgressStatus'.tr;
     else
-      statusLabel = 'pending'.tr;
+      statusLabel = 'upcoming'.tr;
 
     final dateStr = phase.startDate != null
-        ? '${phase.startDate!.day}/${phase.startDate!.month}/${phase.startDate!.year}'
+        ? _formatPhaseDate(phase.startDate!)
         : '';
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    // Figma: completed = no border, active = 2px aqua + slight glow, future = reduced opacity + grey.
+    final cardColor = isFuture ? AppColors.neutralLine100 : AppColors.surfaceWhite;
+    final borderWidth = isActive ? 2.0 : (isFuture ? 1.0 : 0.0);
+    final borderColor = isFuture
+        ? AppColors.neutralLine200
+        : (isActive ? _circleAquaFill : Colors.transparent);
+    final hasShadow = !isFuture;
+
+    final card = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 16),
       decoration: BoxDecoration(
-        color: AppColors.surfaceWhite,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isActive ? _circleAquaFill : AppColors.neutralLine100,
-          width: isActive ? 1.5 : 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(isActive ? 0.08 : 0.04),
-            blurRadius: isActive ? 8 : 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: borderColor, width: borderWidth),
+        boxShadow: hasShadow
+            ? [
+                BoxShadow(
+                  color: isActive
+                      ? _circleAquaFill.withOpacity(0.12)
+                      : Colors.black.withOpacity(0.04),
+                  blurRadius: isActive ? 8 : 4,
+                  spreadRadius: isActive ? 0 : 0,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : null,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -217,56 +279,62 @@ class _StepCard extends StatelessWidget {
                 children: [
                   Text(
                     phase.name,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: isFuture
-                        ? AppColors.neutralInk500
-                        : AppColors.neutralInk900,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (dateStr.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    dateStr,
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.neutralInk500,
-                      fontSize: 12,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      fontWeight: FontWeight.w500,
+                      color: isFuture
+                          ? AppColors.neutralInk400
+                          : AppColors.neutralInk900,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ],
-                if (onViewDocument != null) ...[
-                  const SizedBox(height: 6),
-                  GestureDetector(
-                    onTap: onViewDocument,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.description_outlined,
-                          size: 16,
-                          color: AppColors.aquaGreen600,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'view_document'.tr,
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.aquaGreen600,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(width: 2),
-                        Icon(
-                          Icons.open_in_new,
-                          size: 14,
-                          color: AppColors.aquaGreen600,
-                        ),
-                      ],
+                  if (dateStr.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      dateStr,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: isFuture
+                            ? AppColors.neutralInk400
+                            : AppColors.neutralInk500,
+                        fontSize: 12,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                  if (onViewDocument != null) ...[
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: onViewDocument,
+                      behavior: HitTestBehavior.opaque,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 8, top: 2, bottom: 2),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.description_outlined,
+                              size: 16,
+                              color: AppColors.aquaGreen500,
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(
+                              Icons.open_in_new,
+                              size: 14,
+                              color: AppColors.aquaGreen500,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'view_document'.tr,
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: AppColors.aquaGreen500,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ], // close Column children
               ),
             ),
@@ -277,8 +345,8 @@ class _StepCard extends StatelessWidget {
             children: [
               if (isCompleted || isActive)
                 Container(
-                  width: 6,
-                  height: 6,
+                  width: 7,
+                  height: 7,
                   margin: const EdgeInsets.only(right: 6),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
@@ -299,6 +367,11 @@ class _StepCard extends StatelessWidget {
         ],
       ),
     );
+
+    if (isFuture) {
+      return Opacity(opacity: 0.9, child: card);
+    }
+    return card;
   }
 }
 
@@ -340,7 +413,7 @@ class _ConstructionProgressSectionState
     return Obx(() {
       final apiPhases = controller.constructionPhasesFromApi;
       final loading = controller.constructionPhasesLoading.value;
-      final displayPhases = apiPhases.map(_phaseToDisplayModel).toList();
+      final displayPhases = _apiPhasesToDisplayModels(apiPhases);
 
       return Container(
             margin: const EdgeInsets.only(top: 32, left: 24, right: 24),
@@ -348,12 +421,13 @@ class _ConstructionProgressSectionState
               decoration: BoxDecoration(
                 color: AppColors.surfaceWhite,
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: AppColors.neutralLine100),
+                border: Border.all(color: AppColors.neutralLine100, width: 1),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 4,
+                    spreadRadius: 0,
+                    offset: const Offset(0, 1),
                   ),
                 ],
               ),
