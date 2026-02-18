@@ -99,6 +99,77 @@ const double _stepSpacing = 24;
 const double _indicatorWidth = 44;
 const double _timelineRowHeight = 132;
 
+/// Loading skeleton: placeholder rows matching timeline layout (circle + card).
+class _LoadingSkeleton extends StatelessWidget {
+  const _LoadingSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(4, (index) {
+        return Padding(
+          padding: EdgeInsets.only(bottom: index < 3 ? _stepSpacing : 0),
+          child: SizedBox(
+            height: _timelineRowHeight,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  width: _indicatorWidth,
+                  child: Center(
+                    child: Container(
+                      width: _circleDiameter,
+                      height: _circleDiameter,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.neutralLine100,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 16),
+                    decoration: BoxDecoration(
+                      color: AppColors.neutralLine100,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          height: 14,
+                          width: 140,
+                          decoration: BoxDecoration(
+                            color: AppColors.neutralLine200,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          height: 10,
+                          width: 60,
+                          decoration: BoxDecoration(
+                            color: AppColors.neutralLine200,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }),
+    );
+  }
+}
+
 /// Vertical line + circular node. Line does not extend beyond first/last circle.
 /// [rowHeight] is required so we avoid LayoutBuilder (incompatible with IntrinsicHeight).
 class _TimelineIndicator extends StatelessWidget {
@@ -217,10 +288,14 @@ class _TimelineCircle extends StatelessWidget {
 class _StepCard extends StatelessWidget {
   const _StepCard({
     required this.phase,
+    this.phaseIndex,
+    this.totalPhases,
     this.onViewDocument,
   });
 
   final ConstructionPhaseModel phase;
+  final int? phaseIndex;
+  final int? totalPhases;
   final VoidCallback? onViewDocument;
 
   @override
@@ -249,7 +324,13 @@ class _StepCard extends StatelessWidget {
         : (isActive ? _circleAquaFill : Colors.transparent);
     final hasShadow = !isFuture;
 
-    final card = Container(
+    final phaseSemantics = phaseIndex != null && totalPhases != null
+        ? '${phase.name}. $statusLabel. ${phaseIndex!} of $totalPhases.'
+        : '${phase.name}. $statusLabel.';
+
+    final card = Semantics(
+      label: phaseSemantics,
+      child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 16),
       decoration: BoxDecoration(
         color: cardColor,
@@ -272,7 +353,8 @@ class _StepCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: ClipRect(
+            child: SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -302,35 +384,43 @@ class _StepCard extends StatelessWidget {
                   ],
                   if (onViewDocument != null) ...[
                     const SizedBox(height: 8),
-                    GestureDetector(
-                      onTap: onViewDocument,
-                      behavior: HitTestBehavior.opaque,
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 8, top: 2, bottom: 2),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.description_outlined,
-                              size: 16,
-                              color: AppColors.aquaGreen500,
-                            ),
-                            const SizedBox(width: 4),
-                            Icon(
-                              Icons.open_in_new,
-                              size: 14,
-                              color: AppColors.aquaGreen500,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'view_document'.tr,
-                              style: AppTextStyles.bodySmall.copyWith(
+                    Semantics(
+                      button: true,
+                      label: 'view_document'.tr,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: onViewDocument,
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 10, horizontal: 4),
+                            child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.description_outlined,
+                                size: 16,
                                 color: AppColors.aquaGreen500,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 12,
                               ),
+                              const SizedBox(width: 4),
+                              Icon(
+                                Icons.open_in_new,
+                                size: 14,
+                                color: AppColors.aquaGreen500,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'view_document'.tr,
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  color: AppColors.aquaGreen500,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
                             ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
@@ -366,6 +456,7 @@ class _StepCard extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
 
     if (isFuture) {
@@ -504,26 +595,31 @@ class _ConstructionProgressSectionState
                         ),
                         const SizedBox(height: 20),
                         if (loading)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 24),
-                            child: Center(
-                              child: SizedBox(
-                                width: 28,
-                                height: 28,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: AppColors.aquaGreen500,
-                                ),
-                              ),
-                            ),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8),
+                            child: _LoadingSkeleton(),
                           )
                         else if (displayPhases.isEmpty)
                           Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            child: Text(
-                              'no_construction_phases'.tr,
-                              style: AppTextStyles.bodySmall.copyWith(
-                                color: AppColors.neutralInk500,
+                            padding: const EdgeInsets.symmetric(vertical: 24),
+                            child: Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.construction_outlined,
+                                    size: 40,
+                                    color: AppColors.neutralInk300,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'no_construction_phases'.tr,
+                                    textAlign: TextAlign.center,
+                                    style: AppTextStyles.bodySmall.copyWith(
+                                      color: AppColors.neutralInk500,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           )
@@ -554,6 +650,8 @@ class _ConstructionProgressSectionState
                                     Expanded(
                                       child: _StepCard(
                                         phase: phase,
+                                        phaseIndex: index + 1,
+                                        totalPhases: displayPhases.length,
                                         onViewDocument:
                                             phase.imageUrl != null &&
                                                     phase.imageUrl!.isNotEmpty
@@ -565,7 +663,18 @@ class _ConstructionProgressSectionState
                                   ],
                                 ),
                               ),
-                            );
+                            )
+                                .animate()
+                                .fadeIn(
+                                    duration: 280.ms,
+                                    curve: Curves.easeOut,
+                                    delay: (index * 50).ms)
+                                .slideY(
+                                    begin: 0.04,
+                                    end: 0,
+                                    duration: 280.ms,
+                                    curve: Curves.easeOut,
+                                    delay: (index * 50).ms);
                           }),
                         ],
                       ),
