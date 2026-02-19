@@ -206,135 +206,152 @@ class MainScaffold extends GetView<HomeController> {
 
     return PreferredSize(
       preferredSize: Size.fromHeight(64.h + statusBarHeight),
-      child: Container(
-        height: 50.h + statusBarHeight,
-        padding: EdgeInsets.only(top: statusBarHeight),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceWhite.withOpacity(0.95),
-          border: Border(
-            bottom: BorderSide(
-              color: AppColors.neutralLine200.withOpacity(0.5),
-              width: 1,
-            ),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 15,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-            child: Center(
-              child: Container(
-                constraints: BoxConstraints(maxWidth: 448.w),
-                margin: EdgeInsets.symmetric(horizontal: 24.w),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Left section - positioned on the left
-                    Positioned(
-                      left: 0,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (showBackButton)
-                            IconButton(
-                              onPressed: () => controller.goBack(),
-                              icon: Icon(
-                                CupertinoIcons.back,
-                                size: 24.sp,
-                                color: AppColors.neutralInk900,
-                              ),
-                              padding: EdgeInsets.zero,
-                              constraints: BoxConstraints(
-                                minWidth: 44.w,
-                                minHeight: 44.w,
-                              ),
-                            ),
-                          if (showBackButton) SizedBox(width: 4.w),
-
-                          // Logo/Title Section (only for non-title cases like logo/residence switcher)
-                          if (variant == 'branded' && !showNavigationControls ||
-                              (showResidenceSwitcher && title != null))
-                            _buildTitleSection(
-                              title: title,
-                              showNavigationControls: showNavigationControls,
-                              variant: variant,
-                              showResidenceSwitcher: showResidenceSwitcher,
-                              currentResidence: showResidenceSwitcher
-                                  ? (controller
-                                            .selectedResidence
-                                            .value
-                                            ?.residenceName ??
-                                        'Select Residence')
-                                  : null,
-                              onResidenceSwitch: showResidenceSwitcher
-                                  ? () => _showResidenceSelectorDialog()
-                                  : null,
-                            ),
-                        ],
-                      ),
+      child:
+          Container(
+                height: 50.h + statusBarHeight,
+                padding: EdgeInsets.only(top: statusBarHeight),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceWhite.withOpacity(0.95),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: AppColors.neutralLine200.withOpacity(0.5),
+                      width: 1,
                     ),
-
-                    // Center section - Title positioned absolutely in center
-                    if (title != null &&
-                        !(variant == 'branded' && !showNavigationControls) &&
-                        !(showResidenceSwitcher && title != null))
-                      Center(
-                        child: _buildTitleSection(
-                          title: title,
-                          showNavigationControls: showNavigationControls,
-                          variant: variant,
-                          showResidenceSwitcher: showResidenceSwitcher,
-                          currentResidence: showResidenceSwitcher
-                              ? (controller
-                                        .selectedResidence
-                                        .value
-                                        ?.residenceName ??
-                                    'Select Residence')
-                              : null,
-                          onResidenceSwitch: showResidenceSwitcher
-                              ? () => _showResidenceSelectorDialog()
-                              : null,
-                        ),
-                      ),
-
-                    // Right section - positioned on the right
-                    Positioned(
-                      right: 0,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Notification button - shown on ALL screens
-                          if (showNotification)
-                            Obx(() {
-                              // Use unread count from API (single source of truth)
-                              final count = controller.unreadCount.value;
-                              return _buildNotificationButton(
-                                count: count,
-                                onTap: () {
-                                  // Show notifications modal bottom sheet
-                                  // Use Get.context! here as it's safe in onTap callback
-                                  if (Get.context != null) {
-                                    NotificationsModal.show(Get.context!);
-                                  }
-                                },
-                              );
-                            }),
-                        ],
-                      ),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 15,
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
-              ),
-            ),
-          ),
-        ),
-      ).animate().slideY(begin: -0.05, end: 0, duration: 500.ms, curve: Curves.easeOut).fadeIn(duration: 500.ms),
+                child: ClipRect(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+                    child: Center(
+                      child: Container(
+                        constraints: BoxConstraints(maxWidth: 448.w),
+                        margin: EdgeInsets.symmetric(horizontal: 24.w),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // Left section - positioned on the left
+                            Positioned(
+                              left: 0,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (showBackButton)
+                                    IconButton(
+                                      onPressed: () => controller.goBack(),
+                                      icon: Icon(
+                                        CupertinoIcons.back,
+                                        size: 24.sp,
+                                        color: AppColors.neutralInk900,
+                                      ),
+                                      padding: EdgeInsets.zero,
+                                      constraints: BoxConstraints(
+                                        minWidth: 44.w,
+                                        minHeight: 44.w,
+                                      ),
+                                    ),
+                                  if (showBackButton) SizedBox(width: 4.w),
+
+                                  // Logo/Title Section (only for non-title cases like logo/residence switcher)
+                                  if (variant == 'branded' &&
+                                          !showNavigationControls ||
+                                      (showResidenceSwitcher && title != null))
+                                    _buildTitleSection(
+                                      title: title,
+                                      showNavigationControls:
+                                          showNavigationControls,
+                                      variant: variant,
+                                      showResidenceSwitcher:
+                                          showResidenceSwitcher,
+                                      currentResidence: showResidenceSwitcher
+                                          ? (controller
+                                                    .selectedResidence
+                                                    .value
+                                                    ?.residenceName ??
+                                                'Select Residence')
+                                          : null,
+                                      onResidenceSwitch: showResidenceSwitcher
+                                          ? () => _showResidenceSelectorDialog()
+                                          : null,
+                                    ),
+                                ],
+                              ),
+                            ),
+
+                            // Center section - Title positioned absolutely in center
+                            if (title != null &&
+                                !(variant == 'branded' &&
+                                    !showNavigationControls) &&
+                                !(showResidenceSwitcher && title != null))
+                              Center(
+                                child: _buildTitleSection(
+                                  title: title,
+                                  showNavigationControls:
+                                      showNavigationControls,
+                                  variant: variant,
+                                  showResidenceSwitcher: showResidenceSwitcher,
+                                  currentResidence: showResidenceSwitcher
+                                      ? (controller
+                                                .selectedResidence
+                                                .value
+                                                ?.residenceName ??
+                                            'Select Residence')
+                                      : null,
+                                  onResidenceSwitch: showResidenceSwitcher
+                                      ? () => _showResidenceSelectorDialog()
+                                      : null,
+                                ),
+                              ),
+
+                            // Right section - positioned on the right
+                            Positioned(
+                              right: 0,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // Notification button - shown on ALL screens
+                                  if (showNotification)
+                                    Obx(() {
+                                      // Use unread count from API (single source of truth)
+                                      final count =
+                                          controller.unreadCount.value;
+                                      return _buildNotificationButton(
+                                        count: count,
+                                        onTap: () {
+                                          // Show notifications modal bottom sheet
+                                          // Use Get.context! here as it's safe in onTap callback
+                                          if (Get.context != null) {
+                                            NotificationsModal.show(
+                                              Get.context!,
+                                            );
+                                          }
+                                        },
+                                      );
+                                    }),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              )
+              .animate()
+              .slideY(
+                begin: -0.05,
+                end: 0,
+                duration: 500.ms,
+                curve: Curves.easeOut,
+              )
+              .fadeIn(duration: 500.ms),
     );
   }
 
@@ -525,6 +542,60 @@ class MainScaffold extends GetView<HomeController> {
     required int count,
     required VoidCallback onTap,
   }) {
+    return _AnimatedNotificationButton(count: count, onTap: onTap);
+  }
+}
+
+/// Notification bell with tap-triggered scale animation for clear visual feedback.
+class _AnimatedNotificationButton extends StatefulWidget {
+  const _AnimatedNotificationButton({
+    required this.count,
+    required this.onTap,
+  });
+
+  final int count;
+  final VoidCallback onTap;
+
+  @override
+  State<_AnimatedNotificationButton> createState() =>
+      _AnimatedNotificationButtonState();
+}
+
+class _AnimatedNotificationButtonState extends State<_AnimatedNotificationButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 220),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.82).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeIn,
+        reverseCurve: Curves.elasticOut,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleTap() async {
+    await _controller.forward();
+    await _controller.reverse();
+    widget.onTap();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Tooltip(
       message: 'Notifications',
       waitDuration: const Duration(milliseconds: 300),
@@ -541,135 +612,110 @@ class MainScaffold extends GetView<HomeController> {
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         child: GestureDetector(
-          onTap: onTap,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Icon(
-                Icons.notifications,
-                size: 30.sp,
-                color: AppColors.brandSage600,
-              ),
-
-              // AnimatedContainer(
-              //   duration: const Duration(milliseconds: 300),
-              //   width: 43.w,
-              //   height: 43.w,
-              //   decoration: BoxDecoration(
-              //     color: AppColors.brandSage50,
-              //     shape: BoxShape.circle,
-              //     boxShadow: [
-              //       BoxShadow(
-              //         color: Colors.black.withOpacity(0.05),
-              //         blurRadius: 4,
-              //         offset: const Offset(0, 2),
-              //       ),
-              //     ],
-              //   ),
-              //   child: Icon(
-              //     Icons.notifications,
-              //     size: 25.sp,
-              //     color: AppColors.brandSage600,
-              //   ),
-              // ),
-              // Notification Badge
-              if (count > 0)
-                Positioned(
-                  right: -4.w,
-                  top: -4.h,
-                  child:
-                      Container(
-                        constraints: BoxConstraints(
-                          minWidth: 20.w,
-                          minHeight: 20.h,
-                        ),
-                        padding: EdgeInsets.symmetric(horizontal: 6.w),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              AppColors.danger,
-                              AppColors.danger.withOpacity(0.9),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(10.r),
-                          border: Border.all(
-                            color: AppColors.surfaceWhite,
-                            width: 2,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
+          onTap: _handleTap,
+          child: ScaleTransition(
+            scale: _scaleAnimation,
+            alignment: Alignment.center,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(
+                  Icons.notifications,
+                  size: 30.sp,
+                  color: AppColors.brandSage600,
+                ),
+                if (widget.count > 0)
+                  Positioned(
+                    right: -4.w,
+                    top: -4.h,
+                    child: Container(
+                      constraints: BoxConstraints(
+                        minWidth: 20.w,
+                        minHeight: 20.h,
+                      ),
+                      padding: EdgeInsets.symmetric(horizontal: 6.w),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.danger,
+                            AppColors.danger.withOpacity(0.9),
                           ],
                         ),
-                        child: Center(
-                          child: Text(
-                            count > 9 ? '9+' : count.toString(),
-                            style: TextStyle(
-                              color: AppColors.surfaceWhite,
-                              fontSize: 11.sp,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        borderRadius: BorderRadius.circular(10.r),
+                        border: Border.all(
+                          color: AppColors.surfaceWhite,
+                          width: 2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Text(
+                          widget.count > 9 ? '9+' : widget.count.toString(),
+                          style: TextStyle(
+                            color: AppColors.surfaceWhite,
+                            fontSize: 11.sp,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ).animate().scale(
-                        begin: const Offset(0, 0),
-                        end: const Offset(1, 1),
-                        duration: 300.ms,
-                        curve: Curves.elasticOut,
                       ),
-                ),
-              // Pulsing indicator
-              if (count > 0)
-                Positioned(
-                  right: -4.w,
-                  top: -4.h,
-                  child:
-                      Container(
-                            width: 20.w,
-                            height: 20.h,
-                            decoration: BoxDecoration(
-                              color: AppColors.danger,
-                              shape: BoxShape.circle,
-                            ),
-                          )
-                          .animate(onPlay: (controller) => controller.repeat())
-                          .scale(
-                            begin: const Offset(1, 1),
-                            end: const Offset(1.3, 1.3),
-                            duration: 2000.ms,
-                            curve: Curves.easeInOut,
-                          )
-                          .then()
-                          .scale(
-                            begin: const Offset(1.3, 1.3),
-                            end: const Offset(1, 1),
-                            duration: 2000.ms,
-                            curve: Curves.easeInOut,
-                          )
-                          .fade(
-                            begin: 0.5,
-                            end: 0,
-                            duration: 2000.ms,
-                            curve: Curves.easeInOut,
-                          )
-                          .then(delay: 0.ms)
-                          .fade(
-                            begin: 0,
-                            end: 0.5,
-                            duration: 2000.ms,
-                            curve: Curves.easeInOut,
-                          ),
-                ),
-            ],
+                    ),
+                  ),
+                if (widget.count > 0)
+                  Positioned(
+                    right: -4.w,
+                    top: -4.h,
+                    child: Container(
+                      width: 20.w,
+                      height: 20.h,
+                      decoration: BoxDecoration(
+                        color: AppColors.danger,
+                        shape: BoxShape.circle,
+                      ),
+                    )
+                        .animate(onPlay: (c) => c.repeat())
+                        .scale(
+                          begin: const Offset(1, 1),
+                          end: const Offset(1.3, 1.3),
+                          duration: 2000.ms,
+                          curve: Curves.easeInOut,
+                        )
+                        .then()
+                        .scale(
+                          begin: const Offset(1.3, 1.3),
+                          end: const Offset(1, 1),
+                          duration: 2000.ms,
+                          curve: Curves.easeInOut,
+                        )
+                        .fade(
+                          begin: 0.5,
+                          end: 0,
+                          duration: 2000.ms,
+                          curve: Curves.easeInOut,
+                        )
+                        .then(delay: 0.ms)
+                        .fade(
+                          begin: 0,
+                          end: 0.5,
+                          duration: 2000.ms,
+                          curve: Curves.easeInOut,
+                        ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
+}
 
+extension _MainScaffoldNotification on MainScaffold {
   /// Show residence selector dialog
   void _showResidenceSelectorDialog() {
     Get.dialog(
