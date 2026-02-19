@@ -100,7 +100,8 @@ class _HeroImageState extends State<HeroImage>
       width: double.infinity,
       height: 500, // Fixed height: 500px equivalent
       child: ClipRect(
-        clipBehavior: Clip.antiAlias, // Smooth anti-aliased edges for better gradient blending
+        clipBehavior: Clip
+            .antiAlias, // Smooth anti-aliased edges for better gradient blending
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -121,7 +122,10 @@ class _HeroImageState extends State<HeroImage>
               child: Container(
                 decoration: BoxDecoration(
                   gradient: RadialGradient(
-                    center: const Alignment(0.0, -0.2), // Higher up to reach top better
+                    center: const Alignment(
+                      0.0,
+                      -0.2,
+                    ), // Higher up to reach top better
                     radius: 1.5, // Larger radius to cover top area
                     colors: [
                       Colors.white.withOpacity(0.0),
@@ -172,12 +176,19 @@ class _HeroImageState extends State<HeroImage>
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    stops: const [0.0, 0.5, 0.75, 1.0], // Stop darkening at 75% to avoid bottom edge
+                    stops: const [
+                      0.0,
+                      0.5,
+                      0.75,
+                      1.0,
+                    ], // Stop darkening at 75% to avoid bottom edge
                     colors: [
                       Colors.black.withOpacity(0.0),
                       Colors.black.withOpacity(0.03),
                       Colors.black.withOpacity(0.03), // Keep same at 75%
-                      Colors.black.withOpacity(0.0), // Fade to transparent at bottom to avoid dark line
+                      Colors.black.withOpacity(
+                        0.0,
+                      ), // Fade to transparent at bottom to avoid dark line
                     ],
                   ),
                 ),
@@ -192,7 +203,10 @@ class _HeroImageState extends State<HeroImage>
               child: Container(
                 decoration: BoxDecoration(
                   gradient: RadialGradient(
-                    center: const Alignment(0.0, -0.9), // Higher up for top effect
+                    center: const Alignment(
+                      0.0,
+                      -0.9,
+                    ), // Higher up for top effect
                     radius: 1.8, // Larger radius for better coverage
                     colors: [
                       Colors.white.withOpacity(0.0),
@@ -223,15 +237,33 @@ class _HeroImageState extends State<HeroImage>
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter, // Inverted direction to mirror top
-                      stops: const [0.0, 0.02, 0.05, 0.10, 0.18, 0.28], // EXACTLY same stops as top fade
+                      end: Alignment
+                          .topCenter, // Inverted direction to mirror top
+                      stops: const [
+                        0.0,
+                        0.02,
+                        0.05,
+                        0.10,
+                        0.18,
+                        0.28,
+                      ], // EXACTLY same stops as top fade
                       colors: [
-                        AppColors.surfaceWhite, // Full white at bottom - seamless blend with background (mirrors top 0%)
-                        AppColors.surfaceWhite, // Keep white for first 2% for smooth transition (mirrors top 2%)
-                        AppColors.surfaceWhite.withOpacity(0.90), // 95% at 5% (EXACTLY mirrors top 5%)
-                        AppColors.surfaceWhite.withOpacity(0.60), // 80% at 10% (EXACTLY mirrors top 10%)
-                        AppColors.surfaceWhite.withOpacity(0.15), // 50% at 18% (EXACTLY mirrors top 18%)
-                        AppColors.surfaceWhite.withOpacity(0.0), // Transparent at 28% (EXACTLY mirrors top 28%)
+                        AppColors
+                            .surfaceWhite, // Full white at bottom - seamless blend with background (mirrors top 0%)
+                        AppColors
+                            .surfaceWhite, // Keep white for first 2% for smooth transition (mirrors top 2%)
+                        AppColors.surfaceWhite.withOpacity(
+                          0.90,
+                        ), // 95% at 5% (EXACTLY mirrors top 5%)
+                        AppColors.surfaceWhite.withOpacity(
+                          0.60,
+                        ), // 80% at 10% (EXACTLY mirrors top 10%)
+                        AppColors.surfaceWhite.withOpacity(
+                          0.15,
+                        ), // 50% at 18% (EXACTLY mirrors top 18%)
+                        AppColors.surfaceWhite.withOpacity(
+                          0.0,
+                        ), // Transparent at 28% (EXACTLY mirrors top 28%)
                       ],
                     ),
                   ),
@@ -256,12 +288,16 @@ class _HeroImageState extends State<HeroImage>
                       end: Alignment.bottomCenter,
                       stops: const [0.0, 0.02, 0.05, 0.10, 0.18, 0.28],
                       colors: [
-                        AppColors.surfaceWhite, // Full white at top - seamless blend with background
-                        AppColors.surfaceWhite, // Keep white for first 2% for smooth transition
+                        AppColors
+                            .surfaceWhite, // Full white at top - seamless blend with background
+                        AppColors
+                            .surfaceWhite, // Keep white for first 2% for smooth transition
                         AppColors.surfaceWhite.withOpacity(0.90), // 95% at 5%
                         AppColors.surfaceWhite.withOpacity(0.65), // 80% at 10%
                         AppColors.surfaceWhite.withOpacity(0.15), // 50% at 18%
-                        AppColors.surfaceWhite.withOpacity(0.0), // Transparent at 28%
+                        AppColors.surfaceWhite.withOpacity(
+                          0.0,
+                        ), // Transparent at 28%
                       ],
                     ),
                   ),
