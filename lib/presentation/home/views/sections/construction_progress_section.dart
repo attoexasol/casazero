@@ -25,7 +25,8 @@ int _lastCompletedIndex(List<ResidenceStatusPhaseModel> apiPhases) {
 
 /// Map API phases to display models: last is_completed true → in-progress, previous completed → completed, is_completed false → upcoming (pending).
 List<ConstructionPhaseModel> _apiPhasesToDisplayModels(
-    List<ResidenceStatusPhaseModel> apiPhases) {
+  List<ResidenceStatusPhaseModel> apiPhases,
+) {
   final lastCompletedIdx = _lastCompletedIndex(apiPhases);
   final isIt = Get.locale?.languageCode == 'it';
 
@@ -52,7 +53,9 @@ List<ConstructionPhaseModel> _apiPhasesToDisplayModels(
       id: p.phaseId.toString(),
       name: name,
       status: status,
-      progress: status == 'completed' ? 100 : (status == 'in-progress' ? 50 : 0),
+      progress: status == 'completed'
+          ? 100
+          : (status == 'in-progress' ? 50 : 0),
       startDate: startDate,
       endDate: null,
       description: p.status?.statusDescription,
@@ -63,12 +66,32 @@ List<ConstructionPhaseModel> _apiPhasesToDisplayModels(
 
 /// Month abbreviations (no intl locale data required).
 const List<String> _monthAbbrEn = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
 ];
 const List<String> _monthAbbrIt = [
-  'Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu',
-  'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic',
+  'Gen',
+  'Feb',
+  'Mar',
+  'Apr',
+  'Mag',
+  'Giu',
+  'Lug',
+  'Ago',
+  'Set',
+  'Ott',
+  'Nov',
+  'Dic',
 ];
 
 /// Short date for timeline (e.g. "Jan 15", "15 Gen"). No intl locale init needed.
@@ -90,14 +113,15 @@ double _sparkleDegrees(double t) {
 
 // Soft aqua for line and accents (Figma: not strong green / not Material teal).
 const Color _timelineLineColor = AppColors.aquaGreen200;
-const Color _circleAquaFill = AppColors.aquaGreen500;
+const Color _circleAquaFill = AppColors.aquaGreen700;
 const Color _circleAquaLight = AppColors.aquaGreen100;
 const Color _circleGrey = AppColors.neutralLine200;
 const double _circleDiameter = 44;
 const double _lineWidth = 2;
 const double _stepSpacing = 24;
 const double _indicatorWidth = 44;
-const double _timelineRowHeight = 132;
+const double _timelineRowHeight = 132; // In-progress: full height
+const double _timelineRowHeightCompact = 92; // Completed & upcoming: smaller
 
 /// Loading skeleton: placeholder rows matching timeline layout (circle + card).
 class _LoadingSkeleton extends StatelessWidget {
@@ -131,7 +155,10 @@ class _LoadingSkeleton extends StatelessWidget {
                 const SizedBox(width: 16),
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 17,
+                      vertical: 16,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.neutralLine100,
                       borderRadius: BorderRadius.circular(20),
@@ -317,7 +344,9 @@ class _StepCard extends StatelessWidget {
         : '';
 
     // Figma: completed = no border, active = 2px aqua + slight glow, future = reduced opacity + grey.
-    final cardColor = isFuture ? AppColors.neutralLine100 : AppColors.surfaceWhite;
+    final cardColor = isFuture
+        ? AppColors.neutralLine100
+        : AppColors.surfaceWhite;
     final borderWidth = isActive ? 2.0 : (isFuture ? 1.0 : 0.0);
     final borderColor = isFuture
         ? AppColors.neutralLine200
@@ -328,135 +357,143 @@ class _StepCard extends StatelessWidget {
         ? '${phase.name}. $statusLabel. ${phaseIndex!} of $totalPhases.'
         : '${phase.name}. $statusLabel.';
 
+    final isCompact = isCompleted || isFuture;
+    final cardPadding = EdgeInsets.symmetric(
+      horizontal: 17,
+      vertical: isCompact ? 10 : 16,
+    );
+
     final card = Semantics(
       label: phaseSemantics,
       child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 16),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: borderColor, width: borderWidth),
-        boxShadow: hasShadow
-            ? [
-                BoxShadow(
-                  color: isActive
-                      ? _circleAquaFill.withOpacity(0.12)
-                      : Colors.black.withOpacity(0.04),
-                  blurRadius: isActive ? 8 : 4,
-                  spreadRadius: isActive ? 0 : 0,
-                  offset: const Offset(0, 2),
-                ),
-              ]
-            : null,
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              physics: const ClampingScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    phase.name,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      fontWeight: FontWeight.w500,
-                      color: isFuture
-                          ? AppColors.neutralInk400
-                          : AppColors.neutralInk900,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+        padding: cardPadding,
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: borderColor, width: borderWidth),
+          boxShadow: hasShadow
+              ? [
+                  BoxShadow(
+                    color: isActive
+                        ? _circleAquaFill.withOpacity(0.12)
+                        : Colors.black.withOpacity(0.04),
+                    blurRadius: isActive ? 8 : 4,
+                    spreadRadius: isActive ? 0 : 0,
+                    offset: const Offset(0, 2),
                   ),
-                  if (dateStr.isNotEmpty) ...[
-                    const SizedBox(height: 4),
+                ]
+              : null,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                     Text(
-                      dateStr,
-                      style: AppTextStyles.bodySmall.copyWith(
+                      phase.name,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        fontWeight: FontWeight.w500,
                         color: isFuture
                             ? AppColors.neutralInk400
-                            : AppColors.neutralInk500,
-                        fontSize: 12,
+                            : AppColors.neutralInk900,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ],
-                  if (onViewDocument != null) ...[
-                    const SizedBox(height: 8),
-                    Semantics(
-                      button: true,
-                      label: 'view_document'.tr,
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: onViewDocument,
-                          borderRadius: BorderRadius.circular(8),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 10, horizontal: 4),
-                            child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.description_outlined,
-                                size: 16,
-                                color: AppColors.aquaGreen500,
+                    if (dateStr.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        dateStr,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: isFuture
+                              ? AppColors.neutralInk400
+                              : AppColors.neutralInk500,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                    if (onViewDocument != null) ...[
+                      const SizedBox(height: 8),
+                      Semantics(
+                        button: true,
+                        label: 'view_document'.tr,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: onViewDocument,
+                            borderRadius: BorderRadius.circular(8),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 10,
+                                horizontal: 4,
                               ),
-                              const SizedBox(width: 4),
-                              Icon(
-                                Icons.open_in_new,
-                                size: 14,
-                                color: AppColors.aquaGreen500,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.description_outlined,
+                                    size: 16,
+                                    color: AppColors.aquaGreen700,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    Icons.open_in_new,
+                                    size: 14,
+                                    color: AppColors.aquaGreen700,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'view_document'.tr,
+                                    style: AppTextStyles.bodySmall.copyWith(
+                                      color: AppColors.aquaGreen700,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 6),
-                              Text(
-                                'view_document'.tr,
-                                style: AppTextStyles.bodySmall.copyWith(
-                                  color: AppColors.aquaGreen500,
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ], // close Column children
+                    ],
+                  ], // close Column children
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 8),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (isCompleted || isActive)
-                Container(
-                  width: 7,
-                  height: 7,
-                  margin: const EdgeInsets.only(right: 6),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _circleAquaFill,
+            const SizedBox(width: 8),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isCompleted || isActive)
+                  Container(
+                    width: 7,
+                    height: 7,
+                    margin: const EdgeInsets.only(right: 6),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _circleAquaFill,
+                    ),
+                  ),
+                Text(
+                  statusLabel,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: isFuture
+                        ? AppColors.neutralInk400
+                        : AppColors.neutralInk500,
+                    fontSize: 12,
                   ),
                 ),
-              Text(
-                statusLabel,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: isFuture
-                      ? AppColors.neutralInk400
-                      : AppColors.neutralInk500,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
-    ),
     );
 
     if (isFuture) {
@@ -580,7 +617,7 @@ class _ConstructionProgressSectionState
                               },
                               child: const Icon(
                                 Icons.auto_awesome,
-                                color: AppColors.aquaGreen500,
+                                color: AppColors.aquaGreen700,
                                 size: 20,
                               ),
                             ),
@@ -628,57 +665,62 @@ class _ConstructionProgressSectionState
                             final index = entry.key;
                             final phase = entry.value;
                             final isFirst = index == 0;
-                            final isLast =
-                                index == displayPhases.length - 1;
+                            final isLast = index == displayPhases.length - 1;
+                            final rowHeight = phase.status == 'in-progress'
+                                ? _timelineRowHeight
+                                : _timelineRowHeightCompact;
                             return Padding(
-                              padding: EdgeInsets.only(
-                                bottom: isLast ? 0 : _stepSpacing,
-                              ),
-                              child: SizedBox(
-                                height: _timelineRowHeight,
-                                child: Row(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    _TimelineIndicator(
-                                      isFirst: isFirst,
-                                      isLast: isLast,
-                                      status: phase.status,
-                                      rowHeight: _timelineRowHeight,
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: _StepCard(
-                                        phase: phase,
-                                        phaseIndex: index + 1,
-                                        totalPhases: displayPhases.length,
-                                        onViewDocument:
-                                            phase.imageUrl != null &&
+                                  padding: EdgeInsets.only(
+                                    bottom: isLast ? 0 : _stepSpacing,
+                                  ),
+                                  child: SizedBox(
+                                    height: rowHeight,
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        _TimelineIndicator(
+                                          isFirst: isFirst,
+                                          isLast: isLast,
+                                          status: phase.status,
+                                          rowHeight: rowHeight,
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: _StepCard(
+                                            phase: phase,
+                                            phaseIndex: index + 1,
+                                            totalPhases: displayPhases.length,
+                                            onViewDocument:
+                                                phase.imageUrl != null &&
                                                     phase.imageUrl!.isNotEmpty
                                                 ? () => _openDocument(
-                                                    phase.imageUrl!)
+                                                    phase.imageUrl!,
+                                                  )
                                                 : null,
-                                      ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                              ),
-                            )
+                                  ),
+                                )
                                 .animate()
                                 .fadeIn(
-                                    duration: 280.ms,
-                                    curve: Curves.easeOut,
-                                    delay: (index * 50).ms)
+                                  duration: 280.ms,
+                                  curve: Curves.easeOut,
+                                  delay: (index * 50).ms,
+                                )
                                 .slideY(
-                                    begin: 0.04,
-                                    end: 0,
-                                    duration: 280.ms,
-                                    curve: Curves.easeOut,
-                                    delay: (index * 50).ms);
+                                  begin: 0.04,
+                                  end: 0,
+                                  duration: 280.ms,
+                                  curve: Curves.easeOut,
+                                  delay: (index * 50).ms,
+                                );
                           }),
-                        ],
-                      ),
+                      ],
                     ),
+                  ),
                 ],
               ),
             ),

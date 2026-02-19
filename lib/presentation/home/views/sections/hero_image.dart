@@ -256,7 +256,7 @@ class _HeroImageState extends State<HeroImage>
                           0.90,
                         ), // 95% at 5% (EXACTLY mirrors top 5%)
                         AppColors.surfaceWhite.withOpacity(
-                          0.60,
+                          0.65,
                         ), // 80% at 10% (EXACTLY mirrors top 10%)
                         AppColors.surfaceWhite.withOpacity(
                           0.15,
