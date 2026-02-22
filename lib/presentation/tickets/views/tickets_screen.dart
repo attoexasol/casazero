@@ -7,6 +7,7 @@ import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../controllers/tickets_controller.dart';
 import '../models/ticket_model.dart';
+import 'create_ticket_dialog.dart';
 
 /// Flutter TicketsScreen converted from React TicketsScreen.tsx.
 /// UI matches React 1:1 (filter tabs, Create Ticket button, ticket cards).
@@ -31,7 +32,7 @@ class TicketsScreen extends GetView<TicketsController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (permissions.canCreateTickets) _buildCreateTicketButton(),
+                  if (permissions.canCreateTickets) _buildCreateTicketButton(context),
                   if (permissions.canCreateTickets) SizedBox(height: 16.h),
                   if (controller.filteredTickets.isEmpty) _buildEmptyState(),
                   ...controller.filteredTickets.map((t) => _buildTicketCard(t)),
@@ -101,12 +102,17 @@ class TicketsScreen extends GetView<TicketsController> {
   }
 
   /// Full-width green "+ Create Ticket" button.
-  Widget _buildCreateTicketButton() {
+  Widget _buildCreateTicketButton(BuildContext context) {
     final label = 'createTicket'.tr;
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {},
+        onTap: () {
+          showDialog<void>(
+            context: context,
+            builder: (_) => const CreateTicketDialog(),
+          );
+        },
         borderRadius: BorderRadius.circular(10.r),
         child: Container(
           width: double.infinity,

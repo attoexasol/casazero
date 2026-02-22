@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../core/utils/permissions.dart';
@@ -11,6 +12,42 @@ class TicketsController extends GetxController {
     return Permissions.fromRole(role);
   }
   final RxString filter = 'all'.obs; // 'all' | 'open' | 'in-progress' | 'resolved'
+
+  /// New ticket form state for CreateTicketDialog (matches React newTicket).
+  final RxMap<String, String> newTicket = <String, String>{
+    'category': '',
+    'title': '',
+    'description': '',
+    'priority': 'medium',
+  }.obs;
+
+  void updateNewTicket(String key, String value) {
+    newTicket[key] = value;
+    newTicket.refresh();
+  }
+
+  /// Called when user taps Create Ticket in the dialog. Pops the dialog.
+  void handleCreateTicket(BuildContext? context) {
+    if (context != null && Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    }
+  }
+
+  static const List<String> categories = [
+    'Plumbing',
+    'Electrical',
+    'HVAC',
+    'Building Envelope',
+    'Other',
+  ];
+
+  static const List<String> priorityValues = ['low', 'medium', 'high'];
+  static String priorityLabel(String value) {
+    if (value == 'low') return 'Low';
+    if (value == 'medium') return 'Medium';
+    if (value == 'high') return 'High - Urgent';
+    return value;
+  }
 
   static final List<TicketModel> allTickets = [
     const TicketModel(
