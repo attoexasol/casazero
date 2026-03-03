@@ -771,6 +771,20 @@ class AppTranslations extends Translations {
     'ticketPhotosPlural': '{count} photos',
     'ticketUpdate': '{count} update',
     'ticketUpdates': '{count} updates',
+
+    // Create Ticket Dialog
+    'createSupportTicket': 'Create Support Ticket',
+    'createTicketSubtitle':
+        "Describe the issue you're experiencing and we'll get back to you soon.",
+    'selectACategory': 'Select a category',
+    'briefDescriptionOfIssue': 'Brief description of the issue',
+    'provideMoreDetails': 'Provide more details about the issue...',
+    'priority': 'Priority',
+    'addPhotos': 'Add Photos',
+    'buildingEnvelope': 'Building Envelope',
+    'priorityLow': 'Low',
+    'priorityMedium': 'Medium',
+    'priorityHighUrgent': 'High - Urgent',
     'technicianUpdate':
         'Update: Technician assigned. Expected visit on Nov 5, 2025.',
     'resolvedIssueFixed': 'Resolved: Issue fixed on {date}',
@@ -1570,6 +1584,20 @@ class AppTranslations extends Translations {
     'ticketPhotosPlural': '{count} foto',
     'ticketUpdate': '{count} aggiornamento',
     'ticketUpdates': '{count} aggiornamenti',
+
+    // Create Ticket Dialog
+    'createSupportTicket': 'Crea Ticket di Supporto',
+    'createTicketSubtitle':
+        'Descrivi il problema che stai riscontrando e ti risponderemo al più presto.',
+    'selectACategory': 'Seleziona una categoria',
+    'briefDescriptionOfIssue': 'Breve descrizione del problema',
+    'provideMoreDetails': 'Fornisci maggiori dettagli sul problema...',
+    'priority': 'Priorità',
+    'addPhotos': 'Aggiungi Foto',
+    'buildingEnvelope': 'Involucro Edilizio',
+    'priorityLow': 'Bassa',
+    'priorityMedium': 'Media',
+    'priorityHighUrgent': 'Alta - Urgente',
     'technicianUpdate':
         'Aggiornamento: Tecnico assegnato. Visita prevista il 5 nov 2025.',
     'resolvedIssueFixed': 'Risolto: Problema risolto il {date}',

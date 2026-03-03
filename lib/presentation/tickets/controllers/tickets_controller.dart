@@ -41,13 +41,26 @@ class TicketsController extends GetxController {
     'Other',
   ];
 
+  static final Map<String, String> _categoryKeys = {
+    'Plumbing': 'plumbing',
+    'Electrical': 'electrical',
+    'HVAC': 'hvac',
+    'Building Envelope': 'buildingEnvelope',
+    'Other': 'other',
+  };
+
+  static String categoryLabel(String value) =>
+      _categoryKeys[value]?.tr ?? value;
+
   static const List<String> priorityValues = ['low', 'medium', 'high'];
-  static String priorityLabel(String value) {
-    if (value == 'low') return 'Low';
-    if (value == 'medium') return 'Medium';
-    if (value == 'high') return 'High - Urgent';
-    return value;
-  }
+  static final Map<String, String> _priorityKeys = {
+    'low': 'priorityLow',
+    'medium': 'priorityMedium',
+    'high': 'priorityHighUrgent',
+  };
+
+  static String priorityLabel(String value) =>
+      _priorityKeys[value]?.tr ?? value;
 
   static final List<TicketModel> allTickets = [
     const TicketModel(

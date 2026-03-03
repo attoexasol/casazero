@@ -83,7 +83,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Create Support Ticket',
+              'createSupportTicket'.tr,
               textAlign: TextAlign.center,
               style: AppTextStyles.CardHeaderText.copyWith(
                 fontSize: 18,
@@ -93,7 +93,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
             ),
             const SizedBox(height: 8),
             Text(
-              "Describe the issue you're experiencing and we'll get back to you soon.",
+              'createTicketSubtitle'.tr,
               textAlign: TextAlign.center,
               style: AppTextStyles.bodyMedium.copyWith(
                 fontSize: 14,
@@ -122,16 +122,17 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildLabel('Category'),
+          _buildLabel('categoryLabel'.tr),
           const SizedBox(height: 6),
           _buildDropdown<String>(
             value: nt['category']!.isEmpty ? null : nt['category'],
-            hint: 'Select a category',
+            hint: 'selectACategory'.tr,
             items: TicketsController.categories,
+            labelBuilder: TicketsController.categoryLabel,
             onChanged: (v) => _ctrl.updateNewTicket('category', v ?? ''),
           ),
           const SizedBox(height: 16),
-          _buildLabel('Title'),
+          _buildLabel('title'.tr),
           const SizedBox(height: 6),
           TextField(
             controller: _titleController,
@@ -141,10 +142,10 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
               fontSize: 14,
               color: AppColors.neutralInk900,
             ),
-            decoration: _underlineDecoration('Brief description of the issue'),
+            decoration: _underlineDecoration('briefDescriptionOfIssue'.tr),
           ),
           const SizedBox(height: 16),
-          _buildLabel('Description'),
+          _buildLabel('description'.tr),
           const SizedBox(height: 6),
           TextField(
             controller: _descriptionController,
@@ -155,14 +156,14 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
               fontSize: 14,
               color: AppColors.neutralInk900,
             ),
-            decoration: _underlineDecoration('Provide more details about the issue...'),
+            decoration: _underlineDecoration('provideMoreDetails'.tr),
           ),
           const SizedBox(height: 16),
-          _buildLabel('Priority'),
+          _buildLabel('priority'.tr),
           const SizedBox(height: 6),
           _buildDropdown<String>(
             value: nt['priority'],
-            hint: 'Medium',
+            hint: 'priorityMedium'.tr,
             items: TicketsController.priorityValues,
             labelBuilder: TicketsController.priorityLabel,
             onChanged: (v) => _ctrl.updateNewTicket('priority', v ?? 'medium'),
@@ -258,7 +259,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
       onPressed: () {},
       icon: const Icon(Icons.image_outlined, size: 20, color: AppColors.neutralInk700),
       label: Text(
-        'Add Photos',
+        'addPhotos'.tr,
         style: AppTextStyles.bodyMedium.copyWith(
           fontSize: 14,
           fontWeight: FontWeight.w500,
@@ -295,7 +296,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
               elevation: 0,
             ),
             child: Text(
-              'Create Ticket',
+              'createTicket'.tr,
               style: AppTextStyles.button.copyWith(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -319,7 +320,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
               ),
             ),
             child: Text(
-              'Cancel',
+              'cancel'.tr,
               style: AppTextStyles.bodyMedium.copyWith(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
