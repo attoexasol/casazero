@@ -33,7 +33,9 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
     _ctrl = Get.find<TicketsController>();
     final nt = _ctrl.newTicket;
     _titleController = TextEditingController(text: nt['title'] ?? '');
-    _descriptionController = TextEditingController(text: nt['description'] ?? '');
+    _descriptionController = TextEditingController(
+      text: nt['description'] ?? '',
+    );
   }
 
   @override
@@ -106,7 +108,11 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
           top: 0,
           right: 0,
           child: IconButton(
-            icon: const Icon(Icons.close, size: 20, color: AppColors.neutralInk700),
+            icon: const Icon(
+              Icons.close,
+              size: 20,
+              color: AppColors.neutralInk700,
+            ),
             onPressed: () => Navigator.of(context).pop(),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
@@ -131,19 +137,19 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
             labelBuilder: TicketsController.categoryLabel,
             onChanged: (v) => _ctrl.updateNewTicket('category', v ?? ''),
           ),
-          const SizedBox(height: 16),
-          _buildLabel('title'.tr),
-          const SizedBox(height: 6),
-          TextField(
-            controller: _titleController,
-            onChanged: (v) => _ctrl.updateNewTicket('title', v),
-            maxLines: 1,
-            style: AppTextStyles.bodyMedium.copyWith(
-              fontSize: 14,
-              color: AppColors.neutralInk900,
-            ),
-            decoration: _underlineDecoration('briefDescriptionOfIssue'.tr),
-          ),
+          // const SizedBox(height: 16),
+          // _buildLabel('title'.tr),
+          // const SizedBox(height: 6),
+          // TextField(
+          //   controller: _titleController,
+          //   onChanged: (v) => _ctrl.updateNewTicket('title', v),
+          //   maxLines: 1,
+          //   style: AppTextStyles.bodyMedium.copyWith(
+          //     fontSize: 14,
+          //     color: AppColors.neutralInk900,
+          //   ),
+          //   decoration: _underlineDecoration('briefDescriptionOfIssue'.tr),
+          // ),
           const SizedBox(height: 16),
           _buildLabel('description'.tr),
           const SizedBox(height: 6),
@@ -158,16 +164,16 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
             ),
             decoration: _underlineDecoration('provideMoreDetails'.tr),
           ),
-          const SizedBox(height: 16),
-          _buildLabel('priority'.tr),
-          const SizedBox(height: 6),
-          _buildDropdown<String>(
-            value: nt['priority'],
-            hint: 'priorityMedium'.tr,
-            items: TicketsController.priorityValues,
-            labelBuilder: TicketsController.priorityLabel,
-            onChanged: (v) => _ctrl.updateNewTicket('priority', v ?? 'medium'),
-          ),
+          //const SizedBox(height: 8),
+          // _buildLabel('priority'.tr),
+          // const SizedBox(height: 6),
+          // _buildDropdown<String>(
+          //   value: nt['priority'],
+          //   hint: 'priorityMedium'.tr,
+          //   items: TicketsController.priorityValues,
+          //   labelBuilder: TicketsController.priorityLabel,
+          //   onChanged: (v) => _ctrl.updateNewTicket('priority', v ?? 'medium'),
+          // ),
           const SizedBox(height: 16),
           _buildAddPhotosButton(),
         ],
@@ -207,18 +213,17 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
     );
   }
 
-  Widget _buildDropdown<T extends String>(
-    {required T? value,
+  Widget _buildDropdown<T extends String>({
+    required T? value,
     required String hint,
     required List<T> items,
     String Function(T)? labelBuilder,
-    required ValueChanged<T?> onChanged}) {
+    required ValueChanged<T?> onChanged,
+  }) {
     final effectiveValue = value == null || value.isEmpty ? null : value;
     return Container(
       decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: AppColors.neutralLine200),
-        ),
+        border: Border(bottom: BorderSide(color: AppColors.neutralLine200)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<T>(
@@ -257,7 +262,11 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
   Widget _buildAddPhotosButton() {
     return OutlinedButton.icon(
       onPressed: () {},
-      icon: const Icon(Icons.image_outlined, size: 20, color: AppColors.neutralInk700),
+      icon: const Icon(
+        Icons.image_outlined,
+        size: 20,
+        color: AppColors.neutralInk700,
+      ),
       label: Text(
         'addPhotos'.tr,
         style: AppTextStyles.bodyMedium.copyWith(
@@ -271,9 +280,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
         foregroundColor: AppColors.neutralInk900,
         side: const BorderSide(color: AppColors.neutralLine200),
         padding: const EdgeInsets.symmetric(vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(999),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
       ),
     );
   }
