@@ -206,6 +206,15 @@ class TicketsController extends GetxController {
     }
   }
 
+  /// Returns ['all'] + unique statuses from the fetched tickets, in a stable order.
+  List<String> get availableFilters {
+    const statusOrder = ['pending', 'open', 'in-progress', 'resolved'];
+    final existing = allTickets.map((t) => t.status).toSet();
+    final ordered = statusOrder.where((s) => existing.contains(s)).toList();
+    final extra = existing.where((s) => !statusOrder.contains(s)).toList()..sort();
+    return ['all', ...ordered, ...extra];
+  }
+
   List<TicketModel> get filteredTickets {
     if (filter.value == 'all') return allTickets;
     return allTickets.where((t) => t.status == filter.value).toList();
@@ -215,11 +224,17 @@ class TicketsController extends GetxController {
     filter.value = value;
   }
 
+  static final Map<String, String> _tabLabelKeys = {
+    'all': 'tutte',
+    'pending': 'pending',
+    'open': 'open',
+    'in-progress': 'inProgress',
+    'resolved': 'resolved',
+  };
+
   String tabLabel(String key) {
-    if (key == 'all') return 'tutte'.tr;
-    if (key == 'pending') return 'pending'.tr;
-    if (key == 'open') return 'open'.tr;
-    if (key == 'in-progress') return 'inProgress'.tr;
-    return 'resolved'.tr;
+    final trKey = _tabLabelKeys[key];
+    if (trKey != null) return trKey.tr;
+    return key;
   }
 }

@@ -59,7 +59,7 @@ class TicketsScreen extends GetView<TicketsController> {
 
   /// Filter tabs: All / Open / In Progress / Resolved — pill style, active green.
   Widget _buildFilterTabs() {
-    final tabs = ['all', 'pending', 'open', 'in-progress', 'resolved'];
+    final tabs = controller.availableFilters;
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
