@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -31,6 +33,27 @@ class TicketsController extends GetxController {
 
   /// The selected category id from the dropdown (null = nothing selected).
   final Rxn<int> selectedCategoryId = Rxn<int>();
+
+  /// Attached photos for the new ticket.
+  final RxList<File> attachedPhotos = <File>[].obs;
+
+  static const int maxPhotos = 5;
+
+  void addPhoto(File file) {
+    if (attachedPhotos.length < maxPhotos) {
+      attachedPhotos.add(file);
+    }
+  }
+
+  void removePhoto(int index) {
+    if (index >= 0 && index < attachedPhotos.length) {
+      attachedPhotos.removeAt(index);
+    }
+  }
+
+  void clearPhotos() {
+    attachedPhotos.clear();
+  }
 
   void updateNewTicket(String key, String value) {
     newTicket[key] = value;

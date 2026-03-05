@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
@@ -33,6 +36,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
   bool _isAddingNewType = false;
   bool _isSubmittingNewType = false;
   final _addTypeFormKey = GlobalKey<FormState>();
+  final ImagePicker _imagePicker = ImagePicker();
 
   @override
   void initState() {
@@ -46,6 +50,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
     _issueTypeEnController = TextEditingController();
     _issueTypeItController = TextEditingController();
     _ctrl.selectedCategoryId.value = null;
+    _ctrl.clearPhotos();
     _ctrl.fetchIssueTypes();
   }
 
@@ -144,19 +149,19 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
           _buildLabel('categoryLabel'.tr),
           const SizedBox(height: 6),
           _buildCategoryDropdown(),
-          // const SizedBox(height: 16),
-          // _buildLabel('title'.tr),
-          // const SizedBox(height: 6),
-          // TextField(
-          //   controller: _titleController,
-          //   onChanged: (v) => _ctrl.updateNewTicket('title', v),
-          //   maxLines: 1,
-          //   style: AppTextStyles.bodyMedium.copyWith(
-          //     fontSize: 14,
-          //     color: AppColors.neutralInk900,
-          //   ),
-          //   decoration: _underlineDecoration('briefDescriptionOfIssue'.tr),
-          // ),
+          const SizedBox(height: 16),
+          _buildLabel('title'.tr),
+          const SizedBox(height: 6),
+          TextField(
+            controller: _titleController,
+            onChanged: (v) => _ctrl.updateNewTicket('title', v),
+            maxLines: 1,
+            style: AppTextStyles.bodyMedium.copyWith(
+              fontSize: 14,
+              color: AppColors.neutralInk900,
+            ),
+            decoration: _underlineDecoration('briefDescriptionOfIssue'.tr),
+          ),
           const SizedBox(height: 16),
           _buildLabel('description'.tr),
           const SizedBox(height: 6),
@@ -518,28 +523,209 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
   }
 
   Widget _buildAddPhotosButton() {
-    return OutlinedButton.icon(
-      onPressed: () {},
-      icon: const Icon(
-        Icons.image_outlined,
-        size: 20,
-        color: AppColors.neutralInk700,
+    return Obx(() {
+      final photos = _ctrl.attachedPhotos;
+      final canAddMore = photos.length < TicketsController.maxPhotos;
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          OutlinedButton.icon(
+            onPressed: canAddMore ? _showPhotoPickerSheet : null,
+            icon: Icon(
+              Icons.image_outlined,
+              size: 20,
+              color: canAddMore ? AppColors.neutralInk700 : AppColors.neutralInk400,
+            ),
+            label: Text(
+              photos.isEmpty
+                  ? 'addPhotos'.tr
+                  : '${'addPhotos'.tr} (${photos.length}/${TicketsController.maxPhotos})',
+              style: AppTextStyles.bodyMedium.copyWith(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: canAddMore ? AppColors.neutralInk900 : AppColors.neutralInk400,
+              ),
+            ),
+            style: OutlinedButton.styleFrom(
+              backgroundColor: AppColors.surfaceWhite,
+              foregroundColor: AppColors.neutralInk900,
+              side: const BorderSide(color: AppColors.neutralLine200),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+          ),
+          if (photos.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _buildPhotoGrid(photos),
+          ],
+        ],
+      );
+    });
+  }
+
+  void _showPhotoPickerSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: _dialogBg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      label: Text(
-        'addPhotos'.tr,
-        style: AppTextStyles.bodyMedium.copyWith(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: AppColors.neutralInk900,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.neutralLine200,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt_outlined, color: _greenActive),
+                title: Text(
+                  'takePhoto'.tr,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    fontSize: 15,
+                    color: AppColors.neutralInk900,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickFromCamera();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined, color: _greenActive),
+                title: Text(
+                  'chooseFromGallery'.tr,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    fontSize: 15,
+                    color: AppColors.neutralInk900,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickFromGallery();
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
         ),
       ),
-      style: OutlinedButton.styleFrom(
-        backgroundColor: AppColors.surfaceWhite,
-        foregroundColor: AppColors.neutralInk900,
-        side: const BorderSide(color: AppColors.neutralLine200),
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-      ),
+    );
+  }
+
+  Future<void> _pickFromCamera() async {
+    try {
+      final XFile? photo = await _imagePicker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 80,
+        maxWidth: 1920,
+        maxHeight: 1920,
+      );
+      if (photo != null) {
+        _ctrl.addPhoto(File(photo.path));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('photoPickError'.tr),
+            backgroundColor: Colors.red.shade600,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _pickFromGallery() async {
+    try {
+      final remaining = TicketsController.maxPhotos - _ctrl.attachedPhotos.length;
+      if (remaining <= 0) return;
+
+      final List<XFile> images = await _imagePicker.pickMultiImage(
+        imageQuality: 80,
+        maxWidth: 1920,
+        maxHeight: 1920,
+      );
+
+      for (int i = 0; i < images.length && i < remaining; i++) {
+        _ctrl.addPhoto(File(images[i].path));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('photoPickError'.tr),
+            backgroundColor: Colors.red.shade600,
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildPhotoGrid(List<File> photos) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: List.generate(photos.length, (index) {
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.file(
+                photos[index],
+                width: 64,
+                height: 64,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: AppColors.neutralLine200,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.broken_image_outlined,
+                    size: 24,
+                    color: AppColors.neutralInk400,
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: -6,
+              right: -6,
+              child: GestureDetector(
+                onTap: () => _ctrl.removePhoto(index),
+                child: Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade600,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.close,
+                    size: 12,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      }),
     );
   }
 
