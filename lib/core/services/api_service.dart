@@ -179,8 +179,10 @@ class ApiService extends getx.GetxService {
         if (responseData is Map<String, dynamic>) {
           final extractedMessage =
               responseData['message'] ?? responseData['error'];
-          if (extractedMessage != null) {
+          if (extractedMessage is String) {
             errorMessage = extractedMessage;
+          } else if (extractedMessage != null) {
+            errorMessage = extractedMessage.toString();
           }
         } else if (responseData is String) {
           // Check if response is HTML (like 403 Forbidden page)

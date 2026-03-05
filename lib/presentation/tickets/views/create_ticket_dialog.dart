@@ -31,6 +31,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
   late TicketsController _ctrl;
 
   bool _isAddingNewType = false;
+  bool _isSubmittingNewType = false;
   final _addTypeFormKey = GlobalKey<FormState>();
 
   @override
@@ -302,11 +303,12 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
       return _buildInlineAddIssueTypeFields();
     }
 
+    final langCode = Get.locale?.languageCode ?? 'en';
     final dropdownItems = items.map((IssueTypeModel issue) {
       return DropdownMenuItem<int>(
         value: issue.id,
         child: Text(
-          issue.issueType,
+          issue.localizedName(langCode),
           style: AppTextStyles.bodyMedium.copyWith(
             color: AppColors.neutralInk900,
             fontSize: 14,
@@ -362,8 +364,8 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
               return;
             }
             _ctrl.selectedCategoryId.value = value;
-            final label = items.firstWhereOrNull((e) => e.id == value)?.issueType ?? '';
-            _ctrl.updateNewTicket('category', label);
+            final match = items.firstWhereOrNull((e) => e.id == value);
+            _ctrl.updateNewTicket('category', match?.localizedName(langCode) ?? '');
           },
         ),
       ),
@@ -432,24 +434,34 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
               const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: _handleAddIssueType,
+                  onPressed: _isSubmittingNewType ? null : _handleAddIssueType,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _greenActive,
                     foregroundColor: AppColors.surfaceWhite,
+                    disabledBackgroundColor: _greenActive.withOpacity(0.6),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(999),
                     ),
                     elevation: 0,
                   ),
-                  child: Text(
-                    'add'.tr,
-                    style: AppTextStyles.button.copyWith(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.surfaceWhite,
-                    ),
-                  ),
+                  child: _isSubmittingNewType
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.surfaceWhite,
+                          ),
+                        )
+                      : Text(
+                          'add'.tr,
+                          style: AppTextStyles.button.copyWith(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.surfaceWhite,
+                          ),
+                        ),
                 ),
               ),
             ],
@@ -461,20 +473,48 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
 
   Future<void> _handleAddIssueType() async {
     if (!_addTypeFormKey.currentState!.validate()) return;
+    if (_isSubmittingNewType) return;
 
-    final result = await _ctrl.createIssueType(
-      issueType: _issueTypeEnController.text.trim(),
-      issueTypeIt: _issueTypeItController.text.trim(),
-    );
+    setState(() => _isSubmittingNewType = true);
 
-    if (result != null) {
-      _ctrl.selectedCategoryId.value = result.id;
-      _ctrl.updateNewTicket('category', result.issueType);
+    try {
+      final result = await _ctrl.createIssueType(
+        issueType: _issueTypeEnController.text.trim(),
+        issueTypeIt: _issueTypeItController.text.trim(),
+      );
+
+      if (result != null) {
+        _ctrl.selectedCategoryId.value = result.id;
+        final langCode = Get.locale?.languageCode ?? 'en';
+        _ctrl.updateNewTicket('category', result.localizedName(langCode));
+        _issueTypeEnController.clear();
+        _issueTypeItController.clear();
+        setState(() {
+          _isAddingNewType = false;
+          _isSubmittingNewType = false;
+        });
+      } else {
+        setState(() => _isSubmittingNewType = false);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('failedToCreateIssueType'.tr),
+              backgroundColor: Colors.red.shade600,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      setState(() => _isSubmittingNewType = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('failedToCreateIssueType'.tr),
+            backgroundColor: Colors.red.shade600,
+          ),
+        );
+      }
     }
-
-    _issueTypeEnController.clear();
-    _issueTypeItController.clear();
-    setState(() => _isAddingNewType = false);
   }
 
   Widget _buildAddPhotosButton() {

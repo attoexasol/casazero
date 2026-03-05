@@ -345,8 +345,14 @@ class ApiConstants {
   /// Get Issue Types (ticket categories)
   /// POST /issue-type/list
   /// Request: { "api_token": "<CURRENT_USER_API_TOKEN>" }
-  /// Response: { "success": true, "total": 1, "data": [ { "id": 2, "issue_type": "..." } ] }
+  /// Response: { "success": true, "total": 3, "data": [ { "id": 4, "issue_type_en": "...", "issue_type_it": "..." } ] }
   static const String GET_ISSUE_TYPES = '/issue-type/list';
+
+  /// Create Issue Type
+  /// POST /issue-type/create
+  /// Request: { "api_token": "<CURRENT_USER_API_TOKEN>", "issue_type": "Plumbing" }
+  /// Response: { "success": true, "message": "Issue type created successfully", "data": { "id": 4, "issue_type": "Plumbing", ... } }
+  static const String CREATE_ISSUE_TYPE = '/issue-type/create';
 
   // Maintenance Endpoints
   /// Get Maintenance Tasks

@@ -42,32 +42,38 @@ class TicketsController extends GetxController {
     isLoadingIssueTypes.value = true;
     try {
       final result = await _ticketRepository.fetchIssueTypes();
+      print('📋 [TicketsController] Fetched ${result.length} issue types');
+      for (final t in result) {
+        print('   - id=${t.id}, en="${t.issueTypeEn}", it="${t.issueTypeIt}"');
+      }
       issueTypes.assignAll(result);
     } catch (e) {
       print('❌ [TicketsController] Error loading issue types: $e');
     } finally {
       isLoadingIssueTypes.value = false;
+      print('📋 [TicketsController] isLoading=${isLoadingIssueTypes.value}, count=${issueTypes.length}');
     }
   }
 
-  /// Create a new issue type. Currently a local stub; API integration to follow.
+  /// Create a new issue type via API, refresh the list, and return the model.
   Future<IssueTypeModel?> createIssueType({
     required String issueType,
     required String issueTypeIt,
   }) async {
     try {
-      // TODO: Replace with actual API call, e.g.:
-      // final result = await _ticketRepository.createIssueType(
-      //   issueType: issueType,
-      //   issueTypeIt: issueTypeIt,
-      // );
-      // if (result != null) { ... }
+      final result = await _ticketRepository.createIssueType(
+        issueTypeEn: issueType,
+        issueTypeIt: issueTypeIt,
+      );
 
-      // For now, create a local entry with a temporary negative id.
-      final tempId = -(DateTime.now().millisecondsSinceEpoch);
-      final newType = IssueTypeModel(id: tempId, issueType: issueType);
-      issueTypes.add(newType);
-      return newType;
+      if (result != null) {
+        print('✅ [TicketsController] Issue type created: id=${result.id}, en="${result.issueTypeEn}"');
+        await fetchIssueTypes();
+        return result;
+      }
+
+      print('⚠️ [TicketsController] createIssueType returned null');
+      return null;
     } catch (e) {
       print('❌ [TicketsController] Error creating issue type: $e');
       return null;

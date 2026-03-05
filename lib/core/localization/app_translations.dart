@@ -801,6 +801,7 @@ class AppTranslations extends Translations {
     'enterIssueTypeItalian': 'Enter issue type in Italian',
     'add': 'Add',
     'fieldRequired': 'This field is required',
+    'failedToCreateIssueType': 'Failed to create issue type. Please try again.',
 
     // 2FA Deactivation - Security Warnings
     // 'security_warning': 'Security Warning',
@@ -1627,6 +1628,7 @@ class AppTranslations extends Translations {
     'enterIssueTypeItalian': 'Inserisci tipo problema in Italiano',
     'add': 'Aggiungi',
     'fieldRequired': 'Questo campo è obbligatorio',
+    'failedToCreateIssueType': 'Impossibile creare il tipo di problema. Riprova.',
 
     // 2FA Deactivation - Security Warnings
     // 'security_warning': 'Avviso di Sicurezza',
