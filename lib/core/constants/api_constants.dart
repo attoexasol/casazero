@@ -354,6 +354,12 @@ class ApiConstants {
   /// Response: { "success": true, "message": "Issue type created successfully", "data": { "id": 4, ... } }
   static const String CREATE_ISSUE_TYPE = '/issue-type/create';
 
+  /// Get My Support Tickets
+  /// POST /my-support-tickets
+  /// Request: { "api_token": "<TOKEN>" }
+  /// Response: { "status": true, "data": [ { "id": 12, "title": "...", ... } ] }
+  static const String GET_MY_SUPPORT_TICKETS = '/my-support-tickets';
+
   /// Create Support Ticket
   /// POST /support-ticket/create
   /// Request: {

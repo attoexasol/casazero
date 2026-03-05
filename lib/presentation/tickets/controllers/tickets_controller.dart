@@ -140,6 +140,8 @@ class TicketsController extends GetxController {
         });
         selectedCategoryId.value = null;
 
+        fetchMyTickets();
+
         if (context != null && Navigator.of(context).canPop()) {
           Navigator.of(context).pop();
         }
@@ -170,60 +172,28 @@ class TicketsController extends GetxController {
   static String priorityLabel(String value) =>
       _priorityKeys[value]?.tr ?? value;
 
-  static final List<TicketModel> allTickets = [
-    const TicketModel(
-      id: '1',
-      title: 'Bathroom sink faucet leaking',
-      category: 'Plumbing',
-      description:
-          'The main bathroom sink faucet has a slow leak that needs attention.',
-      status: 'in-progress',
-      priority: 'high',
-      created: 'Oct 30, 2025',
-      updated: '2 hours ago',
-      attachments: 2,
-      updates: 3,
-      assignedTo: 'Mario Rossi - Plumber',
-      createdBy: 'Marco (Unit 4B)',
-    ),
-    const TicketModel(
-      id: '2',
-      title: 'Living room light switch not working',
-      category: 'Electrical',
-      description: 'The main light switch in the living room is unresponsive.',
-      status: 'open',
-      priority: 'medium',
-      created: 'Nov 1, 2025',
-      updated: '1 day ago',
-      attachments: 1,
-      createdBy: 'Marco (Unit 4B)',
-    ),
-    const TicketModel(
-      id: '3',
-      title: 'Window condensation issue',
-      category: 'Building Envelope',
-      description: 'Excessive condensation forming on bedroom windows.',
-      status: 'resolved',
-      priority: 'low',
-      created: 'Oct 15, 2025',
-      updated: '5 days ago',
-      attachments: 3,
-      updates: 5,
-      assignedTo: 'Giuseppe Verdi - Building Manager',
-      createdBy: 'Marco (Unit 4B)',
-    ),
-    const TicketModel(
-      id: '4',
-      title: 'Common area heating not working',
-      category: 'HVAC',
-      description: 'Hallway heating system needs attention.',
-      status: 'open',
-      priority: 'high',
-      created: 'Nov 2, 2025',
-      updated: '3 hours ago',
-      createdBy: 'Lucia (Unit 2A)',
-    ),
-  ];
+  final RxList<TicketModel> allTickets = <TicketModel>[].obs;
+  final RxBool isLoadingTickets = false.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchMyTickets();
+  }
+
+  /// Fetch the user's support tickets from the API.
+  Future<void> fetchMyTickets() async {
+    isLoadingTickets.value = true;
+    try {
+      final result = await _ticketRepository.fetchMyTickets();
+      print('🎫 [TicketsController] Fetched ${result.length} tickets');
+      allTickets.assignAll(result);
+    } catch (e) {
+      print('❌ [TicketsController] Error loading tickets: $e');
+    } finally {
+      isLoadingTickets.value = false;
+    }
+  }
 
   List<TicketModel> get filteredTickets {
     if (filter.value == 'all') return allTickets;

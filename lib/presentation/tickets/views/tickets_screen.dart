@@ -23,22 +23,34 @@ class TicketsScreen extends GetView<TicketsController> {
   Widget build(BuildContext context) {
     return Obx(() {
       final permissions = controller.permissions;
+      final isLoading = controller.isLoadingTickets.value;
       return Column(
         children: [
           _buildFilterTabs(),
           Expanded(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 24.h + MediaQuery.of(context).padding.bottom),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (permissions.canCreateTickets) _buildCreateTicketButton(context),
-                  if (permissions.canCreateTickets) SizedBox(height: 16.h),
-                  if (controller.filteredTickets.isEmpty) _buildEmptyState(),
-                  ...controller.filteredTickets.map((t) => _buildTicketCard(t)),
-                ],
-              ),
-            ),
+            child: isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.brandSage600,
+                    ),
+                  )
+                : RefreshIndicator(
+                    onRefresh: controller.fetchMyTickets,
+                    color: AppColors.brandSage600,
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 24.h + MediaQuery.of(context).padding.bottom),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (permissions.canCreateTickets) _buildCreateTicketButton(context),
+                          if (permissions.canCreateTickets) SizedBox(height: 16.h),
+                          if (controller.filteredTickets.isEmpty) _buildEmptyState(),
+                          ...controller.filteredTickets.map((t) => _buildTicketCard(t)),
+                        ],
+                      ),
+                    ),
+                  ),
           ),
         ],
       );

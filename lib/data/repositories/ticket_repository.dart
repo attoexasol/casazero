@@ -7,6 +7,7 @@ import '../../core/constants/api_constants.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/storage_service.dart';
 import '../../presentation/tickets/models/issue_type_model.dart';
+import '../../presentation/tickets/models/ticket_model.dart';
 
 class TicketRepository {
   final ApiService _apiService = Get.find();
@@ -162,6 +163,43 @@ class TicketRepository {
     } catch (e) {
       print('❌ [TicketRepository] Error creating support ticket: $e');
       return null;
+    }
+  }
+
+  /// Fetches the current user's support tickets from the API.
+  Future<List<TicketModel>> fetchMyTickets() async {
+    try {
+      final apiToken = _storageService.getAccessToken();
+
+      if (apiToken == null || apiToken.isEmpty) {
+        print('❌ [TicketRepository] API token not found');
+        return [];
+      }
+
+      final response = await _apiService.post(
+        ApiConstants.GET_MY_SUPPORT_TICKETS,
+        data: {'api_token': apiToken},
+      );
+
+      print('🎫 [TicketRepository] My tickets response status: ${response.statusCode}');
+
+      final dynamic rawData = response.data;
+      final Map<String, dynamic> body =
+          rawData is String ? json.decode(rawData) : Map<String, dynamic>.from(rawData);
+
+      final bool isSuccess = body['success'] == true || body['status'] == true;
+
+      if (isSuccess) {
+        final List<dynamic> data = body['data'] ?? [];
+        print('🎫 [TicketRepository] Parsed ${data.length} tickets');
+        return data.map((e) => TicketModel.fromJson(e)).toList();
+      }
+
+      print('⚠️ [TicketRepository] fetchMyTickets API returned success=false');
+      return [];
+    } catch (e) {
+      print('❌ [TicketRepository] Error fetching my tickets: $e');
+      return [];
     }
   }
 }
