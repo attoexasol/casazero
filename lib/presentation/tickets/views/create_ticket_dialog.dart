@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../controllers/tickets_controller.dart';
+import '../models/issue_type_model.dart';
 
 /// Create Support Ticket modal dialog. UI matches React ticketdialog.tsx and Figma spec.
 /// - Rounded corners 16, background #FAFAF7, border #E6E6E6 1px, max width ~400.
@@ -36,6 +37,8 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
     _descriptionController = TextEditingController(
       text: nt['description'] ?? '',
     );
+    _ctrl.selectedCategoryId.value = null;
+    _ctrl.fetchIssueTypes();
   }
 
   @override
@@ -130,13 +133,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
         children: [
           _buildLabel('categoryLabel'.tr),
           const SizedBox(height: 6),
-          _buildDropdown<String>(
-            value: nt['category']!.isEmpty ? null : nt['category'],
-            hint: 'selectACategory'.tr,
-            items: TicketsController.categories,
-            labelBuilder: TicketsController.categoryLabel,
-            onChanged: (v) => _ctrl.updateNewTicket('category', v ?? ''),
-          ),
+          _buildCategoryDropdown(),
           // const SizedBox(height: 16),
           // _buildLabel('title'.tr),
           // const SizedBox(height: 6),
@@ -254,6 +251,79 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
             );
           }).toList(),
           onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryDropdown() {
+    final isLoading = _ctrl.isLoadingIssueTypes.value;
+    final items = _ctrl.issueTypes;
+    final selectedId = _ctrl.selectedCategoryId.value;
+
+    if (isLoading) {
+      return Container(
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: AppColors.neutralLine200)),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          children: [
+            const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2, color: _greenActive),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'loading'.tr,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.neutralInk400,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppColors.neutralLine200)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int>(
+          value: selectedId,
+          isExpanded: true,
+          hint: Text(
+            'selectACategory'.tr,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.neutralInk400,
+              fontSize: 14,
+            ),
+          ),
+          icon: const Icon(Icons.keyboard_arrow_down, color: _greenActive),
+          underline: const SizedBox(),
+          borderRadius: BorderRadius.circular(8),
+          dropdownColor: _dialogBg,
+          focusColor: _greenActive,
+          items: items.map((IssueTypeModel issue) {
+            return DropdownMenuItem<int>(
+              value: issue.id,
+              child: Text(
+                issue.issueType,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.neutralInk900,
+                  fontSize: 14,
+                ),
+              ),
+            );
+          }).toList(),
+          onChanged: (int? value) {
+            _ctrl.selectedCategoryId.value = value;
+            final label = items.firstWhereOrNull((e) => e.id == value)?.issueType ?? '';
+            _ctrl.updateNewTicket('category', label);
+          },
         ),
       ),
     );

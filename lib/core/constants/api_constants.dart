@@ -341,6 +341,13 @@ class ApiConstants {
   /// Response: File bytes (binary data)
   static const String DOWNLOAD_DOCUMENT = '/download_document';
 
+  // Ticket / Issue Type Endpoints
+  /// Get Issue Types (ticket categories)
+  /// POST /issue-type/list
+  /// Request: { "api_token": "<CURRENT_USER_API_TOKEN>" }
+  /// Response: { "success": true, "total": 1, "data": [ { "id": 2, "issue_type": "..." } ] }
+  static const String GET_ISSUE_TYPES = '/issue-type/list';
+
   // Maintenance Endpoints
   /// Get Maintenance Tasks
   /// GET /maintenance/list - Fetch maintenance tasks

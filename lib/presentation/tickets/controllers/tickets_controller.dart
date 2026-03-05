@@ -3,7 +3,9 @@ import 'package:get/get.dart';
 
 import '../../../core/controllers/message_popup_controller.dart';
 import '../../../core/utils/permissions.dart';
+import '../../../data/repositories/ticket_repository.dart';
 import '../../home/controllers/home_controller.dart';
+import '../models/issue_type_model.dart';
 import '../models/ticket_model.dart';
 
 /// Controller for TicketsScreen. Holds filter state and ticket data.
@@ -14,6 +16,11 @@ class TicketsController extends GetxController {
   }
   final RxString filter = 'all'.obs; // 'all' | 'open' | 'in-progress' | 'resolved'
 
+  final TicketRepository _ticketRepository = TicketRepository();
+
+  final RxList<IssueTypeModel> issueTypes = <IssueTypeModel>[].obs;
+  final RxBool isLoadingIssueTypes = false.obs;
+
   /// New ticket form state for CreateTicketDialog (matches React newTicket).
   final RxMap<String, String> newTicket = <String, String>{
     'category': '',
@@ -22,9 +29,25 @@ class TicketsController extends GetxController {
     'priority': 'medium',
   }.obs;
 
+  /// The selected category id from the dropdown (null = nothing selected).
+  final Rxn<int> selectedCategoryId = Rxn<int>();
+
   void updateNewTicket(String key, String value) {
     newTicket[key] = value;
     newTicket.refresh();
+  }
+
+  /// Fetch issue types from the API.
+  Future<void> fetchIssueTypes() async {
+    isLoadingIssueTypes.value = true;
+    try {
+      final result = await _ticketRepository.fetchIssueTypes();
+      issueTypes.assignAll(result);
+    } catch (e) {
+      print('❌ [TicketsController] Error loading issue types: $e');
+    } finally {
+      isLoadingIssueTypes.value = false;
+    }
   }
 
   /// Called when user taps Create Ticket in the dialog. Pops the dialog.
@@ -37,25 +60,6 @@ class TicketsController extends GetxController {
       messageKey: 'ticketSuccessMessage',
     );
   }
-
-  static const List<String> categories = [
-    'Plumbing',
-    'Electrical',
-    'HVAC',
-    'Building Envelope',
-    'Other',
-  ];
-
-  static final Map<String, String> _categoryKeys = {
-    'Plumbing': 'plumbing',
-    'Electrical': 'electrical',
-    'HVAC': 'hvac',
-    'Building Envelope': 'buildingEnvelope',
-    'Other': 'other',
-  };
-
-  static String categoryLabel(String value) =>
-      _categoryKeys[value]?.tr ?? value;
 
   static const List<String> priorityValues = ['low', 'medium', 'high'];
   static final Map<String, String> _priorityKeys = {
