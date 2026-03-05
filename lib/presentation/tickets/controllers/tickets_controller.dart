@@ -178,7 +178,18 @@ class TicketsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    fetchIssueTypes();
     fetchMyTickets();
+  }
+
+  /// Returns the localized issue type name for a given [issueTypeId],
+  /// falling back to [fallback] if the issue type is not found.
+  String localizedIssueTypeName(int? issueTypeId, String fallback) {
+    if (issueTypeId == null) return fallback;
+    final match = issueTypes.firstWhereOrNull((t) => t.id == issueTypeId);
+    if (match == null) return fallback;
+    final langCode = Get.locale?.languageCode ?? 'en';
+    return match.localizedName(langCode);
   }
 
   /// Fetch the user's support tickets from the API.
@@ -206,6 +217,7 @@ class TicketsController extends GetxController {
 
   String tabLabel(String key) {
     if (key == 'all') return 'tutte'.tr;
+    if (key == 'pending') return 'pending'.tr;
     if (key == 'open') return 'open'.tr;
     if (key == 'in-progress') return 'inProgress'.tr;
     return 'resolved'.tr;

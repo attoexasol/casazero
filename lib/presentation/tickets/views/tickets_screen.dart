@@ -59,7 +59,7 @@ class TicketsScreen extends GetView<TicketsController> {
 
   /// Filter tabs: All / Open / In Progress / Resolved — pill style, active green.
   Widget _buildFilterTabs() {
-    final tabs = ['all', 'open', 'in-progress', 'resolved'];
+    final tabs = ['all', 'pending', 'open', 'in-progress', 'resolved'];
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
@@ -213,7 +213,12 @@ class TicketsScreen extends GetView<TicketsController> {
               children: [
                 Row(
                   children: [
-                    _buildCategoryPill(ticket.category),
+                    _buildCategoryPill(
+                      controller.localizedIssueTypeName(
+                        ticket.issueTypeId,
+                        ticket.category,
+                      ),
+                    ),
                     const Spacer(),
                     _buildStatusPill(ticket.status),
                   ],
@@ -307,6 +312,11 @@ class TicketsScreen extends GetView<TicketsController> {
     Color textColor;
     String label;
     switch (status) {
+      case 'pending':
+        bg = AppColors.warning.withOpacity(0.15);
+        textColor = AppColors.warning;
+        label = 'pending'.tr;
+        break;
       case 'open':
         bg = AppColors.neutralLine100;
         textColor = AppColors.neutralInk700;

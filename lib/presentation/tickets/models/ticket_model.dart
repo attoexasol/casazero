@@ -15,6 +15,7 @@ class TicketModel {
   final String? assignedTo;
   final String? createdBy;
   final String? imageUrl;
+  final int? issueTypeId;
 
   const TicketModel({
     required this.id,
@@ -30,6 +31,7 @@ class TicketModel {
     this.assignedTo,
     this.createdBy,
     this.imageUrl,
+    this.issueTypeId,
   });
 
   factory TicketModel.fromJson(Map<String, dynamic> json) {
@@ -55,6 +57,11 @@ class TicketModel {
     final user = json['user'];
     final userName = user is Map ? user['user_name']?.toString() : null;
 
+    final rawIssueTypeId = json['issue_type_id'];
+    final issueTypeId = rawIssueTypeId is int
+        ? rawIssueTypeId
+        : int.tryParse(rawIssueTypeId?.toString() ?? '');
+
     return TicketModel(
       id: id,
       title: json['title']?.toString() ?? '',
@@ -69,20 +76,20 @@ class TicketModel {
       assignedTo: null,
       createdBy: userName,
       imageUrl: hasImage ? image : null,
+      issueTypeId: issueTypeId,
     );
   }
 
   static String _normalizeStatus(String raw) {
     switch (raw) {
-      case 'pending':
-        return 'open';
       case 'in_progress':
         return 'in-progress';
-      case 'resolved':
       case 'closed':
         return 'resolved';
+      case 'pending':
       case 'open':
       case 'in-progress':
+      case 'resolved':
         return raw;
       default:
         return raw;
