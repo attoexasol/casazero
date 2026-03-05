@@ -26,7 +26,12 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
 
   late final TextEditingController _titleController;
   late final TextEditingController _descriptionController;
+  late final TextEditingController _issueTypeEnController;
+  late final TextEditingController _issueTypeItController;
   late TicketsController _ctrl;
+
+  bool _isAddingNewType = false;
+  final _addTypeFormKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -37,6 +42,8 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
     _descriptionController = TextEditingController(
       text: nt['description'] ?? '',
     );
+    _issueTypeEnController = TextEditingController();
+    _issueTypeItController = TextEditingController();
     _ctrl.selectedCategoryId.value = null;
     _ctrl.fetchIssueTypes();
   }
@@ -45,6 +52,8 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
+    _issueTypeEnController.dispose();
+    _issueTypeItController.dispose();
     super.dispose();
   }
 
@@ -256,6 +265,8 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
     );
   }
 
+  static const int _addOthersSentinel = -9999;
+
   Widget _buildCategoryDropdown() {
     final isLoading = _ctrl.isLoadingIssueTypes.value;
     final items = _ctrl.issueTypes;
@@ -287,6 +298,43 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
       );
     }
 
+    if (_isAddingNewType) {
+      return _buildInlineAddIssueTypeFields();
+    }
+
+    final dropdownItems = items.map((IssueTypeModel issue) {
+      return DropdownMenuItem<int>(
+        value: issue.id,
+        child: Text(
+          issue.issueType,
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: AppColors.neutralInk900,
+            fontSize: 14,
+          ),
+        ),
+      );
+    }).toList();
+
+    dropdownItems.add(
+      DropdownMenuItem<int>(
+        value: _addOthersSentinel,
+        child: Row(
+          children: [
+            const Icon(Icons.add_circle_outline, size: 18, color: _greenActive),
+            const SizedBox(width: 8),
+            Text(
+              'addOthers'.tr,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: _greenActive,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
     return Container(
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: AppColors.neutralLine200)),
@@ -307,19 +355,12 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
           borderRadius: BorderRadius.circular(8),
           dropdownColor: _dialogBg,
           focusColor: _greenActive,
-          items: items.map((IssueTypeModel issue) {
-            return DropdownMenuItem<int>(
-              value: issue.id,
-              child: Text(
-                issue.issueType,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.neutralInk900,
-                  fontSize: 14,
-                ),
-              ),
-            );
-          }).toList(),
+          items: dropdownItems,
           onChanged: (int? value) {
+            if (value == _addOthersSentinel) {
+              setState(() => _isAddingNewType = true);
+              return;
+            }
             _ctrl.selectedCategoryId.value = value;
             final label = items.firstWhereOrNull((e) => e.id == value)?.issueType ?? '';
             _ctrl.updateNewTicket('category', label);
@@ -327,6 +368,113 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
         ),
       ),
     );
+  }
+
+  Widget _buildInlineAddIssueTypeFields() {
+    return Form(
+      key: _addTypeFormKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildLabel('issueTypeEnglish'.tr),
+          const SizedBox(height: 6),
+          TextFormField(
+            controller: _issueTypeEnController,
+            style: AppTextStyles.bodyMedium.copyWith(
+              fontSize: 14,
+              color: AppColors.neutralInk900,
+            ),
+            decoration: _underlineDecoration('enterIssueTypeEnglish'.tr),
+            validator: (v) =>
+                (v == null || v.trim().isEmpty) ? 'fieldRequired'.tr : null,
+          ),
+          const SizedBox(height: 12),
+          _buildLabel('issueTypeItalian'.tr),
+          const SizedBox(height: 6),
+          TextFormField(
+            controller: _issueTypeItController,
+            style: AppTextStyles.bodyMedium.copyWith(
+              fontSize: 14,
+              color: AppColors.neutralInk900,
+            ),
+            decoration: _underlineDecoration('enterIssueTypeItalian'.tr),
+            validator: (v) =>
+                (v == null || v.trim().isEmpty) ? 'fieldRequired'.tr : null,
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {
+                    _issueTypeEnController.clear();
+                    _issueTypeItController.clear();
+                    setState(() => _isAddingNewType = false);
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.neutralInk700,
+                    side: const BorderSide(color: AppColors.neutralLine200),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                  child: Text(
+                    'cancel'.tr,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.neutralInk700,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: _handleAddIssueType,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _greenActive,
+                    foregroundColor: AppColors.surfaceWhite,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    'add'.tr,
+                    style: AppTextStyles.button.copyWith(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.surfaceWhite,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleAddIssueType() async {
+    if (!_addTypeFormKey.currentState!.validate()) return;
+
+    final result = await _ctrl.createIssueType(
+      issueType: _issueTypeEnController.text.trim(),
+      issueTypeIt: _issueTypeItController.text.trim(),
+    );
+
+    if (result != null) {
+      _ctrl.selectedCategoryId.value = result.id;
+      _ctrl.updateNewTicket('category', result.issueType);
+    }
+
+    _issueTypeEnController.clear();
+    _issueTypeItController.clear();
+    setState(() => _isAddingNewType = false);
   }
 
   Widget _buildAddPhotosButton() {

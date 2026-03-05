@@ -50,6 +50,30 @@ class TicketsController extends GetxController {
     }
   }
 
+  /// Create a new issue type. Currently a local stub; API integration to follow.
+  Future<IssueTypeModel?> createIssueType({
+    required String issueType,
+    required String issueTypeIt,
+  }) async {
+    try {
+      // TODO: Replace with actual API call, e.g.:
+      // final result = await _ticketRepository.createIssueType(
+      //   issueType: issueType,
+      //   issueTypeIt: issueTypeIt,
+      // );
+      // if (result != null) { ... }
+
+      // For now, create a local entry with a temporary negative id.
+      final tempId = -(DateTime.now().millisecondsSinceEpoch);
+      final newType = IssueTypeModel(id: tempId, issueType: issueType);
+      issueTypes.add(newType);
+      return newType;
+    } catch (e) {
+      print('❌ [TicketsController] Error creating issue type: $e');
+      return null;
+    }
+  }
+
   /// Called when user taps Create Ticket in the dialog. Pops the dialog.
   void handleCreateTicket(BuildContext? context) {
     if (context != null && Navigator.of(context).canPop()) {

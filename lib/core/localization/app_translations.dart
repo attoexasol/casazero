@@ -792,6 +792,16 @@ class AppTranslations extends Translations {
         'Update: Technician assigned. Expected visit on Nov 5, 2025.',
     'resolvedIssueFixed': 'Resolved: Issue fixed on {date}',
 
+    // Add Issue Type Modal
+    'addOthers': 'Add Others',
+    'addIssueType': 'Add Issue Type',
+    'issueTypeEnglish': 'Issue Type (English)',
+    'issueTypeItalian': 'Issue Type (Italian)',
+    'enterIssueTypeEnglish': 'Enter issue type in English',
+    'enterIssueTypeItalian': 'Enter issue type in Italian',
+    'add': 'Add',
+    'fieldRequired': 'This field is required',
+
     // 2FA Deactivation - Security Warnings
     // 'security_warning': 'Security Warning',
     'deactivate_two_factor_warning':
@@ -1607,6 +1617,16 @@ class AppTranslations extends Translations {
     'technicianUpdate':
         'Aggiornamento: Tecnico assegnato. Visita prevista il 5 nov 2025.',
     'resolvedIssueFixed': 'Risolto: Problema risolto il {date}',
+
+    // Add Issue Type Modal
+    'addOthers': 'Aggiungi altro',
+    'addIssueType': 'Aggiungi tipo problema',
+    'issueTypeEnglish': 'Tipo problema (Inglese)',
+    'issueTypeItalian': 'Tipo problema (Italiano)',
+    'enterIssueTypeEnglish': 'Inserisci tipo problema in Inglese',
+    'enterIssueTypeItalian': 'Inserisci tipo problema in Italiano',
+    'add': 'Aggiungi',
+    'fieldRequired': 'Questo campo è obbligatorio',
 
     // 2FA Deactivation - Security Warnings
     // 'security_warning': 'Avviso di Sicurezza',
