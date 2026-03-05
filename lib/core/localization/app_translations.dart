@@ -785,6 +785,9 @@ class AppTranslations extends Translations {
     'priorityLow': 'Low',
     'priorityMedium': 'Medium',
     'priorityHighUrgent': 'High - Urgent',
+    'ticketSuccessTitle': 'Success',
+    'ticketSuccessMessage':
+        'Your request has been sent.\nYou will receive an email from the company as soon as possible.',
     'technicianUpdate':
         'Update: Technician assigned. Expected visit on Nov 5, 2025.',
     'resolvedIssueFixed': 'Resolved: Issue fixed on {date}',
@@ -1598,6 +1601,9 @@ class AppTranslations extends Translations {
     'priorityLow': 'Bassa',
     'priorityMedium': 'Media',
     'priorityHighUrgent': 'Alta - Urgente',
+    'ticketSuccessTitle': 'Successo',
+    'ticketSuccessMessage':
+        'La tua richiesta è stata inviata.\nRiceverai un\'email dall\'azienda il prima possibile.',
     'technicianUpdate':
         'Aggiornamento: Tecnico assegnato. Visita prevista il 5 nov 2025.',
     'resolvedIssueFixed': 'Risolto: Problema risolto il {date}',

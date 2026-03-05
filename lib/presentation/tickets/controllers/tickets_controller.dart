@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../core/controllers/message_popup_controller.dart';
 import '../../../core/utils/permissions.dart';
 import '../../home/controllers/home_controller.dart';
 import '../models/ticket_model.dart';
@@ -31,6 +32,10 @@ class TicketsController extends GetxController {
     if (context != null && Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
     }
+    MessagePopupController.showSuccess(
+      titleKey: 'ticketSuccessTitle',
+      messageKey: 'ticketSuccessMessage',
+    );
   }
 
   static const List<String> categories = [
