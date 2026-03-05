@@ -55,6 +55,8 @@ class TicketsController extends GetxController {
     attachedPhotos.clear();
   }
 
+  final RxBool isCreatingTicket = false.obs;
+
   void updateNewTicket(String key, String value) {
     newTicket[key] = value;
     newTicket.refresh();
@@ -103,15 +105,59 @@ class TicketsController extends GetxController {
     }
   }
 
-  /// Called when user taps Create Ticket in the dialog. Pops the dialog.
-  void handleCreateTicket(BuildContext? context) {
-    if (context != null && Navigator.of(context).canPop()) {
-      Navigator.of(context).pop();
+  /// Submits the new ticket to the API.
+  /// Returns true on success, false on failure.
+  Future<bool> handleCreateTicket(BuildContext? context) async {
+    if (isCreatingTicket.value) return false;
+
+    final issueTypeId = selectedCategoryId.value;
+    final title = (newTicket['title'] ?? '').trim();
+    final description = (newTicket['description'] ?? '').trim();
+    final priority = (newTicket['priority'] ?? 'medium').trim();
+
+    if (issueTypeId == null || description.isEmpty) {
+      return false;
     }
-    MessagePopupController.showSuccess(
-      titleKey: 'ticketSuccessTitle',
-      messageKey: 'ticketSuccessMessage',
-    );
+
+    isCreatingTicket.value = true;
+    try {
+      final result = await _ticketRepository.createSupportTicket(
+        title: title,
+        description: description,
+        issueTypeId: issueTypeId,
+        priority: priority,
+        image: attachedPhotos.isNotEmpty ? attachedPhotos.first : null,
+      );
+
+      if (result != null) {
+        print('✅ [TicketsController] Ticket created successfully');
+        clearPhotos();
+        newTicket.assignAll({
+          'category': '',
+          'title': '',
+          'description': '',
+          'priority': 'medium',
+        });
+        selectedCategoryId.value = null;
+
+        if (context != null && Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+        MessagePopupController.showSuccess(
+          titleKey: 'ticketSuccessTitle',
+          messageKey: 'ticketSuccessMessage',
+        );
+        return true;
+      }
+
+      print('⚠️ [TicketsController] createSupportTicket returned null');
+      return false;
+    } catch (e) {
+      print('❌ [TicketsController] Error creating ticket: $e');
+      return false;
+    } finally {
+      isCreatingTicket.value = false;
+    }
   }
 
   static const List<String> priorityValues = ['low', 'medium', 'high'];

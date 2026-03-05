@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:get/get.dart';
 
@@ -98,6 +99,68 @@ class TicketRepository {
       return null;
     } catch (e) {
       print('❌ [TicketRepository] Error creating issue type: $e');
+      return null;
+    }
+  }
+
+  /// Creates a support ticket via the API.
+  /// Returns a success map with ticket data, or an error message string.
+  Future<Map<String, dynamic>?> createSupportTicket({
+    required String title,
+    required String description,
+    required int issueTypeId,
+    String priority = 'medium',
+    File? image,
+  }) async {
+    try {
+      final apiToken = _storageService.getAccessToken();
+
+      if (apiToken == null || apiToken.isEmpty) {
+        print('❌ [TicketRepository] API token not found');
+        return null;
+      }
+
+      final Map<String, dynamic> requestData = {
+        'api_token': apiToken,
+        'title': title,
+        'description': description,
+        'issue_type_id': issueTypeId,
+        'priority': priority,
+      };
+
+      if (image != null && image.existsSync()) {
+        final bytes = await image.readAsBytes();
+        final base64Str = base64Encode(bytes);
+        final ext = image.path.split('.').last.toLowerCase();
+        final mimeType = (ext == 'png') ? 'image/png' : 'image/jpeg';
+        requestData['image'] = 'data:$mimeType;base64,$base64Str';
+      }
+
+      print('🎫 [TicketRepository] Creating support ticket...');
+
+      final response = await _apiService.post(
+        ApiConstants.CREATE_SUPPORT_TICKET,
+        data: requestData,
+      );
+
+      print('🎫 [TicketRepository] Create ticket status: ${response.statusCode}');
+
+      final dynamic rawData = response.data;
+      final Map<String, dynamic> body =
+          rawData is String ? json.decode(rawData) : Map<String, dynamic>.from(rawData);
+
+      print('🎫 [TicketRepository] Create ticket body: $body');
+
+      final bool isSuccess = body['success'] == true || body['status'] == true;
+
+      if (isSuccess) {
+        return body;
+      }
+
+      print('⚠️ [TicketRepository] Create ticket failed: ${body['message'] ?? 'unknown error'}');
+      return null;
+    } catch (e) {
+      print('❌ [TicketRepository] Error creating support ticket: $e');
       return null;
     }
   }

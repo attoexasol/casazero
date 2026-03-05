@@ -729,58 +729,104 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
     );
   }
 
+  Future<void> _handleCreateTicket() async {
+    if (_ctrl.selectedCategoryId.value == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('pleaseSelectCategory'.tr),
+          backgroundColor: Colors.red.shade600,
+        ),
+      );
+      return;
+    }
+
+    final description = _descriptionController.text.trim();
+    if (description.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('pleaseEnterDescription'.tr),
+          backgroundColor: Colors.red.shade600,
+        ),
+      );
+      return;
+    }
+
+    final success = await _ctrl.handleCreateTicket(context);
+    if (!success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('ticketCreationFailed'.tr),
+          backgroundColor: Colors.red.shade600,
+        ),
+      );
+    }
+  }
+
   Widget _buildFooter(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: () => _ctrl.handleCreateTicket(context),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.brandSage600,
-              foregroundColor: AppColors.surfaceWhite,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(999),
+    return Obx(() {
+      final isCreating = _ctrl.isCreatingTicket.value;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: isCreating ? null : _handleCreateTicket,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.brandSage600,
+                foregroundColor: AppColors.surfaceWhite,
+                disabledBackgroundColor: AppColors.brandSage600.withOpacity(0.6),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                elevation: 0,
               ),
-              elevation: 0,
+              child: isCreating
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.surfaceWhite,
+                      ),
+                    )
+                  : Text(
+                      'createTicket'.tr,
+                      style: AppTextStyles.button.copyWith(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.surfaceWhite,
+                      ),
+                    ),
             ),
-            child: Text(
-              'createTicket'.tr,
-              style: AppTextStyles.button.copyWith(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.surfaceWhite,
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: isCreating ? null : () => Navigator.of(context).pop(),
+              style: OutlinedButton.styleFrom(
+                backgroundColor: AppColors.surfaceWhite,
+                foregroundColor: AppColors.neutralInk900,
+                side: const BorderSide(color: AppColors.neutralLine200),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+              child: Text(
+                'cancel'.tr,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.neutralInk700,
+                ),
               ),
             ),
           ),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton(
-            onPressed: () => Navigator.of(context).pop(),
-            style: OutlinedButton.styleFrom(
-              backgroundColor: AppColors.surfaceWhite,
-              foregroundColor: AppColors.neutralInk900,
-              side: const BorderSide(color: AppColors.neutralLine200),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(999),
-              ),
-            ),
-            child: Text(
-              'cancel'.tr,
-              style: AppTextStyles.bodyMedium.copyWith(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: AppColors.neutralInk700,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
+        ],
+      );
+    });
   }
 }

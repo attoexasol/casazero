@@ -791,6 +791,9 @@ class AppTranslations extends Translations {
     'ticketSuccessTitle': 'Success',
     'ticketSuccessMessage':
         'Your request has been sent.\nYou will receive an email from the company as soon as possible.',
+    'pleaseSelectCategory': 'Please select an issue type.',
+    'pleaseEnterDescription': 'Please enter a description.',
+    'ticketCreationFailed': 'Failed to create ticket. Please try again.',
     'technicianUpdate':
         'Update: Technician assigned. Expected visit on Nov 5, 2025.',
     'resolvedIssueFixed': 'Resolved: Issue fixed on {date}',
@@ -1621,6 +1624,9 @@ class AppTranslations extends Translations {
     'ticketSuccessTitle': 'Successo',
     'ticketSuccessMessage':
         'La tua richiesta è stata inviata.\nRiceverai un\'email dall\'azienda il prima possibile.',
+    'pleaseSelectCategory': 'Seleziona un tipo di problema.',
+    'pleaseEnterDescription': 'Inserisci una descrizione.',
+    'ticketCreationFailed': 'Impossibile creare il ticket. Riprova.',
     'technicianUpdate':
         'Aggiornamento: Tecnico assegnato. Visita prevista il 5 nov 2025.',
     'resolvedIssueFixed': 'Risolto: Problema risolto il {date}',

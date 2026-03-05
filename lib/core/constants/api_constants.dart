@@ -350,9 +350,22 @@ class ApiConstants {
 
   /// Create Issue Type
   /// POST /issue-type/create
-  /// Request: { "api_token": "<CURRENT_USER_API_TOKEN>", "issue_type": "Plumbing" }
-  /// Response: { "success": true, "message": "Issue type created successfully", "data": { "id": 4, "issue_type": "Plumbing", ... } }
+  /// Request: { "api_token": "<CURRENT_USER_API_TOKEN>", "issue_type_en": "...", "issue_type_it": "..." }
+  /// Response: { "success": true, "message": "Issue type created successfully", "data": { "id": 4, ... } }
   static const String CREATE_ISSUE_TYPE = '/issue-type/create';
+
+  /// Create Support Ticket
+  /// POST /support-ticket/create
+  /// Request: {
+  ///   "api_token": "<TOKEN>",
+  ///   "title": "...",
+  ///   "description": "...",
+  ///   "issue_type_id": 4,
+  ///   "priority": "high",
+  ///   "image": "data:image/jpeg;base64,..."  (optional)
+  /// }
+  /// Response: { "status": true, "message": "Support ticket created successfully.", "data": { ... } }
+  static const String CREATE_SUPPORT_TICKET = '/support-ticket/create';
 
   // Maintenance Endpoints
   /// Get Maintenance Tasks
