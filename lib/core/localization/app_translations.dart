@@ -795,7 +795,7 @@ class AppTranslations extends Translations {
     'pleaseEnterDescription': 'Please enter a description.',
     'ticketCreationFailed': 'Failed to create ticket. Please try again.',
     'technicianUpdate':
-        'Update: Technician assigned. Expected visit on Nov 5, 2025.',
+        'Update: Technician assigned. Expected to visit very soon.',
     'resolvedIssueFixed': 'Resolved: Issue fixed on {date}',
 
     // Add Issue Type Modal
@@ -1628,7 +1628,7 @@ class AppTranslations extends Translations {
     'pleaseEnterDescription': 'Inserisci una descrizione.',
     'ticketCreationFailed': 'Impossibile creare il ticket. Riprova.',
     'technicianUpdate':
-        'Aggiornamento: Tecnico assegnato. Visita prevista il 5 nov 2025.',
+        'Aggiornamento: Tecnico assegnato. Si prevede di visitarlo molto presto.',
     'resolvedIssueFixed': 'Risolto: Problema risolto il {date}',
 
     // Add Issue Type Modal
@@ -1640,7 +1640,8 @@ class AppTranslations extends Translations {
     'enterIssueTypeItalian': 'Inserisci tipo problema in Italiano',
     'add': 'Aggiungi',
     'fieldRequired': 'Questo campo è obbligatorio',
-    'failedToCreateIssueType': 'Impossibile creare il tipo di problema. Riprova.',
+    'failedToCreateIssueType':
+        'Impossibile creare il tipo di problema. Riprova.',
 
     // 2FA Deactivation - Security Warnings
     // 'security_warning': 'Avviso di Sicurezza',

@@ -143,8 +143,8 @@ class TicketsScreen extends GetView<TicketsController> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(LucideIcons.plus, size: 18.sp, color: AppColors.surfaceWhite),
-              SizedBox(width: 8.w),
+              // Icon(LucideIcons.plus, size: 18.sp, color: AppColors.surfaceWhite),
+              // SizedBox(width: 8.w),
               Text(
                 label,
                 style: AppTextStyles.button.copyWith(
