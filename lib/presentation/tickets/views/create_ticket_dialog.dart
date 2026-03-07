@@ -314,6 +314,8 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
         value: issue.id,
         child: Text(
           issue.localizedName(langCode),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
           style: AppTextStyles.bodyMedium.copyWith(
             color: AppColors.neutralInk900,
             fontSize: 14,
@@ -329,12 +331,16 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
           children: [
             const Icon(Icons.add_circle_outline, size: 18, color: _greenActive),
             const SizedBox(width: 8),
-            Text(
-              'addOthers'.tr,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: _greenActive,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
+            Flexible(
+              child: Text(
+                'addOthers'.tr,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: _greenActive,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ],
@@ -342,14 +348,17 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
       ),
     );
 
-    return Container(
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.neutralLine200)),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<int>(
-          value: selectedId,
-          isExpanded: true,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Container(
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: AppColors.neutralLine200)),
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<int>(
+            value: selectedId,
+            isExpanded: true,
+            menuMaxHeight: 200,
           hint: Text(
             'selectACategory'.tr,
             style: AppTextStyles.bodyMedium.copyWith(
@@ -373,6 +382,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
             _ctrl.updateNewTicket('category', match?.localizedName(langCode) ?? '');
           },
         ),
+      ),
       ),
     );
   }
