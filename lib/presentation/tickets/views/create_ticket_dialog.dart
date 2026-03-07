@@ -123,8 +123,8 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
           ],
         ),
         Positioned(
-          top: 0,
-          right: 0,
+          top: -10,
+          right: -10,
           child: IconButton(
             icon: const Icon(
               Icons.close,
@@ -289,7 +289,10 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
             const SizedBox(
               width: 16,
               height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2, color: _greenActive),
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: _greenActive,
+              ),
             ),
             const SizedBox(width: 12),
             Text(
@@ -359,30 +362,33 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
             value: selectedId,
             isExpanded: true,
             menuMaxHeight: 200,
-          hint: Text(
-            'selectACategory'.tr,
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.neutralInk400,
-              fontSize: 14,
+            hint: Text(
+              'selectACategory'.tr,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.neutralInk400,
+                fontSize: 14,
+              ),
             ),
+            icon: const Icon(Icons.keyboard_arrow_down, color: _greenActive),
+            underline: const SizedBox(),
+            borderRadius: BorderRadius.circular(8),
+            dropdownColor: _dialogBg,
+            focusColor: _greenActive,
+            items: dropdownItems,
+            onChanged: (int? value) {
+              if (value == _addOthersSentinel) {
+                setState(() => _isAddingNewType = true);
+                return;
+              }
+              _ctrl.selectedCategoryId.value = value;
+              final match = items.firstWhereOrNull((e) => e.id == value);
+              _ctrl.updateNewTicket(
+                'category',
+                match?.localizedName(langCode) ?? '',
+              );
+            },
           ),
-          icon: const Icon(Icons.keyboard_arrow_down, color: _greenActive),
-          underline: const SizedBox(),
-          borderRadius: BorderRadius.circular(8),
-          dropdownColor: _dialogBg,
-          focusColor: _greenActive,
-          items: dropdownItems,
-          onChanged: (int? value) {
-            if (value == _addOthersSentinel) {
-              setState(() => _isAddingNewType = true);
-              return;
-            }
-            _ctrl.selectedCategoryId.value = value;
-            final match = items.firstWhereOrNull((e) => e.id == value);
-            _ctrl.updateNewTicket('category', match?.localizedName(langCode) ?? '');
-          },
         ),
-      ),
       ),
     );
   }
@@ -545,7 +551,9 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
             icon: Icon(
               Icons.image_outlined,
               size: 20,
-              color: canAddMore ? AppColors.neutralInk700 : AppColors.neutralInk400,
+              color: canAddMore
+                  ? AppColors.neutralInk700
+                  : AppColors.neutralInk400,
             ),
             label: Text(
               photos.isEmpty
@@ -554,7 +562,9 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
               style: AppTextStyles.bodyMedium.copyWith(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: canAddMore ? AppColors.neutralInk900 : AppColors.neutralInk400,
+                color: canAddMore
+                    ? AppColors.neutralInk900
+                    : AppColors.neutralInk400,
               ),
             ),
             style: OutlinedButton.styleFrom(
@@ -599,7 +609,10 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
                 ),
               ),
               ListTile(
-                leading: const Icon(Icons.camera_alt_outlined, color: _greenActive),
+                leading: const Icon(
+                  Icons.camera_alt_outlined,
+                  color: _greenActive,
+                ),
                 title: Text(
                   'takePhoto'.tr,
                   style: AppTextStyles.bodyMedium.copyWith(
@@ -613,7 +626,10 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.photo_library_outlined, color: _greenActive),
+                leading: const Icon(
+                  Icons.photo_library_outlined,
+                  color: _greenActive,
+                ),
                 title: Text(
                   'chooseFromGallery'.tr,
                   style: AppTextStyles.bodyMedium.copyWith(
@@ -659,7 +675,8 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
 
   Future<void> _pickFromGallery() async {
     try {
-      final remaining = TicketsController.maxPhotos - _ctrl.attachedPhotos.length;
+      final remaining =
+          TicketsController.maxPhotos - _ctrl.attachedPhotos.length;
       if (remaining <= 0) return;
 
       final List<XFile> images = await _imagePicker.pickMultiImage(
@@ -725,11 +742,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
                     color: Colors.red.shade600,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.close,
-                    size: 12,
-                    color: Colors.white,
-                  ),
+                  child: const Icon(Icons.close, size: 12, color: Colors.white),
                 ),
               ),
             ),
@@ -785,7 +798,9 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.brandSage600,
                 foregroundColor: AppColors.surfaceWhite,
-                disabledBackgroundColor: AppColors.brandSage600.withOpacity(0.6),
+                disabledBackgroundColor: AppColors.brandSage600.withOpacity(
+                  0.6,
+                ),
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(999),
