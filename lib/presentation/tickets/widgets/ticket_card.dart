@@ -150,7 +150,7 @@ class TicketCard extends StatelessWidget {
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: () => _openPhotoViewer(ticket.imageUrl!),
-                icon: Icon(LucideIcons.image, size: 16.sp),
+                icon: Icon(Icons.photo_outlined, size: 16.sp),
                 label: Text(
                   'View Photo',
                   style: AppTextStyles.bodyMedium.copyWith(
@@ -325,7 +325,7 @@ class TicketCard extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                LucideIcons.clock,
+                Icons.calendar_today_rounded,
                 size: 14.sp,
                 color: AppColors.neutralInk500,
               ),
@@ -344,7 +344,7 @@ class TicketCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  LucideIcons.image,
+                  Icons.photo_library_outlined,
                   size: 14.sp,
                   color: AppColors.neutralInk500,
                 ),
