@@ -355,8 +355,10 @@ class OtpVerificationController extends GetxController {
             // Update documents list with pre-loaded data
             final documentsData = result['data'] as List<dynamic>;
             documentsController.documents.value = documentsData
-                .map((item) => DocumentModel.fromJson(item as Map<String, dynamic>))
-                .toList();
+                .map<DocumentModel>((item) {
+              if (item is DocumentModel) return item;
+              return DocumentModel.fromJson(item as Map<String, dynamic>);
+            }).toList();
             print('✅ Documents pre-loaded: ${documentsData.length} documents');
           } else {
             // If controller exists, just refresh

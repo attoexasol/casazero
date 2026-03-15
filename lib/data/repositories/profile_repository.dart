@@ -33,9 +33,16 @@ class ProfileRepository {
     String? description,
   }) async {
     print('🟢 [ProfileRepository] updateProfile() called for userId: $userId');
-    // try {
-      // Prepare request body
-      final Map<String, dynamic> requestBody = {};
+    try {
+      // Token required by backend for auth (same pattern as getUserProfile, logout, etc.)
+      final token = _storageService.getAccessToken();
+      if (token == null || token.isEmpty) {
+        print('❌ [ProfileRepository] No access token found');
+        return {'success': false, 'error': 'User token not found. Please login again.'};
+      }
+
+      // Prepare request body (include token for backend auth)
+      final Map<String, dynamic> requestBody = {'token': token};
 
       // Add fields only if they are not null
       if (userName != null) requestBody['user_name'] = userName;
@@ -67,9 +74,11 @@ class ProfileRepository {
       print('👤 User ID: $userId');
       print('📦 Request Body (JSON):');
       try {
-        print(convert.JsonEncoder.withIndent('   ').convert(requestBody));
+        final safeBody = Map<String, dynamic>.from(requestBody);
+        if (safeBody['token'] != null) safeBody['token'] = '${(safeBody['token'] as String).substring(0, 10)}...';
+        print(convert.JsonEncoder.withIndent('   ').convert(safeBody));
       } catch (e) {
-        print('   ${requestBody.toString()}');
+        print('   [request body]');
       }
       print('═══════════════════════════════════════════════════════════');
 
@@ -90,33 +99,41 @@ class ProfileRepository {
         print('   ${response.data.toString()}');
       }
       print('═══════════════════════════════════════════════════════════');
-      // Handle success response
-      if (response.statusCode == 200 && response.data['status'] == true) {
-        // Update user data in storage
-        if (response.data['data'] != null) {
-          final updatedUser = UserModel.fromJson(response.data['data']);
-          await _storageService.saveUserData(updatedUser.toJson());
+
+      // Safe response handling (response.data may be null or not a Map)
+      final data = response.data is Map<String, dynamic> ? response.data as Map<String, dynamic> : <String, dynamic>{};
+      final status = data['status'];
+      final isSuccess = (response.statusCode == 200 || response.statusCode == 201) &&
+          (status == true || status == 'true' || status == 1 || status == '1');
+
+      if (isSuccess) {
+        // Update user data in storage when backend returns updated user
+        final userData = data['data'];
+        if (userData != null && userData is Map<String, dynamic>) {
+          try {
+            final updatedUser = UserModel.fromJson(userData);
+            await _storageService.saveUserData(updatedUser.toJson());
+          } catch (e) {
+            print('⚠️ [ProfileRepository] Could not parse updated user: $e');
+          }
         }
 
         return {
           'success': true,
-          'message': response.data['message'] ?? 'Profile updated successfully!',
-          'data': response.data['data'],
+          'message': data['message']?.toString() ?? 'Profile updated successfully!',
+          'data': userData,
         };
       } else {
-        return {
-          'success': false,
-          'error': response.data['message'] ?? 'Failed to update profile',
-        };
+        final errorMsg = data['message']?.toString() ?? data['error']?.toString() ?? 'Failed to update profile';
+        return {'success': false, 'error': errorMsg};
       }
-    // } catch (e) {
-    //
-    //   return {
-    //
-    //     'success': false,
-    //     'error': e.toString(),
-    //   };
-    // }
+    } catch (e) {
+      print('❌ [ProfileRepository] updateProfile error: $e');
+      return {
+        'success': false,
+        'error': e.toString(),
+      };
+    }
   }
 
   Future<Map<String, dynamic>> uploadProfileImage({

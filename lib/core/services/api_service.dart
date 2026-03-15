@@ -121,7 +121,6 @@ class ApiService extends getx.GetxService {
   // Generic POST request
   Future<Response> post(String endpoint, {dynamic data}) async {
     try {
-      print(data);
       final response = await _dio.post(endpoint, data: data);
       return response;
     } on DioException catch (e) {

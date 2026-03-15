@@ -94,6 +94,9 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
       return;
     }
 
+    // Capture navigator before async so we can pop the dialog after success
+    final navigator = Navigator.of(context);
+
     // Call the controller to update user info
     final success = await _profileController.updateUserInfo(
       userName: fullName,
@@ -101,11 +104,13 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
       phone: phone,
     );
 
-    // Close dialog immediately on success
-    if (success) {
-      if (mounted) {
-        Navigator.of(context).pop();
-      }
+    // Close dialog on success - pop in next frame so snackbar doesn't block
+    if (success && mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          navigator.pop();
+        }
+      });
     }
   }
 

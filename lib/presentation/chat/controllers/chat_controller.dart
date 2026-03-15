@@ -8,6 +8,7 @@ import '../../../core/services/api_service.dart';
 import '../../../core/services/firebase_auth_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../home/controllers/home_controller.dart';
+import '../../profile/controllers/profile_controller.dart';
 import '../models/chat_message_model.dart';
 
 enum ChatState {
@@ -44,6 +45,20 @@ class ChatController extends GetxController {
     _resolveGroupId();
     _subscribeToMessages();
     _fetchResidenceName();
+    _ensureProfileLoadedForChatAvatar();
+  }
+
+  /// Fetches current user profile from API so chat messages can include profile image.
+  /// Profile screen uses the same API; this ensures we have the latest profile_image when sending.
+  void _ensureProfileLoadedForChatAvatar() {
+    if (_groupId == null) return;
+    try {
+      if (Get.isRegistered<ProfileController>()) {
+        final profileController = Get.find<ProfileController>();
+        // Refresh from API so we have latest profile_image (same as profile screen).
+        profileController.refreshData();
+      }
+    } catch (_) {}
   }
 
   Future<void> _fetchResidenceName() async {
@@ -227,9 +242,16 @@ class ChatController extends GetxController {
     messageController.clear();
 
     try {
-      final userData = _storageService.getUserData();
-      final profileImage =
-          userData?['profile_image']?.toString().trim();
+      // Prefer profile from API (ProfileController) – same source as profile screen.
+      String? profileImage;
+      if (Get.isRegistered<ProfileController>()) {
+        final profileController = Get.find<ProfileController>();
+        profileImage = profileController.user.value?.profileImage?.trim();
+      }
+      if (profileImage == null || profileImage.isEmpty) {
+        final userData = _storageService.getUserData();
+        profileImage = userData?['profile_image']?.toString().trim();
+      }
       final bool hasProfileImage = profileImage != null &&
           profileImage.isNotEmpty &&
           (profileImage.startsWith('http://') ||
