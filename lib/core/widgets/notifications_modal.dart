@@ -123,7 +123,7 @@ class _NotificationsModalContentState
                                 label: Text(
                                   'markAllRead'.tr.isEmpty
                                       ? 'Mark all read'
-                                      : 'markAllRead'.tr,
+                                      : 'notification_mark_all_read'.tr,
                                   style: AppTextStyles.caption.copyWith(
                                     fontSize: 12.sp,
                                     color: AppColors.brandSage600,
@@ -136,12 +136,13 @@ class _NotificationsModalContentState
                                     vertical: 6.h,
                                   ),
                                   minimumSize: Size.zero,
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
                                 ),
                               ),
                             ],
                           ),
-                        
+
                         // Bottom row: Filter tabs
                         if (unreadCount > 0) SizedBox(height: 8.h),
                         SingleChildScrollView(
@@ -155,10 +156,7 @@ class _NotificationsModalContentState
                               SizedBox(width: 8.w),
                               _buildFilterTab('document', 'documents'.tr),
                               SizedBox(width: 8.w),
-                              _buildFilterTab(
-                                'maintenance',
-                                'maintenance'.tr,
-                              ),
+                              _buildFilterTab('maintenance', 'maintenance'.tr),
                               SizedBox(width: 8.w),
                               _buildFilterTab('chat', 'chat'.tr),
                               SizedBox(width: 8.w),
@@ -381,7 +379,8 @@ class _NotificationsModalContentState
       print('📥 [Notification] URL: ${notification.url}');
 
       MessagePopupController.showDownloading(
-        messageKey: 'downloading'.tr + ': ' + notification.localizedDisplayTitle,
+        messageKey:
+            'downloading'.tr + ': ' + notification.localizedDisplayTitle,
         titleKey: 'downloading',
       );
 
@@ -431,7 +430,7 @@ class _NotificationsModalContentState
     final cleanTitle = notification.displayTitle
         .replaceAll(RegExp(r'[^\w\s-]'), '')
         .replaceAll(RegExp(r'\s+'), '_');
-    
+
     // Try to extract extension from URL
     String extension = 'pdf'; // Default extension
     if (notification.url != null && notification.url!.isNotEmpty) {
@@ -439,7 +438,8 @@ class _NotificationsModalContentState
       final lastDot = url.lastIndexOf('.');
       if (lastDot != -1 && lastDot < url.length - 1) {
         final ext = url.substring(lastDot + 1).toLowerCase();
-        if (ext.length <= 5) { // Reasonable extension length
+        if (ext.length <= 5) {
+          // Reasonable extension length
           extension = ext;
         }
       }
@@ -450,7 +450,10 @@ class _NotificationsModalContentState
 
   /// Show native "Open with" chooser with available apps to open the file
   /// Uses open_filex which shows native Android chooser or iOS share sheet
-  Future<void> _showOpenFileBottomSheet(String filePath, String fileName) async {
+  Future<void> _showOpenFileBottomSheet(
+    String filePath,
+    String fileName,
+  ) async {
     try {
       final file = File(filePath);
       if (!await file.exists()) {
@@ -463,10 +466,14 @@ class _NotificationsModalContentState
 
       // Use open_filex to show native "Open with" chooser
       // This will show all available apps that can open the file type
-      print('📂 [Notification] Opening native "Open with" chooser for file: $fileName');
+      print(
+        '📂 [Notification] Opening native "Open with" chooser for file: $fileName',
+      );
       final result = await OpenFilex.open(filePath);
 
-      print('📂 [Notification] Open file result: ${result.type} - ${result.message}');
+      print(
+        '📂 [Notification] Open file result: ${result.type} - ${result.message}',
+      );
 
       // Handle the result
       if (result.type == ResultType.noAppToOpen) {
@@ -474,7 +481,8 @@ class _NotificationsModalContentState
           messageKey: 'noAppToOpen',
           titleKey: 'openFileFailed',
         );
-      } else if (result.type == ResultType.error || result.type == ResultType.fileNotFound) {
+      } else if (result.type == ResultType.error ||
+          result.type == ResultType.fileNotFound) {
         MessagePopupController.showError(
           messageKey: 'openFileError',
           titleKey: 'openFileFailed',
@@ -653,84 +661,91 @@ class _NotificationCard extends StatelessWidget {
                     // Action buttons - Fixed size and aligned
                     Row(
                       children: [
-                        // Left side: Primary and secondary actions
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            // View button (Primary action)
-                            if (actionLabel != null)
-                              Builder(
-                                builder: (context) {
-                                  final label = actionLabel!;
-                                  return SizedBox(
+                        // Left side: Primary and secondary actions (Expanded to avoid overflow)
+                        Expanded(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              // View button (Primary action)
+                              if (actionLabel != null)
+                                Flexible(
+                                  child: Builder(
+                                    builder: (context) {
+                                      final label = actionLabel!;
+                                      return SizedBox(
+                                        height: 32.h,
+                                        child: OutlinedButton(
+                                          onPressed: onAction,
+                                          style: OutlinedButton.styleFrom(
+                                            foregroundColor: AppColors.brandSage600,
+                                            side: BorderSide(
+                                              color: AppColors.brandSage300,
+                                              width: 1,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(
+                                                8.r,
+                                              ),
+                                            ),
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 12.w,
+                                              vertical: 0,
+                                            ),
+                                            minimumSize: Size(0, 32.h),
+                                            tapTargetSize:
+                                                MaterialTapTargetSize.shrinkWrap,
+                                          ),
+                                          child: Text(
+                                            label,
+                                            style: AppTextStyles.caption.copyWith(
+                                              fontSize: 12.sp,
+                                              fontWeight: FontWeight.w500,
+                                              color: AppColors.brandSage600,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+
+                              // Mark as Read button (Secondary action)
+                              if (!isRead) ...[
+                                if (actionLabel != null) SizedBox(width: 8.w),
+                                Flexible(
+                                  child: SizedBox(
                                     height: 32.h,
-                                    child: OutlinedButton(
-                                      onPressed: onAction,
-                                      style: OutlinedButton.styleFrom(
-                                        foregroundColor: AppColors.brandSage600,
-                                        side: BorderSide(
-                                          color: AppColors.brandSage300,
-                                          width: 1,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(8.r),
-                                        ),
+                                    child: TextButton(
+                                      onPressed: onMarkAsRead,
+                                      style: TextButton.styleFrom(
                                         padding: EdgeInsets.symmetric(
                                           horizontal: 12.w,
                                           vertical: 0,
                                         ),
-                                        minimumSize: Size(80.w, 32.h),
-                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                        minimumSize: Size(0, 32.h),
+                                        tapTargetSize:
+                                            MaterialTapTargetSize.shrinkWrap,
                                       ),
                                       child: Text(
-                                        label,
+                                        'markAsRead'.tr.isEmpty
+                                            ? 'Mark as read'
+                                            : 'notification_mark_as_read'.tr,
                                         style: AppTextStyles.caption.copyWith(
                                           fontSize: 12.sp,
-                                          fontWeight: FontWeight.w500,
-                                          color: AppColors.brandSage600,
+                                          color: AppColors.neutralInk700,
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
-                                  );
-                                },
-                              ),
-
-                            // Mark as Read button (Secondary action)
-                            if (!isRead) ...[
-                              if (actionLabel != null) SizedBox(width: 8.w),
-                              SizedBox(
-                                height: 32.h,
-                                child: TextButton(
-                                  onPressed: onMarkAsRead,
-                                  style: TextButton.styleFrom(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 12.w,
-                                      vertical: 0,
-                                    ),
-                                    minimumSize: Size(80.w, 32.h),
-                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                  ),
-                                  child: Text(
-                                    'markAsRead'.tr.isEmpty
-                                        ? 'Mark as read'
-                                        : 'markAsRead'.tr,
-                                    style: AppTextStyles.caption.copyWith(
-                                      fontSize: 12.sp,
-                                      color: AppColors.neutralInk700,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                              ),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
-
-                        // Spacer to push Delete button to far right
-                        const Spacer(),
 
                         // Delete button (Destructive action) - Fixed at far right
                         SizedBox(

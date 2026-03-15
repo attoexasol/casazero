@@ -321,7 +321,13 @@ class ProfileController extends GetxController {
         phone: phone,
       );
 
-      if (result['success'] == true) {
+      final success = result['success'] == true ||
+          result['success'] == 'true' ||
+          result['status'] == true ||
+          result['status'] == 'true';
+      if (success) {
+        // Close the edit profile dialog first (if open)
+        Get.back(closeOverlays: false);
         // Reload user data from storage (updated by repository)
         loadUser();
         // Ensure the UI updates immediately by triggering a rebuild
