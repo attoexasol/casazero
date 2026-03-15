@@ -227,17 +227,30 @@ class ChatController extends GetxController {
     messageController.clear();
 
     try {
-      await _firestore
-          .collection('groups')
-          .doc(groupId)
-          .collection('messages')
-          .add({
+      final userData = _storageService.getUserData();
+      final profileImage =
+          userData?['profile_image']?.toString().trim();
+      final bool hasProfileImage = profileImage != null &&
+          profileImage.isNotEmpty &&
+          (profileImage.startsWith('http://') ||
+              profileImage.startsWith('https://'));
+
+      final Map<String, dynamic> messageData = {
         'text': text,
         'senderId': uid,
         'senderRole': _senderRole(),
         'senderName': _senderName(),
         'createdAt': FieldValue.serverTimestamp(),
-      });
+      };
+      if (hasProfileImage) {
+        messageData['senderProfileImage'] = profileImage;
+      }
+
+      await _firestore
+          .collection('groups')
+          .doc(groupId)
+          .collection('messages')
+          .add(messageData);
       _scrollToBottom();
     } on FirebaseException catch (e) {
       if (e.code == 'permission-denied') {

@@ -7,6 +7,8 @@ class ChatMessage {
   final String senderId;
   final String senderRole; // "user" | "admin"
   final String senderName;
+  /// Profile image URL from API (optional; when missing, avatar shows initials).
+  final String? senderProfileImage;
   final DateTime createdAt;
 
   const ChatMessage({
@@ -15,6 +17,7 @@ class ChatMessage {
     required this.senderId,
     required this.senderRole,
     required this.senderName,
+    this.senderProfileImage,
     required this.createdAt,
   });
 
@@ -37,23 +40,31 @@ class ChatMessage {
     }
     final role = data['senderRole']?.toString().toLowerCase() ?? 'user';
     final senderRole = role == 'admin' ? 'admin' : 'user';
+    final profileImage = data['senderProfileImage']?.toString();
     return ChatMessage(
       id: doc.id,
       text: data['text']?.toString() ?? '',
       senderId: data['senderId']?.toString() ?? '',
       senderRole: senderRole,
       senderName: data['senderName']?.toString() ?? 'Unknown',
+      senderProfileImage: profileImage != null && profileImage.isNotEmpty
+          ? profileImage
+          : null,
       createdAt: createdAt,
     );
   }
 
   Map<String, dynamic> toFirestore() {
-    return {
+    final map = <String, dynamic>{
       'text': text,
       'senderId': senderId,
       'senderRole': senderRole,
       'senderName': senderName,
       'createdAt': FieldValue.serverTimestamp(),
     };
+    if (senderProfileImage != null && senderProfileImage!.isNotEmpty) {
+      map['senderProfileImage'] = senderProfileImage;
+    }
+    return map;
   }
 }

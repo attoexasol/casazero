@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -217,7 +218,12 @@ class ChatScreen extends GetView<ChatController> {
                     : MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  if (!isOwnMessage && showAvatar) _buildAvatar(msg.senderName),
+                  if (!isOwnMessage && showAvatar)
+                    _buildAvatar(
+                      msg.senderName,
+                      msg.senderProfileImage,
+                      msg.senderId,
+                    ),
                   if (!isOwnMessage && !showAvatar) SizedBox(width: 32.w),
                   if (!isOwnMessage) SizedBox(width: 8.w),
                   Flexible(
@@ -312,17 +318,69 @@ class ChatScreen extends GetView<ChatController> {
     );
   }
 
-  Widget _buildAvatar(String sender) {
-    final initial = sender.isNotEmpty ? sender[0].toUpperCase() : '?';
+  /// Distinct colors for initial avatars so users are easy to tell apart.
+  static final List<Color> _avatarColors = [
+    AppColors.brandSage600,
+    AppColors.aquaGreen600,
+    AppColors.accentGold500,
+    AppColors.info,
+    AppColors.warning,
+    AppColors.danger,
+    AppColors.brandSage800,
+    AppColors.neutralInk700,
+  ];
+
+  static Color _avatarColorFor(String senderId) {
+    final index = senderId.hashCode.abs() % _avatarColors.length;
+    return _avatarColors[index];
+  }
+
+  static bool _isValidProfileUrl(String? url) {
+    if (url == null || url.isEmpty) return false;
+    return url.startsWith('http://') || url.startsWith('https://');
+  }
+
+  Widget _buildAvatar(String senderName, String? profileImageUrl, String senderId) {
+    final initial =
+        senderName.isNotEmpty ? senderName[0].toUpperCase() : '?';
+    final showImage = _isValidProfileUrl(profileImageUrl);
+
+    if (showImage) {
+      return CircleAvatar(
+        radius: 16.r,
+        backgroundColor: AppColors.neutralLine200,
+        child: ClipOval(
+          child: CachedNetworkImage(
+            imageUrl: profileImageUrl!,
+            width: 32.r,
+            height: 32.r,
+            fit: BoxFit.cover,
+            placeholder: (context, url) => _initialAvatar(
+              initial,
+              _avatarColorFor(senderId),
+            ),
+            errorWidget: (context, url, error) => _initialAvatar(
+              initial,
+              _avatarColorFor(senderId),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return _initialAvatar(initial, _avatarColorFor(senderId));
+  }
+
+  Widget _initialAvatar(String initial, Color backgroundColor) {
     return CircleAvatar(
       radius: 16.r,
-      backgroundColor: AppColors.brandSage300,
+      backgroundColor: backgroundColor,
       child: Text(
         initial,
         style: AppTextStyles.caption.copyWith(
           fontSize: 12.sp,
           fontWeight: FontWeight.w600,
-          color: AppColors.brandSage600,
+          color: AppColors.surfaceWhite,
         ),
       ),
     );
