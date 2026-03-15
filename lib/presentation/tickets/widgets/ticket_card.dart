@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../app/theme/app_colors.dart';
@@ -139,11 +138,11 @@ class TicketCard extends StatelessWidget {
           Divider(color: AppColors.neutralLine200, height: 1),
           SizedBox(height: 12.h),
           if (ticket.priority != null && ticket.priority!.isNotEmpty)
-            _buildDetailRow(LucideIcons.flag, ticket.priority!),
+            _buildDetailRow(Icons.flag_outlined, ticket.priority!),
           if (ticket.createdBy != null && ticket.createdBy!.isNotEmpty)
-            _buildDetailRow(LucideIcons.user, ticket.createdBy!),
+            _buildDetailRow(Icons.person_outline, ticket.createdBy!),
           // if (ticket.updated.isNotEmpty)
-          //   _buildDetailRow(LucideIcons.calendarCheck, ticket.updated),
+          //   _buildDetailRow(Icons.calendar_today_outlined, ticket.updated),
           if (ticket.imageUrl != null) ...[
             SizedBox(height: 4.h),
             SizedBox(
@@ -366,7 +365,7 @@ class TicketCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  LucideIcons.messageCircle,
+                  Icons.chat_bubble_outline,
                   size: 14.sp,
                   color: AppColors.neutralInk500,
                 ),
