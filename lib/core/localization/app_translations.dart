@@ -207,6 +207,8 @@ class AppTranslations extends Translations {
     'notification_type_security': 'Security notification',
     'notification_type_system': 'System notification',
     'notification_type_generic': 'Notification',
+    'notification_mark_as_read': 'markAsRead',
+    'notification_mark_all_read': 'markAllRead',
 
     // Notification action labels (viewDocument already exists above)
     'viewTask': 'View Task',
@@ -1277,6 +1279,8 @@ class AppTranslations extends Translations {
     'notification_announcement_description':
         'È stato pubblicato un nuovo annuncio.',
     'notification_generic_description': 'Tocca per visualizzare i dettagli.',
+    'notification_mark_as_read': 'contrassegnare come letto',
+    'notification_mark_all_read': 'contrassegnaTuttoLeggi',
 
     // Notification type labels (Italian)
     'notification_type_maintenance': 'Notifica manutenzione',
@@ -1590,7 +1594,7 @@ class AppTranslations extends Translations {
     'typeMessage': 'Scrivi un messaggio...',
 
     // ---------------- TICKETS SCREEN (Italian) ----------------
-    'tickets': 'Ticket',
+    'tickets': 'Assistenza',
     'tutte': 'Tutti',
     'open': 'Aperti',
     'inProgress': 'In Corso',
