@@ -5,12 +5,14 @@ class LocalNotificationService {
   static final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
-  static void initialize() {
+  static const String _channelId = 'default_channel';
+  static const String _channelName = 'Default Notifications';
+
+  static Future<void> initialize() async {
     const androidSettings = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
     );
     const iosSettings = DarwinInitializationSettings(
-      // Add iOS settings
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
@@ -18,17 +20,33 @@ class LocalNotificationService {
 
     const settings = InitializationSettings(
       android: androidSettings,
-      iOS: iosSettings, // Add this
+      iOS: iosSettings,
     );
 
-    _plugin.initialize(settings);
+    await _plugin.initialize(settings);
+
+    // Create Android channel so foreground notifications appear (required for Android O+)
+    final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    if (androidPlugin != null) {
+      await androidPlugin.createNotificationChannel(
+        const AndroidNotificationChannel(
+          _channelId,
+          _channelName,
+          description: 'Push and in-app notifications',
+          importance: Importance.high,
+          playSound: true,
+          enableVibration: true,
+        ),
+      );
+    }
   }
 
   static Future<void> showNotification(RemoteMessage message) async {
     const androidDetails = AndroidNotificationDetails(
-      'default_channel',
-      'Default Notifications',
-      importance: Importance.max,
+      _channelId,
+      _channelName,
+      importance: Importance.high,
       priority: Priority.high,
     );
 

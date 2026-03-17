@@ -1,4 +1,5 @@
 import 'package:casazero/presentation/documents/controllers/documents_controller.dart';
+import 'package:casazero/presentation/profile/controllers/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/controllers/message_popup_controller.dart';
@@ -138,6 +139,68 @@ class HomeController extends GetxController {
   /// Public method to reload token (e.g., after login)
   void reloadToken() {
     _loadApiToken();
+  }
+
+  /// Clears user-specific state when user logs out so next login gets fresh data.
+  void clearStateOnLogout() {
+    apiToken.value = '';
+    currentUser.value = null;
+    feedItems.clear();
+    unreadCount.value = 0;
+    residences.clear();
+    selectedResidence.value = null;
+    residenceData.value = null;
+    _isInitialized.value = false;
+    print('🧹 [HomeController] State cleared for logout');
+  }
+
+  /// Ensures home data (notifications, residences, user) matches the current user in storage.
+  /// Call when navigating to HOME so that after a different user logs in, we refetch everything.
+  void ensureDataForCurrentUser() {
+    final userData = _storageService.getUserData();
+    final storageUserId = userData?['id'];
+    final currentId = currentUser.value?.id;
+
+    final int? storageId = storageUserId is int
+        ? storageUserId
+        : int.tryParse(storageUserId?.toString() ?? '');
+
+    final bool userChanged = storageId != null &&
+        (currentId == null || currentId != storageId);
+    final bool noUserInController = currentId == null && storageId != null;
+
+    if (!userChanged && !noUserInController) return;
+
+    print(
+      '🔄 [HomeController] User changed or first load (storage: $storageId, current: $currentId), reinitializing...',
+    );
+
+    _loadApiToken();
+    _loadUserData();
+
+    feedItems.clear();
+    unreadCount.value = 0;
+    residences.clear();
+    selectedResidence.value = null;
+    residenceData.value = null;
+    _isInitialized.value = false;
+
+    if (Get.isRegistered<ProfileController>()) {
+      Get.find<ProfileController>().forceReloadUser();
+    }
+    if (Get.isRegistered<DocumentsController>()) {
+      Get.find<DocumentsController>().documents.clear();
+    }
+
+    if (apiToken.value.isNotEmpty) {
+      _initializeDataWithToken();
+    } else {
+      once(apiToken, (_) {
+        if (apiToken.value.isNotEmpty && !_isInitialized.value) {
+          _initializeDataWithToken();
+        }
+      });
+    }
   }
 
   /// Initialize all data after token is confirmed available
@@ -751,6 +814,11 @@ class HomeController extends GetxController {
       } else {
         print('⚠️  Logout API failed: ${result['error']}');
         // Still proceed with clearing storage even if API fails
+      }
+
+      clearStateOnLogout();
+      if (Get.isRegistered<ProfileController>()) {
+        Get.find<ProfileController>().user.value = null;
       }
 
       // Clear all storage regardless of API result

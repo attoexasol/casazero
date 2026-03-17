@@ -10,6 +10,7 @@ import '../../presentation/first_login/controllers/first_login_controller.dart';
 import '../../presentation/otp_verification/views/otp_verification_screen.dart';
 import '../../presentation/otp_verification/controllers/otp_verification_controller.dart';
 import '../../presentation/main/main_scaffold.dart';
+import '../../core/widgets/app_lifecycle_refresh_wrapper.dart';
 import '../../presentation/home/controllers/home_controller.dart';
 import '../../presentation/auth/views/change_password_screen.dart';
 import '../../presentation/auth/views/forgot_password_screen.dart';
@@ -76,9 +77,14 @@ class AppRoutes {
     ),
     GetPage(
       name: HOME,
-      page: () => const MainScaffold(),
+      page: () => const AppLifecycleRefreshWrapper(child: MainScaffold()),
       binding: BindingsBuilder(() {
         Get.lazyPut(() => HomeController());
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (Get.isRegistered<HomeController>()) {
+            Get.find<HomeController>().ensureDataForCurrentUser();
+          }
+        });
       }),
     ),
     GetPage(

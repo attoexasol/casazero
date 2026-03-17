@@ -15,6 +15,7 @@ import '../../documents/controllers/documents_controller.dart';
 import '../../../data/repositories/document_repository.dart';
 import '../../../data/models/document_model.dart';
 import '../../../core/services/firebase_auth_service.dart';
+import '../../../core/services/fcm_service.dart';
 
 class AuthController extends GetxController {
   final AuthRepository _authRepository = Get.find();
@@ -105,6 +106,13 @@ class AuthController extends GetxController {
 
       // Set user's preferred language from API
       await _localeController.changeLocale(user.language);
+
+      // Register FCM token with backend (idempotent; login payload already sends token)
+      try {
+        if (Get.isRegistered<FcmService>()) {
+          await Get.find<FcmService>().sendTokenToBackend();
+        }
+      } catch (_) {}
 
       // Pre-load documents in background while navigating
       _preloadDocuments();

@@ -4,6 +4,7 @@ import '../../core/services/device_info_service.dart';
 import '../../core/services/download_service.dart';
 import '../../core/services/zip_download_service.dart';
 import '../../core/services/fcm_service.dart';
+import '../../core/services/notification_manager.dart';
 import '../../core/localization/locale_controller.dart';
 import '../../core/services/storage_service.dart';
 import '../../core/services/firebase_auth_service.dart';
@@ -41,16 +42,13 @@ class InitialBinding extends Bindings {
     // ZipDownloadService for encrypted ZIP download + open (OS prompts for password)
     Get.put<ZipDownloadService>(ZipDownloadService(), permanent: true);
 
-    // FCM Service for push notifications (with error handling)
-    Get.putAsync(() async {
-      try {
-        return await FcmService().init();
-      } catch (e) {
-        print("❌ FCM Service initialization failed in InitialBinding: $e");
-        // Return a service instance even if init fails
-        return FcmService();
-      }
-    }, permanent: true);
+    // NotificationManager: processes push payloads (must be registered before FcmService)
+    Get.put<NotificationManager>(NotificationManager(), permanent: true);
+
+    // FCM Service: singleton, never destroyed; init runs once (guarded inside FcmService)
+    final fcmService = FcmService();
+    Get.put<FcmService>(fcmService, permanent: true);
+    fcmService.init(); // fire-and-forget; listeners and token send run async
 
     // -----------------------------
     // REPOSITORIES

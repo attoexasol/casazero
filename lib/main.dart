@@ -22,9 +22,14 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'helpers/local_notification_service.dart';
 import 'dart:async';
 
+/// Top-level background handler for FCM. Must not use GetX or controllers (isolate).
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
-  print("Background Message: ${message.notification?.title}");
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp();
+  }
+  final messageId = message.messageId ?? 'no-id';
+  final data = message.data;
+  print('📩 [FCM Background] messageId: $messageId, title: ${message.notification?.title}, data keys: ${data.isNotEmpty ? data.keys.join(", ") : "none"}');
 }
 
 void main() async {
@@ -81,9 +86,9 @@ void main() async {
     }
   }
 
-  // 🔥 Initialize Local Notifications
+  // 🔥 Initialize Local Notifications (channel must exist for foreground notifications on Android)
   try {
-    LocalNotificationService.initialize();
+    await LocalNotificationService.initialize();
   } catch (e) {
     print("❌ Local notifications initialization failed: $e");
   }
@@ -138,138 +143,9 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  // 🔥 Initialize FCM foreground listeners (non-blocking, only if Firebase is initialized)
-  // Don't await - let it run in background so app can start
-  if (Firebase.apps.isNotEmpty) {
-    // Fire and forget - errors are handled inside setupFCMListeners
-    setupFCMListeners();
-  }
+  // FCM is initialized in InitialBinding via FcmService (after GetX and routes are ready)
 
-  // Start the app immediately - don't wait for FCM
   runApp(const CasaZeroApp());
-}
-
-void setupFCMListeners() async {
-  try {
-    // Check if Firebase is initialized
-    if (Firebase.apps.isEmpty) {
-      print("⚠️  Firebase not initialized, skipping FCM setup");
-      print("💡 Check if GoogleService-Info.plist is properly configured");
-      return;
-    }
-
-    print("🔥 Starting FCM setup...");
-    FirebaseMessaging messaging = FirebaseMessaging.instance;
-
-    // 🔥 Request permissions (iOS specific)
-    print("📱 Requesting notification permissions...");
-    NotificationSettings settings = await messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-      provisional: false,
-    );
-    print("📱 Permission Status: ${settings.authorizationStatus}");
-    print("📱 Alert: ${settings.alert}");
-    print("📱 Badge: ${settings.badge}");
-    print("📱 Sound: ${settings.sound}");
-
-    if (settings.authorizationStatus == AuthorizationStatus.denied) {
-      print("❌ Notification permission denied by user");
-      print("💡 User needs to enable notifications in Settings");
-      return;
-    }
-
-    // Wait for APNs token to be registered (can take a few seconds)
-    print("⏳ Waiting for APNs token registration...");
-    int maxWaitTime = 10; // Maximum 10 seconds
-    int waited = 0;
-    bool apnsTokenReceived = false;
-
-    while (waited < maxWaitTime && !apnsTokenReceived) {
-      await Future.delayed(const Duration(seconds: 1));
-      waited++;
-      // Check if APNs token is set (indirectly by trying to get FCM token)
-      try {
-        // Try to get token - if APNs token is set, this might work
-        String? testToken = await messaging.getToken();
-        if (testToken != null && testToken.isNotEmpty) {
-          apnsTokenReceived = true;
-          print("✅ APNs token appears to be registered");
-        }
-      } catch (e) {
-        // Continue waiting
-        if (waited % 2 == 0) {
-          print("⏳ Still waiting for APNs token... (${waited}s)");
-        }
-      }
-    }
-
-    if (!apnsTokenReceived) {
-      print("⚠️  APNs token may not be registered yet, but continuing...");
-    }
-
-    // 🔥 Get the FCM token with retry logic
-    String? token;
-    int retries = 5; // Increased retries
-    for (int i = 0; i < retries; i++) {
-      try {
-        print("🔄 Attempting to get FCM token (${i + 1}/$retries)...");
-        token = await messaging.getToken();
-        if (token != null && token.isNotEmpty) {
-          print("✅ FCM Token retrieved successfully: $token");
-          break;
-        } else {
-          print(
-            "⚠️  FCM Token is null or empty, retrying... (${i + 1}/$retries)",
-          );
-          await Future.delayed(const Duration(seconds: 3));
-        }
-      } catch (e) {
-        print("❌ Error getting FCM token (attempt ${i + 1}/$retries): $e");
-        if (i < retries - 1) {
-          await Future.delayed(const Duration(seconds: 3));
-        }
-      }
-    }
-
-    if (token == null || token.isEmpty) {
-      print("❌ Failed to get FCM token after $retries attempts");
-      print("");
-      print("🔍 Troubleshooting steps:");
-      print(
-        "   1. Verify GoogleService-Info.plist has CLIENT_ID and REVERSED_CLIENT_ID",
-      );
-      print("   2. Check if APNs is configured in Firebase Console");
-      print("   3. Ensure Push Notifications capability is enabled in Xcode");
-      print(
-        "   4. Make sure you're testing on a physical device (not simulator)",
-      );
-      print("   5. Check Xcode console for APNs token registration messages");
-    }
-
-    // TODO: Send token to Laravel API
-
-    // 🔥 Handle foreground messages
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print("📨 Foreground Message: ${message.notification?.title}");
-      LocalNotificationService.showNotification(message);
-    });
-
-    // 🔥 App opened from terminated / background
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print("📬 Notification Opened App: ${message.data}");
-    });
-
-    // 🔥 Listen for token refresh
-    messaging.onTokenRefresh.listen((newToken) {
-      print("🔄 FCM Token refreshed: $newToken");
-      // TODO: Send refreshed token to Laravel API
-    });
-  } catch (e, stackTrace) {
-    print("❌ Error setting up FCM listeners: $e");
-    print("Stack trace: $stackTrace");
-  }
 }
 
 class CasaZeroApp extends StatelessWidget {

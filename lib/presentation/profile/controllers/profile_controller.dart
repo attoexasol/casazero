@@ -460,6 +460,11 @@ class ProfileController extends GetxController {
         // Still proceed with clearing storage even if API fails
       }
 
+      if (Get.isRegistered<HomeController>()) {
+        Get.find<HomeController>().clearStateOnLogout();
+      }
+      user.value = null;
+
       // Clear all storage regardless of API result
       await _storage.clearAll();
       print('✅ All storage cleared');

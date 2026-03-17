@@ -1,15 +1,23 @@
 // core/services/fcm_service.dart
+// Centralized FCM service: init, token, foreground/background/terminated handling.
+// Single instance (singleton); init runs once. Push processing delegated to NotificationManager.
 
-import 'package:get/get.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'dart:io' show Platform;
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+import '../constants/api_constants.dart';
+import 'api_service.dart';
+import 'storage_service.dart';
+import 'notification_manager.dart';
+import '../../helpers/local_notification_service.dart';
 
 class FcmService extends GetxService {
   FirebaseMessaging? _messaging;
-  
+
   FirebaseMessaging? get messaging {
     try {
       if (_messaging == null && Firebase.apps.isNotEmpty) {
@@ -17,7 +25,7 @@ class FcmService extends GetxService {
       }
       return _messaging;
     } catch (e) {
-      print('❌ Error accessing FirebaseMessaging: $e');
+      print('❌ [FcmService] Error accessing FirebaseMessaging: $e');
       return null;
     }
   }
@@ -25,146 +33,224 @@ class FcmService extends GetxService {
   String? _currentToken;
   String? get currentToken => _currentToken;
 
-  /// Initialize FCM and request permissions
+  /// Last token we sent to backend (avoid duplicate submissions)
+  String? _lastSentToken;
+
+  /// True when last sendTokenToBackend failed; triggers retry on next init or send.
+  bool _pendingTokenSend = false;
+
+  /// Prevents duplicate listener registration (init runs only once)
+  bool _initialized = false;
+
+  /// Prevents stacking of onMessage / onMessageOpenedApp listeners
+  bool _listenersSetup = false;
+
+  /// Initialize FCM: permissions, token, send to backend, setup all listeners.
+  /// Safe to call multiple times; runs only once.
   Future<FcmService> init() async {
+    if (_initialized) {
+      print('📌 [FcmService] init skipped (already initialized)');
+      return this;
+    }
+    _initialized = true;
+
     try {
-      // Check if Firebase is initialized
       if (Firebase.apps.isEmpty) {
-        print('⚠️  Firebase not initialized, skipping FCM initialization');
+        print('⚠️ [FcmService] Firebase not initialized, skipping');
         return this;
       }
-      
+
       await _requestPermission();
       await _getToken();
+      await sendTokenToBackend();
+      if (_pendingTokenSend) {
+        print('🔄 [FcmService] Retrying pending token send');
+        await sendTokenToBackend();
+      }
       _setupTokenRefreshListener();
+      _setupForegroundAndBackgroundHandlers();
+      await _setIOSForegroundPresentationOptions();
     } catch (e) {
-      print('❌ FCM Service init error: $e');
-      // Return service instance even if initialization fails
+      print('❌ [FcmService] init error: $e');
     }
     return this;
+  }
+
+  /// iOS: show alert, badge, sound when app is in foreground
+  Future<void> _setIOSForegroundPresentationOptions() async {
+    try {
+      if (!Platform.isIOS || messaging == null) return;
+      await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+      print('📱 [FcmService] iOS foreground presentation options set');
+    } catch (e) {
+      print('❌ [FcmService] iOS foreground options error: $e');
+    }
   }
 
   /// Request notification permissions (iOS + Android 13+)
   Future<void> _requestPermission() async {
     try {
-      if (kIsWeb) {
-        print('📱 FCM: Web platform detected, skipping native permissions');
-        return;
-      }
-      
-      if (Firebase.apps.isEmpty) {
-        print('⚠️  Firebase not initialized, skipping permission request');
-        return;
-      }
+      if (kIsWeb) return;
+      if (Firebase.apps.isEmpty || messaging == null) return;
 
-      // Request FCM permission
-      if (messaging == null) {
-        print('⚠️  FirebaseMessaging not available');
-        return;
-      }
-      NotificationSettings settings = await messaging!.requestPermission(
+      final settings = await messaging!.requestPermission(
         alert: true,
         badge: true,
         sound: true,
         provisional: false,
       );
+      print('📱 [FcmService] Permission: ${settings.authorizationStatus}');
 
-      print('📱 FCM Permission Status: ${settings.authorizationStatus}');
-
-      // For Android 13+ (API 33+), also request POST_NOTIFICATIONS permission
       if (Platform.isAndroid) {
-        final status = await Permission.notification.request();
-        print('📱 Android Notification Permission: $status');
+        await Permission.notification.request();
       }
     } catch (e) {
-      print('❌ Error requesting FCM permission: $e');
+      print('❌ [FcmService] Error requesting permission: $e');
     }
   }
 
-  /// Get FCM device token
   Future<String?> _getToken() async {
     try {
-      if (kIsWeb) {
-        print('📱 FCM: Web platform - skipping token retrieval');
-        return null;
-      }
-      
-      if (Firebase.apps.isEmpty) {
-        print('⚠️  Firebase not initialized, skipping token retrieval');
-        return null;
-      }
-
-      if (messaging == null) {
-        print('⚠️  FirebaseMessaging not available');
-        return null;
-      }
+      if (kIsWeb || Firebase.apps.isEmpty || messaging == null) return null;
       _currentToken = await messaging!.getToken();
-      print('🔑 FCM Token: $_currentToken');
+      print('🔑 [FcmService] Token: ${_currentToken != null ? "${_currentToken!.substring(0, 20)}..." : "null"}');
       return _currentToken;
     } catch (e) {
-      print('❌ Error getting FCM token: $e');
+      print('❌ [FcmService] Error getting token: $e');
       return null;
     }
   }
 
-  /// Setup token refresh listener
   void _setupTokenRefreshListener() {
-    if (Firebase.apps.isEmpty) {
-      print('⚠️  Firebase not initialized, skipping token refresh listener');
-      return;
-    }
-    
-    if (messaging == null) {
-      print('⚠️  FirebaseMessaging not available');
-      return;
-    }
-    messaging!.onTokenRefresh
-        .listen((newToken) {
-          print('🔄 FCM Token Refreshed: $newToken');
-          _currentToken = newToken;
-          // TODO: Send refreshed token to backend
-          _sendTokenToBackend(newToken);
-        })
-        .onError((error) {
-          print('❌ Token refresh error: $error');
-        });
+    if (Firebase.apps.isEmpty || messaging == null) return;
+    messaging!.onTokenRefresh.listen((newToken) {
+      print('🔄 [FcmService] Token refresh – sending to backend');
+      _currentToken = newToken;
+      sendTokenToBackend();
+    }).onError((e) {
+      print('❌ [FcmService] Token refresh error: $e');
+    });
   }
 
-  /// Send token to backend (implement your API call here)
-  Future<void> _sendTokenToBackend(String token) async {
+  /// Send FCM token to backend. Idempotent: skips if token unchanged.
+  /// Call from: app start (init), after login, onTokenRefresh.
+  Future<void> sendTokenToBackend() async {
     try {
-      // You can implement this to update token on backend
-      print('📤 Sending refreshed token to backend: $token');
-      // Example: await _apiService.post('/update-fcm-token', data: {'fcm_token': token});
+      if (Firebase.apps.isEmpty || messaging == null) return;
+
+      final token = _currentToken ?? await _getToken();
+      if (token == null || token.isEmpty) return;
+      if (token == _lastSentToken) {
+        print('📤 [FcmService] Token unchanged, skip send');
+        return;
+      }
+
+      if (!Get.isRegistered<StorageService>()) {
+        print('📤 [FcmService] StorageService not registered, skip send');
+        return;
+      }
+      final storage = Get.find<StorageService>();
+      final accessToken = storage.getAccessToken();
+      if (accessToken == null || accessToken.isEmpty) {
+        print('📤 [FcmService] No auth token, skip sending FCM token');
+        return;
+      }
+
+      if (!Get.isRegistered<ApiService>()) return;
+      final api = Get.find<ApiService>();
+
+      await api.post(ApiConstants.UPDATE_FCM_TOKEN, data: {'fcm_token': token});
+      _lastSentToken = token;
+      _pendingTokenSend = false;
+      print('✅ [FcmService] Token sent to backend');
     } catch (e) {
-      print('❌ Error sending token to backend: $e');
+      _pendingTokenSend = true;
+      print('❌ [FcmService] Error sending token to backend: $e');
     }
   }
 
-  /// Public method to get device token (for login)
-  Future<String?> getDeviceToken() async {
-    if (_currentToken != null) {
-      return _currentToken;
+  void _setupForegroundAndBackgroundHandlers() {
+    if (_listenersSetup || Firebase.apps.isEmpty || messaging == null) return;
+    _listenersSetup = true;
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      handlePushMessage(message);
+    });
+
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      print('📬 [FcmService] Notification opened app');
+      _onNotificationOpenedApp(message);
+    });
+
+    FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
+      if (message != null) {
+        print('📬 [FcmService] Launched from notification (terminated)');
+        _onNotificationOpenedApp(message);
+      }
+    });
+  }
+
+  /// Handle incoming push (foreground). Show local notification and delegate to NotificationManager.
+  void handlePushMessage(RemoteMessage message) {
+    try {
+      LocalNotificationService.showNotification(message);
+    } catch (e) {
+      print('❌ [FcmService] Local notification error: $e');
     }
+
+    final data = message.data;
+    final messageId = message.messageId;
+    print('📨 [FcmService] Foreground push – data keys: ${data.isNotEmpty ? data.keys.join(", ") : "none"}');
+    _dispatchToNotificationManager(data, messageId: messageId);
+  }
+
+  void _onNotificationOpenedApp(RemoteMessage message) {
+    final data = message.data;
+    final messageId = message.messageId;
+    _dispatchToNotificationManager(data, messageId: messageId);
+    if (data.isNotEmpty && Get.isRegistered<NotificationManager>()) {
+      Get.find<NotificationManager>().handleNotificationNavigation(data);
+    }
+  }
+
+  /// Safely pass payload and optional messageId to NotificationManager (never call controllers from here).
+  void _dispatchToNotificationManager(Map<String, dynamic>? data, {String? messageId}) {
+    try {
+      if (!Get.isRegistered<NotificationManager>()) {
+        print('⚠️ [FcmService] NotificationManager not registered');
+        return;
+      }
+      Get.find<NotificationManager>().handlePushPayload(data, messageId: messageId);
+    } catch (e) {
+      print('❌ [FcmService] Dispatch to NotificationManager error: $e');
+    }
+  }
+
+  /// Request notification permissions (can be called again if needed)
+  Future<void> requestNotificationPermission() async {
+    await _requestPermission();
+  }
+
+  /// Public: get device token (e.g. for login payload)
+  Future<String?> getDeviceToken() async {
+    if (_currentToken != null) return _currentToken;
     return await _getToken();
   }
 
-  /// Delete token (for logout)
+  /// Delete token (e.g. on logout)
   Future<void> deleteToken() async {
     try {
-      if (Firebase.apps.isEmpty) {
-        print('⚠️  Firebase not initialized, skipping token deletion');
-        return;
-      }
-      if (messaging == null) {
-        print('⚠️  FirebaseMessaging not available');
-        return;
-      }
+      if (Firebase.apps.isEmpty || messaging == null) return;
       await messaging!.deleteToken();
       _currentToken = null;
-      print('🗑️ FCM Token deleted');
+      _lastSentToken = null;
+      print('🗑️ [FcmService] Token deleted');
     } catch (e) {
-      print('❌ Error deleting FCM token: $e');
+      print('❌ [FcmService] Error deleting token: $e');
     }
   }
 }

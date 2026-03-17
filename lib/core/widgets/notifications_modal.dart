@@ -18,9 +18,10 @@ import '../../presentation/main/main_scaffold.dart';
 /// Modal Bottom Sheet for displaying all notifications
 /// Converted from React NotificationsScreen.tsx
 class NotificationsModal {
-  /// Show the notifications modal bottom sheet
+  /// Show the notifications modal bottom sheet (always fetches fresh notifications when opened)
   static void show(BuildContext context) {
     final controller = Get.find<HomeController>();
+    controller.fetchNotifications();
 
     showModalBottomSheet(
       context: context,

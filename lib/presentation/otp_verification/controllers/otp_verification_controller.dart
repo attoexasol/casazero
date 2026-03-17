@@ -9,6 +9,7 @@ import '../../documents/controllers/documents_controller.dart';
 import '../../../data/repositories/document_repository.dart';
 import '../../../data/models/document_model.dart';
 import '../../profile/controllers/document_password_controller.dart';
+import '../../../core/services/fcm_service.dart';
 
 class OtpVerificationController extends GetxController {
   final AuthRepository _authRepository = Get.find();
@@ -243,6 +244,13 @@ class OtpVerificationController extends GetxController {
         await Future.delayed(const Duration(milliseconds: 500));
         Get.offAllNamed(AppRoutes.FORGOT_CHANGE_PASSWORD);
       } else {
+        // Register FCM token with backend after OTP success
+        try {
+          if (Get.isRegistered<FcmService>()) {
+            await Get.find<FcmService>().sendTokenToBackend();
+          }
+        } catch (_) {}
+
         // Pre-load documents in background while navigating
         _preloadDocuments();
 
