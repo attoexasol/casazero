@@ -100,10 +100,10 @@ class HomeScreen extends GetView<HomeController> {
           //   )
           //       .fadeIn()
           //       .slideY(begin: 0.15),
-          const LatestNotifications()
-              .animate(delay: 100.ms)
-              .fadeIn()
-              .slideY(begin: 0.15),
+          // const LatestNotifications()
+          //     .animate(delay: 100.ms)
+          //     .fadeIn()
+          //     .slideY(begin: 0.15),
             const SizedBox(height: 40),
           // if (controller.permissions.canManageBuildings)
           //   ViewAllBuildingsCard(
