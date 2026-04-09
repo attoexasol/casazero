@@ -17,7 +17,7 @@ class LogoutSection extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surfaceWhite,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: AppShadows.shadowPremium,
+        boxShadow: AppShadows.shadowProfileCard,
       ),
       padding: const EdgeInsets.all(20),
       child: Column(

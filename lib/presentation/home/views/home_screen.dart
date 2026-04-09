@@ -46,7 +46,7 @@ class HomeScreen extends GetView<HomeController> {
       physics: const AlwaysScrollableScrollPhysics(),
       child: Column(
         children: [
-          const PremiumBanner(),
+          //const PremiumBanner(),
           // ResidenceName handles its own animations internally (matching React Framer Motion)
           ResidenceName(user: user),
           // HeroImage handles its own animations internally (matching React Framer Motion)

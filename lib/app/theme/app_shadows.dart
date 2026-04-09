@@ -56,6 +56,15 @@ class AppShadows {
     ),
   ];
 
+  /// Profile tab cards; same blur/offset as [shadowPremium], neutral (DocumentCard `0x22000000`).
+  static const List<BoxShadow> shadowProfileCard = [
+    BoxShadow(
+      color: Color(0x22000000),
+      blurRadius: 50,
+      offset: Offset(0, 25),
+    ),
+  ];
+
   static const List<BoxShadow> shadowGlow = [
     BoxShadow(
       color: Color(0x264CAF47), // rgba(76, 175, 71, 0.15)

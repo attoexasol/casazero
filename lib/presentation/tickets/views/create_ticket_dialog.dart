@@ -6,6 +6,9 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../core/widgets/custom_text_field.dart';
+import '../../../core/widgets/gradient_button.dart';
+import '../../../core/widgets/outlined_custom_button.dart';
 import '../controllers/tickets_controller.dart';
 import '../models/issue_type_model.dart';
 
@@ -52,6 +55,9 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
     _ctrl.selectedCategoryId.value = null;
     _ctrl.clearPhotos();
     _ctrl.fetchIssueTypes();
+    _descriptionController.addListener(() {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -65,31 +71,37 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final maxH = MediaQuery.of(context).size.height * 0.85;
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
       child: Container(
-        constraints: const BoxConstraints(maxWidth: _dialogMaxWidth),
+        constraints: BoxConstraints(
+          maxWidth: _dialogMaxWidth,
+          maxHeight: maxH,
+        ),
         decoration: BoxDecoration(
           color: _dialogBg,
           borderRadius: BorderRadius.circular(_radius),
           border: Border.all(color: _dialogBorder, width: 1),
         ),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(_padding),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildHeader(context),
-                const SizedBox(height: 16),
-                _buildForm(),
-                const SizedBox(height: 20),
-                _buildFooter(context),
-              ],
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(_padding, _padding, _padding, 0),
+              child: _buildHeader(context),
             ),
-          ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: _buildForm(),
+              ),
+            ),
+            _buildFooter(context),
+          ],
         ),
       ),
     );
@@ -142,132 +154,236 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
 
   Widget _buildForm() {
     return Obx(() {
-      final nt = _ctrl.newTicket;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildLabel('categoryLabel'.tr),
-          const SizedBox(height: 6),
+          _buildPhotoUploadArea(),
+          const SizedBox(height: 16),
+          _buildPhotoFormatsInfo(),
+          const SizedBox(height: 20),
           _buildCategoryDropdown(),
           const SizedBox(height: 16),
-          _buildLabel('title'.tr),
-          const SizedBox(height: 6),
-          TextField(
+          CustomTextField(
+            label: 'title'.tr,
+            hint: 'briefDescriptionOfIssue'.tr,
             controller: _titleController,
             onChanged: (v) => _ctrl.updateNewTicket('title', v),
-            maxLines: 1,
-            style: AppTextStyles.bodyMedium.copyWith(
-              fontSize: 14,
-              color: AppColors.neutralInk900,
-            ),
-            decoration: _underlineDecoration('briefDescriptionOfIssue'.tr),
+            keyboardType: TextInputType.text,
+            backgroundColor: AppColors.neutralLine100,
+            borderColor: AppColors.neutralLine200,
+            textColor: AppColors.neutralInk900,
+            labelColor: AppColors.neutralInk700,
           ),
           const SizedBox(height: 16),
-          _buildLabel('description'.tr),
-          const SizedBox(height: 6),
-          TextField(
+          CustomTextField(
+            label: 'description'.tr,
+            hint: 'provideMoreDetails'.tr,
             controller: _descriptionController,
             onChanged: (v) => _ctrl.updateNewTicket('description', v),
+            keyboardType: TextInputType.multiline,
             maxLines: 4,
-            minLines: 4,
-            style: AppTextStyles.bodyMedium.copyWith(
-              fontSize: 14,
-              color: AppColors.neutralInk900,
-            ),
-            decoration: _underlineDecoration('provideMoreDetails'.tr),
+            backgroundColor: AppColors.neutralLine100,
+            borderColor: AppColors.neutralLine200,
+            textColor: AppColors.neutralInk900,
+            labelColor: AppColors.neutralInk700,
           ),
-          //const SizedBox(height: 8),
-          // _buildLabel('priority'.tr),
-          // const SizedBox(height: 6),
-          // _buildDropdown<String>(
-          //   value: nt['priority'],
-          //   hint: 'priorityMedium'.tr,
-          //   items: TicketsController.priorityValues,
-          //   labelBuilder: TicketsController.priorityLabel,
-          //   onChanged: (v) => _ctrl.updateNewTicket('priority', v ?? 'medium'),
-          // ),
-          const SizedBox(height: 16),
-          _buildAddPhotosButton(),
         ],
       );
     });
   }
 
-  InputDecoration _underlineDecoration(String hint) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: AppTextStyles.bodyMedium.copyWith(
-        color: AppColors.neutralInk400,
-        fontSize: 14,
-      ),
-      border: const UnderlineInputBorder(
-        borderSide: BorderSide(color: AppColors.neutralLine200),
-      ),
-      enabledBorder: const UnderlineInputBorder(
-        borderSide: BorderSide(color: AppColors.neutralLine200),
-      ),
-      focusedBorder: const UnderlineInputBorder(
-        borderSide: BorderSide(color: _greenActive, width: 2),
-      ),
-      contentPadding: const EdgeInsets.only(bottom: 8),
-      isDense: true,
-    );
+  Widget _buildPhotoUploadArea() {
+    return Obx(() {
+      final photos = _ctrl.attachedPhotos;
+      final canAddMore = photos.length < TicketsController.maxPhotos;
+      final isEmpty = photos.isEmpty;
+
+      return GestureDetector(
+        onTap: isEmpty && canAddMore ? _showPhotoPickerSheet : null,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: 100,
+            maxHeight: isEmpty ? 150 : 260,
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: isEmpty
+                  ? AppColors.surfaceWarm50
+                  : AppColors.brandSage50,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isEmpty
+                    ? AppColors.neutralLine200
+                    : AppColors.brandSage300,
+                width: 2,
+              ),
+            ),
+            child: isEmpty
+                ? _buildPhotoUploadPrompt()
+                : _buildPhotoUploadSelected(photos, canAddMore),
+          ),
+        ),
+      );
+    });
   }
 
-  Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: AppTextStyles.label.copyWith(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        color: AppColors.neutralInk900,
-      ),
-    );
-  }
-
-  Widget _buildDropdown<T extends String>({
-    required T? value,
-    required String hint,
-    required List<T> items,
-    String Function(T)? labelBuilder,
-    required ValueChanged<T?> onChanged,
-  }) {
-    final effectiveValue = value == null || value.isEmpty ? null : value;
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.neutralLine200)),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<T>(
-          value: effectiveValue as T?,
-          isExpanded: true,
-          hint: Text(
-            hint,
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.neutralInk400,
-              fontSize: 14,
+  Widget _buildPhotoUploadPrompt() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableHeight = constraints.maxHeight;
+        final isCompact = availableHeight < 120;
+        return SingleChildScrollView(
+          physics: const NeverScrollableScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: isCompact ? 48 : 64,
+                  height: isCompact ? 48 : 64,
+                  decoration: BoxDecoration(
+                    color: AppColors.brandSage500.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.cloud_upload_outlined,
+                    size: isCompact ? 24 : 32,
+                    color: AppColors.brandSage500,
+                  ),
+                ),
+                SizedBox(height: isCompact ? 8 : 12),
+                Text(
+                  'addPhotos'.tr,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.neutralInk700,
+                    fontWeight: FontWeight.w500,
+                    fontSize: isCompact ? 13 : null,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (!isCompact) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'chooseFromGallery'.tr,
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.neutralInk400,
+                      fontSize: 11,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
             ),
           ),
-          icon: const Icon(Icons.keyboard_arrow_down, color: _greenActive),
-          underline: const SizedBox(),
-          borderRadius: BorderRadius.circular(8),
-          dropdownColor: _dialogBg,
-          focusColor: _greenActive,
-          items: items.map((e) {
-            return DropdownMenuItem<T>(
-              value: e,
-              child: Text(
-                labelBuilder != null ? labelBuilder(e) : e,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.neutralInk900,
-                  fontSize: 14,
+        );
+      },
+    );
+  }
+
+  Widget _buildPhotoUploadSelected(List<File> photos, bool canAddMore) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              ...List<Widget>.generate(photos.length, (index) {
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(
+                        photos[index],
+                        width: 72,
+                        height: 72,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          width: 72,
+                          height: 72,
+                          decoration: BoxDecoration(
+                            color: AppColors.neutralLine200,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.broken_image_outlined,
+                            size: 28,
+                            color: AppColors.neutralInk400,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: -6,
+                      right: -6,
+                      child: GestureDetector(
+                        onTap: () => _ctrl.removePhoto(index),
+                        child: Container(
+                          width: 22,
+                          height: 22,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.6),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.close,
+                            size: 14,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }),
+              if (canAddMore)
+                GestureDetector(
+                  onTap: _showPhotoPickerSheet,
+                  child: Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: AppColors.brandSage500.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.brandSage300),
+                    ),
+                    child: Icon(
+                      Icons.add,
+                      color: AppColors.brandSage500,
+                      size: 32,
+                    ),
+                  ),
                 ),
-              ),
-            );
-          }).toList(),
-          onChanged: onChanged,
-        ),
+            ],
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildPhotoFormatsInfo() {
+    return Row(
+      children: [
+        const Icon(Icons.info_outline, size: 16, color: AppColors.neutralInk400),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            '${'addPhotos'.tr} · ${TicketsController.maxPhotos} max',
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.neutralInk500,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -279,31 +395,36 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
     final selectedId = _ctrl.selectedCategoryId.value;
 
     if (isLoading) {
-      return Container(
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: AppColors.neutralLine200)),
-        ),
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Row(
-          children: [
-            const SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: _greenActive,
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'categoryLabel'.tr,
+            style: AppTextStyles.label.copyWith(
+              color: AppColors.neutralInk700,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppColors.neutralLine100,
+              borderRadius: BorderRadius.circular(25),
+              border: Border.all(color: AppColors.neutralLine200),
+            ),
+            child: const Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.brandSage600),
+                ),
               ),
             ),
-            const SizedBox(width: 12),
-            Text(
-              'loading'.tr,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.neutralInk400,
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       );
     }
 
@@ -351,45 +472,56 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
       ),
     );
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Container(
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: AppColors.neutralLine200)),
-        ),
-        child: DropdownButtonHideUnderline(
-          child: DropdownButton<int>(
-            value: selectedId,
-            isExpanded: true,
-            menuMaxHeight: 200,
-            hint: Text(
-              'selectACategory'.tr,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.neutralInk400,
-                fontSize: 14,
-              ),
-            ),
-            icon: const Icon(Icons.keyboard_arrow_down, color: _greenActive),
-            underline: const SizedBox(),
-            borderRadius: BorderRadius.circular(8),
-            dropdownColor: _dialogBg,
-            focusColor: _greenActive,
-            items: dropdownItems,
-            onChanged: (int? value) {
-              if (value == _addOthersSentinel) {
-                setState(() => _isAddingNewType = true);
-                return;
-              }
-              _ctrl.selectedCategoryId.value = value;
-              final match = items.firstWhereOrNull((e) => e.id == value);
-              _ctrl.updateNewTicket(
-                'category',
-                match?.localizedName(langCode) ?? '',
-              );
-            },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'categoryLabel'.tr,
+          style: AppTextStyles.label.copyWith(
+            color: AppColors.neutralInk700,
+            fontSize: 14,
           ),
         ),
-      ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.neutralLine100,
+            borderRadius: BorderRadius.circular(25),
+            border: Border.all(color: AppColors.neutralLine200),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<int>(
+              value: selectedId,
+              isExpanded: true,
+              menuMaxHeight: 200,
+              hint: Text(
+                'selectACategory'.tr,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.neutralInk400,
+                ),
+              ),
+              icon: const Icon(Icons.keyboard_arrow_down),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              borderRadius: BorderRadius.circular(25),
+              dropdownColor: _dialogBg,
+              focusColor: _greenActive,
+              items: dropdownItems,
+              onChanged: (int? value) {
+                if (value == _addOthersSentinel) {
+                  setState(() => _isAddingNewType = true);
+                  return;
+                }
+                _ctrl.selectedCategoryId.value = value;
+                final match = items.firstWhereOrNull((e) => e.id == value);
+                _ctrl.updateNewTicket(
+                  'category',
+                  match?.localizedName(langCode) ?? '',
+                );
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -399,28 +531,26 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildLabel('issueTypeEnglish'.tr),
-          const SizedBox(height: 6),
-          TextFormField(
+          CustomTextField(
+            label: 'issueTypeEnglish'.tr,
+            hint: 'enterIssueTypeEnglish'.tr,
             controller: _issueTypeEnController,
-            style: AppTextStyles.bodyMedium.copyWith(
-              fontSize: 14,
-              color: AppColors.neutralInk900,
-            ),
-            decoration: _underlineDecoration('enterIssueTypeEnglish'.tr),
+            labelColor: AppColors.neutralInk700,
+            backgroundColor: AppColors.neutralLine100,
+            borderColor: AppColors.neutralLine200,
+            textColor: AppColors.neutralInk900,
             validator: (v) =>
                 (v == null || v.trim().isEmpty) ? 'fieldRequired'.tr : null,
           ),
-          const SizedBox(height: 12),
-          _buildLabel('issueTypeItalian'.tr),
-          const SizedBox(height: 6),
-          TextFormField(
+          const SizedBox(height: 16),
+          CustomTextField(
+            label: 'issueTypeItalian'.tr,
+            hint: 'enterIssueTypeItalian'.tr,
             controller: _issueTypeItController,
-            style: AppTextStyles.bodyMedium.copyWith(
-              fontSize: 14,
-              color: AppColors.neutralInk900,
-            ),
-            decoration: _underlineDecoration('enterIssueTypeItalian'.tr),
+            labelColor: AppColors.neutralInk700,
+            backgroundColor: AppColors.neutralLine100,
+            borderColor: AppColors.neutralLine200,
+            textColor: AppColors.neutralInk900,
             validator: (v) =>
                 (v == null || v.trim().isEmpty) ? 'fieldRequired'.tr : null,
           ),
@@ -428,61 +558,25 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
           Row(
             children: [
               Expanded(
-                child: OutlinedButton(
+                child: OutlinedCustomButton(
+                  text: 'cancel'.tr,
                   onPressed: () {
                     _issueTypeEnController.clear();
                     _issueTypeItController.clear();
                     setState(() => _isAddingNewType = false);
                   },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.neutralInk700,
-                    side: const BorderSide(color: AppColors.neutralLine200),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
-                  child: Text(
-                    'cancel'.tr,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.neutralInk700,
-                    ),
-                  ),
+                  width: 100,
+                  borderColor: AppColors.neutralLine200,
+                  textColor: AppColors.neutralInk700,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: ElevatedButton(
+                child: GradientButton(
+                  text: 'add'.tr,
                   onPressed: _isSubmittingNewType ? null : _handleAddIssueType,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _greenActive,
-                    foregroundColor: AppColors.surfaceWhite,
-                    disabledBackgroundColor: _greenActive.withOpacity(0.6),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: _isSubmittingNewType
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: AppColors.surfaceWhite,
-                          ),
-                        )
-                      : Text(
-                          'add'.tr,
-                          style: AppTextStyles.button.copyWith(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.surfaceWhite,
-                          ),
-                        ),
+                  isLoading: _isSubmittingNewType,
+                  width: 140,
                 ),
               ),
             ],
@@ -536,54 +630,6 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
         );
       }
     }
-  }
-
-  Widget _buildAddPhotosButton() {
-    return Obx(() {
-      final photos = _ctrl.attachedPhotos;
-      final canAddMore = photos.length < TicketsController.maxPhotos;
-
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          OutlinedButton.icon(
-            onPressed: canAddMore ? _showPhotoPickerSheet : null,
-            icon: Icon(
-              Icons.image_outlined,
-              size: 20,
-              color: canAddMore
-                  ? AppColors.neutralInk700
-                  : AppColors.neutralInk400,
-            ),
-            label: Text(
-              photos.isEmpty
-                  ? 'addPhotos'.tr
-                  : '${'addPhotos'.tr} (${photos.length}/${TicketsController.maxPhotos})',
-              style: AppTextStyles.bodyMedium.copyWith(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: canAddMore
-                    ? AppColors.neutralInk900
-                    : AppColors.neutralInk400,
-              ),
-            ),
-            style: OutlinedButton.styleFrom(
-              backgroundColor: AppColors.surfaceWhite,
-              foregroundColor: AppColors.neutralInk900,
-              side: const BorderSide(color: AppColors.neutralLine200),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(999),
-              ),
-            ),
-          ),
-          if (photos.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            _buildPhotoGrid(photos),
-          ],
-        ],
-      );
-    });
   }
 
   void _showPhotoPickerSheet() {
@@ -700,58 +746,6 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
     }
   }
 
-  Widget _buildPhotoGrid(List<File> photos) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: List.generate(photos.length, (index) {
-        return Stack(
-          clipBehavior: Clip.none,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.file(
-                photos[index],
-                width: 64,
-                height: 64,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: AppColors.neutralLine200,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.broken_image_outlined,
-                    size: 24,
-                    color: AppColors.neutralInk400,
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              top: -6,
-              right: -6,
-              child: GestureDetector(
-                onTap: () => _ctrl.removePhoto(index),
-                child: Container(
-                  width: 20,
-                  height: 20,
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade600,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.close, size: 12, color: Colors.white),
-                ),
-              ),
-            ),
-          ],
-        );
-      }),
-    );
-  }
-
   Future<void> _handleCreateTicket() async {
     if (_ctrl.selectedCategoryId.value == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -788,69 +782,43 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
   Widget _buildFooter(BuildContext context) {
     return Obx(() {
       final isCreating = _ctrl.isCreatingTicket.value;
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: isCreating ? null : _handleCreateTicket,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.brandSage600,
-                foregroundColor: AppColors.surfaceWhite,
-                disabledBackgroundColor: AppColors.brandSage600.withOpacity(
-                  0.6,
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                elevation: 0,
-              ),
-              child: isCreating
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.surfaceWhite,
-                      ),
-                    )
-                  : Text(
-                      'createTicket'.tr,
-                      style: AppTextStyles.button.copyWith(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.surfaceWhite,
-                      ),
-                    ),
-            ),
+      final canSubmit = _ctrl.selectedCategoryId.value != null &&
+          _descriptionController.text.trim().isNotEmpty &&
+          !isCreating;
+
+      return Container(
+        height: 60,
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceWarm50,
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(_radius),
+            bottomRight: Radius.circular(_radius),
           ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: isCreating ? null : () => Navigator.of(context).pop(),
-              style: OutlinedButton.styleFrom(
-                backgroundColor: AppColors.surfaceWhite,
-                foregroundColor: AppColors.neutralInk900,
-                side: const BorderSide(color: AppColors.neutralLine200),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(999),
-                ),
-              ),
-              child: Text(
-                'cancel'.tr,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.neutralInk700,
-                ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Expanded(
+              child: OutlinedCustomButton(
+                text: 'cancel'.tr,
+                onPressed:
+                    isCreating ? null : () => Navigator.of(context).pop(),
+                width: 100,
               ),
             ),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: GradientButton(
+                text: 'createTicket'.tr,
+                icon: Icons.send_rounded,
+                onPressed: canSubmit ? () => _handleCreateTicket() : null,
+                isLoading: isCreating,
+                width: 140,
+              ),
+            ),
+          ],
+        ),
       );
     });
   }

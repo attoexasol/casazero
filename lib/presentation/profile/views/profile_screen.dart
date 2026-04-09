@@ -28,9 +28,12 @@ class ProfileScreen extends StatelessWidget {
     final profileController = Get.find<ProfileController>();
     
     // NO SCAFFOLD/APPBAR - This screen is wrapped by MainScaffold
+    // Same effective background as Documents: MainScaffold white + theme surface;
+    // backgroundColor avoids RefreshIndicator using a non-white Material surface.
     return RefreshIndicator(
       onRefresh: () => profileController.refreshData(),
       color: AppColors.brandSage500,
+      backgroundColor: AppColors.surfaceWhite,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(), // Enable pull-to-refresh even when content doesn't scroll
         child: Padding(

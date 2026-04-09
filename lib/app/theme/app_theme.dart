@@ -15,13 +15,12 @@ class AppTheme {
       onSecondary: AppColors.neutralInk900,
       error: AppColors.danger,
       onError: AppColors.surfaceWhite,
-      surface: AppColors.surfaceWarm50,
+      surface: AppColors.surfaceWhite,
       onSurface: AppColors.neutralInk900,
       outline: AppColors.neutralLine200,
     ),
 
-    // Scaffold
-    scaffoldBackgroundColor: AppColors.surfaceWarm50,
+    scaffoldBackgroundColor: AppColors.surfaceWhite,
 
     // App Bar
     appBarTheme: const AppBarTheme(

@@ -111,10 +111,11 @@ double _sparkleDegrees(double t) {
   return 0;
 }
 
-// Soft aqua for line and accents (Figma: not strong green / not Material teal).
+// Timeline line + completed nodes: aqua (unchanged). In-progress uses brand sage below.
 const Color _timelineLineColor = AppColors.aquaGreen200;
 const Color _circleAquaFill = AppColors.aquaGreen700;
-const Color _circleAquaLight = AppColors.aquaGreen100;
+const Color _inProgressBrandDark = AppColors.brandSage800;
+const Color _inProgressBrandLightBg = AppColors.brandSage100;
 const Color _circleGrey = AppColors.neutralLine200;
 const double _circleDiameter = 44;
 const double _lineWidth = 2;
@@ -228,7 +229,11 @@ class _TimelineIndicator extends StatelessWidget {
             top: isFirst ? centerY : 0,
             bottom: isLast ? rowHeight - centerY : 0,
             width: _lineWidth,
-            child: Container(color: _timelineLineColor),
+            child: Container(
+              color: status == 'in-progress'
+                  ? _inProgressBrandDark
+                  : _timelineLineColor,
+            ),
           ),
           Positioned(
             left: (_indicatorWidth - _circleDiameter) / 2,
@@ -266,9 +271,9 @@ class _TimelineCircle extends StatelessWidget {
       iconData = Icons.check;
       elevation = 1;
     } else if (isActive) {
-      bgColor = _circleAquaLight;
-      borderColor = _circleAquaFill;
-      iconColor = _circleAquaFill;
+      bgColor = _inProgressBrandLightBg;
+      borderColor = _inProgressBrandDark;
+      iconColor = _inProgressBrandDark;
       iconData = Icons.construction;
       elevation = 2;
     } else {
@@ -350,7 +355,7 @@ class _StepCard extends StatelessWidget {
     final borderWidth = isActive ? 2.0 : (isFuture ? 1.0 : 0.0);
     final borderColor = isFuture
         ? AppColors.neutralLine200
-        : (isActive ? _circleAquaFill : Colors.transparent);
+        : (isActive ? _inProgressBrandDark : Colors.transparent);
     final hasShadow = !isFuture;
 
     final phaseSemantics = phaseIndex != null && totalPhases != null
@@ -375,7 +380,7 @@ class _StepCard extends StatelessWidget {
               ? [
                   BoxShadow(
                     color: isActive
-                        ? _circleAquaFill.withOpacity(0.12)
+                        ? _inProgressBrandDark.withOpacity(0.12)
                         : Colors.black.withOpacity(0.04),
                     blurRadius: isActive ? 8 : 4,
                     spreadRadius: isActive ? 0 : 0,
@@ -477,7 +482,9 @@ class _StepCard extends StatelessWidget {
                     margin: const EdgeInsets.only(right: 6),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: _circleAquaFill,
+                      color: isCompleted
+                          ? _circleAquaFill
+                          : _inProgressBrandDark,
                     ),
                   ),
                 Text(
@@ -485,7 +492,9 @@ class _StepCard extends StatelessWidget {
                   style: AppTextStyles.bodySmall.copyWith(
                     color: isFuture
                         ? AppColors.neutralInk400
-                        : AppColors.neutralInk500,
+                        : (isActive
+                            ? _inProgressBrandDark
+                            : AppColors.neutralInk500),
                     fontSize: 12,
                   ),
                 ),
