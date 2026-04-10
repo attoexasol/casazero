@@ -443,19 +443,19 @@ class _StepCard extends StatelessWidget {
                                   Icon(
                                     Icons.description_outlined,
                                     size: 16,
-                                    color: AppColors.aquaGreen700,
+                                    color: AppColors.brandSage800,
                                   ),
                                   const SizedBox(width: 4),
                                   Icon(
                                     Icons.open_in_new,
                                     size: 14,
-                                    color: AppColors.aquaGreen700,
+                                    color: AppColors.brandSage800,
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
                                     'view_document'.tr,
                                     style: AppTextStyles.bodySmall.copyWith(
-                                      color: AppColors.aquaGreen700,
+                                      color: AppColors.brandSage800,
                                       fontWeight: FontWeight.w500,
                                       fontSize: 12,
                                     ),

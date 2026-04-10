@@ -620,7 +620,7 @@ class _AnimatedNotificationButtonState extends State<_AnimatedNotificationButton
               clipBehavior: Clip.none,
               children: [
                 Icon(
-                  Icons.notifications,
+                  Icons.notifications_outlined,
                   size: 30.sp,
                   color: AppColors.brandSage600,
                 ),
