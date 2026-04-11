@@ -194,7 +194,11 @@ class MaintenanceTask {
   }
 
   /// Factory constructor to parse from API JSON
-  factory MaintenanceTask.fromJson(Map<String, dynamic> json) {
+  /// [fallbackResidenceId] is used when the payload omits `residence_id` (e.g. residence-wise list API).
+  factory MaintenanceTask.fromJson(
+    Map<String, dynamic> json, {
+    int? fallbackResidenceId,
+  }) {
     // DEBUG: Log full task JSON to find priority field
     print('🔍 [MaintenanceTask] Full task JSON for ID ${json['id']}:');
     print('   All keys: ${json.keys.toList()}');
@@ -511,7 +515,10 @@ class MaintenanceTask {
 
     // Get IDs from nested objects if not present directly
     final maintenanceCategoryId = json['maintenance_category_id'] ?? categoryObj?.id ?? 0;
-    final residenceId = json['residence_id'] ?? residenceObj?.id ?? 0;
+    final residenceId = json['residence_id'] ??
+        residenceObj?.id ??
+        fallbackResidenceId ??
+        0;
     final maintenanceItemId = json['maintenance_item_id'] ?? itemObj?.id;
 
     // Title will be populated from item_name_en/item_name_it (reactive via getTitle())
@@ -665,7 +672,9 @@ class MaintenanceCompany {
   factory MaintenanceCompany.fromJson(Map<String, dynamic> json) {
     return MaintenanceCompany(
       id: json['id'] ?? 0,
-      name: json['name']?.toString() ?? '',
+      name: json['company_name']?.toString() ??
+          json['name']?.toString() ??
+          '',
       phone: json['phone']?.toString(),
     );
   }

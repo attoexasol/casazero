@@ -728,8 +728,11 @@ class MaintenanceTaskCard extends StatelessWidget {
 
                                 // Company Name and Phone
                                 if (task.companyObj != null &&
-                                    task.companyObj!.phone != null &&
-                                    task.companyObj!.phone!.isNotEmpty) ...[
+                                    (task.companyObj!.name.isNotEmpty ||
+                                        (task.companyObj!.phone != null &&
+                                            task.companyObj!
+                                                .phone!
+                                                .isNotEmpty))) ...[
                                   const SizedBox(height: 16),
                                   Obx(() {
                                     final localeController =
@@ -746,8 +749,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                     );
                                   }),
                                   const SizedBox(height: 4),
-                                  // Company Name
-                                  if (task.companyObj!.name.isNotEmpty) ...[
+                                  if (task.companyObj!.name.isNotEmpty)
                                     Text(
                                       task.companyObj!.name,
                                       style: AppTextStyles.bodyMedium.copyWith(
@@ -755,68 +757,69 @@ class MaintenanceTaskCard extends StatelessWidget {
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
-                                    //const SizedBox(height: 2),
-                                  ],
-                                  // Company Phone
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          task.companyObj!.phone!,
-                                          style: AppTextStyles.bodyMedium
-                                              .copyWith(
-                                                color: AppColors.neutralInk700,
-                                              ),
+                                  if (task.companyObj!.phone != null &&
+                                      task.companyObj!.phone!.isNotEmpty) ...[
+                                    if (task.companyObj!.name.isNotEmpty)
+                                      const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            task.companyObj!.phone!,
+                                            style: AppTextStyles.bodyMedium
+                                                .copyWith(
+                                                  color:
+                                                      AppColors.neutralInk700,
+                                                ),
+                                          ),
                                         ),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.call,
-                                          size: 20,
-                                          color: AppColors.brandSage400,
-                                        ),
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(),
-                                        onPressed: () async {
-                                          final phoneNumber =
-                                              task.companyObj!.phone!;
-                                          // Clean phone number (remove spaces, dashes, etc.)
-                                          final cleanedNumber = phoneNumber
-                                              .replaceAll(
-                                                RegExp(r'[\s\-\(\)]'),
-                                                '',
-                                              );
-                                          final uri = Uri.parse(
-                                            'tel:$cleanedNumber',
-                                          );
-
-                                          try {
-                                            // For tel: scheme, launch directly without canLaunchUrl check
-                                            // This avoids platform channel issues and is more reliable for phone calls
-                                            final launched = await launchUrl(
-                                              uri,
-                                              mode: LaunchMode
-                                                  .externalApplication,
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.call,
+                                            size: 20,
+                                            color: AppColors.brandSage400,
+                                          ),
+                                          padding: EdgeInsets.zero,
+                                          constraints: const BoxConstraints(),
+                                          onPressed: () async {
+                                            final phoneNumber =
+                                                task.companyObj!.phone!;
+                                            final cleanedNumber = phoneNumber
+                                                .replaceAll(
+                                                  RegExp(r'[\s\-\(\)]'),
+                                                  '',
+                                                );
+                                            final uri = Uri.parse(
+                                              'tel:$cleanedNumber',
                                             );
 
-                                            if (!launched) {
-                                              throw Exception(
-                                                'Failed to launch dialer',
+                                            try {
+                                              final launched = await launchUrl(
+                                                uri,
+                                                mode: LaunchMode
+                                                    .externalApplication,
+                                              );
+
+                                              if (!launched) {
+                                                throw Exception(
+                                                  'Failed to launch dialer',
+                                                );
+                                              }
+                                            } catch (e) {
+                                              print(
+                                                '❌ Error launching phone call: $e',
+                                              );
+                                              MessagePopupController.showError(
+                                                messageKey:
+                                                    'failed_to_open_dialer',
+                                                titleKey: 'error',
                                               );
                                             }
-                                          } catch (e) {
-                                            print(
-                                              '❌ Error launching phone call: $e',
-                                            );
-                                            MessagePopupController.showError(
-                                              messageKey: 'failed_to_open_dialer',
-                                              titleKey: 'error',
-                                            );
-                                          }
-                                        },
-                                      ),
-                                    ],
-                                  ),
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ],
 
                                 // Attachments

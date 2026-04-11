@@ -385,6 +385,12 @@ class ApiConstants {
   /// Headers: Authorization: Bearer {token} (automatically added by ApiService)
   static const String GET_MAINTENANCE_TASKS = '/maintenance/list';
 
+  /// Residence-wise maintenance list
+  /// POST /residence_wise/maintenance
+  /// Request: { "residence_id": <int> }
+  static const String POST_RESIDENCE_WISE_MAINTENANCE =
+      '/residence_wise/maintenance';
+
   /// GET /maintenance_categories/list
   /// Response: {
   ///   "status": true,

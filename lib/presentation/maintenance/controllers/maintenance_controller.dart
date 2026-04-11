@@ -14,6 +14,7 @@ import '../../../core/services/api_service.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/localization/locale_controller.dart';
+import '../../home/controllers/home_controller.dart';
 
 class MaintenanceController extends GetxController {
   // API Service
@@ -70,11 +71,39 @@ class MaintenanceController extends GetxController {
     selectedFileName.value = '';
     selectedFileSize.value = '';
     fetchMaintenanceCategories();
-    fetchMaintenanceTasks();
+    _bindResidenceAndFetchTasks();
+  }
+
+  /// Refetch tasks when the selected residence changes (and on first load if already set).
+  void _bindResidenceAndFetchTasks() {
+    try {
+      final home = Get.find<HomeController>();
+      ever(home.selectedResidence, (dynamic _) {
+        if (home.selectedResidence.value != null) {
+          fetchMaintenanceTasks();
+        } else {
+          tasks.clear();
+          filteredTasks.clear();
+          totalTaskCount.value = 0;
+          hasError.value = false;
+          errorMessage.value = '';
+          _updateFilterCounts([]);
+          _updateCategoryTaskCounts();
+          _applyFilter();
+        }
+      });
+      if (home.selectedResidence.value != null) {
+        fetchMaintenanceTasks();
+      }
+    } catch (e) {
+      print(
+        '⚠️ [MaintenanceController] HomeController unavailable, skipping residence-wise bind: $e',
+      );
+    }
   }
 
   /// Fetch maintenance tasks from API
-  /// GET /maintenance/list
+  /// POST /residence_wise/maintenance — body: { "residence_id": <id> }
   /// Authorization header is automatically added by ApiService interceptor
   Future<void> fetchMaintenanceTasks() async {
     try {
@@ -82,27 +111,46 @@ class MaintenanceController extends GetxController {
       errorMessage.value = '';
       hasError.value = false;
 
+      int? residenceId;
+      try {
+        final home = Get.find<HomeController>();
+        residenceId = home.selectedResidence.value?.id;
+      } catch (_) {}
+
+      if (residenceId == null || residenceId <= 0) {
+        print(
+          '⚠️ [MaintenanceController] No residence selected; skip maintenance list fetch',
+        );
+        tasks.clear();
+        filteredTasks.clear();
+        totalTaskCount.value = 0;
+        _updateFilterCounts([]);
+        _updateCategoryTaskCounts();
+        _applyFilter();
+        hasError.value = true;
+        errorMessage.value = 'please_select_residence'.tr;
+        return;
+      }
+
       print(
         '📡 [MaintenanceController] Fetching maintenance tasks from API...',
       );
       print(
-        '🔗 [MaintenanceController] Endpoint: ${ApiConstants.GET_MAINTENANCE_TASKS}',
+        '🔗 [MaintenanceController] Endpoint: ${ApiConstants.POST_RESIDENCE_WISE_MAINTENANCE} residence_id=$residenceId',
       );
       print(
         '🔑 [MaintenanceController] Authorization: Bearer token (handled by ApiService)',
       );
 
-      // Call GET API endpoint
-      // Authorization header is automatically added by ApiService interceptor
-      // See: ApiService.onRequest() interceptor adds 'Authorization: Bearer {token}'
-      final response = await _apiService.get(
-        ApiConstants.GET_MAINTENANCE_TASKS,
+      final response = await _apiService.post(
+        ApiConstants.POST_RESIDENCE_WISE_MAINTENANCE,
+        data: {'residence_id': residenceId},
       );
 
       // Print full API response for debugging
       print('');
       print('═══════════════════════════════════════════════════════════════════════════════');
-      print('📥 [MaintenanceController] GET_MAINTENANCE_TASKS API RESPONSE');
+      print('📥 [MaintenanceController] RESIDENCE_WISE_MAINTENANCE API RESPONSE');
       print('═══════════════════════════════════════════════════════════════════════════════');
       print('📥 [MaintenanceController] Status Code: ${response.statusCode}');
       print('📥 [MaintenanceController] Response Headers: ${response.headers}');
@@ -121,8 +169,9 @@ class MaintenanceController extends GetxController {
       print('═══════════════════════════════════════════════════════════════════════════════');
       print('');
 
+      final okStatus = response.statusCode == 200 || response.statusCode == 201;
       // Check response status
-      if (response.statusCode == 200 && response.data != null) {
+      if (okStatus && response.data != null) {
         final responseData = response.data as Map<String, dynamic>;
         
         // Print parsed response structure
@@ -153,7 +202,10 @@ class MaintenanceController extends GetxController {
                   if (dataList.indexOf(item) == 0) {
                     print('   Full task JSON: $taskMap');
                   }
-                  return MaintenanceTask.fromJson(taskMap);
+                  return MaintenanceTask.fromJson(
+                    taskMap,
+                    fallbackResidenceId: residenceId,
+                  );
                 } catch (e) {
                   print('⚠️ [MaintenanceController] Error parsing task: $e');
                   print('⚠️ [MaintenanceController] Task data: $item');
