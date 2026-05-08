@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "723506608298",
-    "project_id": "casazero-3ab94",
-    "storage_bucket": "casazero-3ab94.firebasestorage.app"
+    "project_number": "898881501223",
+    "project_id": "casazero-a39ba",
+    "storage_bucket": "casazero-a39ba.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:723506608298:android:db9bc683166d751cc3b8d3",
+        "mobilesdk_app_id": "1:898881501223:android:17405e3e7a4951729fb602",
         "android_client_info": {
           "package_name": "com.example.casazero"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyACwUu7gk6GJhFYxvTVG7i-uVbqh2AEA-g"
+          "current_key": "AIzaSyCM7LpX9Ve5RHNIZfiTUMC3URpQDQ5Z91M"
         }
       ],
       "services": {
