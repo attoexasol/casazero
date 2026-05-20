@@ -2,6 +2,7 @@
 // UPDATED VERSION with auto-login functionality
 
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
@@ -42,7 +43,10 @@ class SplashController extends GetxController {
     print('  - User Data: ${userData != null ? "Found" : "Not found"}');
 
     if (accessToken != null && accessToken.isNotEmpty && userData != null) {
-      // User is authenticated - ensure Firebase is signed in for chat
+      final hasFirebaseToken =
+          _storageService.getStoredFirebaseToken() != null;
+      print('  - Stored firebase_token: ${hasFirebaseToken ? "Found" : "MISSING — log out and log in again"}');
+      _storageService.debugPrintStorageKeys();
       await _ensureFirebaseSignedIn();
       print('  ✅ User authenticated - navigating to HOME');
       _navigateToHome();
@@ -54,24 +58,21 @@ class SplashController extends GetxController {
   }
 
   /// When app restarts with valid session, Firebase Auth may have been cleared.
-  /// Fetch firebase_token from API and sign in so chat works.
+  /// Resolves custom token from Laravel and signs in so chat works.
   Future<void> _ensureFirebaseSignedIn() async {
     try {
-      final firebaseAuthService = Get.find<FirebaseAuthService>();
-      if (firebaseAuthService.isSignedIn) {
-        print('  🔥 Firebase already signed in');
-        return;
-      }
       final authRepo = Get.find<AuthRepository>();
-      final firebaseToken = await authRepo.getFirebaseToken();
-      if (firebaseToken != null && firebaseToken.isNotEmpty) {
-        await firebaseAuthService.signInWithCustomToken(firebaseToken);
-        print('Firebase UID after login: ${firebaseAuthService.firebaseUid}');
+      final ok = await authRepo.syncFirebaseAuthAfterLogin();
+      final fb = Get.find<FirebaseAuthService>();
+      if (ok && fb.isSignedIn) {
+        debugPrint('  [Splash] Firebase signed in uid=${fb.firebaseUid}');
       } else {
-        print('  ⚠️ No firebase token from API - chat may not work');
+        debugPrint(
+          '  [Splash] Firebase not signed in (syncOk=$ok) — uses stored login firebase_token if available',
+        );
       }
     } catch (e) {
-      print('  ⚠️ Firebase sign-in on splash failed: $e');
+      debugPrint('  [Splash] Firebase sign-in on splash failed: $e');
     }
   }
 

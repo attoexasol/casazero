@@ -15,10 +15,13 @@ class ForgotChangePasswordController extends GetxController {
   final StorageService _storageService = Get.find();
 
   // ---------------------------------------------------------------------------
-  // TEXT CONTROLLERS
+  // TEXT CONTROLLERS (owned by ForgotChangePasswordScreen State)
   // ---------------------------------------------------------------------------
-  final newPasswordController = TextEditingController();
-  final confirmPasswordController = TextEditingController();
+  late TextEditingController newPasswordController;
+  late TextEditingController confirmPasswordController;
+  bool _textControllersBound = false;
+
+  VoidCallback? _formUpdateListener;
 
   // ---------------------------------------------------------------------------
   // OBSERVABLES FOR UI
@@ -27,6 +30,7 @@ class ForgotChangePasswordController extends GetxController {
   final RxBool showConfirmPassword = false.obs;
 
   final RxBool isLoading = false.obs;
+  final RxBool isCompleted = false.obs;
   final RxBool hasPasswordInput = false.obs;
   final RxBool showPasswordMatch = false.obs;
 
@@ -34,28 +38,46 @@ class ForgotChangePasswordController extends GetxController {
       <PasswordRequirement>[].obs;
 
   // ---------------------------------------------------------------------------
-  // LIFECYCLE
+  // TEXT CONTROLLER BINDING
   // ---------------------------------------------------------------------------
-  @override
-  void onInit() {
-    super.onInit();
+  void bindTextControllers({
+    required TextEditingController newPassword,
+    required TextEditingController confirmPassword,
+  }) {
+    if (_textControllersBound) return;
 
-    // Update password strength + rules
+    newPasswordController = newPassword;
+    confirmPasswordController = confirmPassword;
+    _textControllersBound = true;
+
     newPasswordController.addListener(_updatePasswordRequirements);
-
-    // Show/hide password match section
     newPasswordController.addListener(_updatePasswordMatchVisibility);
     confirmPasswordController.addListener(_updatePasswordMatchVisibility);
 
-    // Update GetBuilder UI for submit button / form state
-    newPasswordController.addListener(() => update());
-    confirmPasswordController.addListener(() => update());
+    _formUpdateListener = () => update();
+    newPasswordController.addListener(_formUpdateListener!);
+    confirmPasswordController.addListener(_formUpdateListener!);
+  }
+
+  void unbindTextControllers() {
+    if (!_textControllersBound) return;
+
+    newPasswordController.removeListener(_updatePasswordRequirements);
+    newPasswordController.removeListener(_updatePasswordMatchVisibility);
+    confirmPasswordController.removeListener(_updatePasswordMatchVisibility);
+
+    if (_formUpdateListener != null) {
+      newPasswordController.removeListener(_formUpdateListener!);
+      confirmPasswordController.removeListener(_formUpdateListener!);
+      _formUpdateListener = null;
+    }
+
+    _textControllersBound = false;
   }
 
   @override
   void onClose() {
-    newPasswordController.dispose();
-    confirmPasswordController.dispose();
+    unbindTextControllers();
     super.onClose();
   }
 
@@ -63,8 +85,9 @@ class ForgotChangePasswordController extends GetxController {
   // INPUT LISTENERS
   // ---------------------------------------------------------------------------
 
-  /// updates the password strength requirements from Validators class
   void _updatePasswordRequirements() {
+    if (!_textControllersBound) return;
+
     final newPassword = newPasswordController.text;
 
     hasPasswordInput.value = newPassword.isNotEmpty;
@@ -72,11 +95,12 @@ class ForgotChangePasswordController extends GetxController {
     passwordRequirements.value =
         Validators.getPasswordRequirements(newPassword);
 
-    update(); // updates GetBuilder UI
+    update();
   }
 
-  /// updates when to show the "passwords match" message
   void _updatePasswordMatchVisibility() {
+    if (!_textControllersBound) return;
+
     showPasswordMatch.value =
         newPasswordController.text.isNotEmpty &&
             confirmPasswordController.text.isNotEmpty;
@@ -98,16 +122,19 @@ class ForgotChangePasswordController extends GetxController {
   // ---------------------------------------------------------------------------
 
   bool get passwordsMatch =>
+      _textControllersBound &&
       newPasswordController.text == confirmPasswordController.text;
 
   bool get isPasswordStrong =>
+      _textControllersBound &&
       Validators.isPasswordStrong(newPasswordController.text);
 
   bool get canSubmit =>
+      _textControllersBound &&
       newPasswordController.text.isNotEmpty &&
-          confirmPasswordController.text.isNotEmpty &&
-          passwordsMatch &&
-          isPasswordStrong;
+      confirmPasswordController.text.isNotEmpty &&
+      passwordsMatch &&
+      isPasswordStrong;
 
   // ---------------------------------------------------------------------------
   // SUBMIT PASSWORD RESET
@@ -115,7 +142,6 @@ class ForgotChangePasswordController extends GetxController {
   Future<void> handleResetPassword({
     required Function(String message) onSuccess,
   }) async {
-    // Empty fields
     if (!canSubmit) {
       _showError('complete_fields');
       return;
@@ -123,7 +149,6 @@ class ForgotChangePasswordController extends GetxController {
 
     isLoading.value = true;
 
-    // Get email from storage (set during forgot password flow)
     final userData = _storageService.getUserData();
     final email = userData?['email'] ?? '';
 
@@ -141,6 +166,8 @@ class ForgotChangePasswordController extends GetxController {
     isLoading.value = false;
 
     if (result['success'] == true) {
+      isCompleted.value = true;
+      FocusManager.instance.primaryFocus?.unfocus();
       onSuccess('password_reset_successful');
     } else {
       _showError('password_reset_failed');

@@ -1,7 +1,14 @@
 // data/repositories/auth_repository.dart
 // UPDATED WITH FCM TOKEN AND NEW API STRUCTURE
 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+
+import '../../core/utils/firebase_jwt_debug.dart';
+import '../../core/utils/firebase_response_parser.dart';
+import '../../core/utils/login_api_debug.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/firebase_auth_service.dart';
 import '../../core/services/device_info_service.dart';
@@ -52,58 +59,84 @@ class AuthRepository {
       print('  Phone: ${phone ?? 'not provided'}');
       print('  Stored Token: $storedToken');
 
-      final response = await _apiService.post(
-        ApiConstants.LOGIN,
-        data: {
-          'email': email,
-          'phone': phone ?? '',
-          'password': password,
-          'device_id': deviceInfo['device_id'],
-          'device_name': deviceInfo['device_name'],
-          'platform': deviceInfo['platform'],
-          'ip_address': deviceInfo['ip_address'],
-          'lat': deviceInfo['lat'],
-          'lng': deviceInfo['lng'],
-          'fcm_token': fcmToken,
-          'token': storedToken,
-        },
+      final loginUrl = ApiConstants.buildUrl(ApiConstants.LOGIN);
+      final loginPayload = {
+        'email': email,
+        'phone': phone ?? '',
+        'password': password,
+        'device_id': deviceInfo['device_id'],
+        'device_name': deviceInfo['device_name'],
+        'platform': deviceInfo['platform'],
+        'ip_address': deviceInfo['ip_address'],
+        'lat': deviceInfo['lat'],
+        'lng': deviceInfo['lng'],
+        'fcm_token': fcmToken,
+        'token': storedToken,
+      };
+
+      LoginApiDebug.logRequest(
+        method: 'POST',
+        fullUrl: loginUrl,
+        body: loginPayload,
       );
 
-      print('✅ Login Response:');
-      print('  Status Code: ${response.statusCode}');
-      print('  Status: ${response.data['status']}');
-      print('  Message: ${response.data['message']}');
-      print('  Is Trusted: ${response.data['is_trusted']}');
-      print('  Access Token (response.token): ${response.data['token']}');
-      if (response.data['firebase_token'] != null) {
-        print('  Firebase Token: ${response.data['firebase_token']}');
-      }
+      final response = await _apiService.post(
+        ApiConstants.LOGIN,
+        data: loginPayload,
+      );
 
-      if (response.statusCode == 200 && response.data['status'] == true) {
-        // Save the new token from response for next login
-        if (response.data['token'] != null) {
-          await _storageService.saveDeviceToken(response.data['token']);
-          print(
-            '💾 Device Token Saved (for trusted login): ${response.data['token']}',
-          );
+      final body = FirebaseResponseParser.normalizeBody(response.data);
+
+      LoginApiDebug.logResponse(
+        fullUrl: loginUrl,
+        statusCode: response.statusCode,
+        rawData: response.data,
+        normalizedBody: body,
+      );
+
+      if (body == null) {
+        debugPrint('[LOGIN] ERROR — response body is not a Map');
+        return {'success': false, 'error': 'Invalid login response format'};
+      }
+      final statusOk = _isSuccessStatus(body['status']);
+
+      if (response.statusCode == 200 && statusOk) {
+        if (body['token'] != null) {
+          await _storageService.saveDeviceToken(body['token'].toString());
         }
 
-        // firebase_token may be at top level or in data
-        final firebaseToken = response.data['firebase_token'] ??
-            response.data['data']?['firebase_token'];
+        if (body['user'] is Map) {
+          await _storageService.saveUserData(
+            Map<String, dynamic>.from(body['user'] as Map),
+          );
+        }
+        if (body['token'] != null) {
+          await _storageService.saveAccessToken(body['token'].toString());
+        }
+
+        final firebaseSignedIn =
+            await _persistAndSignInFirebaseFromLoginBody(body);
+
+        final firebaseToken = _storageService.getStoredFirebaseToken();
+        final firebaseProjectId = _storageService.getFirebaseProjectId();
 
         return {
           'success': true,
-          'user': UserModel.fromJson(response.data['user']),
-          'access_token': response.data['token'],
+          'user': UserModel.fromJson(
+            Map<String, dynamic>.from(body['user'] as Map),
+          ),
+          'access_token': body['token']?.toString(),
           'firebase_token': firebaseToken,
-          'is_trusted': response.data['is_trusted'] ?? false,
-          'message': response.data['message'],
+          'firebase_project_id': firebaseProjectId,
+          'firebase_signed_in': firebaseSignedIn,
+          'is_trusted': body['is_trusted'] ?? false,
+          'message': body['message'],
         };
       } else {
+        final msg = body?['message'] ?? response.data?['message'];
         return {
           'success': false,
-          'error': response.data['message'] ?? 'Login failed',
+          'error': msg?.toString() ?? 'Login failed',
         };
       }
     } catch (e) {
@@ -112,9 +145,94 @@ class AuthRepository {
     }
   }
 
+  /// Top-level parse → local storage → immediate Firebase sign-in (creates Auth user).
+  Future<bool> _persistAndSignInFirebaseFromLoginBody(
+    Map<String, dynamic> body,
+  ) async {
+    // Laravel may send snake_case (firebase_token) or camelCase (firebaseToken) at top level.
+    final firebaseToken = FirebaseResponseParser.extractFirebaseToken(body);
+    final projectId = FirebaseResponseParser.extractFirebaseProjectId(body);
+
+    print(
+      '[LOGIN] parsed token from key: '
+      '${body['firebase_token'] != null ? "firebase_token" : (body['firebaseToken'] != null ? "firebaseToken" : "none")}',
+    );
+
+    if (firebaseToken == null) {
+      await _storageService.clearFirebaseToken();
+      print('[LOGIN] ERROR — no top-level firebase_token or firebaseToken');
+      return false;
+    }
+
+    await _storageService.saveFirebaseToken(firebaseToken);
+    if (projectId != null && projectId.isNotEmpty) {
+      await _storageService.saveFirebaseProjectId(projectId);
+    }
+    print('[LOGIN] stored firebase_token successfully');
+    _storageService.debugPrintStorageKeys();
+
+    final payload = FirebaseJwtDebug.decodePayload(firebaseToken);
+    print('[LOGIN] JWT ${FirebaseJwtDebug.describeClaims(payload)}');
+
+    return _signInWithStoredFirebaseToken(
+      firebaseToken,
+      source: 'login',
+    );
+  }
+
+  /// Signs in with custom token — Firebase Auth user is created on first success.
+  Future<bool> _signInWithStoredFirebaseToken(
+    String token, {
+    required String source,
+  }) async {
+    if (Firebase.apps.isEmpty) {
+      print('[FirebaseAuth] ABORT — Firebase not initialized');
+      return false;
+    }
+
+    print('[FirebaseAuth] signInWithCustomToken START ($source)');
+    print('[FirebaseAuth] token length=${token.length}');
+    try {
+      print(
+        '[FirebaseAuth] client projectId=${Firebase.app().options.projectId}',
+      );
+    } catch (_) {}
+
+    try {
+      final fb = Get.find<FirebaseAuthService>();
+      final expectedUid = _storageService.getUserData()?['id']?.toString();
+      final ok = await fb.signInWithCustomToken(
+        token,
+        expectedLaravelUserId: expectedUid,
+      );
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      print('[FirebaseAuth] SUCCESS uid=$uid');
+      print('[FirebaseAuth] currentUser=${FirebaseAuth.instance.currentUser?.uid}');
+      return ok && uid != null;
+    } catch (e, st) {
+      print('[FirebaseAuth] FAILED');
+      print('[FirebaseAuth] error=$e');
+      print('[FirebaseAuth] stackTrace:\n$st');
+      try {
+        print('[FirebaseAuth] projectId=${Firebase.app().options.projectId}');
+      } catch (_) {}
+      print('[FirebaseAuth] currentUser=${FirebaseAuth.instance.currentUser?.uid}');
+      return false;
+    }
+  }
+
+  bool _isSuccessStatus(dynamic status) {
+    if (status == true || status == 1) return true;
+    if (status is String) {
+      final s = status.toLowerCase();
+      return s == 'true' || s == '1';
+    }
+    return false;
+  }
+
   // Logout
   /// POST /user/logout
-  /// API URL: https://smarthome.attoexasolutions.com/api/user/logout
+  /// API URL: https://backend.casazero.site/api/user/logout
   /// Request: { "token": "USER_API_TOKEN" }
   /// Response: { "status": true, "message": "Logout successful" }
   /// 
@@ -139,7 +257,7 @@ class AuthRepository {
       print('📦 Request Body: { "token": "${token.substring(0, 10)}..." }');
 
       // Call logout API with token in request body
-      // API URL: https://smarthome.attoexasolutions.com/api/user/logout
+      // API URL: https://backend.casazero.site/api/user/logout
       final response = await _apiService.post(
         ApiConstants.LOGOUT,
         data: {'token': token},
@@ -153,6 +271,8 @@ class AuthRepository {
       if (response.statusCode == 200 && response.data['status'] == true) {
         // Clear device token on logout
         await _storageService.clearDeviceToken();
+        await _storageService.clearFirebaseToken();
+        await _storageService.clearFirebaseProjectId();
 
         // Sign out from Firebase (use FirebaseAuthService to clear _lastSignedInUid)
         try {
@@ -189,29 +309,32 @@ class AuthRepository {
     }
   }
 
-  /// Get Firebase custom token for existing session (e.g. app restart).
-  /// POST /user/firebase-token with { "token": "USER_API_TOKEN" }
-  /// Returns firebase_token string or null if API fails.
-  Future<String?> getFirebaseToken() async {
-    try {
-      final token = _storageService.getAccessToken();
-      if (token == null || token.isEmpty) return null;
+  /// Signs into Firebase using locally stored login `firebase_token` only.
+  /// Never calls any backend Firebase token endpoint.
+  /// App restart / splash / OTP — read stored login token only (no API).
+  Future<bool> syncFirebaseAuthAfterLogin() async {
+    final storedToken = _storageService.getStoredFirebaseToken();
 
-      final response = await _apiService.post(
-        ApiConstants.GET_FIREBASE_TOKEN,
-        data: {'token': token},
-      );
+    print('storedToken exists=${storedToken != null}');
+    print('storedToken length=${storedToken?.length ?? 0}');
+    print(
+      'firebase_project_id=${_storageService.getFirebaseProjectId() ?? "null"}',
+    );
 
-      if (response.statusCode == 200 &&
-          response.data['status'] == true &&
-          response.data['firebase_token'] != null) {
-        return response.data['firebase_token'].toString().trim();
-      }
-      return null;
-    } catch (e) {
-      print('⚠️ getFirebaseToken failed: $e');
-      return null;
+    if (storedToken == null || storedToken.isEmpty) {
+      print('[AuthRepository] No stored Firebase token — login required');
+      _storageService.debugPrintStorageKeys();
+      return false;
     }
+
+    if (FirebaseAuth.instance.currentUser != null) {
+      print(
+        '[AuthRepository] Firebase already signed in uid=${FirebaseAuth.instance.currentUser!.uid}',
+      );
+      return true;
+    }
+
+    return _signInWithStoredFirebaseToken(storedToken, source: 'sync');
   }
 
   // Forgot Password
@@ -277,7 +400,7 @@ class AuthRepository {
 
   // Change Password
   /// POST /user/forget_password
-  /// API URL: https://smarthome.attoexasolutions.com/api/user/forget_password
+  /// API URL: https://backend.casazero.site/api/user/forget_password
   /// Request: {
   ///   "user_id": 19,
   ///   "old_password": "password123",
@@ -386,7 +509,7 @@ class AuthRepository {
 
   // Set Document Password
   /// POST /user/set-document-password
-  /// API URL: https://smarthome.attoexasolutions.com/api/user/set-document-password
+  /// API URL: https://backend.casazero.site/api/user/set-document-password
   /// Request: {
   ///   "token": "USER_API_TOKEN",
   ///   "password": "123456",
@@ -869,7 +992,7 @@ class AuthRepository {
 
   // Get User Profile
   /// POST /user/profile
-  /// API URL: https://smarthome.attoexasolutions.com/api/user/profile
+  /// API URL: https://backend.casazero.site/api/user/profile
   /// Request: { "token": "USER_API_TOKEN" }
   /// Response: { "status": true, "message": "...", "data": {...} }
   /// 

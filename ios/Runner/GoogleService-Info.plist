@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyC9SkzNEFpZ_lRB01sLJuCXxE_GTAY6Pio</string>
+	<string>AIzaSyAt9vpB4M6zCf2iAaaBnk5gnvvkhKyQ28c</string>
 	<key>GCM_SENDER_ID</key>
-	<string>723506608298</string>
+	<string>898881501223</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.attoexa.casazero</string>
 	<key>PROJECT_ID</key>
-	<string>casazero-3ab94</string>
+	<string>casazero-a39ba</string>
 	<key>STORAGE_BUCKET</key>
-	<string>casazero-3ab94.firebasestorage.app</string>
+	<string>casazero-a39ba.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,8 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:723506608298:ios:9ebb404ff3ae0fecc3b8d3</string>
+	<string>1:898881501223:ios:3fcb667f185eedc09fb602</string>
+	<key>DATABASE_URL</key>
+	<string>https://casazero-a39ba-default-rtdb.europe-west1.firebasedatabase.app</string>
 </dict>
 </plist>

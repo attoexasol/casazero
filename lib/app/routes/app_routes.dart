@@ -173,8 +173,9 @@ class AppRoutes {
       page: () => ForgotChangePasswordScreen(
         onBack: () => Get.back(),
         onSuccess: (String message) {
-          Future.delayed(const Duration(milliseconds: 300), () {
-            Get.offAllNamed(AUTH);
+          FocusManager.instance.primaryFocus?.unfocus();
+          Get.offAllNamed(AUTH);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
             MessagePopupController.showSuccess(
               messageKey: message,
               titleKey: 'success',

@@ -9,6 +9,7 @@ class ApiService extends getx.GetxService {
   final StorageService _storageService = getx.Get.find();
 
   ApiService() {
+    print('[ApiService] baseUrl=${ApiConstants.BASE_URL}');
     _dio = Dio(
       BaseOptions(
         baseUrl: ApiConstants.BASE_URL,

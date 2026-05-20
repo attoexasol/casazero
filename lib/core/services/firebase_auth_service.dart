@@ -1,31 +1,183 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
-/// Centralized Firebase Auth for chat.
-/// Laravel returns firebase_token; Flutter signs in via custom token.
-/// Firebase UID MUST match Laravel user ID (string, e.g. "19").
+import '../utils/firebase_config_audit.dart';
+import '../utils/firebase_jwt_debug.dart';
+import '../utils/firebase_response_parser.dart';
+
+/// Centralized Firebase Auth for chat and FCM identity.
+/// Laravel returns a custom token; Firebase UID must match Laravel `user.id` (string).
 class FirebaseAuthService extends GetxService {
-  /// Firebase UID. Null until signInWithCustomToken succeeds.
-  String? get firebaseUid => FirebaseAuth.instance.currentUser?.uid;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  bool get isSignedIn => FirebaseAuth.instance.currentUser != null;
+  StreamSubscription<User?>? _authStateSub;
+  bool _signInLocked = false;
 
-  /// Call immediately after Laravel login success. Must be awaited before navigation.
-  /// Always signs out first to ensure correct user when switching accounts (uid 17 vs 19).
-  Future<void> signInWithCustomToken(String token) async {
-    if (token.isEmpty) return;
+  /// Last known UID from auth state stream (kept in sync with [currentUser]).
+  final RxnString firebaseUidObs = RxnString();
 
-    // Always sign out first so account switch works: if user 19 was signed in
-    // and user 17 logs in, we must clear 19 and sign in 17 (skip caused wrong UID).
-    await FirebaseAuth.instance.signOut();
+  User? get currentUser => _auth.currentUser;
 
-    await FirebaseAuth.instance.signInWithCustomToken(token);
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    debugPrint('Firebase UID after login: $uid');
+  String? get firebaseUid => _auth.currentUser?.uid;
+
+  bool get isSignedIn => _auth.currentUser != null;
+
+  @override
+  void onInit() {
+    super.onInit();
+    firebaseUidObs.value = _auth.currentUser?.uid;
+    _authStateSub = _auth.authStateChanges().listen((user) {
+      firebaseUidObs.value = user?.uid;
+      debugPrint(
+        '[FirebaseAuthService] authStateChanged uid=${user?.uid ?? "null"}',
+      );
+    });
+  }
+
+  @override
+  void onClose() {
+    _authStateSub?.cancel();
+    super.onClose();
+  }
+
+  void _logClientFirebaseContext(String phase) {
+    try {
+      final app = _auth.app;
+      final opts = app.options;
+      debugPrint(
+        '[FirebaseAuthService] $phase client projectId=${opts.projectId} '
+        'appId=${opts.appId} messagingSenderId=${opts.messagingSenderId} '
+        'appName=${app.name}',
+      );
+    } catch (e) {
+      debugPrint('[FirebaseAuthService] $phase client context error: $e');
+    }
+    debugPrint(
+      '[FirebaseAuthService] $phase Firebase.apps.length=${Firebase.apps.length}',
+    );
+    for (final a in Firebase.apps) {
+      debugPrint(
+        '[FirebaseAuthService] $phase registered app name=${a.name} projectId=${a.options.projectId}',
+      );
+    }
+  }
+
+  void _logCustomTokenClaims(String phase, String token) {
+    final payload = FirebaseJwtDebug.decodePayload(token);
+    debugPrint(
+      '[FirebaseAuthService] $phase token ${FirebaseResponseParser.describeTokenPresence(token)}',
+    );
+    debugPrint(
+      '[FirebaseAuthService] $phase JWT ${FirebaseJwtDebug.describeClaims(payload)}',
+    );
+    String? clientProjectId;
+    try {
+      clientProjectId = _auth.app.options.projectId;
+    } catch (_) {}
+    final hint = FirebaseJwtDebug.audienceMismatchHint(
+      clientProjectId: clientProjectId,
+      payload: payload,
+    );
+    if (hint != null) {
+      debugPrint('[FirebaseAuthService] $phase $hint');
+    }
+  }
+
+  /// Signs out then signs in with Laravel-issued custom token.
+  /// Returns `true` when [currentUser] is non-null after sign-in.
+  ///
+  /// [expectedLaravelUserId] — if set, logs a warning when Firebase UID differs
+  /// (misconfigured Admin SDK claims vs app expectation).
+  Future<bool> signInWithCustomToken(
+    String token, {
+    String? expectedLaravelUserId,
+  }) async {
+    final trimmed = token.trim();
+    if (trimmed.isEmpty) {
+      debugPrint(
+        '[FirebaseAuthService] signInWithCustomToken: ABORT — empty token (${FirebaseResponseParser.describeTokenPresence(token)})',
+      );
+      return false;
+    }
+
+    if (Firebase.apps.isEmpty) {
+      debugPrint(
+        '[FirebaseAuthService] signInWithCustomToken: ABORT — Firebase.apps.isEmpty (initializeApp failed or not run)',
+      );
+      return false;
+    }
+
+    while (_signInLocked) {
+      await Future<void>.delayed(const Duration(milliseconds: 40));
+    }
+    _signInLocked = true;
+
+    try {
+      _logClientFirebaseContext('BEFORE signInWithCustomToken');
+      _logCustomTokenClaims('BEFORE signInWithCustomToken', trimmed);
+
+      debugPrint(
+        '[FirebaseAuth] signInWithCustomToken START ${FirebaseResponseParser.describeTokenPresence(trimmed)}',
+      );
+      await _auth.signOut();
+      await _auth.signInWithCustomToken(trimmed);
+      final uid = _auth.currentUser?.uid;
+      if (uid == null) {
+        debugPrint('[FirebaseAuth] FAILED — currentUser null after signIn');
+        _logClientFirebaseContext('AFTER signIn FAIL (null user)');
+        return false;
+      }
+      debugPrint(
+        '[FirebaseAuth] SUCCESS uid=$uid projectId=${_auth.app.options.projectId}',
+      );
+      if (expectedLaravelUserId != null &&
+          expectedLaravelUserId.isNotEmpty &&
+          expectedLaravelUserId != uid) {
+        debugPrint(
+          '[FirebaseAuthService] WARNING: Firebase UID ($uid) != Laravel user.id ($expectedLaravelUserId). '
+          'Fix Laravel Admin SDK custom token claims (uid must be user id string).',
+        );
+      }
+      return true;
+    } on FirebaseAuthException catch (e, st) {
+      debugPrint('[FirebaseAuth] FAILED');
+      debugPrint('[FirebaseAuth] $e');
+      debugPrint('[FirebaseAuth] stackTrace:\n$st');
+      debugPrint(
+        '[FirebaseAuthService] FirebaseAuthException code=${e.code} message=${e.message}',
+      );
+      _logClientFirebaseContext('AFTER signIn FAIL (${e.code})');
+      _logCustomTokenClaims('AFTER signIn FAIL (${e.code})', trimmed);
+      FirebaseConfigAudit.logStartupState();
+      debugPrint('[FirebaseAuthService] stackTrace:\n$st');
+      if (e.code == 'custom-token-mismatch') {
+        debugPrint(
+          '[FirebaseAuthService] FIX: Laravel Kreait service account JSON must be from the SAME '
+          'Firebase project as this app (see JWT aud= vs client projectId= above). '
+          'Android/iOS google-services must also use that project.',
+        );
+      }
+      return false;
+    } catch (e, st) {
+      debugPrint('[FirebaseAuthService] signInWithCustomToken error: $e\n$st');
+      _logClientFirebaseContext('AFTER signIn FAIL (generic)');
+      _logCustomTokenClaims('AFTER signIn FAIL (generic)', trimmed);
+      return false;
+    } finally {
+      _signInLocked = false;
+    }
   }
 
   Future<void> signOut() async {
-    await FirebaseAuth.instance.signOut();
+    try {
+      await _auth.signOut();
+      debugPrint('[FirebaseAuthService] signOut: done');
+    } catch (e) {
+      debugPrint('[FirebaseAuthService] signOut error: $e');
+    }
   }
 }

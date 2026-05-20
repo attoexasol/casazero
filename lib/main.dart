@@ -19,13 +19,17 @@ import 'core/localization/locale_controller.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'firebase_options.dart';
+import 'core/utils/firebase_config_audit.dart';
 import 'helpers/local_notification_service.dart';
 import 'dart:async';
 
 /// Top-level background handler for FCM. Must not use GetX or controllers (isolate).
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   if (Firebase.apps.isEmpty) {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   }
   final messageId = message.messageId ?? 'no-id';
   final data = message.data;
@@ -46,7 +50,9 @@ void main() async {
   if (Firebase.apps.isEmpty) {
     try {
       print("🔄 Initializing Firebase from Flutter...");
-      await Firebase.initializeApp().timeout(
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      ).timeout(
         const Duration(seconds: 10), // Increased timeout
         onTimeout: () {
           print("⏱️  Firebase initialization timed out after 10 seconds");
@@ -58,6 +64,7 @@ void main() async {
       );
       print("✅ Firebase initialized successfully from Flutter");
       print("✅ Firebase.apps.length after init: ${Firebase.apps.length}");
+      FirebaseConfigAudit.logStartupState();
     } catch (e, stackTrace) {
       print("❌ Firebase initialization failed: $e");
       print("❌ Stack trace: $stackTrace");
@@ -66,9 +73,7 @@ void main() async {
   } else {
     print("✅ Firebase already initialized (likely by AppDelegate)");
     print("✅ Firebase.apps.length: ${Firebase.apps.length}");
-    for (var app in Firebase.apps) {
-      print("✅ Firebase app name: ${app.name}");
-    }
+    FirebaseConfigAudit.logStartupState();
   }
   if (defaultTargetPlatform == TargetPlatform.iOS) {
     print("✅ iOS Firebase apps: ${Firebase.apps.length}");

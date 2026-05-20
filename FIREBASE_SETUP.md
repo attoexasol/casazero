@@ -1,5 +1,21 @@
 # Firebase Setup for Chat
 
+## Canonical project (post-migration)
+
+| Source | `project_id` | Status |
+|--------|----------------|--------|
+| `android/app/google-services.json` | **casazero-a39ba** | ✅ NEW (use this everywhere) |
+| `lib/firebase_options.dart` (android) | **casazero-a39ba** | ✅ |
+| `ios/Runner/GoogleService-Info.plist` | casazero-3ab94 | ❌ STALE — download new plist from Console |
+| `lib/firebase_options.dart` (ios) | casazero-3ab94 | ❌ STALE until `flutterfire configure` |
+
+**custom-token-mismatch** means Laravel Kreait `createCustomToken()` uses a service account from a **different** project than the Flutter app. Fix on Laravel: replace `storage/app/firebase/*.json` (or `.env` `FIREBASE_CREDENTIALS`) with the **casazero-a39ba** service account, then redeploy.
+
+After login, check Flutter logs for:
+`TOKEN_AUD_MISMATCH: JWT aud="..." but Firebase app projectId="casazero-a39ba"`.
+
+Flutter uses **only** the top-level `firebase_token` from `POST /user/login` (stored locally). Do **not** call `/user/firebase-token`.
+
 ## Android Configuration
 
 ### 1. Package Name

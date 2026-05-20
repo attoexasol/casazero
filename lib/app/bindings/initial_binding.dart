@@ -29,9 +29,10 @@ class InitialBinding extends Bindings {
 
     Get.put<FirebaseAuthService>(FirebaseAuthService(), permanent: true);
 
-    // StorageService must be initialized before LocaleController
-    // (StorageService is already initialized in main.dart, but ensure it's registered here)
-    Get.put<StorageService>(StorageService()..init(), permanent: true);
+    // Reuse StorageService from main.dart — never register a second instance.
+    if (!Get.isRegistered<StorageService>()) {
+      Get.put<StorageService>(StorageService()..init(), permanent: true);
+    }
 
     // LocaleController depends on StorageService, so register it after
     Get.put<LocaleController>(LocaleController(), permanent: true);

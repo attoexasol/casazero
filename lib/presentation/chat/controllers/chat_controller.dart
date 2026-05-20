@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -7,6 +11,8 @@ import '../../../core/constants/api_constants.dart';
 import '../../../core/services/api_service.dart';
 import '../../../core/services/firebase_auth_service.dart';
 import '../../../core/services/storage_service.dart';
+import '../../../core/utils/firebase_config_audit.dart';
+import '../../../data/repositories/auth_repository.dart';
 import '../../home/controllers/home_controller.dart';
 import '../../profile/controllers/profile_controller.dart';
 import '../models/chat_message_model.dart';
@@ -32,6 +38,8 @@ class ChatController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Stream<List<ChatMessage>>? _messagesStream;
+  StreamSubscription<User?>? _authStateSub;
+  int _messageSnapshotLogCount = 0;
   final RxBool isSending = false.obs;
   final Rx<ChatState> chatState = ChatState.initial.obs;
   final RxString residenceName = ''.obs;
@@ -43,7 +51,8 @@ class ChatController extends GetxController {
     super.onInit();
     messageController.addListener(_onMessageChanged);
     _resolveGroupId();
-    _subscribeToMessages();
+    _listenFirebaseAuthForChat();
+    unawaited(_initChatWhenFirebaseReady());
     _fetchResidenceName();
     _ensureProfileLoadedForChatAvatar();
   }
@@ -84,6 +93,7 @@ class ChatController extends GetxController {
 
   @override
   void onClose() {
+    _authStateSub?.cancel();
     messageController.removeListener(_onMessageChanged);
     messageController.dispose();
     scrollController.dispose();
@@ -91,6 +101,176 @@ class ChatController extends GetxController {
   }
 
   void _onMessageChanged() => update(['input']);
+
+  /// Waits for Firebase auth before attaching Firestore listeners.
+  Future<void> _initChatWhenFirebaseReady() async {
+    if (FirebaseAuth.instance.currentUser == null) {
+      debugPrint('[ChatController] Firebase user missing — syncing from stored login token');
+      await retryFirebaseAuthForChat();
+    }
+
+    final firebaseUser = FirebaseAuth.instance.currentUser;
+    if (firebaseUser == null) {
+      debugPrint('[ChatController] Firebase user missing — chat blocked');
+      chatState.value = ChatState.noAuth;
+      _messagesStream = Stream.value([]);
+      _logFirebaseUidNullDiagnostics(
+        reason: '_initChatWhenFirebaseReady — no Firebase user after sync',
+      );
+      return;
+    }
+
+    debugPrint(
+      '[ChatController] Firebase ready uid=${firebaseUser.uid} — starting chat',
+    );
+    _subscribeToMessages();
+  }
+
+  /// Full terminal dump when chat cannot run because Firebase UID is missing.
+  void _logFirebaseUidNullDiagnostics({required String reason}) {
+    debugPrint('');
+    debugPrint('══════════════════════════════════════════════════════════');
+    debugPrint('❌ [ChatController] FIREBASE UID NULL — DEBUG REPORT');
+    debugPrint('══════════════════════════════════════════════════════════');
+    debugPrint('  trigger: $reason');
+    debugPrint('  chatState: ${chatState.value}');
+    debugPrint('  groupId: ${_groupId ?? "null"}');
+
+    // Laravel session (chat uses Firebase UID = Laravel user.id string)
+    final userData = _storageService.getUserData();
+    final laravelUserId = userData?['id']?.toString();
+    final accessToken = _storageService.getAccessToken();
+    debugPrint('  ── Laravel / local session ──');
+    debugPrint('  laravelUser.id (expected Firebase uid): ${laravelUserId ?? "null"}');
+    debugPrint(
+      '  apiAccessToken: ${accessToken != null && accessToken.isNotEmpty ? "present len=${accessToken.length}" : "MISSING"}',
+    );
+    debugPrint('  userData keys: ${userData?.keys.join(", ") ?? "null"}');
+    debugPrint(
+      '  stored firebase_token: ${_storageService.getStoredFirebaseToken() != null ? "present" : "MISSING — re-login required"}',
+    );
+
+    // FirebaseAuthService wrapper
+    debugPrint('  ── FirebaseAuthService ──');
+    debugPrint('  isSignedIn: ${_firebaseAuthService.isSignedIn}');
+    debugPrint('  firebaseUid (service): ${_firebaseAuthService.firebaseUid ?? "null"}');
+    debugPrint(
+      '  firebaseUidObs: ${_firebaseAuthService.firebaseUidObs.value ?? "null"}',
+    );
+    debugPrint(
+      '  currentUser (service): ${_firebaseAuthService.currentUser?.uid ?? "null"}',
+    );
+
+    // Raw Firebase Auth
+    debugPrint('  ── FirebaseAuth.instance ──');
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      debugPrint('  currentUser.uid: ${user?.uid ?? "null"}');
+      debugPrint('  currentUser.email: ${user?.email ?? "null"}');
+      debugPrint('  currentUser.isAnonymous: ${user?.isAnonymous ?? "n/a"}');
+      debugPrint(
+        '  currentUser.metadata.lastSignInTime: ${user?.metadata.lastSignInTime}',
+      );
+    } catch (e) {
+      debugPrint('  currentUser read error: $e');
+    }
+
+    // Firebase Core / project (custom-token-mismatch shows here)
+    debugPrint('  ── Firebase.initializeApp ──');
+    debugPrint('  Firebase.apps.isEmpty: ${Firebase.apps.isEmpty}');
+    debugPrint('  Firebase.apps.length: ${Firebase.apps.length}');
+    if (Firebase.apps.isNotEmpty) {
+      for (final app in Firebase.apps) {
+        final o = app.options;
+        debugPrint(
+          '  app name=${app.name} projectId=${o.projectId} appId=${o.appId}',
+        );
+      }
+      try {
+        debugPrint(
+          '  Firestore project: ${_firestore.app.options.projectId}',
+        );
+      } catch (e) {
+        debugPrint('  Firestore app error: $e');
+      }
+    } else {
+      debugPrint('  ⚠ Firebase never initialized — check main.dart logs');
+    }
+
+    debugPrint('  ── Likely causes (check logs above this block) ──');
+    if (Firebase.apps.isEmpty) {
+      debugPrint('  • Firebase.initializeApp failed or timed out at startup');
+    }
+    if (accessToken == null || accessToken.isEmpty) {
+      debugPrint('  • No Laravel API token — login did not complete');
+    } else if (!_firebaseAuthService.isSignedIn) {
+      debugPrint('  • Laravel session OK but Firebase sign-in never succeeded');
+      debugPrint('  • Look for [FirebaseAuthService] signInWithCustomToken FAIL');
+      debugPrint('  • Common: custom-token-mismatch (Laravel wrong Firebase project)');
+      debugPrint('  • Fix: call syncFirebaseAuthAfterLogin after login/splash');
+    }
+    if (laravelUserId != null &&
+        _firebaseAuthService.firebaseUid != null &&
+        laravelUserId != _firebaseAuthService.firebaseUid) {
+      debugPrint(
+        '  • UID mismatch: Laravel id=$laravelUserId vs Firebase uid=${_firebaseAuthService.firebaseUid}',
+      );
+    }
+
+    debugPrint('══════════════════════════════════════════════════════════');
+    debugPrint('');
+
+    FirebaseConfigAudit.logStartupState();
+  }
+
+  /// Retry Firebase custom token sign-in when chat opens without a UID.
+  Future<void> retryFirebaseAuthForChat() async {
+    debugPrint('[ChatController] retryFirebaseAuthForChat: start');
+    try {
+      if (!Get.isRegistered<AuthRepository>()) {
+        debugPrint('[ChatController] retryFirebaseAuthForChat: AuthRepository not registered');
+        return;
+      }
+      final authRepo = Get.find<AuthRepository>();
+      await authRepo.syncFirebaseAuthAfterLogin();
+      if (_firebaseAuthService.isSignedIn) {
+        debugPrint(
+          '[ChatController] retryFirebaseAuthForChat: SUCCESS uid=${_firebaseAuthService.firebaseUid}',
+        );
+        if (FirebaseAuth.instance.currentUser == null) {
+          debugPrint('[ChatController] Firebase auth missing after reported success');
+          return;
+        }
+        _subscribeToMessages();
+      } else {
+        _logFirebaseUidNullDiagnostics(
+          reason: 'retryFirebaseAuthForChat completed but still unsigned',
+        );
+      }
+    } catch (e, st) {
+      debugPrint('[ChatController] retryFirebaseAuthForChat error: $e\n$st');
+      _logFirebaseUidNullDiagnostics(reason: 'retryFirebaseAuthForChat threw');
+    }
+  }
+
+  void _listenFirebaseAuthForChat() {
+    _authStateSub = FirebaseAuth.instance.authStateChanges().listen((user) {
+      debugPrint(
+        '[ChatController] Firebase authState uid=${user?.uid ?? "null"} groupId=$_groupId',
+      );
+      if (user == null) {
+        chatState.value = ChatState.noAuth;
+        _messagesStream = Stream.value([]);
+        _logFirebaseUidNullDiagnostics(reason: 'authStateChanges emitted null user');
+        return;
+      }
+      if (_groupId == null) return;
+      if (chatState.value == ChatState.noAuth) {
+        debugPrint('[ChatController] auth became available — binding Firestore stream');
+        _subscribeToMessages();
+      }
+    });
+  }
 
   void _resolveGroupId() {
     try {
@@ -131,9 +311,20 @@ class ChatController extends GetxController {
       return;
     }
 
+    if (FirebaseAuth.instance.currentUser == null) {
+      _logFirebaseUidNullDiagnostics(
+        reason: '_subscribeToMessages — FirebaseAuth.instance.currentUser is null',
+      );
+      chatState.value = ChatState.noAuth;
+      _messagesStream = Stream.value([]);
+      return;
+    }
+
     final uid = firebaseUid;
     if (uid == null) {
-      debugPrint('❌ Chat blocked: Firebase UID is null');
+      _logFirebaseUidNullDiagnostics(
+        reason: '_subscribeToMessages called with null firebaseUid',
+      );
       chatState.value = ChatState.noAuth;
       _messagesStream = Stream.value([]);
       return;
@@ -156,7 +347,7 @@ class ChatController extends GetxController {
         debugPrint('⚠️ [ChatController] Group $_groupId does not exist');
         return;
       }
-      debugPrint('✅ Group validation passed');
+      debugPrint('✅ [ChatController] Group validation passed — attaching messages listener');
       chatState.value = ChatState.ready;
       _messagesStream = _streamMessages(_groupId!).map((messages) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -191,8 +382,18 @@ class ChatController extends GetxController {
         .collection('messages')
         .orderBy('createdAt', descending: false)
         .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map((doc) => ChatMessage.fromFirestore(doc)).toList());
+        .map((snapshot) {
+          _messageSnapshotLogCount++;
+          if (kDebugMode && _messageSnapshotLogCount <= 3) {
+            debugPrint(
+              '[ChatController] messages snapshot #$_messageSnapshotLogCount '
+              'docs=${snapshot.docs.length} hasPendingWrites=${snapshot.metadata.hasPendingWrites}',
+            );
+          }
+          return snapshot.docs
+              .map((doc) => ChatMessage.fromFirestore(doc))
+              .toList();
+        });
   }
 
   Stream<List<ChatMessage>> get messagesStream =>
@@ -235,8 +436,16 @@ class ChatController extends GetxController {
     final text = messageController.text.trim();
     if (text.isEmpty) return;
     final uid = firebaseUid;
-    if (uid == null) return;
-    if (_groupId == null || _groupId!.isEmpty) return;
+    if (uid == null) {
+      _logFirebaseUidNullDiagnostics(
+        reason: 'sendTextMessage called with null firebaseUid',
+      );
+      return;
+    }
+    if (_groupId == null || _groupId!.isEmpty) {
+      debugPrint('[ChatController] sendTextMessage: blocked — no groupId');
+      return;
+    }
 
     isSending.value = true;
     messageController.clear();
@@ -273,8 +482,14 @@ class ChatController extends GetxController {
           .doc(groupId)
           .collection('messages')
           .add(messageData);
+      debugPrint(
+        '[ChatController] message sent group=$groupId senderId=$uid chars=${text.length}',
+      );
       _scrollToBottom();
     } on FirebaseException catch (e) {
+      debugPrint(
+        '[ChatController] sendTextMessage FirebaseException code=${e.code} message=${e.message}',
+      );
       if (e.code == 'permission-denied') {
         chatState.value = ChatState.permissionDenied;
       } else if (e.code == 'unavailable') {
@@ -282,6 +497,7 @@ class ChatController extends GetxController {
       }
       messageController.text = text;
     } catch (e) {
+      debugPrint('[ChatController] sendTextMessage error: $e');
       messageController.text = text;
     } finally {
       isSending.value = false;

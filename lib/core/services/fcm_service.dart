@@ -169,6 +169,13 @@ class FcmService extends GetxService {
       print('✅ [FcmService] Token sent to backend');
     } catch (e) {
       _pendingTokenSend = true;
+      final err = e.toString();
+      if (err.contains('404')) {
+        print(
+          '❌ [FcmService] POST ${ApiConstants.UPDATE_FCM_TOKEN} returned 404 — '
+          'add this route on Laravel or disable FCM registration until backend is ready',
+        );
+      }
       print('❌ [FcmService] Error sending token to backend: $e');
     }
   }

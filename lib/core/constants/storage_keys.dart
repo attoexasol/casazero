@@ -6,4 +6,10 @@ class StorageKeys {
   static const String LANGUAGE = 'language';
   static const String IS_FIRST_LOGIN = 'is_first_login';
   static const String THEME_MODE = 'theme_mode';
+
+  /// Laravel login top-level `firebase_token` (local only — never from API).
+  static const String FIREBASE_TOKEN = 'firebase_token';
+
+  /// Laravel login top-level `firebase_project_id`.
+  static const String FIREBASE_PROJECT_ID = 'firebase_project_id';
 }

@@ -10,6 +10,7 @@ import '../../../data/repositories/document_repository.dart';
 import '../../../data/models/document_model.dart';
 import '../../profile/controllers/document_password_controller.dart';
 import '../../../core/services/fcm_service.dart';
+import '../../../core/services/firebase_auth_service.dart';
 
 class OtpVerificationController extends GetxController {
   final AuthRepository _authRepository = Get.find();
@@ -250,6 +251,11 @@ class OtpVerificationController extends GetxController {
             await Get.find<FcmService>().sendTokenToBackend();
           }
         } catch (_) {}
+
+        final firebaseOk = await _authRepository.syncFirebaseAuthAfterLogin();
+        debugPrint(
+          '[OtpVerification] Firebase sync after OTP ok=$firebaseOk uid=${Get.find<FirebaseAuthService>().firebaseUid}',
+        );
 
         // Pre-load documents in background while navigating
         _preloadDocuments();

@@ -7,7 +7,7 @@ import '../../../core/widgets/casazero_logo.dart';
 import '../../../core/widgets/password_input.dart';
 import '../controllers/forgot_change_password_controller.dart';
 
-class ForgotChangePasswordScreen extends GetView<ForgotChangePasswordController> {
+class ForgotChangePasswordScreen extends StatefulWidget {
   final VoidCallback onBack;
   final Function(String message) onSuccess;
 
@@ -16,6 +16,36 @@ class ForgotChangePasswordScreen extends GetView<ForgotChangePasswordController>
     required this.onBack,
     required this.onSuccess,
   });
+
+  @override
+  State<ForgotChangePasswordScreen> createState() =>
+      _ForgotChangePasswordScreenState();
+}
+
+class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen> {
+  late final ForgotChangePasswordController _ctrl;
+  late final TextEditingController _newPasswordController;
+  late final TextEditingController _confirmPasswordController;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = Get.find<ForgotChangePasswordController>();
+    _newPasswordController = TextEditingController();
+    _confirmPasswordController = TextEditingController();
+    _ctrl.bindTextControllers(
+      newPassword: _newPasswordController,
+      confirmPassword: _confirmPasswordController,
+    );
+  }
+
+  @override
+  void dispose() {
+    _ctrl.unbindTextControllers();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,9 +59,6 @@ class ForgotChangePasswordScreen extends GetView<ForgotChangePasswordController>
     );
   }
 
-  // --------------------------
-  // BACKGROUND
-  // --------------------------
   Widget _buildBackground() {
     return Positioned.fill(
       child: Container(
@@ -58,9 +85,6 @@ class ForgotChangePasswordScreen extends GetView<ForgotChangePasswordController>
     );
   }
 
-  // --------------------------
-  // MAIN CONTENT
-  // --------------------------
   Widget _buildContent() {
     return Column(
       children: [
@@ -96,7 +120,7 @@ class ForgotChangePasswordScreen extends GetView<ForgotChangePasswordController>
       child: Align(
         alignment: Alignment.centerLeft,
         child: InkWell(
-          onTap: onBack,
+          onTap: widget.onBack,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -123,9 +147,6 @@ class ForgotChangePasswordScreen extends GetView<ForgotChangePasswordController>
     );
   }
 
-  // --------------------------
-  // GLASSMORPHIC CARD
-  // --------------------------
   Widget _buildGlassCard() {
     return Container(
       decoration: BoxDecoration(
@@ -163,95 +184,81 @@ class ForgotChangePasswordScreen extends GetView<ForgotChangePasswordController>
         .slideY(begin: 0.2, delay: 400.ms);
   }
 
-  // --------------------------
-  // FORM CONTENT
-  // --------------------------
   Widget _buildFormContent() {
     return GetBuilder<ForgotChangePasswordController>(
       builder: (ctrl) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'reset_password'.tr,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white.withOpacity(0.95),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'create_new_password'.tr,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.white.withOpacity(0.7),
-              ),
-            ),
-            const SizedBox(height: 32),
-
-            // FORM FIELDS
-            Column(
+        return Obx(
+          () => AbsorbPointer(
+            absorbing: ctrl.isCompleted.value,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // New Password
-                PasswordInputField(
-                  label: 'new_password'.tr,
-                  controller: ctrl.newPasswordController,
-                  isVisible: ctrl.showNewPassword,
-                  onToggle: () => ctrl.togglePasswordVisibility('new'),
+                Text(
+                  'reset_password'.tr,
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white.withOpacity(0.95),
+                  ),
                 ),
-
-                const SizedBox(height: 20),
-
-                // Confirm Password
-                PasswordInputField(
-                  label: 'confirm_password'.tr,
-                  controller: ctrl.confirmPasswordController,
-                  isVisible: ctrl.showConfirmPassword,
-                  onToggle: () => ctrl.togglePasswordVisibility('confirm'),
+                const SizedBox(height: 8),
+                Text(
+                  'create_new_password'.tr,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.white.withOpacity(0.7),
+                  ),
                 ),
-
-                // Requirements
-                Obx(() {
-                  if (!ctrl.hasPasswordInput.value) {
-                    return const SizedBox.shrink();
-                  }
-                  return Column(
-                    children: [
-                      const SizedBox(height: 20),
-                      _passwordRequirements(ctrl),
-                    ],
-                  );
-                }),
-
-                // Password Match
-                Obx(() {
-                  if (!ctrl.showPasswordMatch.value) {
-                    return const SizedBox.shrink();
-                  }
-                  return Column(
-                    children: [
-                      const SizedBox(height: 12),
-                      _passwordMatchIndicator(ctrl),
-                    ],
-                  );
-                }),
+                const SizedBox(height: 32),
+                Column(
+                  children: [
+                    PasswordInputField(
+                      label: 'new_password'.tr,
+                      controller: _newPasswordController,
+                      isVisible: ctrl.showNewPassword,
+                      onToggle: () => ctrl.togglePasswordVisibility('new'),
+                    ),
+                    const SizedBox(height: 20),
+                    PasswordInputField(
+                      label: 'confirm_password'.tr,
+                      controller: _confirmPasswordController,
+                      isVisible: ctrl.showConfirmPassword,
+                      onToggle: () => ctrl.togglePasswordVisibility('confirm'),
+                    ),
+                    Obx(() {
+                      if (!ctrl.hasPasswordInput.value) {
+                        return const SizedBox.shrink();
+                      }
+                      return Column(
+                        children: [
+                          const SizedBox(height: 20),
+                          _passwordRequirements(ctrl),
+                        ],
+                      );
+                    }),
+                    Obx(() {
+                      if (!ctrl.showPasswordMatch.value) {
+                        return const SizedBox.shrink();
+                      }
+                      return Column(
+                        children: [
+                          const SizedBox(height: 12),
+                          _passwordMatchIndicator(ctrl),
+                        ],
+                      );
+                    }),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                Obx(() => _submitButton(ctrl)),
               ],
             ),
-
-            const SizedBox(height: 32),
-
-            // Submit Button
-            Obx(() => _submitButton(ctrl)),
-          ],
+          ),
         );
       },
     );
   }
 
-  // --------------------------
-  // PASSWORD REQUIREMENTS
-  // --------------------------
   Widget _passwordRequirements(ForgotChangePasswordController ctrl) {
     return Obx(() {
       return Column(
@@ -308,9 +315,6 @@ class ForgotChangePasswordScreen extends GetView<ForgotChangePasswordController>
     });
   }
 
-  // --------------------------
-  // MATCH INDICATOR
-  // --------------------------
   Widget _passwordMatchIndicator(ForgotChangePasswordController ctrl) {
     final match = ctrl.passwordsMatch;
     return Row(
@@ -332,16 +336,13 @@ class ForgotChangePasswordScreen extends GetView<ForgotChangePasswordController>
     ).animate().fadeIn();
   }
 
-  // --------------------------
-  // SUBMIT BUTTON
-  // --------------------------
   Widget _submitButton(ForgotChangePasswordController ctrl) {
     return SizedBox(
       width: double.infinity,
       height: 48,
       child: ElevatedButton(
         onPressed: ctrl.canSubmit && !ctrl.isLoading.value
-            ? () => ctrl.handleResetPassword(onSuccess: onSuccess)
+            ? () => ctrl.handleResetPassword(onSuccess: widget.onSuccess)
             : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: ctrl.canSubmit

@@ -527,7 +527,7 @@ class HomeRepository {
       //   "residence_name": "POLICE PARK",
       //   "residence_address": "POLICE PARK DESC",
       //   "residence_status": "Under Construction",
-      //   "residence_photo": "https://smarthome.attoexasolutions.com/residence_images/..."
+      //   "residence_photo": "https://backend.casazero.site/residence_images/..."
       // }
       // OR if it's an array:
       // {

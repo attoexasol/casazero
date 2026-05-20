@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import '../constants/storage_keys.dart';
@@ -46,6 +47,54 @@ class StorageService extends GetxService {
 
   Future<void> clearDeviceToken() async {
     await _box.remove(StorageKeys.DEVICE_TOKEN);
+  }
+
+  /// Persists Laravel login top-level `firebase_token`.
+  Future<void> saveFirebaseToken(String token) async {
+    await _box.write(StorageKeys.FIREBASE_TOKEN, token);
+    await _box.remove('firebase_custom_token');
+    final verify = getStoredFirebaseToken();
+    debugPrint(
+      'VERIFY STORED TOKEN=${verify != null} VERIFY TOKEN LENGTH=${verify?.length ?? 0}',
+    );
+  }
+
+  void debugPrintStorageKeys() {
+    // ignore: avoid_print
+    print(
+      '[Storage] keys in box: access=${getAccessToken() != null} '
+      'firebase_token=${getStoredFirebaseToken() != null} '
+      'project_id=${getFirebaseProjectId() != null}',
+    );
+  }
+
+  /// Reads locally stored login `firebase_token` only.
+  String? getStoredFirebaseToken() {
+    final t = _box.read(StorageKeys.FIREBASE_TOKEN)?.toString().trim();
+    if (t != null && t.isNotEmpty && t.toLowerCase() != 'null') return t;
+    // One-time read from legacy key
+    final legacy = _box.read('firebase_custom_token')?.toString().trim();
+    if (legacy != null && legacy.isNotEmpty && legacy.toLowerCase() != 'null') {
+      return legacy;
+    }
+    return null;
+  }
+
+  Future<void> clearFirebaseToken() async {
+    await _box.remove(StorageKeys.FIREBASE_TOKEN);
+    await _box.remove('firebase_custom_token');
+  }
+
+  Future<void> saveFirebaseProjectId(String projectId) async {
+    await _box.write(StorageKeys.FIREBASE_PROJECT_ID, projectId);
+  }
+
+  String? getFirebaseProjectId() {
+    return _box.read(StorageKeys.FIREBASE_PROJECT_ID)?.toString();
+  }
+
+  Future<void> clearFirebaseProjectId() async {
+    await _box.remove(StorageKeys.FIREBASE_PROJECT_ID);
   }
 
   // User Data

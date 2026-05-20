@@ -356,6 +356,9 @@ class FirstLoginController extends GetxController {
       await _storageService.saveUserData(userData);
     }
 
+    final firebaseOk = await _authRepository.syncFirebaseAuthAfterLogin();
+    debugPrint('[FirstLogin] Firebase sync ok=$firebaseOk');
+
     Get.offAllNamed(AppRoutes.HOME);
   }
 

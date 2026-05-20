@@ -1,7 +1,6 @@
 // presentation/auth/controllers/auth_controller.dart
 // UPDATED WITH PHONE SUPPORT FOR LOGIN
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -24,7 +23,7 @@ class AuthController extends GetxController {
   final LocaleController _localeController = Get.find();
 
   // For development - remove in production
-  final emailController = TextEditingController(text: 'rajibduet02@gmail.com');
+  final emailController = TextEditingController(text: 'attoexasolutions@gmail.com');
   final passwordController = TextEditingController(text: 'CasaZero@024017');
   final phoneController = TextEditingController(); // Add phone controller
 
@@ -84,25 +83,33 @@ class AuthController extends GetxController {
       print('Is Trusted Device: $isTrusted');
       print('Is Password Set By Admin: ${user.isPasswordSetByAdmin}');
 
-      // Always replace any old/stale token with the new one
-      await _storageService.clearAccessToken();
-      await _storageService.saveAccessToken(result['access_token']);
+      // Access token + user already saved in AuthRepository.login (before Firebase sign-in).
       final storedToken = _storageService.getAccessToken();
-      print('💾 Stored Access Token (post-save): $storedToken');
+      print('💾 Stored Access Token: $storedToken');
 
       await _storageService.saveUserData(user.toJson());
       await _storageService.setFirstLogin(user.isFirstLogin);
 
-      debugPrint('Laravel login success');
-      final firebaseToken = result['firebase_token']?.toString().trim() ?? '';
-      if (firebaseToken.isNotEmpty) {
-        await _firebaseAuthService.signInWithCustomToken(firebaseToken);
-        final uid = FirebaseAuth.instance.currentUser?.uid;
-        print('Firebase UID after login: $uid');
-      } else {
-        print('⚠️ Firebase token empty - cannot sign in to Firebase. Chat will not work.');
+      debugPrint('[AuthController] Laravel login success user.id=${user.id}');
+
+      // Firebase sign-in already ran inside AuthRepository.login(); sync if needed.
+      var firebaseOk = result['firebase_signed_in'] == true;
+      if (!firebaseOk) {
+        firebaseOk = await _authRepository.syncFirebaseAuthAfterLogin();
       }
-      // Must complete before navigating to home/chat
+      _storageService.debugPrintStorageKeys();
+      final uid = _firebaseAuthService.firebaseUid;
+      debugPrint(
+        '[AuthController] Firebase session uid=$uid syncOk=$firebaseOk '
+        '(expected Laravel id string: ${user.id})',
+      );
+      if (!firebaseOk) {
+        debugPrint(
+          '[AuthController] WARNING: Firebase auth not established. '
+          'Scroll up for [LOGIN API] response — if firebase_token is missing there, '
+          'Laravel login is not sending it for this user/request (Flutter cannot fix without the field).',
+        );
+      }
 
       // Set user's preferred language from API
       await _localeController.changeLocale(user.language);

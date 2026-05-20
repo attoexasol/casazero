@@ -1,6 +1,10 @@
 // core/constants/api_constants.dart (UPDATED WITH TRUSTED DEVICES ENDPOINTS)
 class ApiConstants {
-  static const String BASE_URL = 'https://smarthome.attoexasolutions.com/api';
+  /// Site root (no /api) — for relative file paths, images, downloads.
+  static const String API_ORIGIN = 'https://backend.casazero.site';
+
+  /// All REST API routes (Laravel `/api/...`).
+  static const String BASE_URL = '$API_ORIGIN/api';
 
   // Auth Endpoints
   static const String LOGIN = '/user/login';
@@ -18,7 +22,7 @@ class ApiConstants {
 
   /// Set Document Password
   /// POST /user/set-document-password
-  /// API URL: https://smarthome.attoexasolutions.com/api/user/set-document-password
+  /// API URL: https://backend.casazero.site/api/user/set-document-password
   /// Request: {
   ///   "token": "USER_API_TOKEN",
   ///   "password": "123456",
@@ -33,16 +37,10 @@ class ApiConstants {
   // User Endpoints
   /// Get User Profile
   /// POST /user/profile
-  /// API URL: https://smarthome.attoexasolutions.com/api/user/profile
+  /// API URL: https://backend.casazero.site/api/user/profile
   /// Request: { "token": "USER_API_TOKEN" }
   /// Response: { "status": true, "message": "...", "data": {...} }
   static const String GET_USER_PROFILE = '/user/profile';
-
-  /// Get Firebase Custom Token (for app restart when Firebase Auth state was lost)
-  /// POST /user/firebase-token
-  /// Request: { "token": "USER_API_TOKEN" }
-  /// Response: { "status": true, "firebase_token": "..." }
-  static const String GET_FIREBASE_TOKEN = '/user/firebase-token';
 
   /// Register/update FCM device token for push notifications
   /// POST /user/update-fcm-token
@@ -483,8 +481,17 @@ class ApiConstants {
     return endpoint.replaceAll('{$param}', value);
   }
 
-  /// Build full URL
+  /// Build full API URL (`/api` + endpoint).
   static String buildUrl(String endpoint) {
     return '$BASE_URL$endpoint';
+  }
+
+  /// Build site URL without `/api` (static assets, relative paths).
+  static String buildOriginUrl(String path) {
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return path;
+    }
+    final p = path.startsWith('/') ? path : '/$path';
+    return '$API_ORIGIN$p';
   }
 }
