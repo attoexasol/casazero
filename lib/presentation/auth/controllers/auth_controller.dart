@@ -23,7 +23,7 @@ class AuthController extends GetxController {
   final LocaleController _localeController = Get.find();
 
   // For development - remove in production
-  final emailController = TextEditingController(text: 'attoexasolutions@gmail.com');
+  final emailController = TextEditingController(text: 'ahmdsajid2200@gmail.com');
   final passwordController = TextEditingController(text: 'CasaZero@024017');
   final phoneController = TextEditingController(); // Add phone controller
 
