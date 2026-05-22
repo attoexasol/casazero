@@ -92,18 +92,32 @@ class UserModel {
     };
   }
 
-  // Helper method to parse role
-  static Role _parseRole(String? roleStr) {
-    switch (roleStr?.toLowerCase()) {
+  /// Parses Laravel/API role strings (e.g. resident, administrator).
+  static Role parseRoleFromApi(dynamic raw) {
+    if (raw is Map) {
+      raw = raw['name'] ?? raw['slug'] ?? raw['role'] ?? raw['type'];
+    }
+    final roleStr = raw?.toString().toLowerCase().trim() ?? '';
+    switch (roleStr) {
       case 'admin':
+      case 'administrator':
+      case 'amministratore':
+      case 'super_admin':
+      case 'superadmin':
+      case 'building_admin':
         return Role.admin;
       case 'manager':
         return Role.manager;
       case 'client':
+      case 'resident':
+      case 'user':
+        return Role.client;
       default:
         return Role.client;
     }
   }
+
+  static Role _parseRole(dynamic raw) => parseRoleFromApi(raw);
 
   // Helper method to parse boolean from string
   static bool _parseBool(dynamic value) {

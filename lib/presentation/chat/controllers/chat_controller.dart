@@ -13,6 +13,8 @@ import '../../../core/services/firebase_auth_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../core/utils/firebase_config_audit.dart';
 import '../../../data/repositories/auth_repository.dart';
+import '../../../core/utils/permissions.dart';
+import '../../../data/models/user_model.dart';
 import '../../home/controllers/home_controller.dart';
 import '../../profile/controllers/profile_controller.dart';
 import '../models/chat_message_model.dart';
@@ -389,6 +391,15 @@ class ChatController extends GetxController {
               '[ChatController] messages snapshot #$_messageSnapshotLogCount '
               'docs=${snapshot.docs.length} hasPendingWrites=${snapshot.metadata.hasPendingWrites}',
             );
+            for (final doc in snapshot.docs.take(3)) {
+              final d = doc.data();
+              debugPrint(
+                '[ChatController] sample msg id=${doc.id} '
+                'senderId=${d['senderId'] ?? d['sender_id']} '
+                'senderRole=${d['senderRole'] ?? d['sender_role']} '
+                'role=${d['role']} is_admin=${d['is_admin'] ?? d['isAdmin']}',
+              );
+            }
           }
           return snapshot.docs
               .map((doc) => ChatMessage.fromFirestore(doc))
@@ -405,8 +416,21 @@ class ChatController extends GetxController {
 
   String? get firebaseUid => _firebaseAuthService.firebaseUid;
 
-  bool isOwnMessage(String senderId) =>
-      firebaseUid != null && senderId == firebaseUid;
+  bool isOwnMessage(String senderId) {
+    final uid = firebaseUid;
+    if (uid == null || senderId.isEmpty) return false;
+    final a = senderId.trim();
+    final b = uid.trim();
+    if (a == b) return true;
+    final aNum = int.tryParse(a);
+    final bNum = int.tryParse(b);
+    return aNum != null && bNum != null && aNum == bNum;
+  }
+
+  bool get isCurrentUserStaff {
+    final role = _currentUserRole();
+    return role == Role.admin || role == Role.manager;
+  }
 
   String formatTime(DateTime date) {
     final now = DateTime.now();
@@ -423,14 +447,44 @@ class ChatController extends GetxController {
     return '${months[date.month - 1]} ${date.day}';
   }
 
-  String _senderRole() {
+  Role? _currentUserRole() {
+    if (Get.isRegistered<HomeController>()) {
+      final role = Get.find<HomeController>().currentUser.value?.role;
+      if (role != null) return role;
+    }
+    if (Get.isRegistered<ProfileController>()) {
+      final role = Get.find<ProfileController>().user.value?.role;
+      if (role != null) return role;
+    }
     final userData = _storageService.getUserData();
-    final role = userData?['role']?.toString().toLowerCase() ?? 'client';
-    return role == 'admin' ? 'admin' : 'user';
+    if (userData != null) {
+      return UserModel.fromJson(userData).role;
+    }
+    return null;
   }
 
-  String _senderName() =>
-      _storageService.getUserData()?['user_name']?.toString() ?? 'You';
+  String _senderRole() {
+    final role = _currentUserRole();
+    if (role != null) {
+      return ChatMessage.senderRoleForUser(role);
+    }
+    return 'user';
+  }
+
+  String _senderName() {
+    if (Get.isRegistered<ProfileController>()) {
+      final name = Get.find<ProfileController>().user.value?.userName.trim();
+      if (name != null && name.isNotEmpty) return name;
+    }
+    if (Get.isRegistered<HomeController>()) {
+      final name =
+          Get.find<HomeController>().currentUser.value?.userName.trim();
+      if (name != null && name.isNotEmpty) return name;
+    }
+    final stored = _storageService.getUserData()?['user_name']?.toString().trim();
+    if (stored != null && stored.isNotEmpty) return stored;
+    return 'You';
+  }
 
   Future<void> sendTextMessage() async {
     final text = messageController.text.trim();
@@ -483,7 +537,9 @@ class ChatController extends GetxController {
           .collection('messages')
           .add(messageData);
       debugPrint(
-        '[ChatController] message sent group=$groupId senderId=$uid chars=${text.length}',
+        '[ChatController] message sent group=$groupId senderId=$uid '
+        'senderRole=${messageData['senderRole']} senderName=${messageData['senderName']} '
+        'appRole=${_currentUserRole()?.name ?? "unknown"} chars=${text.length}',
       );
       _scrollToBottom();
     } on FirebaseException catch (e) {

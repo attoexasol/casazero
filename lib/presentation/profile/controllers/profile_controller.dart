@@ -94,6 +94,7 @@ class ProfileController extends GetxController {
         print('✅ [ProfileController] User data refreshed successfully from backend');
         print('   User ID: ${updatedUser.id}');
         print('   User Name: ${updatedUser.userName}');
+        print('   Role: ${updatedUser.role.name} (API/storage)');
         print('   Email: ${updatedUser.email}');
         print('   Image refresh timestamp: ${imageRefreshTimestamp.value}');
       } else {

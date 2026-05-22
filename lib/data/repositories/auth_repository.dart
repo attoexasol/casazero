@@ -106,9 +106,10 @@ class AuthRepository {
         }
 
         if (body['user'] is Map) {
-          await _storageService.saveUserData(
+          final user = UserModel.fromJson(
             Map<String, dynamic>.from(body['user'] as Map),
           );
+          await _storageService.saveUserData(user.toJson());
         }
         if (body['token'] != null) {
           await _storageService.saveAccessToken(body['token'].toString());

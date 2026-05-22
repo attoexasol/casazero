@@ -208,6 +208,9 @@ class ChatScreen extends GetView<ChatController> {
             final isOwnMessage = controller.isOwnMessage(msg.senderId);
             final showAvatar =
                 index == 0 || messages[index - 1].senderId != msg.senderId;
+            final showSenderHeader = showAvatar &&
+                (!isOwnMessage ||
+                    (isOwnMessage && controller.isCurrentUserStaff));
 
             return Padding(
               padding: EdgeInsets.only(bottom: 16.h),
@@ -227,7 +230,7 @@ class ChatScreen extends GetView<ChatController> {
                           ? CrossAxisAlignment.end
                           : CrossAxisAlignment.start,
                       children: [
-                        if (showAvatar && !isOwnMessage)
+                        if (showSenderHeader)
                           Padding(
                             padding: EdgeInsets.only(bottom: 4.h),
                             child: Row(
@@ -240,26 +243,12 @@ class ChatScreen extends GetView<ChatController> {
                                     color: AppColors.neutralInk700,
                                   ),
                                 ),
-                                if (msg.senderRole == 'admin') ...[
+                                if (msg.isAdminSender) ...[
                                   SizedBox(width: 6.w),
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 6.w,
-                                      vertical: 2.h,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.brandSage100,
-                                      borderRadius: BorderRadius.circular(6.r),
-                                    ),
-                                    child: Text(
-                                      'admin'.tr,
-                                      style: AppTextStyles.caption.copyWith(
-                                        fontSize: 11.sp,
-                                        fontWeight: FontWeight.w500,
-                                        color: AppColors.brandSage600,
-                                      ),
-                                    ),
-                                  ),
+                                  _buildRoleBadge('admin'.tr),
+                                ] else if (msg.isManagerSender) ...[
+                                  SizedBox(width: 6.w),
+                                  _buildRoleBadge('manager'.tr),
                                 ],
                               ],
                             ),
@@ -310,6 +299,24 @@ class ChatScreen extends GetView<ChatController> {
           },
         );
       },
+    );
+  }
+
+  Widget _buildRoleBadge(String label) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+      decoration: BoxDecoration(
+        color: AppColors.brandSage100,
+        borderRadius: BorderRadius.circular(6.r),
+      ),
+      child: Text(
+        label,
+        style: AppTextStyles.caption.copyWith(
+          fontSize: 11.sp,
+          fontWeight: FontWeight.w500,
+          color: AppColors.brandSage600,
+        ),
+      ),
     );
   }
 
