@@ -1012,12 +1012,17 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
         children: [
           const Icon(Icons.check_circle, color: Colors.white, size: 20),
           const SizedBox(width: 8),
-          Text(
-            'valid_password'.tr,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
+          Flexible(
+            child: Text(
+              'valid_password'.tr,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
