@@ -360,6 +360,22 @@ class ChatScreen extends GetView<ChatController> {
   }
 
   Widget _buildInputArea(BuildContext context) {
+    final inputRadius = BorderRadius.circular(22.r);
+    final enabledBorder = OutlineInputBorder(
+      borderRadius: inputRadius,
+      borderSide: BorderSide(
+        color: AppColors.brandSage500.withValues(alpha: 0.55),
+        width: 1.5,
+      ),
+    );
+    final focusedBorder = OutlineInputBorder(
+      borderRadius: inputRadius,
+      borderSide: const BorderSide(
+        color: AppColors.brandSage500,
+        width: 2,
+      ),
+    );
+
     return Container(
       padding: EdgeInsets.fromLTRB(
         16.w,
@@ -377,33 +393,44 @@ class ChatScreen extends GetView<ChatController> {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Expanded(
-            child: Container(
+            child: ConstrainedBox(
               constraints: BoxConstraints(minHeight: 44.h),
-              decoration: BoxDecoration(
-                color: AppColors.neutralLine100,
-                borderRadius: BorderRadius.circular(22.r),
-              ),
-              child: TextField(
-                controller: controller.messageController,
-                decoration: InputDecoration(
-                  hintText: 'typeMessage'.tr,
-                  hintStyle: AppTextStyles.bodyMedium.copyWith(
+              child: Theme(
+                data: Theme.of(context).copyWith(
+                  textSelectionTheme: TextSelectionThemeData(
+                    cursorColor: AppColors.brandSage500,
+                    selectionColor:
+                        AppColors.brandSage500.withValues(alpha: 0.25),
+                    selectionHandleColor: AppColors.brandSage500,
+                  ),
+                ),
+                child: TextField(
+                  controller: controller.messageController,
+                  cursorColor: AppColors.brandSage500,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: AppColors.neutralLine100,
+                    hintText: 'typeMessage'.tr,
+                    hintStyle: AppTextStyles.bodyMedium.copyWith(
+                      fontSize: 14.sp,
+                      color: AppColors.neutralInk400,
+                    ),
+                    border: enabledBorder,
+                    enabledBorder: enabledBorder,
+                    focusedBorder: focusedBorder,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 12.h,
+                    ),
+                  ),
+                  style: AppTextStyles.bodyMedium.copyWith(
                     fontSize: 14.sp,
-                    color: AppColors.neutralInk400,
+                    color: AppColors.neutralInk900,
                   ),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 16.w,
-                    vertical: 12.h,
-                  ),
+                  maxLines: 4,
+                  minLines: 1,
+                  onSubmitted: (_) => controller.sendTextMessage(),
                 ),
-                style: AppTextStyles.bodyMedium.copyWith(
-                  fontSize: 14.sp,
-                  color: AppColors.neutralInk900,
-                ),
-                maxLines: 4,
-                minLines: 1,
-                onSubmitted: (_) => controller.sendTextMessage(),
               ),
             ),
           ),

@@ -26,7 +26,7 @@ class HubController extends GetxController {
       ),
       HubCard(
         id: 'chat',
-        screen: 'chat',
+        screen: 'chatHub',
         title: 'chatCondominio'.tr,
         imagePath: "assets/images/Chat_icon.svg",
         gradient: const [Color(0xFF3B82F6), Color(0xFF2563EB)],

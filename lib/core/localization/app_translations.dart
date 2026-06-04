@@ -743,7 +743,24 @@ class AppTranslations extends Translations {
     'casaZeroAICard': 'CasaZero AI',
 
     // ---------------- CHAT SCREEN ----------------
+    'chatHubTitle': 'Condominium Chat',
+    'chatHubSubtitle': 'Choose how you want to communicate with your building.',
+    'chatHubInfo':
+        'Group chat is shared with all residents. Admin chat is private between you and the building administrator.',
+    'groupChatDesc': 'Chat with all residents in your condominium',
+    'chatWithAdmin': 'Chat with Admin',
+    'chatWithAdminDesc': 'Private direct messages with the administrator',
+    'adminChatSubtitle': 'Direct support from your administrator',
+    'Administrator Support': 'Administrator Support',
+    'adminChatEmpty':
+        'No messages yet. Send a message to start a conversation with your admin.',
+    'adminChatNoResidence':
+        'Unable to start admin chat. Please select your residence first.',
+    'adminChatAccessDenied':
+        'You do not have permission to access this conversation.',
+    'appbarchatHub': 'Condominium Chat',
     'appbargroupChat': 'Group Chat',
+    'appbarAdminChat': 'Chat with Admin',
     'groupChat': 'Group Chat',
     'onlineNow': 'Online Now',
     'chatUnavailable': 'Chat unavailable',
@@ -1577,7 +1594,25 @@ class AppTranslations extends Translations {
     'casaZeroAICard': 'CasaZero AI',
 
     // ---------------- CHAT SCREEN (Italian) ----------------
+    'chatHubTitle': 'Chat Condominio',
+    'chatHubSubtitle':
+        'Scegli come vuoi comunicare con il tuo condominio.',
+    'chatHubInfo':
+        'La chat di gruppo è condivisa con tutti i residenti. La chat con l\'amministratore è privata tra te e l\'amministratore.',
+    'groupChatDesc': 'Chatta con tutti i residenti del condominio',
+    'chatWithAdmin': 'Chat con Amministratore',
+    'chatWithAdminDesc': 'Messaggi diretti privati con l\'amministratore',
+    'adminChatSubtitle': 'Supporto diretto dal tuo amministratore',
+    'Administrator Support': 'Supporto amministratore',
+    'adminChatEmpty':
+        'Ancora nessun messaggio. Invia un messaggio per iniziare la conversazione.',
+    'adminChatNoResidence':
+        'Impossibile avviare la chat. Seleziona prima la tua residenza.',
+    'adminChatAccessDenied':
+        'Non hai il permesso di accedere a questa conversazione.',
+    'appbarchatHub': 'Chat Condominio',
     'appbargroupChat': 'Chat di Gruppo',
+    'appbarAdminChat': 'Chat con Amministratore',
     'groupChat': 'Chat di Gruppo',
     'onlineNow': 'Online ora',
     'chatUnavailable': 'Chat non disponibile',

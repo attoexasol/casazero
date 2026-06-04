@@ -722,8 +722,24 @@ class HomeController extends GetxController {
         navigateToScreen(AppScreen.changePassword);
         break;
 
-      case 'chat':
+      case 'chathub':
+      case 'chat_hub':
+      case 'chatHub':
+        navigateToScreen(AppScreen.chatHub);
+        break;
+
+      case 'groupchat':
+      case 'group_chat':
         navigateToScreen(AppScreen.chat);
+        break;
+
+      case 'adminchat':
+      case 'admin_chat':
+        navigateToScreen(AppScreen.adminChat);
+        break;
+
+      case 'chat':
+        navigateToScreen(AppScreen.chatHub);
         break;
 
       case 'tickets':

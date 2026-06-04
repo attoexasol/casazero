@@ -26,6 +26,7 @@ import '../documents/controllers/documents_controller.dart';
 import '../maintenance/controllers/maintenance_controller.dart';
 import '../ai/controllers/ai_controller.dart';
 import '../chat/controllers/chat_controller.dart';
+import '../chat/controllers/admin_chat_controller.dart';
 import '../hub/controllers/hub_controller.dart';
 import '../tickets/controllers/tickets_controller.dart';
 import '../../data/models/user_model.dart';
@@ -35,6 +36,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../trusted_device/views/trusted_devices_screen.dart';
 import '../chat/views/chat_screen.dart';
+import '../chat/views/chat_hub_screen.dart';
+import '../chat/views/admin_chat_screen.dart';
 import '../tickets/views/tickets_screen.dart';
 
 // Screen identifiers
@@ -48,7 +51,9 @@ enum AppScreen {
   trustedDevices,
   changePassword,
   hubScreen,
+  chatHub,
   chat,
+  adminChat,
   tickets,
   //trustedDevices,
   // Add more screens as needed
@@ -176,8 +181,26 @@ class MainScaffold extends GetView<HomeController> {
         canGoForward = controller.canGoForward;
         break;
 
+      case AppScreen.chatHub:
+        title = 'appbarchatHub'.tr;
+        showNotification = true;
+        showSearch = false;
+        showResidenceSwitcher = false;
+        canGoBack = controller.canGoBack;
+        canGoForward = controller.canGoForward;
+        break;
+
       case AppScreen.chat:
         title = 'appbargroupChat'.tr;
+        showNotification = true;
+        showSearch = false;
+        showResidenceSwitcher = false;
+        canGoBack = controller.canGoBack;
+        canGoForward = controller.canGoForward;
+        break;
+
+      case AppScreen.adminChat:
+        title = 'appbarAdminChat'.tr;
         showNotification = true;
         showSearch = false;
         showResidenceSwitcher = false;
@@ -200,7 +223,9 @@ class MainScaffold extends GetView<HomeController> {
     final showBackButton =
         canGoBack &&
         (currentScreen == AppScreen.ai ||
+            currentScreen == AppScreen.chatHub ||
             currentScreen == AppScreen.chat ||
+            currentScreen == AppScreen.adminChat ||
             currentScreen == AppScreen.tickets);
     final statusBarHeight = MediaQuery.of(Get.context!).padding.top;
 
@@ -887,6 +912,12 @@ extension _MainScaffoldNotification on MainScaffold {
         }
         return const AIScreen();
 
+      case AppScreen.chatHub:
+        return ChatHubScreen(
+          onGroupChat: () => controller.navigateToScreen(AppScreen.chat),
+          onAdminChat: () => controller.navigateToScreen(AppScreen.adminChat),
+        );
+
       case AppScreen.chat:
         if (!Get.isRegistered<ChatController>()) {
           Get.put(ChatController());
@@ -895,6 +926,12 @@ extension _MainScaffoldNotification on MainScaffold {
           role: controller.currentUser.value?.role ?? Role.client,
           onBack: () => controller.goBack(),
         );
+
+      case AppScreen.adminChat:
+        if (!Get.isRegistered<AdminChatController>()) {
+          Get.put(AdminChatController());
+        }
+        return const AdminChatScreen();
 
       case AppScreen.tickets:
         if (!Get.isRegistered<TicketsController>()) {
@@ -929,7 +966,9 @@ extension _MainScaffoldNotification on MainScaffold {
     final hideBottomNavScreens = [
       AppScreen.smartHome,
       AppScreen.changePassword,
+      AppScreen.chatHub,
       AppScreen.chat,
+      AppScreen.adminChat,
       AppScreen.tickets,
       // AppScreen.trustedDevices,
       // Add other screens where you want to hide bottom nav
