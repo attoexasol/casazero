@@ -2,6 +2,18 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isConversationParticipant(conversationId) {
+      let conv = get(/databases/$(database)/documents/conversations/$(conversationId)).data;
+      return isAuthenticated() && (
+        request.auth.uid == string(conv.residentId) ||
+        request.auth.uid == string(conv.adminId)
+      );
+    }
+
     match /groups/{groupId} {
       allow read: if request.auth != null
         && request.auth.uid in resource.data.members;
@@ -13,6 +25,31 @@ service cloud.firestore {
             /databases/$(database)/documents/groups/$(groupId)
           ).data.members;
       }
+    }
+
+    match /conversations/{conversationId} {
+      allow read: if isAuthenticated() && (
+        request.auth.uid == string(resource.data.residentId) ||
+        request.auth.uid == string(resource.data.adminId)
+      );
+      allow create: if isAuthenticated() && (
+        request.auth.uid == string(request.resource.data.residentId) ||
+        request.auth.uid == string(request.resource.data.adminId)
+      );
+      allow update: if isAuthenticated() && (
+        request.auth.uid == string(resource.data.residentId) ||
+        request.auth.uid == string(resource.data.adminId)
+      );
+
+      match /messages/{messageId} {
+        allow read, write: if isConversationParticipant(conversationId);
+      }
+    }
+
+    match /presence/{userDocId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated()
+        && userDocId == ('user_' + request.auth.uid);
     }
   }
 }

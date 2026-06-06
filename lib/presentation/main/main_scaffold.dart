@@ -26,7 +26,7 @@ import '../documents/controllers/documents_controller.dart';
 import '../maintenance/controllers/maintenance_controller.dart';
 import '../ai/controllers/ai_controller.dart';
 import '../chat/controllers/chat_controller.dart';
-import '../chat/controllers/admin_chat_controller.dart';
+import '../chat/controllers/private_chat_controller.dart';
 import '../hub/controllers/hub_controller.dart';
 import '../tickets/controllers/tickets_controller.dart';
 import '../../data/models/user_model.dart';
@@ -37,7 +37,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../trusted_device/views/trusted_devices_screen.dart';
 import '../chat/views/chat_screen.dart';
 import '../chat/views/chat_hub_screen.dart';
-import '../chat/views/admin_chat_screen.dart';
+import '../chat/views/private_chat_screen.dart';
 import '../tickets/views/tickets_screen.dart';
 
 // Screen identifiers
@@ -915,7 +915,12 @@ extension _MainScaffoldNotification on MainScaffold {
       case AppScreen.chatHub:
         return ChatHubScreen(
           onGroupChat: () => controller.navigateToScreen(AppScreen.chat),
-          onAdminChat: () => controller.navigateToScreen(AppScreen.adminChat),
+          onAdminChat: () {
+            if (Get.isRegistered<PrivateChatController>()) {
+              Get.delete<PrivateChatController>();
+            }
+            controller.navigateToScreen(AppScreen.adminChat);
+          },
         );
 
       case AppScreen.chat:
@@ -928,10 +933,10 @@ extension _MainScaffoldNotification on MainScaffold {
         );
 
       case AppScreen.adminChat:
-        if (!Get.isRegistered<AdminChatController>()) {
-          Get.put(AdminChatController());
+        if (!Get.isRegistered<PrivateChatController>()) {
+          Get.put(PrivateChatController());
         }
-        return const AdminChatScreen();
+        return const PrivateChatScreen();
 
       case AppScreen.tickets:
         if (!Get.isRegistered<TicketsController>()) {

@@ -483,6 +483,49 @@ class HomeRepository {
     }
   }
 
+  /// GET /single_residence/{id}
+  /// Response includes nested admin: { "id": 17, "user_name": "..." }
+  Future<Map<String, dynamic>> getSingleResidence(int residenceId) async {
+    try {
+      final endpoint = '${ApiConstants.GET_SINGLE_RESIDENCE}/$residenceId';
+      print('🏠 [HomeRepository] GET $endpoint');
+
+      final response = await _apiService.get(endpoint);
+
+      if (response.statusCode == 200 &&
+          response.data is Map &&
+          response.data['status'] == true &&
+          response.data['data'] is Map) {
+        final data = Map<String, dynamic>.from(
+          response.data['data'] as Map,
+        );
+        print(
+          '✅ [HomeRepository] single_residence loaded id=$residenceId '
+          'admin=${data['admin']}',
+        );
+        return {'success': true, 'data': data};
+      }
+
+      final errorMessage = response.data is Map
+          ? (response.data['message'] ?? response.data['error'] ??
+              'Failed to fetch residence')
+          : 'Failed to fetch residence';
+      return {'success': false, 'error': errorMessage.toString()};
+    } on DioException catch (e) {
+      print('❌ [HomeRepository] getSingleResidence DioException: $e');
+      return {
+        'success': false,
+        'error': 'Failed to fetch residence. Please try again.',
+      };
+    } catch (e) {
+      print('❌ [HomeRepository] getSingleResidence error: $e');
+      return {
+        'success': false,
+        'error': 'Failed to fetch residence. Please try again.',
+      };
+    }
+  }
+
   // Get Residence Data by Token (for Home Screen)
   /// POST /residences/by-token
   /// Request: { "token": "<TOKEN_FROM_LOCAL_STORAGE>" }

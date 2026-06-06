@@ -758,6 +758,8 @@ class AppTranslations extends Translations {
         'Unable to start admin chat. Please select your residence first.',
     'adminChatAccessDenied':
         'You do not have permission to access this conversation.',
+    'privateChatIndexPending':
+        'Chat history is syncing. You can still message admins; full list order updates once the server index is ready.',
     'appbarchatHub': 'Condominium Chat',
     'appbargroupChat': 'Group Chat',
     'appbarAdminChat': 'Chat with Admin',
@@ -1610,6 +1612,8 @@ class AppTranslations extends Translations {
         'Impossibile avviare la chat. Seleziona prima la tua residenza.',
     'adminChatAccessDenied':
         'Non hai il permesso di accedere a questa conversazione.',
+    'privateChatIndexPending':
+        'La cronologia chat si sta sincronizzando. Puoi comunque scrivere agli amministratori; l\'ordinamento completo sarà disponibile quando l\'indice server sarà pronto.',
     'appbarchatHub': 'Chat Condominio',
     'appbargroupChat': 'Chat di Gruppo',
     'appbarAdminChat': 'Chat con Amministratore',

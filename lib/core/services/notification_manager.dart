@@ -35,6 +35,9 @@ class NotificationManager extends GetxService {
       case PushTypes.syncNotifications:
         _refreshNotificationsAndUnread();
         break;
+      case PushTypes.privateChatMessage:
+        // Future: refresh private chat list / navigate to conversation
+        break;
       default:
         break;
     }

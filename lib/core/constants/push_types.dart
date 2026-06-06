@@ -10,7 +10,6 @@ class PushTypes {
   /// Backend-driven silent sync; refresh notifications and unread count.
   static const String syncNotifications = 'sync_notifications';
 
-  // Reserved for future use (do not remove; document navigation/chat/etc. can use these)
-  // static const String newMessage = 'new_message';
-  // static const String announcement = 'announcement';
+  /// New private chat message (resident ↔ admin). FCM hook — navigation TBD.
+  static const String privateChatMessage = 'private_chat_message';
 }

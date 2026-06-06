@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:casazero/presentation/documents/controllers/documents_controller.dart';
 import 'package:casazero/presentation/profile/controllers/profile_controller.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +17,7 @@ import '../../../data/models/residence_status_phase_model.dart';
 import '../../../data/models/document_model.dart';
 import '../../../core/utils/permissions.dart';
 import '../../../app/routes/app_routes.dart';
+import '../../chat/controllers/private_chat_controller.dart';
 import '../../main/main_scaffold.dart'; // Import for AppScreen enum
 
 class HomeController extends GetxController {
@@ -43,8 +46,12 @@ class HomeController extends GetxController {
   final selectedResidence = Rx<ResidenceModel?>(null);
   final isLoadingResidences = false.obs;
 
-  // Residence data for Home Screen (from API)
+  // Residence data for Home Screen (from GET /single_residence/{id})
   final residenceData = Rx<Map<String, dynamic>?>(null);
+
+  /// Assigned residence admin — stored when single_residence API loads.
+  final residenceAdminId = RxnInt();
+  final residenceAdminName = RxnString();
 
   // Screen navigation
   final currentScreen = AppScreen.home.obs;
@@ -150,6 +157,8 @@ class HomeController extends GetxController {
     residences.clear();
     selectedResidence.value = null;
     residenceData.value = null;
+    residenceAdminId.value = null;
+    residenceAdminName.value = null;
     _isInitialized.value = false;
     print('🧹 [HomeController] State cleared for logout');
   }
@@ -183,6 +192,8 @@ class HomeController extends GetxController {
     residences.clear();
     selectedResidence.value = null;
     residenceData.value = null;
+    residenceAdminId.value = null;
+    residenceAdminName.value = null;
     _isInitialized.value = false;
 
     if (Get.isRegistered<ProfileController>()) {
@@ -219,9 +230,8 @@ class HomeController extends GetxController {
     _isInitialized.value = true;
     print('✅ [HomeController] Initializing data with token...');
 
-    fetchResidences(); // Fetch residences
+    fetchResidences().then((_) => fetchResidenceData());
     fetchHomeData();
-    fetchResidenceData();
     fetchNotifications(); // Fetch notifications from API
     fetchUnreadCount(); // Fetch unread count from API
     // Pre-load documents in background after login
@@ -328,6 +338,7 @@ class HomeController extends GetxController {
   void selectResidence(ResidenceModel residence) {
     selectedResidence.value = residence;
     print('Selected residence: ${residence.residenceName}');
+    unawaited(fetchResidenceData());
     if (Get.isRegistered<DocumentsController>()) {
       Get.find<DocumentsController>().fetchDocuments();
     }
@@ -610,9 +621,8 @@ class HomeController extends GetxController {
     print('🤖 AI Support pressed for notification: ${notification.id}');
   }
 
-  /// Fetch residence data for Home Screen
+  /// Fetch residence via GET /single_residence/{id} and store admin for private chat.
   Future<void> fetchResidenceData() async {
-    // Guard: Check token before API call
     if (apiToken.value.isEmpty) {
       print(
         '⚠️ [HomeController] fetchResidenceData: API token not ready, skipping',
@@ -620,23 +630,27 @@ class HomeController extends GetxController {
       return;
     }
 
+    final residenceId = _resolveResidenceIdForSingleResidence();
+    if (residenceId == null) {
+      print('⚠️ [HomeController] fetchResidenceData: no residence id yet');
+      return;
+    }
+
     try {
-      print('🏠 [HomeController] Fetching residence data...');
-      final result = await _homeRepository.getResidenceByToken();
+      print('🏠 [HomeController] Fetching single_residence/$residenceId...');
+      final result = await _homeRepository.getSingleResidence(residenceId);
 
       if (result['success'] == true) {
-        residenceData.value = result['data'] as Map<String, dynamic>;
-        print(
-          '✅ [HomeController] Residence data loaded: ${residenceData.value}',
-        );
-        // Sync residence_status from API into currentUser so UI (e.g. Construction Progress) reacts
-        final statusStr = residenceData.value?['residence_status']?.toString();
+        final data = result['data'] as Map<String, dynamic>;
+        residenceData.value = data;
+        _storeResidenceAdminFromData(data);
+        print('✅ [HomeController] Residence data loaded: id=$residenceId');
+
+        final statusStr = data['residence_status']?.toString();
         final status = UserModel.parseResidenceStatus(statusStr);
         if (status != null && currentUser.value != null) {
           currentUser.value = currentUser.value!.copyWith(residenceStatus: status);
         }
-        final photo = residenceData.value?['residence_photo'];
-        print('🏠 [HomeController] Residence image URL from data: $photo');
         if (currentUser.value?.residenceStatus == ResidenceStatus.underConstruction) {
           fetchConstructionPhases();
         }
@@ -644,12 +658,50 @@ class HomeController extends GetxController {
         print(
           '❌ [HomeController] Failed to fetch residence data: ${result['error']}',
         );
-        // Log error but don't show UI - as per requirements
       }
     } catch (e) {
       print('❌ [HomeController] Error fetching residence data: $e');
-      // Log error but don't show UI - as per requirements
     }
+  }
+
+  int? _resolveResidenceIdForSingleResidence() {
+    if (selectedResidence.value != null) return selectedResidence.value!.id;
+    if (residences.isNotEmpty) return residences.first.id;
+
+    final existing = residenceData.value?['id'];
+    if (existing is int) return existing;
+    final parsed = int.tryParse(existing?.toString() ?? '');
+    if (parsed != null) return parsed;
+
+    final rid = currentUser.value?.residenceId;
+    if (rid != null && rid.isNotEmpty) {
+      return int.tryParse(rid);
+    }
+
+    final userData = _storageService.getUserData();
+    final stored = userData?['residence_id'] ?? userData?['unit_id'];
+    if (stored is int) return stored;
+    return int.tryParse(stored?.toString() ?? '');
+  }
+
+  void _storeResidenceAdminFromData(Map<String, dynamic> data) {
+    final admin = data['admin'];
+    if (admin is! Map) {
+      residenceAdminId.value = null;
+      residenceAdminName.value = null;
+      print('⚠️ [HomeController] single_residence has no admin object');
+      return;
+    }
+
+    final rawId = admin['id'];
+    final id = rawId is int ? rawId : int.tryParse(rawId?.toString() ?? '');
+    residenceAdminId.value = id != null && id > 0 ? id : null;
+    residenceAdminName.value = admin['user_name']?.toString();
+
+    print(
+      '🏠 [HomeController] Stored residence admin '
+      'id=${residenceAdminId.value} name=${residenceAdminName.value}',
+    );
   }
 
   /// Fetch construction phases (status-with-phases) when residence is under construction.
@@ -735,6 +787,9 @@ class HomeController extends GetxController {
 
       case 'adminchat':
       case 'admin_chat':
+        if (Get.isRegistered<PrivateChatController>()) {
+          Get.delete<PrivateChatController>();
+        }
         navigateToScreen(AppScreen.adminChat);
         break;
 

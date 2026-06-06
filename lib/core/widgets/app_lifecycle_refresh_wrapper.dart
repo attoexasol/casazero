@@ -3,6 +3,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../core/services/presence_service.dart';
+import '../../core/services/storage_service.dart';
 import '../../presentation/home/controllers/home_controller.dart';
 import '../../presentation/documents/controllers/documents_controller.dart';
 
@@ -47,6 +49,14 @@ class _AppLifecycleRefreshWrapperState extends State<AppLifecycleRefreshWrapper>
       }
       if (Get.isRegistered<DocumentsController>()) {
         Get.find<DocumentsController>().fetchDocuments();
+      }
+      if (Get.isRegistered<PresenceService>() &&
+          Get.isRegistered<StorageService>()) {
+        final raw = Get.find<StorageService>().getUserData()?['id'];
+        final userId = raw is int ? raw : int.tryParse(raw?.toString() ?? '');
+        if (userId != null) {
+          Get.find<PresenceService>().setOnline(userId);
+        }
       }
     } catch (e) {
       // Controllers may not be ready yet
