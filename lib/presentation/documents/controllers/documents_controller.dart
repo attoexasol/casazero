@@ -14,6 +14,7 @@ import '../models/upload_result.dart';
 class DocumentsController extends GetxController {
   final DocumentRepository _repository = DocumentRepository();
   final DownloadService _downloadService = Get.find<DownloadService>();
+  final bool skipInitialFetch;
 
   // Reactive variables for categories
   final RxList<DocumentCategoryModel> categories =
@@ -34,9 +35,12 @@ class DocumentsController extends GetxController {
   final RxBool uploadSuccess = false.obs;
   final RxString uploadErrorMessage = ''.obs;
 
+  DocumentsController({this.skipInitialFetch = false});
+
   @override
   void onInit() {
     super.onInit();
+    if (skipInitialFetch) return;
     fetchDocumentCategories();
     fetchDocuments();
   }

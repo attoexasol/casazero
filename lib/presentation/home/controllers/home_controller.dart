@@ -40,6 +40,7 @@ class HomeController extends GetxController {
   // API Token state (single source of truth - ensures token is ready before API calls)
   final apiToken = RxString('');
   final _isInitialized = false.obs; // Prevent duplicate initialization
+  bool _initialLoadInProgress = false;
 
   // Residence management
   final residences = <ResidenceModel>[].obs;
@@ -160,6 +161,8 @@ class HomeController extends GetxController {
     residenceAdminId.value = null;
     residenceAdminName.value = null;
     _isInitialized.value = false;
+    _initialLoadInProgress = false;
+    isLoading.value = false;
     print('🧹 [HomeController] State cleared for logout');
   }
 
@@ -180,12 +183,19 @@ class HomeController extends GetxController {
 
     if (!userChanged && !noUserInController) return;
 
+    _loadUserData();
+    // onReady may have initialized already — avoid wiping state and reloading twice.
+    if (_isInitialized.value &&
+        storageId != null &&
+        currentUser.value?.id == storageId) {
+      return;
+    }
+
     print(
       '🔄 [HomeController] User changed or first load (storage: $storageId, current: $currentId), reinitializing...',
     );
 
     _loadApiToken();
-    _loadUserData();
 
     feedItems.clear();
     unreadCount.value = 0;
@@ -230,12 +240,26 @@ class HomeController extends GetxController {
     _isInitialized.value = true;
     print('✅ [HomeController] Initializing data with token...');
 
-    fetchResidences().then((_) => fetchResidenceData());
-    fetchHomeData();
-    fetchNotifications(); // Fetch notifications from API
-    fetchUnreadCount(); // Fetch unread count from API
-    // Pre-load documents in background after login
+    unawaited(_loadInitialHomeData());
+    fetchNotifications(); // Also refreshes unread count on success
     _preloadDocuments();
+  }
+
+  /// Single coordinated home load — avoids full-screen loader + section loaders flashing twice.
+  Future<void> _loadInitialHomeData() async {
+    if (apiToken.value.isEmpty || _initialLoadInProgress) return;
+
+    _initialLoadInProgress = true;
+    try {
+      isLoading.value = true;
+      await fetchResidences();
+      await fetchResidenceData();
+    } catch (e) {
+      print('❌ [HomeController] _loadInitialHomeData: $e');
+    } finally {
+      isLoading.value = false;
+      _initialLoadInProgress = false;
+    }
   }
 
   /// Pre-load documents in background after login
@@ -251,7 +275,9 @@ class HomeController extends GetxController {
         if (result['success'] == true) {
           // Initialize DocumentsController with pre-loaded data
           if (!Get.isRegistered<DocumentsController>()) {
-            final documentsController = Get.put(DocumentsController());
+            final documentsController = Get.put(
+              DocumentsController(skipInitialFetch: true),
+            );
             // Update documents list with pre-loaded data
             final documentsData = result['data'];
 
@@ -264,6 +290,7 @@ class HomeController extends GetxController {
                     item as Map<String, dynamic>);
               }).toList();
             }
+            await documentsController.fetchDocumentCategories();
             print(
               '✅ Documents pre-loaded in HomeController: ${documentsData.length} documents',
             );
@@ -313,10 +340,6 @@ class HomeController extends GetxController {
           print(
             'Auto-selected residence: ${selectedResidence.value?.residenceName}',
           );
-
-          if (Get.isRegistered<DocumentsController>()) {
-            Get.find<DocumentsController>().fetchDocuments();
-          }
         }
 
         print('Loaded ${residences.length} residences');
@@ -404,38 +427,6 @@ class HomeController extends GetxController {
     );
   }
 
-  Future<void> fetchHomeData() async {
-    try {
-      isLoading.value = true;
-
-      // Fetch feed items
-      final feedResponse = await _homeRepository.getFeedItems();
-      // if (feedResponse['success']) {
-      //   feedItems.value = (feedResponse['data'] as List)
-      //       .map((item) => FeedItemModel.fromJson(item))
-      //       .toList();
-      // }
-
-      // Fetch construction phases if under construction
-      // if (currentUser.value?.residenceStatus == ResidenceStatus.underConstruction) {
-      //   final phasesResponse = await _homeRepository.getConstructionPhases();
-      //   if (phasesResponse['success']) {
-      //     constructionPhases.value = (phasesResponse['data'] as List)
-      //         .map((phase) => ConstructionPhaseModel.fromJson(phase))
-      //         .toList();
-      //   }
-      // }
-
-      isLoading.value = false;
-    } catch (e) {
-      isLoading.value = false;
-      MessagePopupController.showError(
-        messageKey: 'failed_to_load_home_data',
-        titleKey: 'error',
-      );
-    }
-  }
-
   Future<void> refreshData() async {
     // Reload token before refresh to ensure it's current
     _loadApiToken();
@@ -448,12 +439,9 @@ class HomeController extends GetxController {
       return;
     }
 
-    await fetchHomeData();
+    await fetchResidences();
     await fetchResidenceData();
-    await fetchNotifications(); // Refresh notifications on pull-to-refresh
-    await fetchUnreadCount(); // Refresh unread count on pull-to-refresh
-    // Always refetch construction progress on refresh so user sees updated phases
-    await fetchConstructionPhases();
+    await fetchNotifications();
   }
 
   /// Fetch notifications from API (user-wise)
@@ -651,8 +639,9 @@ class HomeController extends GetxController {
         if (status != null && currentUser.value != null) {
           currentUser.value = currentUser.value!.copyWith(residenceStatus: status);
         }
-        if (currentUser.value?.residenceStatus == ResidenceStatus.underConstruction) {
-          fetchConstructionPhases();
+        if (currentUser.value?.residenceStatus ==
+            ResidenceStatus.underConstruction) {
+          await fetchConstructionPhases();
         }
       } else {
         print(
