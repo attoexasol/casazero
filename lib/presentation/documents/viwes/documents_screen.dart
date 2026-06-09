@@ -45,7 +45,10 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
   Widget build(BuildContext context) {
     final permissions = Permissions.fromRole(widget.role);
 
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+
     return Stack(
+      clipBehavior: Clip.none,
       children: [
         Column(
           children: [
@@ -208,10 +211,12 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
           ],
         ),
 
-        /// FLOATING ACTION BUTTON
+        /// FLOATING ACTION BUTTON — offset cancels parent keyboard padding
         if (permissions.canUploadDocuments)
-          Positioned(
-            bottom: 20,
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 100),
+            curve: Curves.easeOut,
+            bottom: 20 - keyboardInset,
             right: 20,
             child:
                 FloatingActionButton(

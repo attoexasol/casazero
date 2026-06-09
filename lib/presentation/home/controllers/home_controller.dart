@@ -833,23 +833,13 @@ class HomeController extends GetxController {
   /// Check if can go forward
   bool get canGoForward => forwardHistory.isNotEmpty;
 
-  /// Handle system back button
+  /// Handle system back button — walks [screenHistory] one step at a time.
   Future<bool> handleBackNavigation() async {
-    // Check if we're on a main bottom nav screen
-    final mainScreens = bottomNavTabs.map((tab) => tab.screen).toList();
-
-    if (!mainScreens.contains(currentScreen.value)) {
-      // We're on a sub-screen, go back
+    if (screenHistory.isNotEmpty || currentScreen.value != AppScreen.home) {
       goBack();
-      return false; // Don't exit app
-    } else if (currentScreen.value != AppScreen.home) {
-      // We're on a main screen but not home, go to home
-      navigateToScreen(AppScreen.home, addToHistory: false);
-      return false; // Don't exit app
-    } else {
-      // We're on home, allow app exit
-      return true; // Exit app
+      return false;
     }
+    return true;
   }
 
   // Clear navigation history

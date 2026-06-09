@@ -1,8 +1,9 @@
 import 'package:casazero/core/controllers/message_popup_controller.dart';
-import 'package:casazero/core/widgets/bounce_glow_widget.dart';
+import 'package:casazero/core/widgets/floating_bottom_nav_bar.dart';
 import 'package:casazero/core/widgets/notifications_modal.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -65,24 +66,59 @@ class MainScaffold extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     return Obx(
-      () => WillPopScope(
-        onWillPop: () async {
-          // Handle back button - go back to previous screen
-          return controller.handleBackNavigation();
+      () => PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+
+          if (_shouldDismissKeyboardFirst(context)) {
+            FocusManager.instance.primaryFocus?.unfocus();
+            return;
+          }
+
+          controller.handleBackNavigation().then((shouldExit) {
+            if (shouldExit) {
+              SystemNavigator.pop();
+            }
+          });
         },
         child: Scaffold(
           backgroundColor: AppColors.surfaceWhite,
+          extendBody: true,
+          resizeToAvoidBottomInset: false,
           appBar: _buildAppBar(),
-          // BODY - Contains all screens dynamically
-          body: SafeArea(
-            top: false,
-            bottom: true,
-            left: false,
-            right: false,
-            child: _buildBody(),
+          body: Stack(
+            fit: StackFit.expand,
+            children: [
+              SafeArea(
+                top: false,
+                bottom: true,
+                left: false,
+                right: false,
+                child: AnimatedPadding(
+                  duration: const Duration(milliseconds: 320),
+                  curve: Curves.easeOutCubic,
+                  padding: EdgeInsets.only(
+                    bottom: (_isBottomNavVisible() ? 86.h : 0) +
+                        MediaQuery.viewInsetsOf(context).bottom,
+                  ),
+                  child: _buildBody(),
+                ),
+              ),
+              if (_isBottomNavVisible())
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: MediaQuery(
+                    data: MediaQuery.of(context).copyWith(
+                      viewInsets: EdgeInsets.zero,
+                    ),
+                    child: _buildFloatingNavBar(),
+                  ),
+                ),
+            ],
           ),
-          // SINGLE PERSISTENT BOTTOM NAV BAR (show/hide based on screen)
-          bottomNavigationBar: _buildBottomNavBar(),
         ),
       ),
     );
@@ -966,99 +1002,50 @@ extension _MainScaffoldNotification on MainScaffold {
     });
   }
 
-  Widget? _buildBottomNavBar() {
-    // Hide bottom nav on certain screens
-    final hideBottomNavScreens = [
+  bool _shouldDismissKeyboardFirst(BuildContext context) {
+    if (MediaQuery.viewInsetsOf(context).bottom > 0) return true;
+
+    final focus = FocusManager.instance.primaryFocus;
+    if (focus == null || !focus.hasFocus) return false;
+
+    final focusContext = focus.context;
+    if (focusContext == null) return false;
+
+    return focusContext.findAncestorWidgetOfExactType<EditableText>() != null;
+  }
+
+  bool _isBottomNavVisible() {
+    const hideBottomNavScreens = [
       AppScreen.smartHome,
       AppScreen.changePassword,
       AppScreen.chatHub,
       AppScreen.chat,
       AppScreen.adminChat,
       AppScreen.tickets,
-      // AppScreen.trustedDevices,
-      // Add other screens where you want to hide bottom nav
     ];
 
-    if (hideBottomNavScreens.contains(controller.currentScreen.value)) {
-      return null; // Hide bottom nav
-    }
+    return !hideBottomNavScreens.contains(controller.currentScreen.value);
+  }
 
-    return Container(
-      decoration: BoxDecoration(
-        // borderRadius: BorderRadius.only(
-        //   topLeft: Radius.circular(20),
-        //   topRight: Radius.circular(20),
-        // ),
-        color: AppColors.surfaceWhite,
-        border: Border(
-          top: BorderSide(color: AppColors.neutralLine200, width: 1.w),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 6,
-            offset: const Offset(0, -3),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 61.h,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(controller.bottomNavTabs.length, (index) {
-              final tab = controller.bottomNavTabs[index];
-              final isActive = controller.currentScreen.value == tab.screen;
+  Widget _buildFloatingNavBar() {
+    final tabs = controller.bottomNavTabs;
+    final selectedIndex = tabs.indexWhere(
+      (tab) => tab.screen == controller.currentScreen.value,
+    );
 
-              return Expanded(
-                child: GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  onTap: () => controller.navigateToScreen(tab.screen),
-                  child: AnimatedContainer(
-                    key: ValueKey(tab.screen),
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeOutBack,
-                    padding: EdgeInsets.only(top: 10.h),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        BounceGlowWidget(
-                          active: isActive,
-                          child: _buildIcon(tab, isActive),
-                        ),
-
-                        SizedBox(height: 8.h),
-                        // Active indicator dot
-                        AnimatedOpacity(
-                          opacity: isActive ? 1 : 0,
-                          duration: const Duration(milliseconds: 200),
-                          child: Container(
-                            width: 4.w,
-                            height: 4.w,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.brandSage500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }),
-          ),
-        ),
-      ),
+    return FloatingBottomNavBar(
+      itemCount: tabs.length,
+      selectedIndex: selectedIndex,
+      onItemSelected: (index) =>
+          controller.navigateToScreen(tabs[index].screen),
+      iconBuilder: (index, isActive) => _buildIcon(tabs[index], isActive),
     );
   }
 
   Widget _buildIcon(BottomNavTab tab, bool isActive) {
     // SET YOUR CUSTOM SIZES HERE
-    final double activeSize = 24.w; // Bigger on active
-    final double inactiveSize = 24.w; // Smaller on inactive
+    final double activeSize = 26.w;
+    final double inactiveSize = 22.w;
 
     // The icon that should NOT change color when active
     bool noColorChange = tab.screen == AppScreen.hubScreen;
