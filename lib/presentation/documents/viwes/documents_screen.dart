@@ -24,7 +24,6 @@ class DocumentsScreen extends StatefulWidget {
 class _DocumentsScreenState extends State<DocumentsScreen> {
   String searchQuery = "";
   String activeCategory = "all";
-  bool showUploadDialog = false;
 
   late final DocumentsController _controller;
 
@@ -39,6 +38,19 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
     }
 
     // Popup messages are handled ONLY in AddDocumentDialog
+  }
+
+  void _openAddDocumentDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) => AddDocumentDialog(
+        onClose: () => Navigator.of(dialogContext).pop(),
+        onUpload: (documentData) async {
+          print('✅ Document upload completed: ${documentData['title']}');
+        },
+      ),
+    );
   }
 
   @override
@@ -213,15 +225,13 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
 
         /// FLOATING ACTION BUTTON — offset cancels parent keyboard padding
         if (permissions.canUploadDocuments)
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 100),
-            curve: Curves.easeOut,
+          Positioned(
             bottom: 20 - keyboardInset,
             right: 20,
             child:
                 FloatingActionButton(
                     backgroundColor: const Color(0xFF4CAF47),
-                    onPressed: () => setState(() => showUploadDialog = true),
+                    onPressed: _openAddDocumentDialog,
                     child: const Icon(Icons.add, size: 26, color: Colors.white),
                   ).animate()
                   ..scale(
@@ -230,16 +240,6 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                   ).fadeIn(),
           ),
 
-        /// ADD DOCUMENT DIALOG
-        if (showUploadDialog)
-          AddDocumentDialog(
-            onClose: () => setState(() => showUploadDialog = false),
-            onUpload: (documentData) async {
-              // The dialog already handles the upload and refresh
-              // This callback is optional and can be used for additional handling if needed
-              print('✅ Document upload completed: ${documentData['title']}');
-            },
-          ),
       ],
     );
   }

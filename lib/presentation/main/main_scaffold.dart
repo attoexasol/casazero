@@ -95,9 +95,7 @@ class MainScaffold extends GetView<HomeController> {
                 bottom: true,
                 left: false,
                 right: false,
-                child: AnimatedPadding(
-                  duration: const Duration(milliseconds: 320),
-                  curve: Curves.easeOutCubic,
+                child: Padding(
                   padding: EdgeInsets.only(
                     bottom: (_isBottomNavVisible() ? 86.h : 0) +
                         MediaQuery.viewInsetsOf(context).bottom,

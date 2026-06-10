@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_shadows.dart';
 import '../../../../core/controllers/message_popup_controller.dart';
 import '../../../../core/localization/locale_controller.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
-import '../../../../core/widgets/gradient_button.dart';
 import '../../../../core/widgets/outlined_custom_button.dart';
 import '../../../../data/models/document_category_model.dart';
 import '../../controllers/documents_controller.dart';
@@ -152,11 +153,6 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
 
     // Handle result - popups shown ONLY here in UI layer
     if (result.status == UploadStatus.success) {
-      // ✅ SUCCESS - Show success popup and close dialog
-      _showSuccessPopup();
-      widget.onClose(); // Close dialog
-      
-      // Call upload callback if provided
       if (widget.onUpload != null) {
         await widget.onUpload!({
           'file': _selectedFile,
@@ -167,6 +163,10 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
           'description': _descriptionController.text.trim(),
         });
       }
+
+      if (!mounted) return;
+      widget.onClose();
+      _showSuccessPopup();
     } else {
       // ❌ ERROR - Show error popup, keep dialog open
       _showErrorPopup(result.message);
@@ -187,57 +187,65 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
     );
   }
 
+  Widget _buildFormContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildFileUploadArea(),
+        const SizedBox(height: 16),
+        _buildSupportedFormatsInfo(),
+        const SizedBox(height: 20),
+        _buildDocumentTypeDropdown(),
+        const SizedBox(height: 16),
+        _buildTitleField(),
+        const SizedBox(height: 16),
+        _buildDescriptionField(),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.black.withOpacity(0.5),
-      child: Center(
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
-          constraints: const BoxConstraints(maxWidth: 500),
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetAnimationDuration: Duration.zero,
+      alignment: keyboardOpen ? Alignment.bottomCenter : Alignment.center,
+      insetPadding: EdgeInsets.fromLTRB(
+        16,
+        keyboardOpen ? 16 : 24,
+        16,
+        keyboardOpen ? 8 : 24,
+      ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 500,
+          maxHeight: screenHeight * 0.85,
+        ),
+        child: DecoratedBox(
           decoration: BoxDecoration(
-            color: AppColors.surfaceWarm100,
-            borderRadius: BorderRadius.circular(20),
+            color: AppColors.surfaceWarm50,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.neutralLine200),
+            boxShadow: AppShadows.shadowLg,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              // Dialog Header
-              _buildHeader(),
-
-              // Dialog Content
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // File Upload Area
-                      _buildFileUploadArea(),
-                      const SizedBox(height: 16),
-
-                      // Supported Formats Info
-                      _buildSupportedFormatsInfo(),
-                      const SizedBox(height: 20),
-
-                      // Document Type Dropdown
-                      _buildDocumentTypeDropdown(),
-                      const SizedBox(height: 16),
-
-                      // Title Field
-                      _buildTitleField(),
-                      const SizedBox(height: 16),
-
-                      // Description Field
-                      _buildDescriptionField(),
-                    ],
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildHeader(),
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24),
+                    child: _buildFormContent(),
                   ),
                 ),
-              ),
-
-              // Dialog Footer
-              _buildFooter(),
-            ],
+                _buildFooter(),
+              ],
+            ),
           ),
         ),
       ),
@@ -246,60 +254,43 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.only(
-        top: 5, // 🔥 extra top padding (matches screenshot)
-        bottom: 5,
-        left: 5,
-        right: 5,
-      ),
+      padding: const EdgeInsets.fromLTRB(20, 20, 12, 16),
       decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+        color: AppColors.surfaceWhite,
+        border: Border(
+          bottom: BorderSide(color: AppColors.neutralLine100, width: 1),
         ),
       ),
-      child: Stack(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /// CENTERED TITLE + SUBTITLE
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 48),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'addDocument'.tr,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.neutralInk900,
-                    ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'addDocument'.tr,
+                  style: AppTextStyles.h4.copyWith(
+                    color: AppColors.neutralInk900,
                   ),
-                  const SizedBox(height: 4), // 🔥 exact spacing from screenshot
-                  Text(
-                    'Upload a personal document to your collection',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.neutralInk500,
-                    ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Upload a personal document to your collection',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.neutralInk500,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-
-          /// CLOSE BUTTON — TOP RIGHT
-          Positioned(
-            right: 0,
-            top: 0,
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-              onPressed: widget.onClose,
-              icon: Icon(Icons.close, color: AppColors.neutralInk500),
-              splashRadius: 22,
-            ),
+          IconButton(
+            onPressed: widget.onClose,
+            icon: const Icon(Icons.close_rounded, size: 22),
+            color: AppColors.neutralInk400,
+            splashRadius: 20,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
           ),
         ],
       ),
@@ -862,34 +853,42 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
 
   Widget _buildFooter() {
     return Container(
-      height: 60,
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceWarm50,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(20),
-          bottomRight: Radius.circular(20),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+      decoration: const BoxDecoration(
+        color: AppColors.surfaceWhite,
+        border: Border(
+          top: BorderSide(color: AppColors.neutralLine100, width: 1),
         ),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Expanded(
             child: OutlinedCustomButton(
               text: 'cancel'.tr,
               onPressed: widget.onClose,
-              width: 100,
+              borderColor: AppColors.neutralLine200,
+              textColor: AppColors.neutralInk700,
+              height: 48,
+              borderRadius: 12,
             ),
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Obx(() => GradientButton(
-              text: 'upload'.tr,
-              icon: Icons.upload,
-              onPressed: _canUpload && !_controller.isUploading.value ? _handleUpload : null,
-              isLoading: _controller.isUploading.value,
-              width: 140,
-            )),
+            child: Obx(
+              () => CustomButton(
+                text: 'upload'.tr,
+                icon: Icons.cloud_upload_outlined,
+                onPressed: _canUpload && !_controller.isUploading.value
+                    ? _handleUpload
+                    : null,
+                isLoading: _controller.isUploading.value,
+                backgroundColor: AppColors.brandSage500,
+                textColor: AppColors.surfaceWhite,
+                height: 48,
+                borderRadius: 12,
+                showShadow: false,
+              ),
+            ),
           ),
         ],
       ),

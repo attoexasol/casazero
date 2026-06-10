@@ -332,12 +332,10 @@ class MaintenanceTaskCard extends StatelessWidget {
               : null,
           boxShadow: AppShadows.shadowMd,
         ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () => controller.toggleExpanded(task.id),
-            borderRadius: BorderRadius.circular(16),
-            child: IntrinsicHeight(
+        child: GestureDetector(
+          onTap: () => controller.toggleExpanded(task.id),
+          behavior: HitTestBehavior.opaque,
+          child: IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -1148,7 +1146,6 @@ class MaintenanceTaskCard extends StatelessWidget {
                 ],
               ),
             ),
-          ),
         ),
       );
     });
