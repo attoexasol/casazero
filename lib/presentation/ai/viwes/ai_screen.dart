@@ -779,11 +779,9 @@ class AIScreen extends StatelessWidget {
               ),
             ],
           ),
-          child: SafeArea(
-            top: false,
-            child: Padding(
-              padding: EdgeInsets.all(16.w),
-              child: Row(
+          child: Padding(
+            padding: EdgeInsets.all(16.w),
+            child: Row(
                 children: [
                   Expanded(
                     child: TextField(
@@ -878,7 +876,6 @@ class AIScreen extends StatelessWidget {
                 ],
               ),
             ),
-          ),
         )
         .animate()
         .fadeIn(delay: 700.ms)

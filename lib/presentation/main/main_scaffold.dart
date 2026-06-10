@@ -90,18 +90,14 @@ class MainScaffold extends GetView<HomeController> {
           body: Stack(
             fit: StackFit.expand,
             children: [
-              SafeArea(
-                top: false,
-                bottom: true,
-                left: false,
-                right: false,
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    bottom: (_isBottomNavVisible() ? 86.h : 0) +
-                        MediaQuery.viewInsetsOf(context).bottom,
-                  ),
-                  child: _buildBody(),
+              Padding(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.viewInsetsOf(context).bottom +
+                      (_isBottomNavVisible()
+                          ? 0
+                          : MediaQuery.paddingOf(context).bottom),
                 ),
+                child: _buildBody(),
               ),
               if (_isBottomNavVisible())
                 Positioned(
@@ -112,7 +108,10 @@ class MainScaffold extends GetView<HomeController> {
                     data: MediaQuery.of(context).copyWith(
                       viewInsets: EdgeInsets.zero,
                     ),
-                    child: _buildFloatingNavBar(),
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: _buildFloatingNavBar(),
+                    ),
                   ),
                 ),
             ],
@@ -1015,6 +1014,7 @@ extension _MainScaffoldNotification on MainScaffold {
 
   bool _isBottomNavVisible() {
     const hideBottomNavScreens = [
+      AppScreen.ai,
       AppScreen.smartHome,
       AppScreen.changePassword,
       AppScreen.chatHub,

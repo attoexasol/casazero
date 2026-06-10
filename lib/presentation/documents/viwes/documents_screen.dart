@@ -5,10 +5,12 @@ import 'package:casazero/presentation/documents/viwes/sections/empty_state.dart'
 import 'package:casazero/presentation/documents/viwes/sections/add_document_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../core/controllers/message_popup_controller.dart';
 import '../../../core/utils/permissions.dart';
+import '../../../core/widgets/floating_bottom_nav_bar.dart';
 import '../controllers/documents_controller.dart';
 
 class DocumentsScreen extends StatefulWidget {
@@ -58,6 +60,10 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
     final permissions = Permissions.fromRole(widget.role);
 
     final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+    final navOccupiedHeight = FloatingBottomNavBar.occupiedHeight(context);
+    const fabSize = 56.0;
+    final fabBottom = 20.h + navOccupiedHeight - keyboardInset;
+    final listBottomPadding = navOccupiedHeight + fabSize + 32.h;
 
     return Stack(
       clipBehavior: Clip.none,
@@ -174,7 +180,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                   onRefresh: () => _controller.refreshData(),
                   color: const Color(0xFF4CAF47),
                   child: ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 90),
+                    padding: EdgeInsets.fromLTRB(16, 0, 16, listBottomPadding),
                     itemCount: filteredDocs.length,
                     itemBuilder: (_, i) {
                       final doc = filteredDocs[i];
@@ -223,8 +229,8 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
         /// FLOATING ACTION BUTTON — offset cancels parent keyboard padding
         if (permissions.canUploadDocuments)
           Positioned(
-            bottom: 20 - keyboardInset,
-            right: 20,
+            bottom: fabBottom,
+            right: 20.w,
             child:
                 FloatingActionButton(
                     backgroundColor: const Color(0xFF4CAF47),
