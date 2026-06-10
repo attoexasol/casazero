@@ -113,19 +113,18 @@ class FloatingBottomNavBar extends StatelessWidget {
                                 end: Alignment.bottomRight,
                                 colors: isDark
                                     ? [
-                                        AppColors.brandSage500
-                                            .withOpacity(0.28),
-                                        AppColors.brandSage500
-                                            .withOpacity(0.14),
+                                        AppColors.neutralInk500
+                                            .withOpacity(0.42),
+                                        AppColors.neutralInk700
+                                            .withOpacity(0.55),
                                       ]
                                     : [
-                                        AppColors.brandSage50,
-                                        AppColors.brandSage100
-                                            .withOpacity(0.65),
+                                        AppColors.neutralLine200,
+                                        AppColors.neutralInk300,
                                       ],
                               ),
                               boxShadow: AppShadows.customColoredShadow(
-                                AppColors.brandSage500,
+                                AppColors.neutralInk400,
                                 opacity: isDark ? 0.22 : 0.16,
                               ),
                             ),

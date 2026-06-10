@@ -1050,8 +1050,8 @@ extension _MainScaffoldNotification on MainScaffold {
     // The icon that should NOT change color when active
     bool noColorChange = tab.screen == AppScreen.hubScreen;
 
-    final activeColor = AppColors.brandSage500; // green
-    final inactiveColor = Color(0xff333333); // grey
+    final activeColor = AppColors.neutralInk900;
+    final inactiveColor = AppColors.neutralInk400;
 
     // Decide which color to apply
     final Color? iconColor = noColorChange
