@@ -76,8 +76,10 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                 activeCategory: activeCategory,
                 onCategoryChanged: (c) => setState(() => activeCategory = c),
                 apiCategories: _controller.categories,
-                isLoading: _controller.isLoadingCategories.value,
-                totalDocumentCount: _controller.totalDocumentCount.value,
+                isLoading: _controller.isLoadingCategories.value ||
+                    (_controller.isLoadingDocuments.value &&
+                        _controller.documents.isEmpty),
+                totalDocumentCount: _controller.documents.length,
               ),
             ),
 
@@ -207,11 +209,6 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                         onShare: permissions.canSharedDocuments
                             ? () {
                                 _controller.shareDocument(doc);
-                              }
-                            : null,
-                        onChat: permissions.canSharedDocuments
-                            ? () {
-                                print('Chat about document: ${doc.title}');
                               }
                             : null,
                       ).animate().fadeIn().slideY(begin: 0.1);

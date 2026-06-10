@@ -210,7 +210,7 @@ class HomeController extends GetxController {
       Get.find<ProfileController>().forceReloadUser();
     }
     if (Get.isRegistered<DocumentsController>()) {
-      Get.find<DocumentsController>().documents.clear();
+      Get.find<DocumentsController>().clearDocuments();
     }
 
     if (apiToken.value.isNotEmpty) {
@@ -283,12 +283,11 @@ class HomeController extends GetxController {
 
             // Handle both List<DocumentModel> and List<Map> cases
             if (documentsData is List) {
-              documentsController.documents.value = documentsData
-                  .map<DocumentModel>((item) {
+              final parsed = documentsData.map<DocumentModel>((item) {
                 if (item is DocumentModel) return item;
-                return DocumentModel.fromJson(
-                    item as Map<String, dynamic>);
+                return DocumentModel.fromJson(item as Map<String, dynamic>);
               }).toList();
+              documentsController.applyDocuments(parsed);
             }
             await documentsController.fetchDocumentCategories();
             print(

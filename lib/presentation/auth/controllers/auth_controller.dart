@@ -191,14 +191,16 @@ class AuthController extends GetxController {
         if (result['success'] == true) {
           // Initialize DocumentsController with pre-loaded data
           if (!Get.isRegistered<DocumentsController>()) {
-            final documentsController = Get.put(DocumentsController());
-            // Update documents list with pre-loaded data
+            final documentsController = Get.put(
+              DocumentsController(skipInitialFetch: true),
+            );
             final documentsData = result['data'] as List<dynamic>;
-            documentsController.documents.value = documentsData
-                .map<DocumentModel>((item) {
+            final parsed = documentsData.map<DocumentModel>((item) {
               if (item is DocumentModel) return item;
               return DocumentModel.fromJson(item as Map<String, dynamic>);
             }).toList();
+            documentsController.applyDocuments(parsed);
+            await documentsController.fetchDocumentCategories();
             print('✅ Documents pre-loaded: ${documentsData.length} documents');
           } else {
             // If controller exists, just refresh

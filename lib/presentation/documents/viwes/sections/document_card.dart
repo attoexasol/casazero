@@ -12,7 +12,6 @@ class DocumentCard extends StatefulWidget {
   final VoidCallback? onView;
   final DownloadCallback? onDownload;
   final VoidCallback? onShare;
-  final VoidCallback? onChat;
   final VoidCallback? onDelete;
   final VoidCallback onAskAI;
 
@@ -23,7 +22,6 @@ class DocumentCard extends StatefulWidget {
     this.onView,
     this.onDownload,
     this.onShare,
-    this.onChat,
     this.onDelete,
   });
 
@@ -222,19 +220,6 @@ class _DocumentCardState extends State<DocumentCard> {
                                       child: _actionIconBtn(
                                         Icons.share_outlined,
                                         widget.onShare!,
-                                        scale,
-                                      ),
-                                    ),
-
-                                  // Chat Button
-                                  if (widget.onChat != null)
-                                    Padding(
-                                      padding: EdgeInsets.only(
-                                        left: 15 * scale,
-                                      ),
-                                      child: _actionBtn(
-                                        "assets/images/chat.svg",
-                                        widget.onChat!,
                                         scale,
                                       ),
                                     ),

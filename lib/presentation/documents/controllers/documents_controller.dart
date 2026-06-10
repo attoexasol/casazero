@@ -57,9 +57,9 @@ class DocumentsController extends GetxController {
         final List<DocumentCategoryModel> fetchedCategories = result['data'];
         categories.value = fetchedCategories;
 
-        // If documents are already loaded, update category counts
+        // If documents are already loaded (e.g. preloaded), sync all counts
         if (documents.isNotEmpty) {
-          _updateCategoryCounts(documents);
+          _syncCountsFromDocuments();
         }
       } else {
         errorMessage.value = result['error'] ?? 'failedToFetchCategories'.tr;
@@ -95,24 +95,20 @@ class DocumentsController extends GetxController {
                       .toList() ??
                   [];
 
-        documents.value = fetchedDocuments;
-        totalDocumentCount.value = fetchedDocuments.length;
-
-        // Update category counts based on loaded documents
-        _updateCategoryCounts(fetchedDocuments);
+        _applyLoadedDocuments(fetchedDocuments);
 
         print('✅ Loaded ${documents.length} documents from API');
       } else {
         print('⚠️ API Error: ${result['error']}');
         errorMessage.value = result['error'] ?? 'failedToFetchDocuments'.tr;
         hasError.value = true;
-        documents.clear();
+        clearDocuments();
       }
     } catch (e) {
       print('❌ Error in fetchDocuments: $e');
       errorMessage.value = 'errorFetchingDocuments'.tr;
       hasError.value = true;
-      documents.clear();
+      clearDocuments();
     } finally {
       isLoadingDocuments.value = false;
     }
@@ -676,6 +672,34 @@ class DocumentsController extends GetxController {
     return null;
   }
 
+  /// Apply a loaded document list and keep total + per-category counts in sync.
+  void applyDocuments(List<DocumentModel> loadedDocuments) {
+    _applyLoadedDocuments(loadedDocuments);
+  }
+
+  /// Clear documents and reset all related counts.
+  void clearDocuments() {
+    documents.clear();
+    totalDocumentCount.value = 0;
+    if (categories.isNotEmpty) {
+      categories.value =
+          categories.map((c) => c.copyWith(count: 0)).toList();
+    }
+  }
+
+  void _applyLoadedDocuments(List<DocumentModel> loadedDocuments) {
+    documents.value = loadedDocuments;
+    _syncCountsFromDocuments(loadedDocuments);
+  }
+
+  void _syncCountsFromDocuments([List<DocumentModel>? source]) {
+    final docs = source ?? documents.toList();
+    totalDocumentCount.value = docs.length;
+    if (categories.isNotEmpty) {
+      _updateCategoryCounts(docs);
+    }
+  }
+
   /// Update category counts based on loaded documents
   void _updateCategoryCounts(List<DocumentModel> documents) {
     // Create a map to count documents per category (case-insensitive)
@@ -749,12 +773,7 @@ class DocumentsController extends GetxController {
 
         // Remove document from reactive list immediately
         documents.removeWhere((d) => d.id == document.id);
-
-        // Update total count
-        totalDocumentCount.value = documents.length;
-
-        // Update category counts
-        _updateCategoryCounts(documents.toList());
+        _syncCountsFromDocuments();
 
         // Show success popup
         MessagePopupController.showSuccess(
