@@ -411,6 +411,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
         text: 'verify_continue'.tr,
         onPressed: controller.verifyOTP,
         isLoading: controller.isLoading.value,
+        backgroundColor: AppColors.brandSage800,
       ),
     );
   }

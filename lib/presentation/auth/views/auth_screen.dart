@@ -246,7 +246,7 @@ class AuthScreen extends GetView<AuthController> {
                   text: 'sign_in'.tr,
                   onPressed: controller.login,
                   isLoading: controller.isLoading.value,
-                  backgroundColor: AppColors.brandSage500,
+                  backgroundColor: AppColors.brandSage800,
                   height: 48,
                 ),
               ),

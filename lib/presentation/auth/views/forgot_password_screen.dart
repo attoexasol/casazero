@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
+import '../../../app/theme/app_colors.dart';
 import '../../../core/widgets/casazero_logo.dart';
 import '../../../core/widgets/custom_text_field.dart';
 import '../controllers/forgot_password_controller.dart';
@@ -230,7 +231,7 @@ class ForgotPasswordScreen extends GetView<ForgotPasswordController> {
             : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: ctrl.canSubmit
-              ? const Color(0xFF22C55E)
+              ? AppColors.brandSage800
               : const Color(0xFF9CA3AF),
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
@@ -238,7 +239,7 @@ class ForgotPasswordScreen extends GetView<ForgotPasswordController> {
           ),
           elevation: 8,
           shadowColor: ctrl.canSubmit
-              ? const Color(0xFF22C55E).withOpacity(0.4)
+              ? AppColors.brandSage800.withOpacity(0.4)
               : Colors.transparent,
         ),
         child: ctrl.isLoading.value

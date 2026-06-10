@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
+import '../../../app/theme/app_colors.dart';
 import '../../../core/widgets/casazero_logo.dart';
 import '../../../core/widgets/password_input.dart';
 import '../controllers/forgot_change_password_controller.dart';
@@ -346,7 +347,7 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
             : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: ctrl.canSubmit
-              ? const Color(0xFF22C55E)
+              ? AppColors.brandSage800
               : const Color(0xFF9CA3AF),
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
@@ -354,7 +355,7 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
           ),
           elevation: 8,
           shadowColor: ctrl.canSubmit
-              ? const Color(0xFF22C55E).withOpacity(0.4)
+              ? AppColors.brandSage800.withOpacity(0.4)
               : Colors.transparent,
         ),
         child: ctrl.isLoading.value
