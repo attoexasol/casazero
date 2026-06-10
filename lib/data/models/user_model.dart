@@ -136,19 +136,21 @@ class UserModel {
   /// Parse API residence_status string to enum. Use when syncing from residence API.
   static ResidenceStatus? parseResidenceStatus(String? statusStr) {
     if (statusStr == null || statusStr.toString().trim().isEmpty) return null;
-    final normalized = statusStr.toString().toLowerCase().trim();
-    switch (normalized) {
-      case 'completed':
-        return ResidenceStatus.completed;
-      case 'under construction':
-      case 'under-construction':
-      case 'under_construction':
-        return ResidenceStatus.underConstruction;
-      case 'pending':
-        return ResidenceStatus.pending;
-      default:
-        return null;
+    final normalized = statusStr
+        .toString()
+        .toLowerCase()
+        .trim()
+        .replaceAll('_', ' ')
+        .replaceAll('-', ' ');
+
+    if (normalized == 'completed') return ResidenceStatus.completed;
+    if (normalized == 'pending') return ResidenceStatus.pending;
+    if (normalized.contains('under construction') ||
+        normalized.contains('in progress') ||
+        normalized.contains('work in progress')) {
+      return ResidenceStatus.underConstruction;
     }
+    return null;
   }
 
   // Computed properties

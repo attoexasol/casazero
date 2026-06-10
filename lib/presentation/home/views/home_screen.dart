@@ -6,7 +6,6 @@ import 'package:get/get.dart';
 import '../../../core/widgets/loading_indicator.dart';
 import '../../../core/utils/permissions.dart';
 import '../../../app/theme/app_colors.dart';
-import '../../../data/models/user_model.dart';
 import '../controllers/home_controller.dart';
 
 // SECTIONS
@@ -82,11 +81,11 @@ class HomeScreen extends GetView<HomeController> {
           //     .fadeIn(duration: 500.ms)
           //     .scale(begin: const Offset(0.9, 0.9)),
 
-          // Construction Progress: shown when API residence_status is Under Construction
+          // Construction Progress: driven by live API residence status
           Obx(() {
-            final isUnderConstructionFromApi =
-                controller.currentUser.value?.residenceStatus == ResidenceStatus.underConstruction;
-            if (isUnderConstructionFromApi != true) return const SizedBox.shrink();
+            if (!controller.isResidenceUnderConstruction) {
+              return const SizedBox.shrink();
+            }
             return ConstructionProgressSection(
               onViewBuildings: () => controller.navigateToScreen(AppScreen.ai),
             );

@@ -41,6 +41,7 @@ class HomeController extends GetxController {
   final apiToken = RxString('');
   final _isInitialized = false.obs; // Prevent duplicate initialization
   bool _initialLoadInProgress = false;
+  bool _residenceDataFetchInProgress = false;
 
   // Residence management
   final residences = <ResidenceModel>[].obs;
@@ -62,6 +63,24 @@ class HomeController extends GetxController {
   // Computed properties
   Permissions get permissions =>
       Permissions.fromRole(currentUser.value?.role ?? Role.client);
+
+  /// Resolved status: prefer live API residence data, then selected residence, then cached user.
+  ResidenceStatus? get resolvedResidenceStatus {
+    final fromApi = UserModel.parseResidenceStatus(
+      residenceData.value?['residence_status']?.toString(),
+    );
+    if (fromApi != null) return fromApi;
+
+    final fromSelected = UserModel.parseResidenceStatus(
+      selectedResidence.value?.residenceStatus,
+    );
+    if (fromSelected != null) return fromSelected;
+
+    return currentUser.value?.residenceStatus;
+  }
+
+  bool get isResidenceUnderConstruction =>
+      resolvedResidenceStatus == ResidenceStatus.underConstruction;
 
   // Bottom navigation tabs
   List<BottomNavTab> get bottomNavTabs => [
@@ -160,6 +179,7 @@ class HomeController extends GetxController {
     residenceData.value = null;
     residenceAdminId.value = null;
     residenceAdminName.value = null;
+    constructionPhasesFromApi.clear();
     _isInitialized.value = false;
     _initialLoadInProgress = false;
     isLoading.value = false;
@@ -181,7 +201,10 @@ class HomeController extends GetxController {
         (currentId == null || currentId != storageId);
     final bool noUserInController = currentId == null && storageId != null;
 
-    if (!userChanged && !noUserInController) return;
+    if (!userChanged && !noUserInController) {
+      ensureHomeResidenceLoaded();
+      return;
+    }
 
     _loadUserData();
     // onReady may have initialized already — avoid wiping state and reloading twice.
@@ -336,6 +359,7 @@ class HomeController extends GetxController {
         // Auto-select first residence if available and none selected
         if (residences.isNotEmpty && selectedResidence.value == null) {
           selectedResidence.value = residences.first;
+          _syncResidenceStatus(selectedResidence.value?.residenceStatus);
           print(
             'Auto-selected residence: ${selectedResidence.value?.residenceName}',
           );
@@ -359,6 +383,7 @@ class HomeController extends GetxController {
   /// Select a residence
   void selectResidence(ResidenceModel residence) {
     selectedResidence.value = residence;
+    _syncResidenceStatus(residence.residenceStatus);
     print('Selected residence: ${residence.residenceName}');
     unawaited(fetchResidenceData());
     if (Get.isRegistered<DocumentsController>()) {
@@ -629,18 +654,18 @@ class HomeController extends GetxController {
 
       if (result['success'] == true) {
         final data = result['data'] as Map<String, dynamic>;
-        residenceData.value = data;
+        residenceData.value = {
+          ...data,
+          'id': data['id'] ?? residenceId,
+        };
         _storeResidenceAdminFromData(data);
         print('✅ [HomeController] Residence data loaded: id=$residenceId');
 
-        final statusStr = data['residence_status']?.toString();
-        final status = UserModel.parseResidenceStatus(statusStr);
-        if (status != null && currentUser.value != null) {
-          currentUser.value = currentUser.value!.copyWith(residenceStatus: status);
-        }
-        if (currentUser.value?.residenceStatus ==
-            ResidenceStatus.underConstruction) {
+        _syncResidenceStatus(data['residence_status']?.toString());
+        if (isResidenceUnderConstruction) {
           await fetchConstructionPhases();
+        } else {
+          constructionPhasesFromApi.clear();
         }
       } else {
         print(
@@ -692,14 +717,42 @@ class HomeController extends GetxController {
     );
   }
 
+  /// Ensures residence status/phases are loaded when the home tab is shown.
+  void ensureHomeResidenceLoaded() {
+    if (apiToken.value.isEmpty) return;
+
+    if (residenceData.value == null) {
+      if (_residenceDataFetchInProgress || _initialLoadInProgress) return;
+      _residenceDataFetchInProgress = true;
+      unawaited(
+        fetchResidenceData().whenComplete(() {
+          _residenceDataFetchInProgress = false;
+        }),
+      );
+      return;
+    }
+
+    if (isResidenceUnderConstruction &&
+        constructionPhasesFromApi.isEmpty &&
+        !constructionPhasesLoading.value) {
+      unawaited(fetchConstructionPhases());
+    }
+  }
+
+  void _syncResidenceStatus(String? statusStr) {
+    final status = UserModel.parseResidenceStatus(statusStr);
+    if (status == null) return;
+
+    final user = currentUser.value;
+    if (user != null && user.residenceStatus != status) {
+      currentUser.value = user.copyWith(residenceStatus: status);
+    }
+  }
+
   /// Fetch construction phases (status-with-phases) when residence is under construction.
   Future<void> fetchConstructionPhases() async {
-    if (apiToken.value.isEmpty) return;
-    final residenceId = residenceData.value?['id'];
-    if (residenceId == null) return;
-    final id = residenceId is int
-        ? residenceId
-        : int.tryParse(residenceId.toString());
+    if (apiToken.value.isEmpty || !isResidenceUnderConstruction) return;
+    final id = _resolveResidenceIdForSingleResidence();
     if (id == null) return;
 
     constructionPhasesLoading.value = true;

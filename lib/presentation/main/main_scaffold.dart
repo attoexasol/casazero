@@ -996,6 +996,7 @@ extension _MainScaffoldNotification on MainScaffold {
           child: CircularProgressIndicator(color: AppColors.brandSage500),
         );
       }
+      controller.ensureHomeResidenceLoaded();
       return const HomeScreen();
     });
   }
