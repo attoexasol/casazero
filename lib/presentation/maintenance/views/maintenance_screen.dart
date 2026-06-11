@@ -1,6 +1,7 @@
 // presentation/maintenance/views/maintenance_screen.dart
 import 'package:casazero/app/theme/app_colors.dart';
 import 'package:casazero/core/utils/permissions.dart';
+import 'package:casazero/core/widgets/floating_bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
@@ -179,7 +180,13 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                     onRefresh: () => _controller.refreshData(),
                     color: AppColors.brandSage500,
                     child: ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                      padding: EdgeInsets.fromLTRB(
+                        16,
+                        16,
+                        16,
+                        16 +
+                            FloatingBottomNavBar.contentBottomPadding(context),
+                      ),
                       itemCount: filteredTasks.length,
                       itemBuilder: (context, index) {
                         final task = filteredTasks[index];

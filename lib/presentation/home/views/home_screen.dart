@@ -3,6 +3,7 @@
 import 'package:casazero/presentation/main/main_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/widgets/floating_bottom_nav_bar.dart';
 import '../../../core/widgets/loading_indicator.dart';
 import '../../../core/utils/permissions.dart';
 import '../../../app/theme/app_colors.dart';
@@ -33,16 +34,17 @@ class HomeScreen extends GetView<HomeController> {
       return RefreshIndicator(
         onRefresh: controller.refreshData,
         color: AppColors.brandSage500,
-        child: _buildBody(),
+        child: _buildBody(context),
       );
     });
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(BuildContext context) {
     final user = controller.currentUser.value;
 
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
+      padding: FloatingBottomNavBar.scrollBottomPadding(context),
       child: Column(
         children: [
           //const PremiumBanner(),

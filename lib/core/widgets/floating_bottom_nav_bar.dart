@@ -28,9 +28,22 @@ class FloatingBottomNavBar extends StatelessWidget {
 
   static double get bottomMargin => 16.h;
 
+  /// Gap between scrollable content and the floating nav bar.
+  static const double contentGap = 24;
+
   /// Total vertical space the floating nav occupies from the screen bottom.
   static double occupiedHeight(BuildContext context) {
     return barHeight + bottomMargin + MediaQuery.paddingOf(context).bottom;
+  }
+
+  /// Bottom inset for screen content when the floating nav is visible.
+  static double contentBottomPadding(BuildContext context) {
+    return occupiedHeight(context) + contentGap;
+  }
+
+  /// Bottom scroll padding so content clears the floating nav with [contentGap].
+  static EdgeInsets scrollBottomPadding(BuildContext context) {
+    return EdgeInsets.only(bottom: contentBottomPadding(context));
   }
 
   @override

@@ -60,10 +60,11 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
     final permissions = Permissions.fromRole(widget.role);
 
     final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
-    final navOccupiedHeight = FloatingBottomNavBar.occupiedHeight(context);
+    final navScrollPadding = FloatingBottomNavBar.contentBottomPadding(context);
     const fabSize = 56.0;
-    final fabBottom = 20.h + navOccupiedHeight - keyboardInset;
-    final listBottomPadding = navOccupiedHeight + fabSize + 32.h;
+    const fabMargin = 20.0;
+    final fabBottom = navScrollPadding + fabMargin - keyboardInset;
+    final listBottomPadding = navScrollPadding + fabSize + fabMargin;
 
     return Stack(
       clipBehavior: Clip.none,

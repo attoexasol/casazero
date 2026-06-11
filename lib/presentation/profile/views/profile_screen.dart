@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/models/user_model.dart';
 import '../../../app/theme/app_colors.dart';
+import '../../../core/widgets/floating_bottom_nav_bar.dart';
 import '../controllers/profile_controller.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -36,6 +37,7 @@ class ProfileScreen extends StatelessWidget {
       backgroundColor: AppColors.surfaceWhite,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(), // Enable pull-to-refresh even when content doesn't scroll
+        padding: FloatingBottomNavBar.scrollBottomPadding(context),
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
@@ -54,7 +56,6 @@ class ProfileScreen extends StatelessWidget {
               NotificationSettingsCard(user: user),
               const SizedBox(height: 16),
               LogoutSection(onLogoutTap: onLogout),
-              const SizedBox(height: 80),
             ],
           ),
         ),

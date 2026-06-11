@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 
 import '../../../core/widgets/casazero_logo.dart';
+import '../../../core/widgets/floating_bottom_nav_bar.dart';
 import '../controllers/hub_controller.dart';
 import 'sections/hub_card_widget.dart';
 
@@ -27,22 +28,25 @@ class HubScreen extends GetView<HubController> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.dashboard_outlined,
-                size: 64,
-                color: Colors.grey,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'noServicesAvailable'.tr,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'noServicesAvailableDesc'.tr,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey.shade600),
-              ),
+                const Icon(
+                  Icons.dashboard_outlined,
+                  size: 64,
+                  color: Colors.grey,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'noServicesAvailable'.tr,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'noServicesAvailableDesc'.tr,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey.shade600),
+                ),
             ],
           ),
         ),
@@ -57,7 +61,7 @@ class HubScreen extends GetView<HubController> {
         final horizontalPadding = controller.getHorizontalPadding(width);
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 40),
+          padding: FloatingBottomNavBar.scrollBottomPadding(context),
           child: Column(
             children: [
               const SizedBox(height: 40),
