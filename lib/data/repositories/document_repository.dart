@@ -865,10 +865,21 @@ class DocumentRepository {
           errorMessage = 'Download timeout. Please check your connection.';
         } else if (e.type == dio.DioExceptionType.badResponse) {
           final statusCode = e.response?.statusCode;
+          final serverMessage = _parseDownloadErrorMessage(e.response?.data);
+          if (_isDocumentPasswordNotSetError(statusCode, serverMessage)) {
+            return {
+              'success': false,
+              'errorCode': 'documentPasswordNotSet',
+              'error': serverMessage ??
+                  'Document password is not set. Please set it in Profile.',
+            };
+          }
           if (statusCode == 401) {
             errorMessage = 'Unauthorized. Please log in again.';
           } else if (statusCode == 404) {
             errorMessage = 'Document not found.';
+          } else if (serverMessage != null && serverMessage.isNotEmpty) {
+            errorMessage = serverMessage;
           } else {
             errorMessage = 'Server error. Please try again later.';
           }
@@ -879,5 +890,53 @@ class DocumentRepository {
 
       return {'success': false, 'error': errorMessage};
     }
+  }
+
+  String? _parseDownloadErrorMessage(dynamic data) {
+    if (data == null) return null;
+
+    if (data is Map) {
+      return data['message']?.toString() ?? data['error']?.toString();
+    }
+
+    if (data is List<int>) {
+      try {
+        final decoded = jsonDecode(utf8.decode(data));
+        if (decoded is Map) {
+          return decoded['message']?.toString() ?? decoded['error']?.toString();
+        }
+      } catch (_) {}
+      return null;
+    }
+
+    if (data is String) {
+      final trimmed = data.trim();
+      if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+        try {
+          final decoded = jsonDecode(trimmed);
+          if (decoded is Map) {
+            return decoded['message']?.toString() ??
+                decoded['error']?.toString();
+          }
+        } catch (_) {}
+      }
+      if (!trimmed.startsWith('<!DOCTYPE') && !trimmed.startsWith('<html')) {
+        return trimmed;
+      }
+    }
+
+    return null;
+  }
+
+  bool _isDocumentPasswordNotSetError(int? statusCode, String? message) {
+    if (statusCode != 403) return false;
+    if (message == null || message.isEmpty) return true;
+
+    final lower = message.toLowerCase();
+    return lower.contains('password') &&
+        (lower.contains('not set') ||
+            lower.contains('not_set') ||
+            lower.contains('required') ||
+            lower.contains('please set'));
   }
 }

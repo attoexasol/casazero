@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:firebase_core/firebase_core.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/device_info_service.dart';
 import '../../core/services/download_service.dart';
@@ -65,10 +66,15 @@ class InitialBinding extends Bindings {
     // NotificationManager: processes push payloads (must be registered before FcmService)
     Get.put<NotificationManager>(NotificationManager(), permanent: true);
 
-    // FCM Service: singleton, never destroyed; init runs once (guarded inside FcmService)
+    // FCM Service: singleton; init after ApiService + StorageService are registered.
+    // Runs async (non-blocking); splash/login/OTP call registerAfterAuth when session exists.
     final fcmService = FcmService();
     Get.put<FcmService>(fcmService, permanent: true);
-    fcmService.init(); // fire-and-forget; listeners and token send run async
+    if (Firebase.apps.isNotEmpty) {
+      fcmService.init();
+    } else {
+      print('⚠️ [InitialBinding] Skipping FcmService.init — Firebase not initialized');
+    }
 
     Get.find<PrivateChatNotificationService>().registerHandlers();
 

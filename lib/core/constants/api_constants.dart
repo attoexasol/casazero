@@ -42,12 +42,6 @@ class ApiConstants {
   /// Response: { "status": true, "message": "...", "data": {...} }
   static const String GET_USER_PROFILE = '/user/profile';
 
-  /// Register/update FCM device token for push notifications
-  /// POST /user/update-fcm-token
-  /// Request: { "fcm_token": "FCM_DEVICE_TOKEN" } (Bearer token in header)
-  /// Called on app start, after login, and on token refresh
-  static const String UPDATE_FCM_TOKEN = '/user/update-fcm-token';
-
   /// Update User Profile
   /// POST /user/profile_data/update/{user_id}
   /// Request: Full user profile data including notifications, residence, etc.

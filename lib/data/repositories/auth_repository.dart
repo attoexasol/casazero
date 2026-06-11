@@ -35,12 +35,11 @@ class AuthRepository {
       // Get device information
       final deviceInfo = await _deviceInfoService.getDeviceInfoForLogin();
 
-      // Get FCM token (will be empty string if not available)
+      // Get FCM token (will be empty string if not available; getDeviceToken retries once)
       String fcmToken = '';
       try {
-        final fcmService = Get.find<FcmService>();
-        if (fcmService.toString().contains('FcmService')) {
-          fcmToken = await fcmService.getDeviceToken() ?? '';
+        if (Get.isRegistered<FcmService>()) {
+          fcmToken = await Get.find<FcmService>().getDeviceToken() ?? '';
         }
       } catch (e) {
         print('⚠️ FCM Service not available: $e');
@@ -285,9 +284,8 @@ class AuthRepository {
 
         // Delete FCM token
         try {
-          final fcmService = Get.find<FcmService>();
-          if (fcmService.toString().contains('FcmService')) {
-            await fcmService.deleteToken();
+          if (Get.isRegistered<FcmService>()) {
+            await Get.find<FcmService>().deleteToken();
           }
         } catch (e) {
           print('⚠️ FCM Service not available during logout: $e');

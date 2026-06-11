@@ -114,10 +114,10 @@ class AuthController extends GetxController {
       // Set user's preferred language from API
       await _localeController.changeLocale(user.language);
 
-      // Register FCM token with backend (idempotent; login payload already sends token)
+      // Refresh local FCM token; backend receives it via login payload (fcm_token)
       try {
         if (Get.isRegistered<FcmService>()) {
-          await Get.find<FcmService>().sendTokenToBackend();
+          await Get.find<FcmService>().registerAfterAuth();
         }
       } catch (_) {}
 

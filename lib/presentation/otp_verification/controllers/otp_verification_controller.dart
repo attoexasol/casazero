@@ -245,10 +245,10 @@ class OtpVerificationController extends GetxController {
         await Future.delayed(const Duration(milliseconds: 500));
         Get.offAllNamed(AppRoutes.FORGOT_CHANGE_PASSWORD);
       } else {
-        // Register FCM token with backend after OTP success
+        // Refresh local FCM token after OTP (backend token sent on initial login payload)
         try {
           if (Get.isRegistered<FcmService>()) {
-            await Get.find<FcmService>().sendTokenToBackend();
+            await Get.find<FcmService>().registerAfterAuth();
           }
         } catch (_) {}
 

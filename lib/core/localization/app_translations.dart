@@ -534,6 +534,8 @@ class AppTranslations extends Translations {
     'downloadFailed': 'Download Failed',
     'downloadSuccess': 'Document downloaded successfully',
     'downloadError': 'Failed to download document',
+    'documentPasswordNotSet':
+        'Please set your document password in Profile before downloading documents.',
     'download_failed': 'Download failed',
     'download_or_extraction_failed': 'Download or extraction failed',
     'enter_6_digit_code': 'Enter 6-digit code',
@@ -1381,6 +1383,8 @@ class AppTranslations extends Translations {
     'downloadFailed': 'Download Fallito',
     'downloadSuccess': 'Documento scaricato con successo',
     'downloadError': 'Impossibile scaricare il documento',
+    'documentPasswordNotSet':
+        'Imposta la password documenti nel Profilo prima di scaricare i documenti.',
     'download_failed': 'Download fallito',
     'download_or_extraction_failed': 'Download o estrazione falliti',
 

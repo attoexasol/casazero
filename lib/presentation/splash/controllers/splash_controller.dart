@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../core/services/firebase_auth_service.dart';
+import '../../../core/services/fcm_service.dart';
 import '../../../data/repositories/auth_repository.dart';
 
 class SplashController extends GetxController {
@@ -48,12 +49,24 @@ class SplashController extends GetxController {
       print('  - Stored firebase_token: ${hasFirebaseToken ? "Found" : "MISSING — log out and log in again"}');
       _storageService.debugPrintStorageKeys();
       await _ensureFirebaseSignedIn();
+      await _registerFcmTokenAfterSessionRestore();
       print('  ✅ User authenticated - navigating to HOME');
       _navigateToHome();
     } else {
       // No authentication data - navigate to AUTH
       print('  ❌ No authentication found - navigating to AUTH');
       _navigateToAuth();
+    }
+  }
+
+  /// Refresh local FCM token when restoring an existing session.
+  Future<void> _registerFcmTokenAfterSessionRestore() async {
+    try {
+      if (Get.isRegistered<FcmService>()) {
+        await Get.find<FcmService>().registerAfterAuth();
+      }
+    } catch (e) {
+      debugPrint('  [Splash] FCM token registration failed: $e');
     }
   }
 

@@ -51,5 +51,9 @@
 	<!-- Allow opening documents in place so iOS ZIP viewer can prompt for password -->
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>

@@ -151,7 +151,9 @@ class DocumentsController extends GetxController {
       if (apiResult['success'] != true) {
         if (showDownloadingPopup && (Get.isDialogOpen ?? false)) Get.back();
         await MessagePopupController.showError(
-          messageKey: 'downloadError',
+          messageKey: apiResult['errorCode'] == 'documentPasswordNotSet'
+              ? 'documentPasswordNotSet'
+              : 'downloadError',
           titleKey: 'downloadFailed',
         );
         return;
@@ -442,12 +444,13 @@ class DocumentsController extends GetxController {
   }
 
   /// Share a document
-  /// Downloads the file first, then shares it using native share
+  /// Downloads the file first via API, then shares it using native share
   Future<void> shareDocument(DocumentModel document) async {
     try {
-      if (document.fileUrl == null || document.fileUrl!.isEmpty) {
+      final documentId = int.tryParse(document.id);
+      if (documentId == null) {
         MessagePopupController.showError(
-          messageKey: 'documentUrlNotAvailable',
+          messageKey: 'invalidDocumentId',
           titleKey: 'shareFailed',
         );
         return;
@@ -465,14 +468,38 @@ class DocumentsController extends GetxController {
         autoDismissSeconds: 0,
       );
 
-      final result = await _downloadService.downloadDocument(
-        fileUrl: document.fileUrl!,
+      final apiResult = await _repository.downloadDocument(
+        documentId: documentId,
+      );
+
+      if (apiResult['success'] != true) {
+        if (Get.isDialogOpen ?? false) Get.back();
+        await MessagePopupController.showError(
+          messageKey: 'shareError',
+          titleKey: 'shareFailed',
+        );
+        print('❌ Share failed: ${apiResult['error']}');
+        return;
+      }
+
+      final fileBytes = apiResult['data'] as List<int>?;
+      if (fileBytes == null || fileBytes.isEmpty) {
+        if (Get.isDialogOpen ?? false) Get.back();
+        await MessagePopupController.showError(
+          messageKey: 'noFileDataReceived',
+          titleKey: 'shareFailed',
+        );
+        return;
+      }
+
+      final saveResult = await _downloadService.saveDocumentBytes(
+        fileBytes: fileBytes,
         fileName: fileName,
         fileId: fileId,
       );
 
-      if (result['success'] == true) {
-        final filePath = result['filePath'] as String;
+      if (saveResult['success'] == true) {
+        final filePath = saveResult['filePath'] as String;
         final file = File(filePath);
 
         if (await file.exists()) {
@@ -487,12 +514,6 @@ class DocumentsController extends GetxController {
           );
 
           print('✅ Share dialog opened successfully');
-
-          // No confirmation; just success message for 3 seconds
-          // await MessagePopupController.showSuccess(
-          //   messageKey: 'shareSuccess'.tr + ': ${document.title}',
-          //   titleKey: '',
-          // );
         } else {
           throw Exception('File not found after download');
         }
@@ -502,7 +523,7 @@ class DocumentsController extends GetxController {
           messageKey: 'shareError',
           titleKey: 'shareFailed',
         );
-        print('❌ Share failed: ${result['error']}');
+        print('❌ Share failed: ${saveResult['error']}');
       }
     } catch (e) {
       print('❌ Error sharing document: $e');
