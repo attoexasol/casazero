@@ -321,14 +321,20 @@ class MaintenanceTaskCard extends StatelessWidget {
           controller.expandedCardId.value == task.id;
 
       final priorityBorderColor = _getPriorityBorderColor();
+      const cardRadius = 16.0;
+      final borderWidth = isOverdue ? 2.0 : 0.0;
+      // Inner corner radius must account for the card border so the accent
+      // strip follows the same curve as the card edge.
+      final innerRadius = cardRadius - borderWidth;
 
       return Container(
         margin: const EdgeInsets.only(bottom: 12),
+        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           color: AppColors.surfaceWhite,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(cardRadius),
           border: isOverdue
-              ? Border.all(color: Colors.red.shade300, width: 2)
+              ? Border.all(color: Colors.red.shade300, width: borderWidth)
               : null,
           boxShadow: AppShadows.shadowMd,
         ),
@@ -351,9 +357,9 @@ class MaintenanceTaskCard extends StatelessWidget {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                       ),
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(16),
-                        bottomLeft: Radius.circular(16),
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(innerRadius),
+                        bottomLeft: Radius.circular(innerRadius),
                       ),
                     ),
                   ),

@@ -50,6 +50,8 @@ class HomeScreen extends GetView<HomeController> {
           //const PremiumBanner(),
           // ResidenceName handles its own animations internally (matching React Framer Motion)
           ResidenceName(user: user),
+
+          SizedBox(height: 20),
           // HeroImage handles its own animations internally (matching React Framer Motion)
           const HeroImage(),
 
@@ -105,7 +107,7 @@ class HomeScreen extends GetView<HomeController> {
           //     .animate(delay: 100.ms)
           //     .fadeIn()
           //     .slideY(begin: 0.15),
-            const SizedBox(height: 40),
+            const SizedBox(height: 20),
           // if (controller.permissions.canManageBuildings)
           //   ViewAllBuildingsCard(
           //     onTap: () =>

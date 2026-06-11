@@ -540,7 +540,7 @@ class MainScaffold extends GetView<HomeController> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: AppTextStyles.bodyMedium.copyWith(
-            fontSize: 23.sp,
+            fontSize: 20.sp,
             fontWeight: FontWeight.w500,
             color: AppColors.neutralInk900,
             letterSpacing: -0.3,

@@ -33,7 +33,7 @@ class DocumentSearchBar extends StatelessWidget {
             ],
           ),
           child: SizedBox(
-            height: 48,
+            height: 35,
             child: TextField(
               decoration: InputDecoration(
                 filled: true,
@@ -44,7 +44,7 @@ class DocumentSearchBar extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide.none,
                 ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
               ),
               onChanged: onChanged,
             ),

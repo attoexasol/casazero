@@ -42,6 +42,11 @@ class _DocumentCardState extends State<DocumentCard> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final scale = size.width / 390;
+    final cardRadius = 24 * scale;
+    final borderWidth = 1.2 * scale;
+    // Inner corner radius must account for the card border so the accent
+    // strip follows the same curve as the card edge.
+    final innerRadius = cardRadius - borderWidth;
     final accentColor = documentCategoryColor(widget.document.category);
     final typeKey = _documentTypeKey(widget.document);
     final typeColor = documentTypeColor(typeKey);
@@ -58,13 +63,14 @@ class _DocumentCardState extends State<DocumentCard> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOut,
+          clipBehavior: Clip.antiAlias,
           margin: EdgeInsets.only(bottom: 12 * scale),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.95),
-            borderRadius: BorderRadius.circular(24 * scale),
+            borderRadius: BorderRadius.circular(cardRadius),
             border: Border.all(
               color: const Color(0xFFF2F2F2),
-              width: 1.2 * scale,
+              width: borderWidth,
             ),
             boxShadow: [
               BoxShadow(
@@ -90,7 +96,6 @@ class _DocumentCardState extends State<DocumentCard> {
             children: [
               /// LEFT ACCENT BORDER
               Container(
-                //height: double.,
                 width: 8 * scale,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -99,8 +104,8 @@ class _DocumentCardState extends State<DocumentCard> {
                     end: Alignment.bottomCenter,
                   ),
                   borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(24 * scale),
-                    bottomLeft: Radius.circular(24 * scale),
+                    topLeft: Radius.circular(innerRadius),
+                    bottomLeft: Radius.circular(innerRadius),
                   ),
                 ),
               ),

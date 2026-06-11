@@ -60,9 +60,9 @@ class _PreferencesCardState extends State<PreferencesCard> {
 
           Obx(() => _buildLanguageSelector(controller)),
 
-          const SizedBox(height: 16),
+          // const SizedBox(height: 16),
 
-          _buildResetFirstLogin(),
+          // _buildResetFirstLogin(),
         ],
       ),
     );
