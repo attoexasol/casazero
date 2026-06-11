@@ -415,8 +415,14 @@ class _NotificationsModalContentState
     }
   }
 
-  /// Generate filename from notification URL or title
+  /// Generate filename from notification URL or parsed entity name
   String _generateFileName(FeedItemModel notification) {
+    final fromUrl = notification.fileNameFromUrl;
+    if (fromUrl != null) return fromUrl;
+
+    final entityName = notification.relatedEntityName;
+    if (entityName != null && entityName.contains('.')) return entityName;
+
     if (notification.url != null && notification.url!.isNotEmpty) {
       final urlParts = notification.url!.split('/');
       if (urlParts.isNotEmpty) {
@@ -601,8 +607,8 @@ class _NotificationCard extends StatelessWidget {
                 final localeController = Get.find<LocaleController>();
                 final _ = localeController.locale; // Trigger reactivity
 
-                final displayTitle = notification.localizedDisplayTitle;
-                final displayContent = notification.localizedDisplayContent;
+                final displayTitle = notification.modalTitle;
+                final displaySubtitle = notification.modalSubtitle;
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -637,16 +643,17 @@ class _NotificationCard extends StatelessWidget {
 
                     SizedBox(height: 4.h),
 
-                    // Description
-                    Text(
-                      displayContent,
-                      style: AppTextStyles.bodySmall.copyWith(
-                        fontSize: 14.sp,
-                        color: AppColors.neutralInk500,
+                    // Subtitle (API title)
+                    if (displaySubtitle.isNotEmpty) ...[
+                      Text(
+                        displaySubtitle,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          fontSize: 14.sp,
+                          color: AppColors.neutralInk500,
+                        ),
                       ),
-                    ),
-
-                    SizedBox(height: 8.h),
+                      SizedBox(height: 8.h),
+                    ],
 
                     // Timestamp
                     Text(
