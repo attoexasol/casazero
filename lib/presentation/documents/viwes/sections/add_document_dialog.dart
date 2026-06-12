@@ -128,6 +128,16 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
     });
   }
 
+  String _categoryDisplayName(DocumentCategoryModel category) {
+    final localeController = Get.find<LocaleController>();
+    final isItalian = localeController.isItalian;
+    return isItalian
+        ? (category.categoryNameIt.isNotEmpty
+            ? category.categoryNameIt
+            : category.categoryName)
+        : category.categoryName;
+  }
+
   bool get _canUpload =>
       _selectedFile != null &&
       _selectedCategoryId != null &&
@@ -781,41 +791,89 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
               borderRadius: BorderRadius.circular(25),
               border: Border.all(color: AppColors.neutralLine200),
             ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<int>(
-                value: _selectedCategoryId,
-                isExpanded: true,
-                hint: Text(
-                  'selectType'.tr,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.neutralInk400,
-                  ),
+            child: ButtonTheme(
+              alignedDropdown: true,
+              child: Theme(
+                data: Theme.of(context).copyWith(
+                  canvasColor: AppColors.surfaceWhite,
+                  highlightColor: AppColors.brandSage50,
+                  hoverColor: AppColors.brandSage50,
+                  splashColor: Colors.transparent,
+                  focusColor: Colors.transparent,
                 ),
-                icon: const Icon(Icons.keyboard_arrow_down),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                borderRadius: BorderRadius.circular(25),
-                items: _controller.categories.map((category) {
-                  final localeController = Get.find<LocaleController>();
-                  final _ = localeController.locale; // Observe locale for rebuild on language change
-                  final isItalian = localeController.isItalian;
-                  final displayName = isItalian
-                      ? (category.categoryNameIt.isNotEmpty
-                          ? category.categoryNameIt
-                          : category.categoryName)
-                      : category.categoryName;
-                  return DropdownMenuItem<int>(
-                    value: category.id,
-                    child: Text(
-                      displayName,
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<int>(
+                    value: _selectedCategoryId,
+                    isExpanded: true,
+                    itemHeight: 52,
+                    menuMaxHeight: 280,
+                    dropdownColor: AppColors.surfaceWhite,
+                    elevation: 8,
+                    borderRadius: BorderRadius.circular(16),
+                    icon: const Icon(
+                      Icons.keyboard_arrow_down,
+                      color: AppColors.neutralInk700,
+                      size: 24,
+                    ),
+                    hint: Text(
+                      'selectType'.tr,
                       style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.neutralInk900,
+                        color: AppColors.neutralInk400,
                       ),
                     ),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() => _selectedCategoryId = value);
-                },
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.neutralInk900,
+                    ),
+                    selectedItemBuilder: (context) {
+                      final localeController = Get.find<LocaleController>();
+                      final _ = localeController.locale;
+                      return _controller.categories.map((category) {
+                        return Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            _categoryDisplayName(category),
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: AppColors.neutralInk900,
+                            ),
+                          ),
+                        );
+                      }).toList();
+                    },
+                    items: _controller.categories.map((category) {
+                      final localeController = Get.find<LocaleController>();
+                      final _ = localeController.locale;
+                      final displayName = _categoryDisplayName(category);
+                      final isSelected = category.id == _selectedCategoryId;
+
+                      return DropdownMenuItem<int>(
+                        value: category.id,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                          child: Text(
+                            displayName,
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: AppColors.neutralInk900,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.w400,
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() => _selectedCategoryId = value);
+                    },
+                  ),
+                ),
               ),
             ),
           ),

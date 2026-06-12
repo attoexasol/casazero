@@ -434,15 +434,23 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
 
     final langCode = Get.locale?.languageCode ?? 'en';
     final dropdownItems = items.map((IssueTypeModel issue) {
+      final isSelected = issue.id == selectedId;
       return DropdownMenuItem<int>(
         value: issue.id,
-        child: Text(
-          issue.localizedName(langCode),
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.neutralInk900,
-            fontSize: 14,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 10,
+          ),
+          child: Text(
+            issue.localizedName(langCode),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.neutralInk900,
+              fontSize: 14,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+            ),
           ),
         ),
       );
@@ -451,23 +459,30 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
     dropdownItems.add(
       DropdownMenuItem<int>(
         value: _addOthersSentinel,
-        child: Row(
-          children: [
-            const Icon(Icons.add_circle_outline, size: 18, color: _greenActive),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                'addOthers'.tr,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: _greenActive,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 10,
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.add_circle_outline, size: 18, color: _greenActive),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  'addOthers'.tr,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: _greenActive,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -489,35 +504,91 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
             borderRadius: BorderRadius.circular(25),
             border: Border.all(color: AppColors.neutralLine200),
           ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<int>(
-              value: selectedId,
-              isExpanded: true,
-              menuMaxHeight: 200,
-              hint: Text(
-                'selectACategory'.tr,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.neutralInk400,
+          child: ButtonTheme(
+            alignedDropdown: true,
+            child: Theme(
+              data: Theme.of(context).copyWith(
+                canvasColor: AppColors.surfaceWhite,
+                highlightColor: AppColors.brandSage50,
+                hoverColor: AppColors.brandSage50,
+                splashColor: Colors.transparent,
+                focusColor: Colors.transparent,
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<int>(
+                  value: selectedId,
+                  isExpanded: true,
+                  itemHeight: 52,
+                  menuMaxHeight: 280,
+                  dropdownColor: AppColors.surfaceWhite,
+                  elevation: 8,
+                  borderRadius: BorderRadius.circular(16),
+                  icon: const Icon(
+                    Icons.keyboard_arrow_down,
+                    color: AppColors.neutralInk700,
+                    size: 24,
+                  ),
+                  hint: Text(
+                    'selectACategory'.tr,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.neutralInk400,
+                    ),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.neutralInk900,
+                    fontSize: 14,
+                  ),
+                  selectedItemBuilder: (context) {
+                    final selectedBuilders = items.map((issue) {
+                      return Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          issue.localizedName(langCode),
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: AppColors.neutralInk900,
+                            fontSize: 14,
+                          ),
+                        ),
+                      );
+                    }).toList();
+
+                    selectedBuilders.add(
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'addOthers'.tr,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: _greenActive,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    );
+
+                    return selectedBuilders;
+                  },
+                  items: dropdownItems,
+                  onChanged: (int? value) {
+                    if (value == _addOthersSentinel) {
+                      setState(() => _isAddingNewType = true);
+                      return;
+                    }
+                    _ctrl.selectedCategoryId.value = value;
+                    final match = items.firstWhereOrNull((e) => e.id == value);
+                    _ctrl.updateNewTicket(
+                      'category',
+                      match?.localizedName(langCode) ?? '',
+                    );
+                  },
                 ),
               ),
-              icon: const Icon(Icons.keyboard_arrow_down),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              borderRadius: BorderRadius.circular(25),
-              dropdownColor: _dialogBg,
-              focusColor: _greenActive,
-              items: dropdownItems,
-              onChanged: (int? value) {
-                if (value == _addOthersSentinel) {
-                  setState(() => _isAddingNewType = true);
-                  return;
-                }
-                _ctrl.selectedCategoryId.value = value;
-                final match = items.firstWhereOrNull((e) => e.id == value);
-                _ctrl.updateNewTicket(
-                  'category',
-                  match?.localizedName(langCode) ?? '',
-                );
-              },
             ),
           ),
         ),
