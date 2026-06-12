@@ -176,33 +176,30 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                     );
                   }
 
-                  return RefreshIndicator(
-                    onRefresh: () => _controller.refreshData(),
-                    color: AppColors.brandSage500,
-                    child: ListView.builder(
-                      padding: EdgeInsets.fromLTRB(
-                        16,
-                        16,
-                        16,
-                        16 +
-                            FloatingBottomNavBar.contentBottomPadding(context),
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: RefreshIndicator(
+                      onRefresh: () => _controller.refreshData(),
+                      color: AppColors.brandSage500,
+                      child: ListView.builder(
+                        padding: FloatingBottomNavBar.screenPadding(context),
+                        itemCount: filteredTasks.length,
+                        itemBuilder: (context, index) {
+                          final task = filteredTasks[index];
+                          // Note: Task frequency is already localized based on user's language settings
+                          // The MaintenanceTask model parses frequency from API response:
+                          // - For English: uses maintenance_frequency.name_en
+                          // - For Italian: uses maintenance_frequency.name_it
+                          // The MaintenanceTaskCard displays task.frequency directly (already localized)
+                          return MaintenanceTaskCard(
+                                task: task,
+                                onAskAI: widget.onAskAI,
+                              )
+                              .animate()
+                              .fadeIn(delay: Duration(milliseconds: 50 * index))
+                              .slideY(begin: 0.1, end: 0);
+                        },
                       ),
-                      itemCount: filteredTasks.length,
-                      itemBuilder: (context, index) {
-                        final task = filteredTasks[index];
-                        // Note: Task frequency is already localized based on user's language settings
-                        // The MaintenanceTask model parses frequency from API response:
-                        // - For English: uses maintenance_frequency.name_en
-                        // - For Italian: uses maintenance_frequency.name_it
-                        // The MaintenanceTaskCard displays task.frequency directly (already localized)
-                        return MaintenanceTaskCard(
-                              task: task,
-                              onAskAI: widget.onAskAI,
-                            )
-                            .animate()
-                            .fadeIn(delay: Duration(milliseconds: 50 * index))
-                            .slideY(begin: 0.1, end: 0);
-                      },
                     ),
                   );
                 }),

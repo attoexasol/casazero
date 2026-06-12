@@ -59,9 +59,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
   Widget build(BuildContext context) {
     final permissions = Permissions.fromRole(widget.role);
     final navScrollPadding = FloatingBottomNavBar.contentBottomPadding(context);
-    const fabSize = 56.0;
     const fabMargin = 20.0;
-    final listBottomPadding = navScrollPadding + fabSize + fabMargin;
 
     return Stack(
       clipBehavior: Clip.none,
@@ -174,49 +172,52 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                   );
                 }
 
-                return RefreshIndicator(
-                  onRefresh: () => _controller.refreshData(),
-                  color: const Color(0xFF4CAF47),
-                  child: ListView.builder(
-                    padding: EdgeInsets.fromLTRB(16, 0, 16, listBottomPadding),
-                    itemCount: filteredDocs.length,
-                    itemBuilder: (_, i) {
-                      final doc = filteredDocs[i];
-                      return DocumentCard(
-                        document: doc,
-                        onAskAI: widget.onAskAI,
-                        onView: () {
-                          print('View document: ${doc.title}');
-                        },
-                        onDelete: permissions.canDeleteDocuments
-                            ? () async {
-                                // Show localized confirmation (en/it from language settings)
-                                final confirmed =
-                                    await MessagePopupController.showConfirmation(
-                                      titleKey: 'delete_document',
-                                      messageKey:
-                                          'delete_document_confirmation',
-                                      primaryButtonKey: 'delete',
-                                      secondaryButtonKey: 'cancel',
-                                    );
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: RefreshIndicator(
+                    onRefresh: () => _controller.refreshData(),
+                    color: const Color(0xFF4CAF47),
+                    child: ListView.builder(
+                      padding: FloatingBottomNavBar.screenPadding(context),
+                      itemCount: filteredDocs.length,
+                      itemBuilder: (_, i) {
+                        final doc = filteredDocs[i];
+                        return DocumentCard(
+                          document: doc,
+                          onAskAI: widget.onAskAI,
+                          onView: () {
+                            print('View document: ${doc.title}');
+                          },
+                          onDelete: permissions.canDeleteDocuments
+                              ? () async {
+                                  // Show localized confirmation (en/it from language settings)
+                                  final confirmed =
+                                      await MessagePopupController.showConfirmation(
+                                        titleKey: 'delete_document',
+                                        messageKey:
+                                            'delete_document_confirmation',
+                                        primaryButtonKey: 'delete',
+                                        secondaryButtonKey: 'cancel',
+                                      );
 
-                                if (confirmed == true) {
-                                  await _controller.deleteDocument(doc);
+                                  if (confirmed == true) {
+                                    await _controller.deleteDocument(doc);
+                                  }
                                 }
-                              }
-                            : null,
-                        onDownload: () => _controller.downloadDocument(
-                          doc,
-                          showDownloadingPopup: false,
-                          skipOpenCancelConfirmation: true,
-                        ),
-                        onShare: permissions.canSharedDocuments
-                            ? () {
-                                _controller.shareDocument(doc);
-                              }
-                            : null,
-                      ).animate().fadeIn().slideY(begin: 0.1);
-                    },
+                              : null,
+                          onDownload: () => _controller.downloadDocument(
+                            doc,
+                            showDownloadingPopup: false,
+                            skipOpenCancelConfirmation: true,
+                          ),
+                          onShare: permissions.canSharedDocuments
+                              ? () {
+                                  _controller.shareDocument(doc);
+                                }
+                              : null,
+                        ).animate().fadeIn().slideY(begin: 0.1);
+                      },
+                    ),
                   ),
                 );
               }),

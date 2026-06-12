@@ -37,7 +37,7 @@ class ProfileScreen extends StatelessWidget {
       backgroundColor: AppColors.surfaceWhite,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(), // Enable pull-to-refresh even when content doesn't scroll
-        padding: FloatingBottomNavBar.scrollBottomPadding(context),
+        padding: FloatingBottomNavBar.screenPadding(context),
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(

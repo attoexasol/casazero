@@ -22,32 +22,38 @@ class HubScreen extends GetView<HubController> {
     }
 
     if (hubCards.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.dashboard_outlined,
-                size: 64,
-                color: Colors.grey,
+      return SingleChildScrollView(
+        padding: FloatingBottomNavBar.screenPadding(context),
+        child: SizedBox(
+          height: MediaQuery.sizeOf(context).height * 0.5,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.dashboard_outlined,
+                    size: 64,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'noServicesAvailable'.tr,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'noServicesAvailableDesc'.tr,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey.shade600),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              Text(
-                'noServicesAvailable'.tr,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'noServicesAvailableDesc'.tr,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey.shade600),
-              ),
-            ],
+            ),
           ),
         ),
       );
@@ -61,7 +67,7 @@ class HubScreen extends GetView<HubController> {
         final horizontalPadding = controller.getHorizontalPadding(width);
 
         return SingleChildScrollView(
-          padding: FloatingBottomNavBar.scrollBottomPadding(context),
+          padding: FloatingBottomNavBar.screenPadding(context),
           child: Column(
             children: [
               const SizedBox(height: 30),

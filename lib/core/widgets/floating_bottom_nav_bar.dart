@@ -42,8 +42,33 @@ class FloatingBottomNavBar extends StatelessWidget {
   }
 
   /// Bottom scroll padding so content clears the floating nav with [contentGap].
+  /// Use on [SingleChildScrollView] when no extra horizontal/top inset is needed.
   static EdgeInsets scrollBottomPadding(BuildContext context) {
     return EdgeInsets.only(bottom: contentBottomPadding(context));
+  }
+
+  /// Standard padding for main tab screens — always the same bottom nav clearance.
+  /// Pass [horizontal] / [top] for list screens; scroll screens use bottom only via [top]/[horizontal] = 0.
+  static EdgeInsets screenPadding(
+    BuildContext context, {
+    double horizontal = 0,
+    double top = 0,
+  }) {
+    return EdgeInsets.fromLTRB(
+      horizontal,
+      top,
+      horizontal,
+      contentBottomPadding(context),
+    );
+  }
+
+  /// [ListView] screens (documents, maintenance): horizontal 16 + nav clearance.
+  static EdgeInsets listPadding(
+    BuildContext context, {
+    double horizontal = 16,
+    double top = 0,
+  }) {
+    return screenPadding(context, horizontal: horizontal, top: top);
   }
 
   @override

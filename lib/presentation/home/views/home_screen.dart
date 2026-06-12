@@ -44,7 +44,7 @@ class HomeScreen extends GetView<HomeController> {
 
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: FloatingBottomNavBar.scrollBottomPadding(context),
+      padding: FloatingBottomNavBar.screenPadding(context),
       child: Column(
         children: [
           //const PremiumBanner(),

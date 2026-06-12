@@ -64,7 +64,7 @@ class _DocumentCardState extends State<DocumentCard> {
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOut,
           clipBehavior: Clip.antiAlias,
-          margin: EdgeInsets.only(bottom: 12 * scale),
+          margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.95),
             borderRadius: BorderRadius.circular(cardRadius),
