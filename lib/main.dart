@@ -25,7 +25,9 @@ import 'helpers/local_notification_service.dart';
 import 'dart:async';
 
 /// Top-level background handler for FCM. Must not use GetX or controllers (isolate).
+@pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  WidgetsFlutterBinding.ensureInitialized();
   if (Firebase.apps.isEmpty) {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -33,7 +35,18 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   }
   final messageId = message.messageId ?? 'no-id';
   final data = message.data;
-  print('📩 [FCM Background] messageId: $messageId, title: ${message.notification?.title}, data keys: ${data.isNotEmpty ? data.keys.join(", ") : "none"}');
+  print(
+    '📩 [FCM Background] messageId: $messageId, title: ${message.notification?.title}, data keys: ${data.isNotEmpty ? data.keys.join(", ") : "none"}',
+  );
+
+  // Data-only payloads: system tray won't show a notification — post locally.
+  if (message.notification == null) {
+    try {
+      await LocalNotificationService.showNotification(message);
+    } catch (e) {
+      print('❌ [FCM Background] Local notification error: $e');
+    }
+  }
 }
 
 void main() async {

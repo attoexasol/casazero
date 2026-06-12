@@ -215,7 +215,7 @@ class FcmService extends GetxService with WidgetsBindingObserver {
     _listenersSetup = true;
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      handlePushMessage(message);
+      unawaited(handlePushMessage(message));
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
@@ -232,16 +232,18 @@ class FcmService extends GetxService with WidgetsBindingObserver {
   }
 
   /// Handle incoming push (foreground). Show local notification and delegate to NotificationManager.
-  void handlePushMessage(RemoteMessage message) {
+  Future<void> handlePushMessage(RemoteMessage message) async {
     try {
-      LocalNotificationService.showNotification(message);
+      await LocalNotificationService.showNotification(message);
     } catch (e) {
       print('❌ [FcmService] Local notification error: $e');
     }
 
     final data = message.data;
     final messageId = message.messageId;
-    print('📨 [FcmService] Foreground push – data keys: ${data.isNotEmpty ? data.keys.join(", ") : "none"}');
+    print(
+      '📨 [FcmService] Foreground push – data keys: ${data.isNotEmpty ? data.keys.join(", ") : "none"}',
+    );
     _dispatchToNotificationManager(data, messageId: messageId);
   }
 
