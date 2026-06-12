@@ -71,10 +71,10 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final maxH = MediaQuery.of(context).size.height * 0.85;
+    final maxH = MediaQuery.of(context).size.height * 0.72;
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       child: Container(
         constraints: BoxConstraints(
           maxWidth: _dialogMaxWidth,
@@ -87,16 +87,16 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
-          mainAxisSize: MainAxisSize.max,
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(_padding, _padding, _padding, 0),
+              padding: const EdgeInsets.fromLTRB(_padding, 16, _padding, 0),
               child: _buildHeader(context),
             ),
-            Expanded(
+            Flexible(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
                 child: _buildForm(),
               ),
             ),
@@ -158,11 +158,11 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildPhotoUploadArea(),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           _buildPhotoFormatsInfo(),
-          const SizedBox(height: 20),
+          const SizedBox(height: 14),
           _buildCategoryDropdown(),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           CustomTextField(
             label: 'title'.tr,
             hint: 'briefDescriptionOfIssue'.tr,
@@ -174,14 +174,14 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
             textColor: AppColors.neutralInk900,
             labelColor: AppColors.neutralInk700,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           CustomTextField(
             label: 'description'.tr,
             hint: 'provideMoreDetails'.tr,
             controller: _descriptionController,
             onChanged: (v) => _ctrl.updateNewTicket('description', v),
             keyboardType: TextInputType.multiline,
-            maxLines: 4,
+            maxLines: 3,
             backgroundColor: AppColors.neutralLine100,
             borderColor: AppColors.neutralLine200,
             textColor: AppColors.neutralInk900,
@@ -202,11 +202,11 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
         onTap: isEmpty && canAddMore ? _showPhotoPickerSheet : null,
         child: ConstrainedBox(
           constraints: BoxConstraints(
-            minHeight: 100,
-            maxHeight: isEmpty ? 150 : 260,
+            minHeight: 80,
+            maxHeight: isEmpty ? 120 : 200,
           ),
           child: Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: isEmpty
                   ? AppColors.surfaceWarm50

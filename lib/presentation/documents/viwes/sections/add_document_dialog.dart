@@ -202,13 +202,13 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _buildFileUploadArea(),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         _buildSupportedFormatsInfo(),
-        const SizedBox(height: 20),
+        const SizedBox(height: 14),
         _buildDocumentTypeDropdown(),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         _buildTitleField(),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         _buildDescriptionField(),
       ],
     );
@@ -225,14 +225,14 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
       alignment: keyboardOpen ? Alignment.bottomCenter : Alignment.center,
       insetPadding: EdgeInsets.fromLTRB(
         16,
-        keyboardOpen ? 16 : 24,
+        keyboardOpen ? 12 : 16,
         16,
-        keyboardOpen ? 8 : 24,
+        keyboardOpen ? 8 : 16,
       ),
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: 500,
-          maxHeight: screenHeight * 0.85,
+          maxHeight: screenHeight * 0.72,
         ),
         child: DecoratedBox(
           decoration: BoxDecoration(
@@ -249,7 +249,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
                 _buildHeader(),
                 Flexible(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
                     child: _buildFormContent(),
                   ),
                 ),
@@ -264,7 +264,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 20, 12, 16),
+      padding: const EdgeInsets.fromLTRB(20, 16, 12, 12),
       decoration: const BoxDecoration(
         color: AppColors.surfaceWhite,
         border: Border(
@@ -312,13 +312,13 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
       onTap: _selectedFile == null ? _pickFile : null,
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          minHeight: 100,
+          minHeight: 80,
           maxHeight: _selectedFile != null && _isImageFile(_selectedFileName)
-              ? 300 // More height for image preview
-              : 150,
+              ? 220
+              : 120,
         ),
         child: Container(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: _selectedFile == null
                 ? AppColors.surfaceWarm50
@@ -911,7 +911,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
 
   Widget _buildFooter() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
       decoration: const BoxDecoration(
         color: AppColors.surfaceWhite,
         border: Border(
