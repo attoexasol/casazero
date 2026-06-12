@@ -28,25 +28,25 @@ class HubScreen extends GetView<HubController> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-                const Icon(
-                  Icons.dashboard_outlined,
-                  size: 64,
-                  color: Colors.grey,
+              const Icon(
+                Icons.dashboard_outlined,
+                size: 64,
+                color: Colors.grey,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'noServicesAvailable'.tr,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  'noServicesAvailable'.tr,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'noServicesAvailableDesc'.tr,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey.shade600),
-                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'noServicesAvailableDesc'.tr,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
             ],
           ),
         ),
@@ -64,26 +64,45 @@ class HubScreen extends GetView<HubController> {
           padding: FloatingBottomNavBar.scrollBottomPadding(context),
           child: Column(
             children: [
-              const SizedBox(height: 40),
-              SizedBox(
-                height: width >= 600 ? 160 : 145,
-                child: CasaZeroLogo(
-                  assetPath: 'assets/images/smart_area_logo.png',
-                  containerHeight: width >= 600 ? 145 : 110,
-                )
-                    .animate()
-                    .scale(
-                      begin: const Offset(0.85, 0.85),
-                      end: const Offset(1.0, 1.0),
-                      duration: 600.ms,
-                      curve: Curves.easeOutCubic,
-                    )
-                    .fadeIn(
-                      duration: 500.ms,
-                      curve: Curves.easeOut,
-                    ),
+              const SizedBox(height: 30),
+              // SizedBox(
+              //   height: width >= 600 ? 160 : 145,
+              //   child: CasaZeroLogo(
+              //     assetPath: 'assets/images/smart_area_logo.png',
+              //     containerHeight: width >= 600 ? 130 : 110,
+              //   )
+              //       .animate()
+              //       .scale(
+              //         begin: const Offset(0.85, 0.85),
+              //         end: const Offset(1.0, 1.0),
+              //         duration: 600.ms,
+              //         curve: Curves.easeOutCubic,
+              //       )
+              //       .fadeIn(
+              //         duration: 500.ms,
+              //         curve: Curves.easeOut,
+              //       ),
+              // ),
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: width >= 600 ? 40 : 24,
+                ),
+                child:
+                    Image.asset(
+                          'assets/images/smart_area_logo.png',
+                          height: width >= 600 ? 100 : 85,
+                          fit: BoxFit.contain,
+                        )
+                        .animate()
+                        .scale(
+                          begin: const Offset(0.85, 0.85),
+                          end: const Offset(1.0, 1.0),
+                          duration: 600.ms,
+                          curve: Curves.easeOutCubic,
+                        )
+                        .fadeIn(duration: 500.ms, curve: Curves.easeOut),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 50),
               Padding(
                 padding: horizontalPadding,
                 child: LayoutBuilder(
@@ -94,7 +113,9 @@ class HubScreen extends GetView<HubController> {
 
                     if (isPyramid) {
                       final cardWidth = (availableWidth - 20) / 2;
-                      final rawRatio = cardHeight > 0 ? cardWidth / cardHeight : 1.0;
+                      final rawRatio = cardHeight > 0
+                          ? cardWidth / cardHeight
+                          : 1.0;
                       final aspectRatio = rawRatio > 0 && rawRatio.isFinite
                           ? rawRatio
                           : 1.0;
@@ -150,7 +171,9 @@ class HubScreen extends GetView<HubController> {
 
                     final cardWidth =
                         (availableWidth - (gridCount - 1) * 20) / gridCount;
-                    final rawRatio = cardHeight > 0 ? cardWidth / cardHeight : 1.0;
+                    final rawRatio = cardHeight > 0
+                        ? cardWidth / cardHeight
+                        : 1.0;
                     final aspectRatio = rawRatio > 0 && rawRatio.isFinite
                         ? rawRatio
                         : 1.0;
@@ -178,9 +201,8 @@ class HubScreen extends GetView<HubController> {
                   },
                 ),
               ),
-              const SizedBox(height: 32),
-              Padding(
-                  padding: horizontalPadding, child: _buildInfoBanner()),
+              const SizedBox(height: 52),
+              Padding(padding: horizontalPadding, child: _buildInfoBanner()),
             ],
           ),
         );
