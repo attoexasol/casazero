@@ -33,18 +33,19 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
   String? _selectedFileName;
   String? _selectedFileSize;
   int? _selectedCategoryId; // Changed from String to int (category ID)
+  double? _dialogMaxHeight;
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _dialogMaxHeight ??= MediaQuery.sizeOf(context).height * 0.72;
+  }
   @override
   void initState() {
     super.initState();
-    // Add listener to title controller to update button state
-    _titleController.addListener(() {
-      setState(() {}); // Rebuild to update _canUpload state
-    });
-    
     // Ensure categories are loaded when dialog opens
     _ensureCategoriesLoaded();
-    
+
     // Popup messages are handled directly in _handleUpload
   }
 
@@ -216,25 +217,19 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.sizeOf(context).height;
-    final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
-
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetAnimationDuration: Duration.zero,
-      alignment: keyboardOpen ? Alignment.bottomCenter : Alignment.center,
-      insetPadding: EdgeInsets.fromLTRB(
-        16,
-        keyboardOpen ? 12 : 16,
-        16,
-        keyboardOpen ? 8 : 16,
-      ),
+      alignment: Alignment.center,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: 500,
-          maxHeight: screenHeight * 0.72,
+          maxHeight: _dialogMaxHeight ?? MediaQuery.sizeOf(context).height * 0.72,
         ),
-        child: DecoratedBox(
+        child: MediaQuery.removeViewInsets(
+          context: context,
+          removeBottom: true,
+          child: DecoratedBox(
           decoration: BoxDecoration(
             color: AppColors.surfaceWarm50,
             borderRadius: BorderRadius.circular(16),
@@ -257,6 +252,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
               ],
             ),
           ),
+        ),
         ),
       ),
     );
@@ -932,20 +928,25 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Obx(
-              () => CustomButton(
-                text: 'upload'.tr,
-                icon: Icons.cloud_upload_outlined,
-                onPressed: _canUpload && !_controller.isUploading.value
-                    ? _handleUpload
-                    : null,
-                isLoading: _controller.isUploading.value,
-                backgroundColor: AppColors.brandSage500,
-                textColor: AppColors.surfaceWhite,
-                height: 48,
-                borderRadius: 12,
-                showShadow: false,
-              ),
+            child: ListenableBuilder(
+              listenable: _titleController,
+              builder: (context, _) {
+                return Obx(
+                  () => CustomButton(
+                    text: 'upload'.tr,
+                    icon: Icons.cloud_upload_outlined,
+                    onPressed: _canUpload && !_controller.isUploading.value
+                        ? _handleUpload
+                        : null,
+                    isLoading: _controller.isUploading.value,
+                    backgroundColor: AppColors.brandSage500,
+                    textColor: AppColors.surfaceWhite,
+                    height: 48,
+                    borderRadius: 12,
+                    showShadow: false,
+                  ),
+                );
+              },
             ),
           ),
         ],

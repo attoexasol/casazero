@@ -40,6 +40,13 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
   bool _isSubmittingNewType = false;
   final _addTypeFormKey = GlobalKey<FormState>();
   final ImagePicker _imagePicker = ImagePicker();
+  double? _dialogMaxHeight;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _dialogMaxHeight ??= MediaQuery.sizeOf(context).height * 0.72;
+  }
 
   @override
   void initState() {
@@ -55,9 +62,6 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
     _ctrl.selectedCategoryId.value = null;
     _ctrl.clearPhotos();
     _ctrl.fetchIssueTypes();
-    _descriptionController.addListener(() {
-      if (mounted) setState(() {});
-    });
   }
 
   @override
@@ -71,37 +75,45 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final maxH = MediaQuery.of(context).size.height * 0.72;
+    final maxH = _dialogMaxHeight ?? MediaQuery.sizeOf(context).height * 0.72;
+
     return Dialog(
       backgroundColor: Colors.transparent,
+      alignment: Alignment.center,
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-      child: Container(
+      child: ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: _dialogMaxWidth,
           maxHeight: maxH,
         ),
-        decoration: BoxDecoration(
-          color: _dialogBg,
-          borderRadius: BorderRadius.circular(_radius),
-          border: Border.all(color: _dialogBorder, width: 1),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(_padding, 16, _padding, 0),
-              child: _buildHeader(context),
+        child: MediaQuery.removeViewInsets(
+          context: context,
+          removeBottom: true,
+          child: Container(
+            decoration: BoxDecoration(
+              color: _dialogBg,
+              borderRadius: BorderRadius.circular(_radius),
+              border: Border.all(color: _dialogBorder, width: 1),
             ),
-            Flexible(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-                child: _buildForm(),
-              ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(_padding, 16, _padding, 0),
+                  child: _buildHeader(context),
+                ),
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+                    child: _buildForm(),
+                  ),
+                ),
+                _buildFooter(context),
+              ],
             ),
-            _buildFooter(context),
-          ],
+          ),
         ),
       ),
     );
@@ -153,43 +165,41 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
   }
 
   Widget _buildForm() {
-    return Obx(() {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildPhotoUploadArea(),
-          const SizedBox(height: 12),
-          _buildPhotoFormatsInfo(),
-          const SizedBox(height: 14),
-          _buildCategoryDropdown(),
-          const SizedBox(height: 12),
-          CustomTextField(
-            label: 'title'.tr,
-            hint: 'briefDescriptionOfIssue'.tr,
-            controller: _titleController,
-            onChanged: (v) => _ctrl.updateNewTicket('title', v),
-            keyboardType: TextInputType.text,
-            backgroundColor: AppColors.neutralLine100,
-            borderColor: AppColors.neutralLine200,
-            textColor: AppColors.neutralInk900,
-            labelColor: AppColors.neutralInk700,
-          ),
-          const SizedBox(height: 12),
-          CustomTextField(
-            label: 'description'.tr,
-            hint: 'provideMoreDetails'.tr,
-            controller: _descriptionController,
-            onChanged: (v) => _ctrl.updateNewTicket('description', v),
-            keyboardType: TextInputType.multiline,
-            maxLines: 3,
-            backgroundColor: AppColors.neutralLine100,
-            borderColor: AppColors.neutralLine200,
-            textColor: AppColors.neutralInk900,
-            labelColor: AppColors.neutralInk700,
-          ),
-        ],
-      );
-    });
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildPhotoUploadArea(),
+        const SizedBox(height: 12),
+        _buildPhotoFormatsInfo(),
+        const SizedBox(height: 14),
+        Obx(() => _buildCategoryDropdown()),
+        const SizedBox(height: 12),
+        CustomTextField(
+          label: 'title'.tr,
+          hint: 'briefDescriptionOfIssue'.tr,
+          controller: _titleController,
+          onChanged: (v) => _ctrl.updateNewTicket('title', v),
+          keyboardType: TextInputType.text,
+          backgroundColor: AppColors.neutralLine100,
+          borderColor: AppColors.neutralLine200,
+          textColor: AppColors.neutralInk900,
+          labelColor: AppColors.neutralInk700,
+        ),
+        const SizedBox(height: 12),
+        CustomTextField(
+          label: 'description'.tr,
+          hint: 'provideMoreDetails'.tr,
+          controller: _descriptionController,
+          onChanged: (v) => _ctrl.updateNewTicket('description', v),
+          keyboardType: TextInputType.multiline,
+          maxLines: 3,
+          backgroundColor: AppColors.neutralLine100,
+          borderColor: AppColors.neutralLine200,
+          textColor: AppColors.neutralInk900,
+          labelColor: AppColors.neutralInk700,
+        ),
+      ],
+    );
   }
 
   Widget _buildPhotoUploadArea() {
@@ -851,46 +861,52 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
   }
 
   Widget _buildFooter(BuildContext context) {
-    return Obx(() {
-      final isCreating = _ctrl.isCreatingTicket.value;
-      final canSubmit = _ctrl.selectedCategoryId.value != null &&
-          _descriptionController.text.trim().isNotEmpty &&
-          !isCreating;
+    return ListenableBuilder(
+      listenable: _descriptionController,
+      builder: (context, _) {
+        return Obx(() {
+          final isCreating = _ctrl.isCreatingTicket.value;
+          final canSubmit = _ctrl.selectedCategoryId.value != null &&
+              _descriptionController.text.trim().isNotEmpty &&
+              !isCreating;
 
-      return Container(
-        height: 60,
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceWarm50,
-          borderRadius: BorderRadius.only(
-            bottomLeft: Radius.circular(_radius),
-            bottomRight: Radius.circular(_radius),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Expanded(
-              child: OutlinedCustomButton(
-                text: 'cancel'.tr,
-                onPressed:
-                    isCreating ? null : () => Navigator.of(context).pop(),
-                width: 100,
+          return Container(
+            height: 60,
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceWarm50,
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(_radius),
+                bottomRight: Radius.circular(_radius),
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: GradientButton(
-                text: 'createTicket'.tr,
-                icon: Icons.send_rounded,
-                onPressed: canSubmit ? () => _handleCreateTicket() : null,
-                isLoading: isCreating,
-                width: 140,
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: OutlinedCustomButton(
+                    text: 'cancel'.tr,
+                    onPressed: isCreating
+                        ? null
+                        : () => Navigator.of(context).pop(),
+                    width: 100,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: GradientButton(
+                    text: 'createTicket'.tr,
+                    icon: Icons.send_rounded,
+                    onPressed: canSubmit ? () => _handleCreateTicket() : null,
+                    isLoading: isCreating,
+                    width: 140,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      );
-    });
+          );
+        });
+      },
+    );
   }
 }

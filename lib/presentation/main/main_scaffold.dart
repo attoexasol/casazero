@@ -63,6 +63,11 @@ enum AppScreen {
 class MainScaffold extends GetView<HomeController> {
   const MainScaffold({super.key});
 
+  bool _isRouteObscuredByModal(BuildContext context) {
+    final route = ModalRoute.of(context);
+    return route != null && !route.isCurrent;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Obx(
@@ -90,13 +95,8 @@ class MainScaffold extends GetView<HomeController> {
           body: Stack(
             fit: StackFit.expand,
             children: [
-              Padding(
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.viewInsetsOf(context).bottom +
-                      (_isBottomNavVisible()
-                          ? 0
-                          : MediaQuery.paddingOf(context).bottom),
-                ),
+              _KeyboardBottomPadding(
+                includeSafeAreaBottom: !_isBottomNavVisible(),
                 child: _buildBody(),
               ),
               if (_isBottomNavVisible())
@@ -1077,6 +1077,37 @@ extension _MainScaffoldNotification on MainScaffold {
       width: isActive ? activeSize : inactiveSize,
       height: isActive ? activeSize : inactiveSize,
       color: iconColor, // <- smart color
+    );
+  }
+}
+
+/// Applies keyboard bottom inset only to its child so the rest of [MainScaffold]
+/// does not rebuild on every IME animation frame.
+class _KeyboardBottomPadding extends StatelessWidget {
+  const _KeyboardBottomPadding({
+    required this.includeSafeAreaBottom,
+    required this.child,
+  });
+
+  final bool includeSafeAreaBottom;
+  final Widget child;
+
+  bool _isRouteObscuredByModal(BuildContext context) {
+    final route = ModalRoute.of(context);
+    return route != null && !route.isCurrent;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final keyboardInset = _isRouteObscuredByModal(context)
+        ? 0.0
+        : MediaQuery.viewInsetsOf(context).bottom;
+    final safeBottom =
+        includeSafeAreaBottom ? MediaQuery.paddingOf(context).bottom : 0.0;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: keyboardInset + safeBottom),
+      child: child,
     );
   }
 }

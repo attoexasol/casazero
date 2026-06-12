@@ -58,12 +58,9 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
   @override
   Widget build(BuildContext context) {
     final permissions = Permissions.fromRole(widget.role);
-
-    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
     final navScrollPadding = FloatingBottomNavBar.contentBottomPadding(context);
     const fabSize = 56.0;
     const fabMargin = 20.0;
-    final fabBottom = navScrollPadding + fabMargin - keyboardInset;
     final listBottomPadding = navScrollPadding + fabSize + fabMargin;
 
     return Stack(
@@ -227,24 +224,54 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
           ],
         ),
 
-        /// FLOATING ACTION BUTTON — offset cancels parent keyboard padding
+        /// FLOATING ACTION BUTTON — keyboard offset isolated to this widget
         if (permissions.canUploadDocuments)
-          Positioned(
-            bottom: fabBottom,
+          _KeyboardAwareFabPosition(
+            navScrollPadding: navScrollPadding,
+            fabMargin: fabMargin,
             right: 20.w,
-            child:
-                FloatingActionButton(
-                    backgroundColor: const Color(0xFF4CAF47),
-                    onPressed: _openAddDocumentDialog,
-                    child: const Icon(Icons.add, size: 26, color: Colors.white),
-                  ).animate()
-                  ..scale(
-                    begin: const Offset(0.5, 0.5),
-                    end: const Offset(1, 1),
-                  ).fadeIn(),
+            child: FloatingActionButton(
+              backgroundColor: const Color(0xFF4CAF47),
+              onPressed: _openAddDocumentDialog,
+              child: const Icon(Icons.add, size: 26, color: Colors.white),
+            ).animate()
+              ..scale(
+                begin: const Offset(0.5, 0.5),
+                end: const Offset(1, 1),
+              )
+              .fadeIn(),
           ),
 
       ],
+    );
+  }
+}
+
+class _KeyboardAwareFabPosition extends StatelessWidget {
+  const _KeyboardAwareFabPosition({
+    required this.navScrollPadding,
+    required this.fabMargin,
+    required this.right,
+    required this.child,
+  });
+
+  final double navScrollPadding;
+  final double fabMargin;
+  final double right;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final route = ModalRoute.of(context);
+    final keyboardInset = route != null && !route.isCurrent
+        ? 0.0
+        : MediaQuery.viewInsetsOf(context).bottom;
+    final bottom = navScrollPadding + fabMargin - keyboardInset;
+
+    return Positioned(
+      bottom: bottom,
+      right: right,
+      child: child,
     );
   }
 }
