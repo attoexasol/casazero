@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -126,14 +125,14 @@ class _HeroImageState extends State<HeroImage>
                       0.0,
                       -0.2,
                     ), // Higher up to reach top better
-                    radius: 1.5, // Larger radius to cover top area
+                    radius: 0.9, // Larger radius to cover top area
                     colors: [
-                      Colors.white.withOpacity(0.0),
-                      Colors.white.withOpacity(0.0),
-                      Colors.white.withOpacity(0.20),
-                      Colors.white.withOpacity(0.35),
-                      Colors.white.withOpacity(0.30),
-                      Colors.white.withOpacity(0.15), // Extends glow to edges
+                      Colors.transparent,
+                      Colors.transparent,
+                      Colors.white.withOpacity(0.05),
+                      Colors.white.withOpacity(0.10),
+                      Colors.white.withOpacity(0.08),
+                      Colors.transparent,
                     ],
                     stops: const [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
                   ),
@@ -229,42 +228,28 @@ class _HeroImageState extends State<HeroImage>
             // EXACTLY mirrors the top fade (Layer 8) for perfect visual symmetry
             // Same structure, same stops (inverted direction), same colors, same quality
             // Placed second-to-last to ensure same visibility as top fade
-            Positioned.fill(
+            // ============================================================================
+            // LAYER 7: BOTTOM FADE
+            // ============================================================================
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: 60,
               child: IgnorePointer(
                 child: Container(
-                  width: double.infinity,
-                  height: double.infinity,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.bottomCenter,
-                      end: Alignment
-                          .topCenter, // Inverted direction to mirror top
-                      stops: const [
-                        0.0,
-                        0.02,
-                        0.05,
-                        0.10,
-                        0.18,
-                        0.28,
-                      ], // EXACTLY same stops as top fade
+                      end: Alignment.topCenter,
                       colors: [
-                        AppColors
-                            .surfaceWhite, // Full white at bottom - seamless blend with background (mirrors top 0%)
-                        AppColors
-                            .surfaceWhite, // Keep white for first 2% for smooth transition (mirrors top 2%)
-                        AppColors.surfaceWhite.withOpacity(
-                          0.90,
-                        ), // 95% at 5% (EXACTLY mirrors top 5%)
-                        AppColors.surfaceWhite.withOpacity(
-                          0.65,
-                        ), // 80% at 10% (EXACTLY mirrors top 10%)
-                        AppColors.surfaceWhite.withOpacity(
-                          0.15,
-                        ), // 50% at 18% (EXACTLY mirrors top 18%)
-                        AppColors.surfaceWhite.withOpacity(
-                          0.0,
-                        ), // Transparent at 28% (EXACTLY mirrors top 28%)
+                        AppColors.surfaceWhite,
+                        AppColors.surfaceWhite.withOpacity(0.85),
+                        AppColors.surfaceWhite.withOpacity(0.50),
+                        AppColors.surfaceWhite.withOpacity(0.15),
+                        Colors.transparent,
                       ],
+                      stops: const [0.0, 0.20, 0.45, 0.75, 1.0],
                     ),
                   ),
                 ),
@@ -277,28 +262,25 @@ class _HeroImageState extends State<HeroImage>
             // Smooth top fade that blends seamlessly with app background (white)
             // Long, natural gradient to eliminate visible edge - placed LAST for visibility
             // This creates an unbroken, continuous feel with the app header/background
-            Positioned.fill(
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 60,
               child: IgnorePointer(
                 child: Container(
-                  width: double.infinity,
-                  height: double.infinity,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      stops: const [0.0, 0.02, 0.05, 0.10, 0.18, 0.28],
                       colors: [
-                        AppColors
-                            .surfaceWhite, // Full white at top - seamless blend with background
-                        AppColors
-                            .surfaceWhite, // Keep white for first 2% for smooth transition
-                        AppColors.surfaceWhite.withOpacity(0.90), // 95% at 5%
-                        AppColors.surfaceWhite.withOpacity(0.65), // 80% at 10%
-                        AppColors.surfaceWhite.withOpacity(0.15), // 50% at 18%
-                        AppColors.surfaceWhite.withOpacity(
-                          0.0,
-                        ), // Transparent at 28%
+                        AppColors.surfaceWhite,
+                        AppColors.surfaceWhite.withOpacity(0.85),
+                        AppColors.surfaceWhite.withOpacity(0.50),
+                        AppColors.surfaceWhite.withOpacity(0.15),
+                        Colors.transparent,
                       ],
+                      stops: const [0.0, 0.20, 0.45, 0.75, 1.0],
                     ),
                   ),
                 ),
@@ -317,11 +299,11 @@ class _HeroImageState extends State<HeroImage>
       return CachedNetworkImage(
         imageUrl: imageUrl,
         width: double.infinity,
-        height: 500,
+        height: 420,
         fit: BoxFit.cover,
         placeholder: (context, url) => Container(
           width: double.infinity,
-          height: 500,
+          height: 420,
           color: Colors.grey[200],
           child: const Center(child: CircularProgressIndicator()),
         ),
