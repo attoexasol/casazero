@@ -21,8 +21,8 @@ class FloatingBottomNavBar extends StatelessWidget {
     required this.iconBuilder,
   });
 
-  static const Duration animationDuration = Duration(milliseconds: 320);
-  static const Curve animationCurve = Curves.easeOutCubic;
+  static const Duration animationDuration = Duration(milliseconds: 280);
+  static const Curve animationCurve = Curves.easeInOut;
 
   static double get barHeight => 72.h;
 
@@ -75,11 +75,19 @@ class FloatingBottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
-    final borderRadius = BorderRadius.circular(28.r);
+    final borderRadius = BorderRadius.circular(38.r);
 
     return Padding(
       padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 16.h + bottomInset),
-      child: DecoratedBox(
+      child: Container(
+        // foregroundDecoration paints AFTER the child — border is always visible
+        foregroundDecoration: BoxDecoration(
+          borderRadius: borderRadius,
+          border: Border.all(
+            color: Colors.white.withOpacity(0.85),
+            width: 1.5,
+          ),
+        ),
         decoration: BoxDecoration(
           borderRadius: borderRadius,
           boxShadow: [
@@ -107,54 +115,12 @@ class FloatingBottomNavBar extends StatelessWidget {
           child: Stack(
             children: [
               BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 75, sigmaY: 75),
+                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
                 child: Container(
                   height: 72.h,
                   color: isDark
-                      ? Colors.white.withOpacity(0.05)
-                      : Colors.white.withOpacity(0.08),
-                ),
-              ),
-              Container(
-                height: 72.h,
-                decoration: BoxDecoration(
-                  borderRadius: borderRadius,
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    stops: const [0.0, 0.5, 1.0],
-                    colors: isDark
-                        ? [
-                            Colors.white.withOpacity(0.10),
-                            Colors.white.withOpacity(0.05),
-                            Colors.white.withOpacity(0.02),
-                          ]
-                        : [
-                            Colors.white.withOpacity(0.22),
-                            Colors.white.withOpacity(0.10),
-                            AppColors.brandSage50.withOpacity(0.06),
-                          ],
-                  ),
-                  border: Border.all(
-                    color: isDark
-                        ? Colors.white.withOpacity(0.20)
-                        : Colors.white.withOpacity(0.55),
-                    width: 1.2,
-                  ),
-                ),
-              ),
-              Container(
-                height: 72.h,
-                decoration: BoxDecoration(
-                  borderRadius: borderRadius,
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: const Alignment(0, 0.55),
-                    colors: [
-                      Colors.white.withOpacity(isDark ? 0.12 : 0.30),
-                      Colors.transparent,
-                    ],
-                  ),
+                      ? Colors.white.withOpacity(0.06)
+                      : Colors.white.withOpacity(0.18),
                 ),
               ),
               SizedBox(
@@ -162,8 +128,8 @@ class FloatingBottomNavBar extends StatelessWidget {
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final tabWidth = constraints.maxWidth / itemCount;
-                    final pillWidth = 56.w;
-                    final pillHeight = 42.h;
+                    final pillWidth = 52.w;
+                    final pillHeight = 40.h;
                     final showIndicator =
                         selectedIndex >= 0 && selectedIndex < itemCount;
                     final pillLeft = showIndicator
@@ -175,6 +141,7 @@ class FloatingBottomNavBar extends StatelessWidget {
                       clipBehavior: Clip.none,
                       alignment: Alignment.center,
                       children: [
+                        // Sliding gray pill — active indicator
                         AnimatedPositioned(
                           duration: animationDuration,
                           curve: animationCurve,
@@ -188,21 +155,24 @@ class FloatingBottomNavBar extends StatelessWidget {
                             curve: Curves.easeInOut,
                             child: DecoratedBox(
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(21.r),
+                                borderRadius: BorderRadius.circular(20.r),
                                 color: isDark
-                                    ? AppColors.neutralInk500.withOpacity(0.45)
-                                    : AppColors.neutralLine200
-                                        .withOpacity(0.72),
-                                border: Border.all(
-                                  color: isDark
-                                      ? Colors.white.withOpacity(0.12)
-                                      : Colors.white.withOpacity(0.55),
-                                  width: 0.8,
-                                ),
+                                    ? Colors.white.withOpacity(0.28)
+                                    : const Color(0xFFC8C8C8).withOpacity(0.95),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(
+                                      isDark ? 0.15 : 0.08,
+                                    ),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
                         ),
+                        // Icons row
                         Row(
                           children: List.generate(itemCount, (index) {
                             final isActive =
@@ -251,9 +221,9 @@ class _FloatingNavItem extends StatelessWidget {
           child: AnimatedScale(
             scale: isActive ? 1.1 : 1.0,
             duration: FloatingBottomNavBar.animationDuration,
-            curve: Curves.easeOutBack,
+            curve: Curves.easeInOut,
             child: AnimatedOpacity(
-              opacity: isActive ? 1.0 : 0.68,
+              opacity: 1.0,
               duration: FloatingBottomNavBar.animationDuration,
               curve: Curves.easeInOut,
               child: icon,

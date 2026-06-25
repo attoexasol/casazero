@@ -1042,15 +1042,14 @@ extension _MainScaffoldNotification on MainScaffold {
   }
 
   Widget _buildIcon(BottomNavTab tab, bool isActive) {
-    // SET YOUR CUSTOM SIZES HERE
-    final double activeSize = 26.w;
-    final double inactiveSize = 22.w;
+    final double activeSize = 24.w;
+    final double inactiveSize = 24.w;
 
     // The icon that should NOT change color when active
     bool noColorChange = tab.screen == AppScreen.hubScreen;
 
     final activeColor = AppColors.neutralInk900;
-    final inactiveColor = AppColors.neutralInk400;
+    final inactiveColor = AppColors.neutralInk900;
 
     // Decide which color to apply
     final Color? iconColor = noColorChange
