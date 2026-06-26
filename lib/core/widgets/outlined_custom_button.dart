@@ -46,7 +46,7 @@ class OutlinedCustomButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(borderRadius),
           ),
           padding: EdgeInsets.symmetric(
-            horizontal: icon != null ? 20 : 24,
+            horizontal: icon != null ? 12 : 24,
             vertical: 0,
           ),
         ),
@@ -60,19 +60,22 @@ class OutlinedCustomButton extends StatelessWidget {
           ),
         )
             : icon != null
-            ? Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 18),
-            const SizedBox(width: 8),
-            Text(
-              text,
-              style: AppTextStyles.button.copyWith(
-                color: effectiveTextColor,
+            ? FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                text,
+                style: AppTextStyles.button.copyWith(
+                  color: effectiveTextColor,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         )
             : Text(
           text,

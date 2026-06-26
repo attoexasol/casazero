@@ -5,16 +5,16 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../app/theme/app_colors.dart';
+import '../../../app/theme/app_shadows.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/custom_text_field.dart';
-import '../../../core/widgets/gradient_button.dart';
 import '../../../core/widgets/outlined_custom_button.dart';
 import '../controllers/tickets_controller.dart';
 import '../models/issue_type_model.dart';
 
-/// Create Support Ticket modal dialog. UI matches React ticketdialog.tsx and Figma spec.
-/// - Rounded corners 16, background #FAFAF7, border #E6E6E6 1px, max width ~400.
-/// - Create Ticket calls controller.handleCreateTicket(), Cancel pops.
+/// Create Support Ticket modal dialog. Shell UI matches [AddDocumentDialog].
+/// Create Ticket calls controller.handleCreateTicket(), Cancel pops.
 class CreateTicketDialog extends StatefulWidget {
   const CreateTicketDialog({super.key});
 
@@ -23,11 +23,6 @@ class CreateTicketDialog extends StatefulWidget {
 }
 
 class _CreateTicketDialogState extends State<CreateTicketDialog> {
-  static const double _dialogMaxWidth = 400;
-  static const double _padding = 20;
-  static const double _radius = 16;
-  static const Color _dialogBg = Color(0xFFFAFAF7);
-  static const Color _dialogBorder = Color(0xFFE6E6E6);
   static const Color _greenActive = AppColors.brandSage600;
 
   late final TextEditingController _titleController;
@@ -75,43 +70,41 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final maxH = _dialogMaxHeight ?? MediaQuery.sizeOf(context).height * 0.72;
-
     return Dialog(
       backgroundColor: Colors.transparent,
       alignment: Alignment.center,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxWidth: _dialogMaxWidth,
-          maxHeight: maxH,
+          maxWidth: 500,
+          maxHeight:
+              _dialogMaxHeight ?? MediaQuery.sizeOf(context).height * 0.72,
         ),
         child: MediaQuery.removeViewInsets(
           context: context,
           removeBottom: true,
-          child: Container(
+          child: DecoratedBox(
             decoration: BoxDecoration(
-              color: _dialogBg,
-              borderRadius: BorderRadius.circular(_radius),
-              border: Border.all(color: _dialogBorder, width: 1),
+              color: AppColors.surfaceWarm50,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.neutralLine200),
+              boxShadow: AppShadows.shadowLg,
             ),
-            clipBehavior: Clip.antiAlias,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(_padding, 16, _padding, 0),
-                  child: _buildHeader(context),
-                ),
-                Flexible(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-                    child: _buildForm(),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildHeader(),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                      child: _buildForm(),
+                    ),
                   ),
-                ),
-                _buildFooter(context),
-              ],
+                  _buildFooter(),
+                ],
+              ),
             ),
           ),
         ),
@@ -119,48 +112,48 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'createSupportTicket'.tr,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.CardHeaderText.copyWith(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: AppColors.neutralInk900,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'createTicketSubtitle'.tr,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.bodyMedium.copyWith(
-                fontSize: 14,
-                color: AppColors.neutralInk500,
-              ),
-            ),
-          ],
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 16, 12, 12),
+      decoration: const BoxDecoration(
+        color: AppColors.surfaceWhite,
+        border: Border(
+          bottom: BorderSide(color: AppColors.neutralLine100, width: 1),
         ),
-        Positioned(
-          top: -10,
-          right: -10,
-          child: IconButton(
-            icon: const Icon(
-              Icons.close,
-              size: 20,
-              color: AppColors.neutralInk700,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'createSupportTicket'.tr,
+                  style: AppTextStyles.h4.copyWith(
+                    color: AppColors.neutralInk900,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'createTicketSubtitle'.tr,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.neutralInk500,
+                  ),
+                ),
+              ],
             ),
-            onPressed: () => Navigator.of(context).pop(),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
           ),
-        ),
-      ],
+          IconButton(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: const Icon(Icons.close_rounded, size: 22),
+            color: AppColors.neutralInk400,
+            splashRadius: 20,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          ),
+        ],
+      ),
     );
   }
 
@@ -646,18 +639,23 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
                     _issueTypeItController.clear();
                     setState(() => _isAddingNewType = false);
                   },
-                  width: 100,
                   borderColor: AppColors.neutralLine200,
                   textColor: AppColors.neutralInk700,
+                  height: 48,
+                  borderRadius: 12,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: GradientButton(
+                child: CustomButton(
                   text: 'add'.tr,
                   onPressed: _isSubmittingNewType ? null : _handleAddIssueType,
                   isLoading: _isSubmittingNewType,
-                  width: 140,
+                  backgroundColor: AppColors.brandSage500,
+                  textColor: AppColors.surfaceWhite,
+                  height: 48,
+                  borderRadius: 12,
+                  showShadow: false,
                 ),
               ),
             ],
@@ -716,7 +714,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
   void _showPhotoPickerSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: _dialogBg,
+      backgroundColor: AppColors.surfaceWarm50,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -860,7 +858,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
     }
   }
 
-  Widget _buildFooter(BuildContext context) {
+  Widget _buildFooter() {
     return ListenableBuilder(
       listenable: _descriptionController,
       builder: (context, _) {
@@ -871,17 +869,14 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
               !isCreating;
 
           return Container(
-            height: 60,
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceWarm50,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(_radius),
-                bottomRight: Radius.circular(_radius),
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+            decoration: const BoxDecoration(
+              color: AppColors.surfaceWhite,
+              border: Border(
+                top: BorderSide(color: AppColors.neutralLine100, width: 1),
               ),
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Expanded(
                   child: OutlinedCustomButton(
@@ -889,17 +884,24 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
                     onPressed: isCreating
                         ? null
                         : () => Navigator.of(context).pop(),
-                    width: 100,
+                    borderColor: AppColors.neutralLine200,
+                    textColor: AppColors.neutralInk700,
+                    height: 48,
+                    borderRadius: 12,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: GradientButton(
+                  child: CustomButton(
                     text: 'createTicket'.tr,
                     icon: Icons.send_rounded,
-                    onPressed: canSubmit ? () => _handleCreateTicket() : null,
+                    onPressed: canSubmit ? _handleCreateTicket : null,
                     isLoading: isCreating,
-                    width: 140,
+                    backgroundColor: AppColors.brandSage500,
+                    textColor: AppColors.surfaceWhite,
+                    height: 48,
+                    borderRadius: 12,
+                    showShadow: false,
                   ),
                 ),
               ],

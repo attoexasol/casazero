@@ -51,7 +51,7 @@ class CustomButton extends StatelessWidget {
           ),
           elevation: 0,
           padding: EdgeInsets.symmetric(
-            horizontal: icon != null ? 20 : 24,
+            horizontal: icon != null ? 12 : 24,
             vertical: 0,
           ),
         ),
@@ -67,19 +67,22 @@ class CustomButton extends StatelessWidget {
                 ),
               )
             : icon != null
-            ? Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(icon, size: 18),
-                  const SizedBox(width: 8),
-                  Text(
-                    text,
-                    style: AppTextStyles.button.copyWith(
-                      color: textColor ?? AppColors.surfaceWhite,
+            ? FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(icon, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      text,
+                      style: AppTextStyles.button.copyWith(
+                        color: textColor ?? AppColors.surfaceWhite,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               )
             : Text(
                 text,
