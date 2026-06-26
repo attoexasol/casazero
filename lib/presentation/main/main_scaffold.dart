@@ -92,29 +92,11 @@ class MainScaffold extends GetView<HomeController> {
           extendBody: true,
           resizeToAvoidBottomInset: false,
           appBar: _buildAppBar(),
-          body: Stack(
-            fit: StackFit.expand,
-            children: [
-              _KeyboardBottomPadding(
-                includeSafeAreaBottom: !_isBottomNavVisible(),
-                child: _buildBody(),
-              ),
-              if (_isBottomNavVisible())
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: MediaQuery(
-                    data: MediaQuery.of(context).copyWith(
-                      viewInsets: EdgeInsets.zero,
-                    ),
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: _buildFloatingNavBar(),
-                    ),
-                  ),
-                ),
-            ],
+          body: _ScrollAwareBody(
+            isNavVisible: _isBottomNavVisible(),
+            screenKey: controller.currentScreen.value,
+            body: _buildBody(),
+            navBar: _buildFloatingNavBar(),
           ),
         ),
       ),
@@ -1076,6 +1058,101 @@ extension _MainScaffoldNotification on MainScaffold {
       width: isActive ? activeSize : inactiveSize,
       height: isActive ? activeSize : inactiveSize,
       color: iconColor, // <- smart color
+    );
+  }
+}
+
+/// Hides the floating nav bar when scrolling down (Instagram-style) and
+/// reveals it when scrolling up or returning to the top.
+/// Uses [NotificationListener] so no child screen needs modification.
+class _ScrollAwareBody extends StatefulWidget {
+  final bool isNavVisible;
+  final AppScreen screenKey;
+  final Widget body;
+  final Widget navBar;
+
+  const _ScrollAwareBody({
+    required this.isNavVisible,
+    required this.screenKey,
+    required this.body,
+    required this.navBar,
+  });
+
+  @override
+  State<_ScrollAwareBody> createState() => _ScrollAwareBodyState();
+}
+
+class _ScrollAwareBodyState extends State<_ScrollAwareBody> {
+  bool _navHidden = false;
+
+  @override
+  void didUpdateWidget(_ScrollAwareBody oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Always reveal the nav bar when the user switches screens.
+    if (oldWidget.screenKey != widget.screenKey && _navHidden) {
+      setState(() => _navHidden = false);
+    }
+  }
+
+  bool _onScrollNotification(ScrollNotification notification) {
+    if (!widget.isNavVisible) return false;
+
+    if (notification is ScrollUpdateNotification) {
+      final delta = notification.scrollDelta ?? 0;
+      if (delta > 1.0 && !_navHidden) {
+        setState(() => _navHidden = true);
+      } else if (delta < -1.0 && _navHidden) {
+        setState(() => _navHidden = false);
+      }
+    }
+
+    // Always show when snapped back to the very top.
+    if (notification is ScrollEndNotification) {
+      if (notification.metrics.pixels <= 0 && _navHidden) {
+        setState(() => _navHidden = false);
+      }
+    }
+
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final show = widget.isNavVisible && !_navHidden;
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        NotificationListener<ScrollNotification>(
+          onNotification: _onScrollNotification,
+          child: _KeyboardBottomPadding(
+            includeSafeAreaBottom: !widget.isNavVisible,
+            child: widget.body,
+          ),
+        ),
+        if (widget.isNavVisible)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                viewInsets: EdgeInsets.zero,
+              ),
+              child: AnimatedSlide(
+                offset: show ? Offset.zero : const Offset(0, 1.5),
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                child: AnimatedOpacity(
+                  opacity: show ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeInOut,
+                  child: widget.navBar,
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
