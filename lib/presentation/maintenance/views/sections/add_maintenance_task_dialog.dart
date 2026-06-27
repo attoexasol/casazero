@@ -9,7 +9,10 @@ import 'package:casazero/core/widgets/outlined_custom_button.dart';
 import 'package:casazero/presentation/home/controllers/home_controller.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import '../../../../core/utils/accessibility.dart';
+import '../../../../core/widgets/responsive_alert_dialog.dart';
 import 'package:intl/intl.dart';
 import '../../controllers/maintenance_controller.dart';
 import '../../models/maintenance_category_model.dart';
@@ -274,67 +277,97 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final viewInsets = MediaQuery.viewInsetsOf(context);
+    final screenSize = MediaQuery.sizeOf(context);
+    final dialogMaxWidth = screenSize.width >= 600
+        ? 500.0
+        : (screenSize.width - 32.w).clamp(280.w, 500.w);
+    final preferredMaxHeight = screenSize.height * 0.9;
+
     return Material(
       color: Colors.black.withOpacity(0.5),
-      child: Center(
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
-          constraints: const BoxConstraints(maxWidth: 500),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceWarm100,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              // Dialog Header
-              _buildHeader(),
+      child: Padding(
+        padding: EdgeInsets.only(bottom: viewInsets.bottom),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final verticalMargin =
+                ResponsiveAlertDialog.overlayFormVerticalMargin(context);
+            final maxDialogHeight =
+                ResponsiveAlertDialog.overlayFormMaxHeightFromConstraints(
+              constraints,
+              preferredMaxHeight: preferredMaxHeight,
+              verticalMargin: verticalMargin,
+            );
 
-              // Dialog Content
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Title Field
-                        _buildTitleField(),
-                        const SizedBox(height: 16),
+            return Align(
+              alignment: ResponsiveAlertDialog.overlayFormAlignment(context),
+              child: Container(
+                margin: EdgeInsets.symmetric(
+                  horizontal: 16.w,
+                  vertical: verticalMargin,
+                ),
+                constraints: BoxConstraints(
+                  maxWidth: dialogMaxWidth,
+                  maxHeight: maxDialogHeight,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceWarm100,
+                  borderRadius: BorderRadius.circular(20.r),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    // Dialog Header
+                    _buildHeader(),
 
-                        // Category Dropdown
-                        _buildCategoryDropdown(),
-                        const SizedBox(height: 16),
+                    // Dialog Content
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.all(24.w),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // Title Field
+                              _buildTitleField(),
+                              SizedBox(height: 16.h),
 
-                        // Frequency Dropdown
-                        _buildFrequencyDropdown(),
-                        const SizedBox(height: 16),
+                              // Category Dropdown
+                              _buildCategoryDropdown(),
+                              SizedBox(height: 16.h),
 
-                        // Due Date Field
-                        _buildDueDateField(),
-                        const SizedBox(height: 16),
+                              // Frequency Dropdown
+                              _buildFrequencyDropdown(),
+                              SizedBox(height: 16.h),
 
-                        // Last Maintenance Date Field (Required)
-                        _buildLastMaintenanceDateField(),
-                        const SizedBox(height: 16),
+                              // Due Date Field
+                              _buildDueDateField(),
+                              SizedBox(height: 16.h),
 
-                        // Notes Field
-                        _buildNotesField(),
-                        const SizedBox(height: 16),
+                              // Last Maintenance Date Field (Required)
+                              _buildLastMaintenanceDateField(),
+                              SizedBox(height: 16.h),
 
-                        // File Upload Area
-                        _buildFileUploadArea(),
-                      ],
+                              // Notes Field
+                              _buildNotesField(),
+                              SizedBox(height: 16.h),
+
+                              // File Upload Area
+                              _buildFileUploadArea(),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+
+                    // Dialog Footer
+                    _buildFooter(),
+                  ],
                 ),
               ),
-
-              // Dialog Footer
-              _buildFooter(),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
@@ -342,12 +375,12 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 5),
-      decoration: const BoxDecoration(
+      padding: EdgeInsets.only(top: 5.h, bottom: 5.h, left: 5.w, right: 5.w),
+      decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+          topLeft: Radius.circular(20.r),
+          topRight: Radius.circular(20.r),
         ),
       ),
       child: Stack(
@@ -355,25 +388,31 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
           /// CENTERED TITLE + SUBTITLE
           Center(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 48),
+              padding: EdgeInsets.symmetric(horizontal: 48.w),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     'Add Maintenance Task',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 18.sp,
                       fontWeight: FontWeight.w600,
                       color: AppColors.neutralInk900,
                     ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4.h),
                   Text(
                     'Create a personal maintenance task to track',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 12.sp,
                       color: AppColors.neutralInk500,
                     ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -386,10 +425,14 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
             top: 0,
             child: IconButton(
               padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
+              constraints: Accessibility.iconButtonConstraints,
               onPressed: widget.onClose,
-              icon: Icon(Icons.close, color: AppColors.neutralInk500),
-              splashRadius: 22,
+              icon: Icon(
+                Icons.close,
+                color: AppColors.neutralInk500,
+                size: 22.sp,
+              ),
+              splashRadius: 22.r,
             ),
           ),
         ],
@@ -405,32 +448,32 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
           'Attachment(Optional)',
           style: AppTextStyles.label.copyWith(
             color: AppColors.neutralInk700,
-            fontSize: 14,
+            fontSize: 14.sp,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8.h),
 
         SizedBox(
           width: double.infinity,
           child: GestureDetector(
             onTap: _selectedFile == null ? _pickFile : null,
             child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                minHeight: 100,
-                maxHeight: 150,
+              constraints: BoxConstraints(
+                minHeight: 100.h,
+                maxHeight: 150.h,
               ),
               child: Container(
-                padding: const EdgeInsets.all(24),
+                padding: EdgeInsets.all(24.w),
                 decoration: BoxDecoration(
                   color: _selectedFile == null
                       ? AppColors.surfaceWarm50
                       : AppColors.brandSage50,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(16.r),
                   border: Border.all(
                     color: _selectedFile == null
                         ? AppColors.neutralLine200
                         : AppColors.brandSage300,
-                    width: 2,
+                    width: 2.w,
                     style: BorderStyle.solid,
                   ),
                 ),
@@ -451,7 +494,7 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
         // Calculate available height (accounting for container padding: 24px top + 24px bottom = 48px)
         // Container has minHeight: 100, so available content height is 100 - 48 = 52px minimum
         final availableHeight = constraints.maxHeight;
-        final isCompact = availableHeight < 120;
+        final isCompact = availableHeight < 120.h;
         
         return SingleChildScrollView(
           physics: const NeverScrollableScrollPhysics(),
@@ -461,34 +504,39 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Icon size adjusts based on available space
                 Container(
-                  width: isCompact ? 48 : 64,
-                  height: isCompact ? 48 : 64,
+                  width: isCompact ? 48.w : 64.w,
+                  height: isCompact ? 48.w : 64.w,
                   decoration: BoxDecoration(
                     color: AppColors.brandSage500.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.cloud_upload_outlined,
-                    size: isCompact ? 24 : 32,
+                    size: isCompact ? 24.sp : 32.sp,
                     color: AppColors.brandSage500,
                   ),
                 ),
-                SizedBox(height: isCompact ? 8 : 12),
+                SizedBox(height: isCompact ? 8.h : 12.h),
                 Text(
                   'Click to upload',
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: AppColors.neutralInk700,
                     fontWeight: FontWeight.w500,
-                    fontSize: isCompact ? 13 : null,
+                    fontSize: isCompact ? 13.sp : null,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
                 ),
                 if (!isCompact) ...[
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4.h),
                   Text(
                     'Drag and drop file here',
                     style: AppTextStyles.caption.copyWith(color: AppColors.neutralInk400),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ],
@@ -504,19 +552,19 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
     return Row(
       children: [
         Container(
-          width: 48,
-          height: 48,
+          width: 48.w,
+          height: 48.w,
           decoration: BoxDecoration(
             color: AppColors.brandSage500.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12.r),
           ),
-          child: const Icon(
+          child: Icon(
             Icons.insert_drive_file,
             color: AppColors.brandSage500,
-            size: 24,
+            size: 24.sp,
           ),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: 12.w),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -530,7 +578,7 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 2),
+              SizedBox(height: 2.h),
               Text(
                 _selectedFileSize ?? '',
                 style: AppTextStyles.caption.copyWith(
@@ -542,9 +590,10 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
         ),
         IconButton(
           onPressed: _removeFile,
-          icon: const Icon(Icons.close, size: 20),
+          icon: Icon(Icons.close, size: 20.sp),
           color: AppColors.neutralInk400,
-          splashRadius: 20,
+          splashRadius: 20.r,
+          constraints: Accessibility.iconButtonConstraints,
         ),
       ],
     );
@@ -575,14 +624,14 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
             'Category',
             style: AppTextStyles.label.copyWith(
               color: AppColors.neutralInk700,
-              fontSize: 14,
+              fontSize: 14.sp,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Container(
             decoration: BoxDecoration(
               color: AppColors.neutralLine100,
-              borderRadius: BorderRadius.circular(25),
+              borderRadius: BorderRadius.circular(25.r),
               border: Border.all(color: AppColors.neutralLine200),
             ),
             child: DropdownButtonHideUnderline(
@@ -594,10 +643,12 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: AppColors.neutralInk400,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                icon: const Icon(Icons.keyboard_arrow_down),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                borderRadius: BorderRadius.circular(25),
+                icon: Icon(Icons.keyboard_arrow_down, size: 24.sp),
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+                borderRadius: BorderRadius.circular(25.r),
                 items: categories.map((category) {
                   return DropdownMenuItem<int>(
                     value: category.id,
@@ -632,14 +683,14 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
           'Frequency',
           style: AppTextStyles.label.copyWith(
             color: AppColors.neutralInk700,
-            fontSize: 14,
+            fontSize: 14.sp,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8.h),
         Container(
           decoration: BoxDecoration(
             color: AppColors.neutralLine100,
-            borderRadius: BorderRadius.circular(25),
+            borderRadius: BorderRadius.circular(25.r),
             border: Border.all(color: AppColors.neutralLine200),
           ),
           child: DropdownButtonHideUnderline(
@@ -651,10 +702,12 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: AppColors.neutralInk400,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              icon: const Icon(Icons.keyboard_arrow_down),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              borderRadius: BorderRadius.circular(25),
+              icon: Icon(Icons.keyboard_arrow_down, size: 24.sp),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+              borderRadius: BorderRadius.circular(25.r),
               items: _frequencyOptions.map((frequency) {
                 return DropdownMenuItem<String>(
                   value: frequency['value'],
@@ -686,10 +739,10 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
           'Due Date',
           style: AppTextStyles.label.copyWith(
             color: AppColors.neutralInk700,
-            fontSize: 14,
+            fontSize: 14.sp,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8.h),
         CustomTextField(
           label: '',
           hint: 'Select due date',
@@ -721,10 +774,10 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
           'Last Maintenance Date',
           style: AppTextStyles.label.copyWith(
             color: AppColors.neutralInk700,
-            fontSize: 14,
+            fontSize: 14.sp,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8.h),
         CustomTextField(
           label: '',
           hint: 'Select last maintenance date',
@@ -764,32 +817,28 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
 
   Widget _buildFooter() {
     return Container(
-      height: 60,
-      padding: const EdgeInsets.all(10),
+      padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
         color: AppColors.surfaceWarm50,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(20),
-          bottomRight: Radius.circular(20),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(20.r),
+          bottomRight: Radius.circular(20.r),
         ),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Expanded(
             child: OutlinedCustomButton(
               text: 'Cancel',
               onPressed: widget.onClose,
-              width: 100,
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12.w),
           Expanded(
             child: GradientButton(
               text: _isCreating ? '' : 'Create',
               icon: _isCreating ? null : Icons.add,
               onPressed: _isFormValid ? _handleCreate : null,
-              width: 140,
               isLoading: _isCreating,
             ),
           ),

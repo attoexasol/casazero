@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_text_styles.dart';
 import '../../app/theme/app_shadows.dart';
+import '../utils/accessibility.dart';
 
 class CustomButton extends StatelessWidget {
   final String text;
@@ -31,9 +32,15 @@ class CustomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final minHeight = Accessibility.buttonMinHeight(context, base: height);
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        minWidth: width ?? double.infinity,
+        minHeight: minHeight,
+      ),
+      child: Container(
       width: width ?? double.infinity,
-      height: height,
       decoration: showShadow
           ? BoxDecoration(
               borderRadius: BorderRadius.circular(borderRadius),
@@ -46,13 +53,15 @@ class CustomButton extends StatelessWidget {
           backgroundColor: backgroundColor ?? AppColors.brandSage500,
           foregroundColor: textColor ?? AppColors.surfaceWhite,
           disabledBackgroundColor: AppColors.neutralInk300,
+          minimumSize: Size(width ?? double.infinity, minHeight),
+          tapTargetSize: MaterialTapTargetSize.padded,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadius),
           ),
           elevation: 0,
           padding: EdgeInsets.symmetric(
             horizontal: icon != null ? 12 : 24,
-            vertical: 0,
+            vertical: 12,
           ),
         ),
         child: isLoading
@@ -89,7 +98,11 @@ class CustomButton extends StatelessWidget {
                 style: AppTextStyles.button.copyWith(
                   color: textColor ?? AppColors.surfaceWhite,
                 ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
+      ),
       ),
     );
   }

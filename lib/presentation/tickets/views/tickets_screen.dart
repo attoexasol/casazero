@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../core/widgets/tablet_centered_layout.dart';
 import '../controllers/tickets_controller.dart';
 import '../widgets/ticket_card.dart';
 import 'create_ticket_dialog.dart';
@@ -24,7 +25,8 @@ class TicketsScreen extends GetView<TicketsController> {
     return Obx(() {
       final permissions = controller.permissions;
       final isLoading = controller.isLoadingTickets.value;
-      return Column(
+      return TabletCenteredLayout(
+        child: Column(
         children: [
           _buildFilterTabs(),
           Expanded(
@@ -67,6 +69,7 @@ class TicketsScreen extends GetView<TicketsController> {
                   ),
           ),
         ],
+        ),
       );
     });
   }

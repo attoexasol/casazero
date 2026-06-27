@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -14,6 +15,19 @@ class QuickTiles extends StatelessWidget {
     required this.permissions,
     required this.onNavigate,
   });
+
+  int _crossAxisCount(double width) {
+    if (width < 320) return 1;
+    return 2;
+  }
+
+  double _childAspectRatio(double width, int crossAxisCount) {
+    final horizontalPadding = 24.w * 2;
+    final spacing = 16.w * (crossAxisCount - 1);
+    final tileWidth = (width - horizontalPadding - spacing) / crossAxisCount;
+    final tileHeight = tileWidth * 1.05;
+    return tileWidth / tileHeight;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,16 +62,20 @@ class QuickTiles extends StatelessWidget {
 
     if (tiles.isEmpty) return const SizedBox.shrink();
 
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final crossAxisCount = _crossAxisCount(screenWidth);
+
     return Padding(
-      padding: const EdgeInsets.only(top: 32, left: 24, right: 24),
+      padding: EdgeInsets.only(top: 32.h, left: 24.w, right: 24.w),
       child: GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: tiles.length,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: crossAxisCount,
+          crossAxisSpacing: 16.w,
+          mainAxisSpacing: 16.h,
+          childAspectRatio: _childAspectRatio(screenWidth, crossAxisCount),
         ),
         itemBuilder: (context, i) {
           return QuickTileItem(

@@ -1,6 +1,7 @@
 // presentation/otp_verification/views/otp_verification_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'dart:ui';
 import '../controllers/otp_verification_controller.dart';
@@ -49,20 +50,20 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
             child: Center(
               child: SingleChildScrollView(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24.0,
-                    vertical: 48,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 24.w,
+                    vertical: 48.h,
                   ),
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 430),
+                    constraints: BoxConstraints(maxWidth: 430.w),
                     child: Column(
                       children: [
                         _buildLogo(),
-                        const SizedBox(height: 48),
+                        SizedBox(height: 48.h),
                         _buildOtpCard(),
-                        const SizedBox(height: 24),
+                        SizedBox(height: 24.h),
                         _buildCancelButton(),
-                        const SizedBox(height: 24),
+                        SizedBox(height: 24.h),
                         _buildCopyright(),
                       ],
                     ),
@@ -80,21 +81,21 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
     return Column(
       children: [
         Container(
-          width: 240,
-          height: 80,
+          width: 240.w,
+          height: 80.h,
           alignment: Alignment.center,
           child: Image.asset(
             'assets/images/white_logo.png',
-            width: 180,
+            width: 180.w,
             fit: BoxFit.contain,
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12.h),
         Text(
           'smart_living'.tr,
           style: TextStyle(
             color: Colors.white.withOpacity(0.9),
-            fontSize: 14,
+            fontSize: 14.sp,
             letterSpacing: 1.5,
           ),
         ),
@@ -104,32 +105,32 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
 
   Widget _buildOtpCard() {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(24.r),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24.r),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(24.r),
             border: Border.all(color: Colors.white.withOpacity(0.2)),
             boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 40),
+              BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 40.r),
             ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(),
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
               _buildAlert(),
-              const SizedBox(height: 24),
+              SizedBox(height: 24.h),
               _buildMethodInfo(),
-              const SizedBox(height: 24),
+              SizedBox(height: 24.h),
               _buildOtpInput(),
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
               _buildResendSection(),
-              const SizedBox(height: 24),
+              SizedBox(height: 24.h),
               _buildVerifyButton(),
             ],
           ),
@@ -142,33 +143,37 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
     return Row(
       children: [
         Container(
-          width: 48,
-          height: 48,
+          width: 48.w,
+          height: 48.h,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(16.r),
             gradient: const LinearGradient(
               colors: [AppColors.brandSage500, AppColors.brandSage600],
             ),
           ),
-          child: Icon(_getMethodIconData(), color: Colors.white, size: 24),
+          child: Icon(_getMethodIconData(), color: Colors.white, size: 24.sp),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: 12.w),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'verify_identity'.tr,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
-                  fontSize: 18,
+                  fontSize: 18.sp,
                   fontWeight: FontWeight.bold,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               Obx(
                 () => Text(
                   controller.methodDisplayName,
-                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  style: TextStyle(color: Colors.white70, fontSize: 12.sp),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -180,23 +185,23 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
 
   Widget _buildAlert() {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         border: Border.all(color: Colors.white.withOpacity(0.3)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.info_outline, color: Colors.white, size: 18),
-          const SizedBox(width: 12),
+          Icon(Icons.info_outline, color: Colors.white, size: 18.sp),
+          SizedBox(width: 12.w),
           Expanded(
             child: Obx(
               () => Text(
                 controller.instructionText,
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.9),
-                  fontSize: 13,
+                  fontSize: 13.sp,
                 ),
               ),
             ),
@@ -212,46 +217,46 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
 
       if (method == 'authenticator') {
         return Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16.r),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(16.r),
             border: Border.all(color: Colors.white.withOpacity(0.2)),
           ),
           child: Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 48.w,
+                height: 48.h,
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.phone_android,
                   color: Colors.white,
-                  size: 24,
+                  size: 24.sp,
                 ),
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: 16.w),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'authenticator_app'.tr,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
-                        fontSize: 16,
+                        fontSize: 16.sp,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4.h),
                     Text(
                       'open_authenticator_app'.tr,
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.7),
-                        fontSize: 13,
+                        fontSize: 13.sp,
                       ),
                     ),
                   ],
@@ -264,28 +269,28 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
 
       // Email / SMS UI
       return Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16.r),
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
           border: Border.all(color: Colors.white.withOpacity(0.2)),
         ),
         child: Row(
           children: [
             Container(
-              width: 48,
-              height: 48,
+              width: 48.w,
+              height: 48.h,
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12.r),
               ),
               child: Icon(
                 method == 'email' ? Icons.email_outlined : Icons.sms_outlined,
                 color: Colors.white,
-                size: 24,
+                size: 24.sp,
               ),
             ),
-            const SizedBox(width: 16),
+            SizedBox(width: 16.w),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -294,17 +299,18 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
                     method == 'email' ? 'sent_to_email'.tr : 'sent_to_phone'.tr,
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.7),
-                      fontSize: 12,
+                      fontSize: 12.sp,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4.h),
                   Text(
                     controller.maskedContact.value,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.white,
-                      fontSize: 16,
+                      fontSize: 16.sp,
                       fontWeight: FontWeight.w600,
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -323,15 +329,15 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
           'enter_6_digit_code'.tr,
           style: TextStyle(
             color: Colors.white.withOpacity(0.9),
-            fontSize: 14,
+            fontSize: 14.sp,
             fontWeight: FontWeight.w500,
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12.h),
         Container(
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.9),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(16.r),
             border: Border.all(color: Colors.white.withOpacity(0.3)),
           ),
           child: TextField(
@@ -339,24 +345,24 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
             keyboardType: TextInputType.number,
             textAlign: TextAlign.center,
             maxLength: 6,
-            style: const TextStyle(
-              fontSize: 32,
+            style: TextStyle(
+              fontSize: 32.sp,
               fontWeight: FontWeight.bold,
-              letterSpacing: 8,
+              letterSpacing: 8.w,
               color: AppColors.neutralInk900,
             ),
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             decoration: InputDecoration(
               hintText: '000000',
               hintStyle: TextStyle(
-                fontSize: 32,
-                letterSpacing: 8,
+                fontSize: 32.sp,
+                letterSpacing: 8.w,
                 color: Colors.grey[400],
               ),
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 20,
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 24.w,
+                vertical: 20.h,
               ),
               counterText: '',
             ),
@@ -384,7 +390,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
                 'resend_code_in'.tr.replaceAll('{seconds}', seconds.toString()),
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.7),
-                  fontSize: 13,
+                  fontSize: 13.sp,
                 ),
               )
             else
@@ -392,9 +398,9 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
                 onPressed: controller.resendOTP,
                 child: Text(
                   'resend_code'.tr,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
-                    fontSize: 14,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -424,7 +430,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
           controller.fromDocumentPassword.value
               ? 'cancel'.tr
               : 'cancel_logout'.tr,
-          style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14),
+          style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14.sp),
         ),
       ),
     );
@@ -434,7 +440,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
     return Text(
       'copyright'.tr,
       textAlign: TextAlign.center,
-      style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.6)),
+      style: TextStyle(fontSize: 12.sp, color: Colors.white.withOpacity(0.6)),
     );
   }
 

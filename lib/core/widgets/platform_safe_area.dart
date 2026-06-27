@@ -1,13 +1,11 @@
 // core/widgets/platform_safe_area.dart
-// Platform-specific SafeArea widget - applies only on Android, not iOS
+// SafeArea wrapper that respects system insets on all platforms.
 
 import 'package:flutter/material.dart';
 import 'dart:io' show Platform;
 
-/// A SafeArea widget that applies only on Android devices.
-///
-/// iOS devices handle safe areas naturally through the system,
-/// but Android devices need explicit SafeArea handling.
+/// Applies [SafeArea] on every platform so content clears notches, Dynamic
+/// Island, status bars, and home indicators.
 ///
 /// Usage:
 /// ```dart
@@ -15,9 +13,6 @@ import 'dart:io' show Platform;
 ///   child: YourWidget(),
 /// )
 /// ```
-///
-/// This is already applied globally in main.dart builder,
-/// but can be used in specific screens if needed for additional control.
 class PlatformSafeArea extends StatelessWidget {
   final Widget child;
   final bool top;
@@ -38,30 +33,22 @@ class PlatformSafeArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Only apply SafeArea on Android
-    if (Platform.isAndroid) {
-      return SafeArea(
-        top: top,
-        bottom: bottom,
-        left: left,
-        right: right,
-        minimum: minimum,
-        child: child,
-      );
-    }
-
-    // iOS - Return child without SafeArea
-    return child;
+    return SafeArea(
+      top: top,
+      bottom: bottom,
+      left: left,
+      right: right,
+      minimum: minimum,
+      child: child,
+    );
   }
 }
 
-/// A SafeArea widget that ONLY handles the top safe area on Android.
-///
-/// Useful for screens that need top padding but not bottom padding.
+/// SafeArea limited to the top inset (notch, Dynamic Island, status bar).
 ///
 /// Usage:
 /// ```dart
-/// PlatformSafeArea.topOnly(
+/// PlatformSafeAreaTop(
 ///   child: YourWidget(),
 /// )
 /// ```
@@ -77,27 +64,22 @@ class PlatformSafeAreaTop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (Platform.isAndroid) {
-      return SafeArea(
-        top: true,
-        bottom: false,
-        left: false,
-        right: false,
-        minimum: minimum,
-        child: child,
-      );
-    }
-    return child;
+    return SafeArea(
+      top: true,
+      bottom: false,
+      left: false,
+      right: false,
+      minimum: minimum,
+      child: child,
+    );
   }
 }
 
-/// A SafeArea widget that ONLY handles the bottom safe area on Android.
-///
-/// Useful for screens with bottom navigation or floating buttons.
+/// SafeArea limited to the bottom inset (home indicator, gesture bar).
 ///
 /// Usage:
 /// ```dart
-/// PlatformSafeArea.bottomOnly(
+/// PlatformSafeAreaBottom(
 ///   child: YourWidget(),
 /// )
 /// ```
@@ -113,50 +95,31 @@ class PlatformSafeAreaBottom extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (Platform.isAndroid) {
-      return SafeArea(
-        top: false,
-        bottom: true,
-        left: false,
-        right: false,
-        minimum: minimum,
-        child: child,
-      );
-    }
-    return child;
+    return SafeArea(
+      top: false,
+      bottom: true,
+      left: false,
+      right: false,
+      minimum: minimum,
+      child: child,
+    );
   }
 }
 
-/// Gets the platform-specific safe area padding.
-/// Returns actual padding on Android, zero padding on iOS.
-///
-/// Usage:
-/// ```dart
-/// final padding = getPlatformSafeAreaPadding(context);
-/// ```
+/// System safe-area padding for the current platform (notch, Dynamic Island,
+/// status/navigation bars). Uses [MediaQuery.padding], matching [SafeArea].
 EdgeInsets getPlatformSafeAreaPadding(BuildContext context) {
-  if (Platform.isAndroid) {
-    return MediaQuery.of(context).padding;
-  }
-  return EdgeInsets.zero;
+  return MediaQuery.paddingOf(context);
 }
 
-/// Gets only the top safe area padding.
-/// Returns actual top padding on Android, zero on iOS.
+/// Top safe-area inset (status bar, notch, Dynamic Island).
 double getPlatformTopPadding(BuildContext context) {
-  if (Platform.isAndroid) {
-    return MediaQuery.of(context).padding.top;
-  }
-  return 0.0;
+  return MediaQuery.paddingOf(context).top;
 }
 
-/// Gets only the bottom safe area padding.
-/// Returns actual bottom padding on Android, zero on iOS.
+/// Bottom safe-area inset (home indicator, navigation bar).
 double getPlatformBottomPadding(BuildContext context) {
-  if (Platform.isAndroid) {
-    return MediaQuery.of(context).padding.bottom;
-  }
-  return 0.0;
+  return MediaQuery.paddingOf(context).bottom;
 }
 
 /// Checks if the current platform is Android.

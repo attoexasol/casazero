@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_text_styles.dart';
 
@@ -57,10 +58,12 @@ class CustomTextField extends StatelessWidget {
           label,
           style: AppTextStyles.label.copyWith(
             color: labelColor ?? AppColors.surfaceWhite.withOpacity(0.9),
-            fontSize: 14,
+            fontSize: 14.sp,
           ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8.h),
         TextFormField(
           controller: controller,
           obscureText: obscureText,

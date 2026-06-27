@@ -107,6 +107,8 @@ class ChangePasswordScreen extends GetView<ChangePasswordController> {
                         color: AppColors.neutralInk900,
                         fontWeight: FontWeight.w600,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     SizedBox(height: 2.h),
                     Text(
@@ -114,6 +116,8 @@ class ChangePasswordScreen extends GetView<ChangePasswordController> {
                       style: AppTextStyles.caption.copyWith(
                         color: AppColors.neutralInk500,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),

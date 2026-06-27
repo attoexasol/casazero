@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../app/theme/app_colors.dart';
 import '../localization/locale_controller.dart';
+import '../utils/accessibility.dart';
 
 class LanguageSwitcher extends StatelessWidget {
   final bool showLabel;
@@ -24,8 +26,8 @@ class LanguageSwitcher extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (showLabel) ...[
-            const Icon(Icons.language, size: 20),
-            const SizedBox(width: 8),
+            Icon(Icons.language, size: 20.sp),
+            SizedBox(width: 8.w),
           ],
           _buildLanguageButton(
             'EN',
@@ -33,7 +35,7 @@ class LanguageSwitcher extends StatelessWidget {
             localeController.isEnglish,
             localeController,
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           _buildLanguageButton(
             'IT',
             'it',
@@ -53,29 +55,37 @@ class LanguageSwitcher extends StatelessWidget {
       ) {
     return InkWell(
       onTap: () => controller.changeLocale(code),
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      borderRadius: BorderRadius.circular(8.r),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minWidth: Accessibility.minTouchTarget,
+          minHeight: Accessibility.minTouchTarget,
+        ),
+        child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
         decoration: BoxDecoration(
           color: isActive
               ? (activeColor ?? AppColors.brandSage500)
               : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(8.r),
           border: Border.all(
             color: isActive
                 ? (activeColor ?? AppColors.brandSage500)
                 : (inactiveColor ?? AppColors.neutralLine200),
           ),
         ),
+        child: Center(
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 14.sp,
             fontWeight: FontWeight.w600,
             color: isActive
                 ? AppColors.surfaceWhite
                 : (inactiveColor ?? AppColors.neutralInk700),
           ),
+        ),
+        ),
         ),
       ),
     );

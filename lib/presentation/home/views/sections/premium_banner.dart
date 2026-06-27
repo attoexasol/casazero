@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_shadows.dart';
@@ -150,7 +151,7 @@ class _PremiumBannerState extends State<PremiumBanner>
         bottom: false,
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 448), // Max width: 448px (max-w-md)
+            constraints: BoxConstraints(maxWidth: 448.w),
             child: _buildContent(),
           ),
         ),
@@ -219,7 +220,7 @@ class _PremiumBannerState extends State<PremiumBanner>
       text: TextSpan(
         style: AppTextStyles.bodySmall.copyWith(
           color: AppColors.neutralInk800, // Normal text: neutral-ink-800
-          fontSize: 14, // Text size: small (14px)
+          fontSize: 14.sp,
           height: 1.5, // Line height: relaxed
         ),
         children: [

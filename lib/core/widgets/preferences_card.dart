@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../app/theme/app_colors.dart';
@@ -51,12 +52,12 @@ class _PreferencesCardState extends State<PreferencesCard> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: AppShadows.shadowProfileCard,
       ),
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20.r),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text("preferences".tr, style: AppTextStyles.CardHeaderText),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
 
           Obx(() => _buildLanguageSelector(controller)),
 
@@ -136,7 +137,7 @@ class _PreferencesCardState extends State<PreferencesCard> {
             text,
             style: TextStyle(
               color: active ? Colors.white : AppColors.neutralInk500,
-              fontSize: 12,
+              fontSize: 12.sp,
               fontWeight: FontWeight.w600,
             ),
           ),

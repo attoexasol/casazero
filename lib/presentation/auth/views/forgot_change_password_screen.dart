@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/widgets/casazero_logo.dart';
@@ -93,9 +94,9 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
         Expanded(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: EdgeInsets.symmetric(horizontal: 24.w),
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 430),
+                constraints: BoxConstraints(maxWidth: 430.w),
                 child: Column(
                   children: [
                     CasaZeroLogo(
@@ -103,7 +104,7 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
                       maxLogoWidthFactor: 0.4,
                       showTagline: false,
                     ),
-                    const SizedBox(height: 40),
+                    SizedBox(height: 40.h),
                     _buildGlassCard(),
                   ],
                 ),
@@ -117,7 +118,7 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
 
   Widget _buildBackButton() {
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(24.r),
       child: Align(
         alignment: Alignment.centerLeft,
         child: InkWell(
@@ -128,14 +129,14 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
               Icon(
                 Icons.arrow_back,
                 color: Colors.white.withOpacity(0.9),
-                size: 20,
+                size: 20.sp,
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8.w),
               Text(
                 'back'.tr,
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.9),
-                  fontSize: 14,
+                  fontSize: 14.sp,
                 ),
               ),
             ],
@@ -152,20 +153,20 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
     return Container(
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(24.r),
         border: Border.all(color: Colors.white.withOpacity(0.2)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            blurRadius: 20.r,
+            offset: Offset(0, 10.h),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(24.r),
         child: Container(
-          padding: const EdgeInsets.all(32),
+          padding: EdgeInsets.all(32.r),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
@@ -197,20 +198,20 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
                 Text(
                   'reset_password'.tr,
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: 24.sp,
                     fontWeight: FontWeight.bold,
                     color: Colors.white.withOpacity(0.95),
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8.h),
                 Text(
                   'create_new_password'.tr,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 13.sp,
                     color: Colors.white.withOpacity(0.7),
                   ),
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: 32.h),
                 Column(
                   children: [
                     PasswordInputField(
@@ -219,7 +220,7 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
                       isVisible: ctrl.showNewPassword,
                       onToggle: () => ctrl.togglePasswordVisibility('new'),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20.h),
                     PasswordInputField(
                       label: 'confirm_password'.tr,
                       controller: _confirmPasswordController,
@@ -232,7 +233,7 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
                       }
                       return Column(
                         children: [
-                          const SizedBox(height: 20),
+                          SizedBox(height: 20.h),
                           _passwordRequirements(ctrl),
                         ],
                       );
@@ -243,14 +244,14 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
                       }
                       return Column(
                         children: [
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12.h),
                           _passwordMatchIndicator(ctrl),
                         ],
                       );
                     }),
                   ],
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: 32.h),
                 Obx(() => _submitButton(ctrl)),
               ],
             ),
@@ -268,19 +269,19 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
           Text(
             'password_requirements'.tr,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 11.sp,
               color: Colors.white.withOpacity(0.8),
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           ...ctrl.passwordRequirements.asMap().entries.map((entry) {
             final index = entry.key;
             final req = entry.value;
             return Row(
               children: [
                 Container(
-                  width: 16,
-                  height: 16,
+                  width: 16.w,
+                  height: 16.h,
                   decoration: BoxDecoration(
                     color: req.isMet
                         ? const Color(0xFF22C55E)
@@ -288,21 +289,23 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
                     shape: BoxShape.circle,
                   ),
                   child: req.isMet
-                      ? const Icon(
+                      ? Icon(
                           Icons.check,
-                          size: 12,
+                          size: 12.sp,
                           color: Colors.white,
                         )
                       : null,
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  req.label.tr,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: req.isMet
-                        ? const Color(0xFF22C55E)
-                        : Colors.white.withOpacity(0.7),
+                SizedBox(width: 8.w),
+                Expanded(
+                  child: Text(
+                    req.label.tr,
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      color: req.isMet
+                          ? const Color(0xFF22C55E)
+                          : Colors.white.withOpacity(0.7),
+                    ),
                   ),
                 ),
               ],
@@ -323,14 +326,16 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
         Icon(
           match ? Icons.check : Icons.close,
           color: match ? const Color(0xFF22C55E) : const Color(0xFFE11D48),
-          size: 16,
+          size: 16.sp,
         ),
-        const SizedBox(width: 8),
-        Text(
-          match ? 'passwords_match'.tr : 'passwords_no_match'.tr,
-          style: TextStyle(
-            fontSize: 11,
-            color: match ? const Color(0xFF22C55E) : const Color(0xFFE11D48),
+        SizedBox(width: 8.w),
+        Flexible(
+          child: Text(
+            match ? 'passwords_match'.tr : 'passwords_no_match'.tr,
+            style: TextStyle(
+              fontSize: 11.sp,
+              color: match ? const Color(0xFF22C55E) : const Color(0xFFE11D48),
+            ),
           ),
         ),
       ],
@@ -340,7 +345,7 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
   Widget _submitButton(ForgotChangePasswordController ctrl) {
     return SizedBox(
       width: double.infinity,
-      height: 48,
+      height: 48.h,
       child: ElevatedButton(
         onPressed: ctrl.canSubmit && !ctrl.isLoading.value
             ? () => ctrl.handleResetPassword(onSuccess: widget.onSuccess)
@@ -351,7 +356,7 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
               : const Color(0xFF9CA3AF),
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12.r),
           ),
           elevation: 8,
           shadowColor: ctrl.canSubmit
@@ -359,18 +364,18 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
               : Colors.transparent,
         ),
         child: ctrl.isLoading.value
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
+            ? SizedBox(
+                width: 20.w,
+                height: 20.h,
+                child: const CircularProgressIndicator(
                   strokeWidth: 2,
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 ),
               )
             : Text(
                 'reset_password'.tr,
-                style: const TextStyle(
-                  fontSize: 15,
+                style: TextStyle(
+                  fontSize: 15.sp,
                   fontWeight: FontWeight.w600,
                 ),
               ),

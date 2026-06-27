@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../app/theme/app_colors.dart';
+import '../../../core/widgets/tablet_centered_layout.dart';
 import 'widgets/chat_option_card.dart';
 
 /// Intermediate screen: choose group chat or direct admin chat.
@@ -23,12 +25,13 @@ class ChatHubScreen extends StatelessWidget {
         final width = constraints.maxWidth;
         final horizontalPadding = _horizontalPadding(width);
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 40),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 24),
+        return TabletCenteredLayout(
+          child: SingleChildScrollView(
+              padding: EdgeInsets.only(bottom: 40.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(height: 24.h),
               // Padding(
               //   padding: horizontalPadding,
               //   child: Text(
@@ -46,13 +49,15 @@ class ChatHubScreen extends StatelessWidget {
                 child: Text(
                   'chatHubSubtitle'.tr,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 14.sp,
                     height: 1.45,
                     color: Colors.grey.shade600,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(height: 28),
+              SizedBox(height: 28.h),
               Padding(
                 padding: horizontalPadding,
                 child: Column(
@@ -74,7 +79,7 @@ class ChatHubScreen extends StatelessWidget {
                       index: 0,
                       onTap: onGroupChat,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16.h),
                     ChatOptionCard(
                       title: 'chatWithAdmin'.tr,
                       subtitle: 'chatWithAdminDesc'.tr,
@@ -89,28 +94,29 @@ class ChatHubScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
+              SizedBox(height: 32.h),
               Padding(
                 padding: horizontalPadding,
                 child: _buildInfoBanner(),
               ),
-            ],
-          ),
+                ],
+              ),
+            ),
         );
       },
     );
   }
 
   EdgeInsets _horizontalPadding(double width) {
-    if (width >= 1100) return const EdgeInsets.symmetric(horizontal: 120);
-    if (width >= 800) return const EdgeInsets.symmetric(horizontal: 80);
-    if (width >= 600) return const EdgeInsets.symmetric(horizontal: 40);
-    return const EdgeInsets.symmetric(horizontal: 24);
+    if (width >= 1100) return EdgeInsets.symmetric(horizontal: 120.w);
+    if (width >= 800) return EdgeInsets.symmetric(horizontal: 80.w);
+    if (width >= 600) return EdgeInsets.symmetric(horizontal: 40.w);
+    return EdgeInsets.symmetric(horizontal: 24.w);
   }
 
   Widget _buildInfoBanner() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           //colors: [Color(0xFFEFF8E6), Color(0xFFF3FBEA)],
@@ -122,8 +128,8 @@ class ChatHubScreen extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 32,
-            height: 32,
+            width: 32.w,
+            height: 32.h,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 //colors: [Color(0xFF6B8E23), Color(0xFF9ACD32)],
@@ -131,17 +137,19 @@ class ChatHubScreen extends StatelessWidget {
               ),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.info_outline,
               color: Colors.white,
-              size: 16,
+              size: 16.sp,
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12.w),
           Expanded(
             child: Text(
               'chatHubInfo'.tr,
-              style: const TextStyle(fontSize: 13, height: 1.4),
+              style: TextStyle(fontSize: 13.sp, height: 1.4),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

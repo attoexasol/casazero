@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -10,6 +11,7 @@ import '../../../app/theme/app_text_styles.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/custom_text_field.dart';
 import '../../../core/widgets/outlined_custom_button.dart';
+import '../../../core/widgets/responsive_alert_dialog.dart';
 import '../controllers/tickets_controller.dart';
 import '../models/issue_type_model.dart';
 
@@ -36,6 +38,8 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
   final _addTypeFormKey = GlobalKey<FormState>();
   final ImagePicker _imagePicker = ImagePicker();
   double? _dialogMaxHeight;
+
+  double get _photoThumbSize => 72.w;
 
   @override
   void didChangeDependencies() {
@@ -70,41 +74,42 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.sizeOf(context);
+    final dialogMaxWidth = screenSize.width >= 600
+        ? 500.0
+        : (screenSize.width - 32.w).clamp(280.w, 500.w);
+    final baseMaxHeight =
+        _dialogMaxHeight ?? screenSize.height * 0.72;
+
     return Dialog(
       backgroundColor: Colors.transparent,
-      alignment: Alignment.center,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: 500,
-          maxHeight:
-              _dialogMaxHeight ?? MediaQuery.sizeOf(context).height * 0.72,
-        ),
-        child: MediaQuery.removeViewInsets(
-          context: context,
-          removeBottom: true,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: AppColors.surfaceWarm50,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.neutralLine200),
-              boxShadow: AppShadows.shadowLg,
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildHeader(),
-                  Flexible(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-                      child: _buildForm(),
-                    ),
-                  ),
-                  _buildFooter(),
-                ],
-              ),
+      alignment: ResponsiveAlertDialog.formDialogAlignment(context),
+      insetPadding: ResponsiveAlertDialog.formDialogInsetPadding(context),
+      child: ResponsiveAlertDialog.boundedFormDialogBody(
+        context: context,
+        maxWidth: dialogMaxWidth,
+        preferredMaxHeight: baseMaxHeight,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: AppColors.surfaceWarm50,
+            borderRadius: BorderRadius.circular(16.r),
+            border: Border.all(color: AppColors.neutralLine200),
+            boxShadow: AppShadows.shadowLg,
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16.r),
+            child: Column(
+              mainAxisSize:
+                  ResponsiveAlertDialog.formDialogMainAxisSize(context),
+              children: [
+                _buildHeader(),
+                ResponsiveAlertDialog.formDialogScrollBody(
+                  context: context,
+                  padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 16.h),
+                  child: _buildForm(),
+                ),
+                _buildFooter(),
+              ],
             ),
           ),
         ),
@@ -114,11 +119,11 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 16, 12, 12),
-      decoration: const BoxDecoration(
+      padding: EdgeInsets.fromLTRB(20.w, 16.h, 12.w, 12.h),
+      decoration: BoxDecoration(
         color: AppColors.surfaceWhite,
         border: Border(
-          bottom: BorderSide(color: AppColors.neutralLine100, width: 1),
+          bottom: BorderSide(color: AppColors.neutralLine100, width: 1.w),
         ),
       ),
       child: Row(
@@ -133,24 +138,28 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
                   style: AppTextStyles.h4.copyWith(
                     color: AppColors.neutralInk900,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4.h),
                 Text(
                   'createTicketSubtitle'.tr,
                   style: AppTextStyles.bodySmall.copyWith(
                     color: AppColors.neutralInk500,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
           IconButton(
             onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.close_rounded, size: 22),
+            icon: Icon(Icons.close_rounded, size: 22.sp),
             color: AppColors.neutralInk400,
-            splashRadius: 20,
+            splashRadius: 20.r,
             padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            constraints: BoxConstraints(minWidth: 36.w, minHeight: 36.h),
           ),
         ],
       ),
@@ -162,11 +171,11 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _buildPhotoUploadArea(),
-        const SizedBox(height: 12),
+        SizedBox(height: 12.h),
         _buildPhotoFormatsInfo(),
-        const SizedBox(height: 14),
+        SizedBox(height: 14.h),
         Obx(() => _buildCategoryDropdown()),
-        const SizedBox(height: 12),
+        SizedBox(height: 12.h),
         CustomTextField(
           label: 'title'.tr,
           hint: 'briefDescriptionOfIssue'.tr,
@@ -178,7 +187,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
           textColor: AppColors.neutralInk900,
           labelColor: AppColors.neutralInk700,
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12.h),
         CustomTextField(
           label: 'description'.tr,
           hint: 'provideMoreDetails'.tr,
@@ -205,21 +214,21 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
         onTap: isEmpty && canAddMore ? _showPhotoPickerSheet : null,
         child: ConstrainedBox(
           constraints: BoxConstraints(
-            minHeight: 80,
-            maxHeight: isEmpty ? 120 : 200,
+            minHeight: 80.h,
+            maxHeight: isEmpty ? 120.h : 200.h,
           ),
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16.w),
             decoration: BoxDecoration(
               color: isEmpty
                   ? AppColors.surfaceWarm50
                   : AppColors.brandSage50,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(16.r),
               border: Border.all(
                 color: isEmpty
                     ? AppColors.neutralLine200
                     : AppColors.brandSage300,
-                width: 2,
+                width: 2.w,
               ),
             ),
             child: isEmpty
@@ -235,7 +244,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final availableHeight = constraints.maxHeight;
-        final isCompact = availableHeight < 120;
+        final isCompact = availableHeight < 120.h;
         return SingleChildScrollView(
           physics: const NeverScrollableScrollPhysics(),
           child: ConstrainedBox(
@@ -245,37 +254,37 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: isCompact ? 48 : 64,
-                  height: isCompact ? 48 : 64,
+                  width: isCompact ? 48.w : 64.w,
+                  height: isCompact ? 48.w : 64.w,
                   decoration: BoxDecoration(
                     color: AppColors.brandSage500.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.cloud_upload_outlined,
-                    size: isCompact ? 24 : 32,
+                    size: isCompact ? 24.sp : 32.sp,
                     color: AppColors.brandSage500,
                   ),
                 ),
-                SizedBox(height: isCompact ? 8 : 12),
+                SizedBox(height: isCompact ? 8.h : 12.h),
                 Text(
                   'addPhotos'.tr,
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: AppColors.neutralInk700,
                     fontWeight: FontWeight.w500,
-                    fontSize: isCompact ? 13 : null,
+                    fontSize: isCompact ? 13.sp : null,
                   ),
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (!isCompact) ...[
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4.h),
                   Text(
                     'chooseFromGallery'.tr,
                     style: AppTextStyles.caption.copyWith(
                       color: AppColors.neutralInk400,
-                      fontSize: 11,
+                      fontSize: 11.sp,
                     ),
                     textAlign: TextAlign.center,
                     maxLines: 1,
@@ -291,55 +300,57 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
   }
 
   Widget _buildPhotoUploadSelected(List<File> photos, bool canAddMore) {
+    final thumbSize = _photoThumbSize;
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 8.w,
+            runSpacing: 8.h,
             children: [
               ...List<Widget>.generate(photos.length, (index) {
                 return Stack(
                   clipBehavior: Clip.none,
                   children: [
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12.r),
                       child: Image.file(
                         photos[index],
-                        width: 72,
-                        height: 72,
+                        width: thumbSize,
+                        height: thumbSize,
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => Container(
-                          width: 72,
-                          height: 72,
+                          width: thumbSize,
+                          height: thumbSize,
                           decoration: BoxDecoration(
                             color: AppColors.neutralLine200,
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(12.r),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.broken_image_outlined,
-                            size: 28,
+                            size: 28.sp,
                             color: AppColors.neutralInk400,
                           ),
                         ),
                       ),
                     ),
                     Positioned(
-                      top: -6,
-                      right: -6,
+                      top: -6.h,
+                      right: -6.w,
                       child: GestureDetector(
                         onTap: () => _ctrl.removePhoto(index),
                         child: Container(
-                          width: 22,
-                          height: 22,
+                          width: 22.w,
+                          height: 22.w,
                           decoration: BoxDecoration(
                             color: Colors.black.withOpacity(0.6),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.close,
-                            size: 14,
+                            size: 14.sp,
                             color: Colors.white,
                           ),
                         ),
@@ -352,17 +363,17 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
                 GestureDetector(
                   onTap: _showPhotoPickerSheet,
                   child: Container(
-                    width: 72,
-                    height: 72,
+                    width: thumbSize,
+                    height: thumbSize,
                     decoration: BoxDecoration(
                       color: AppColors.brandSage500.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12.r),
                       border: Border.all(color: AppColors.brandSage300),
                     ),
                     child: Icon(
                       Icons.add,
                       color: AppColors.brandSage500,
-                      size: 32,
+                      size: 32.sp,
                     ),
                   ),
                 ),
@@ -376,14 +387,20 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
   Widget _buildPhotoFormatsInfo() {
     return Row(
       children: [
-        const Icon(Icons.info_outline, size: 16, color: AppColors.neutralInk400),
-        const SizedBox(width: 6),
+        Icon(
+          Icons.info_outline,
+          size: 16.sp,
+          color: AppColors.neutralInk400,
+        ),
+        SizedBox(width: 6.w),
         Expanded(
           child: Text(
             '${'addPhotos'.tr} · ${TicketsController.maxPhotos} max',
             style: AppTextStyles.caption.copyWith(
               color: AppColors.neutralInk500,
             ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
@@ -405,24 +422,26 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
             'categoryLabel'.tr,
             style: AppTextStyles.label.copyWith(
               color: AppColors.neutralInk700,
-              fontSize: 14,
+              fontSize: 14.sp,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Container(
-            height: 48,
+            height: 48.h,
             decoration: BoxDecoration(
               color: AppColors.neutralLine100,
-              borderRadius: BorderRadius.circular(25),
+              borderRadius: BorderRadius.circular(25.r),
               border: Border.all(color: AppColors.neutralLine200),
             ),
-            child: const Center(
+            child: Center(
               child: SizedBox(
-                width: 20,
-                height: 20,
+                width: 20.w,
+                height: 20.w,
                 child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.brandSage600),
+                  strokeWidth: 2.w,
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                    AppColors.brandSage600,
+                  ),
                 ),
               ),
             ),
@@ -441,9 +460,9 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
       return DropdownMenuItem<int>(
         value: issue.id,
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 10,
+          padding: EdgeInsets.symmetric(
+            horizontal: 16.w,
+            vertical: 10.h,
           ),
           child: Text(
             issue.localizedName(langCode),
@@ -451,7 +470,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
             maxLines: 1,
             style: AppTextStyles.bodyMedium.copyWith(
               color: AppColors.neutralInk900,
-              fontSize: 14,
+              fontSize: 14.sp,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
             ),
           ),
@@ -464,14 +483,14 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
         value: _addOthersSentinel,
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 10,
+          padding: EdgeInsets.symmetric(
+            horizontal: 16.w,
+            vertical: 10.h,
           ),
           child: Row(
             children: [
-              const Icon(Icons.add_circle_outline, size: 18, color: _greenActive),
-              const SizedBox(width: 8),
+              Icon(Icons.add_circle_outline, size: 18.sp, color: _greenActive),
+              SizedBox(width: 8.w),
               Flexible(
                 child: Text(
                   'addOthers'.tr,
@@ -479,7 +498,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
                   maxLines: 1,
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: _greenActive,
-                    fontSize: 14,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -497,14 +516,14 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
           'categoryLabel'.tr,
           style: AppTextStyles.label.copyWith(
             color: AppColors.neutralInk700,
-            fontSize: 14,
+            fontSize: 14.sp,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8.h),
         Container(
           decoration: BoxDecoration(
             color: AppColors.neutralLine100,
-            borderRadius: BorderRadius.circular(25),
+            borderRadius: BorderRadius.circular(25.r),
             border: Border.all(color: AppColors.neutralLine200),
           ),
           child: ButtonTheme(
@@ -521,15 +540,15 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
                 child: DropdownButton<int>(
                   value: selectedId,
                   isExpanded: true,
-                  itemHeight: 52,
-                  menuMaxHeight: 280,
+                  itemHeight: 52.h,
+                  menuMaxHeight: 280.h,
                   dropdownColor: AppColors.surfaceWhite,
                   elevation: 8,
-                  borderRadius: BorderRadius.circular(16),
-                  icon: const Icon(
+                  borderRadius: BorderRadius.circular(16.r),
+                  icon: Icon(
                     Icons.keyboard_arrow_down,
                     color: AppColors.neutralInk700,
-                    size: 24,
+                    size: 24.sp,
                   ),
                   hint: Text(
                     'selectACategory'.tr,
@@ -537,13 +556,13 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
                       color: AppColors.neutralInk400,
                     ),
                   ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 14.h,
                   ),
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: AppColors.neutralInk900,
-                    fontSize: 14,
+                    fontSize: 14.sp,
                   ),
                   selectedItemBuilder: (context) {
                     final selectedBuilders = items.map((issue) {
@@ -554,7 +573,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
                           overflow: TextOverflow.ellipsis,
                           style: AppTextStyles.bodyMedium.copyWith(
                             color: AppColors.neutralInk900,
-                            fontSize: 14,
+                            fontSize: 14.sp,
                           ),
                         ),
                       );
@@ -568,7 +587,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
                           overflow: TextOverflow.ellipsis,
                           style: AppTextStyles.bodyMedium.copyWith(
                             color: _greenActive,
-                            fontSize: 14,
+                            fontSize: 14.sp,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -616,7 +635,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
             validator: (v) =>
                 (v == null || v.trim().isEmpty) ? 'fieldRequired'.tr : null,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           CustomTextField(
             label: 'issueTypeItalian'.tr,
             hint: 'enterIssueTypeItalian'.tr,
@@ -628,7 +647,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
             validator: (v) =>
                 (v == null || v.trim().isEmpty) ? 'fieldRequired'.tr : null,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           Row(
             children: [
               Expanded(
@@ -641,11 +660,11 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
                   },
                   borderColor: AppColors.neutralLine200,
                   textColor: AppColors.neutralInk700,
-                  height: 48,
-                  borderRadius: 12,
+                  height: 48.h,
+                  borderRadius: 12.r,
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12.w),
               Expanded(
                 child: CustomButton(
                   text: 'add'.tr,
@@ -653,8 +672,8 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
                   isLoading: _isSubmittingNewType,
                   backgroundColor: AppColors.brandSage500,
                   textColor: AppColors.surfaceWhite,
-                  height: 48,
-                  borderRadius: 12,
+                  height: 48.h,
+                  borderRadius: 12.r,
                   showShadow: false,
                 ),
               ),
@@ -715,33 +734,34 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.surfaceWarm50,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
       ),
       builder: (ctx) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: EdgeInsets.symmetric(vertical: 8.h),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 12),
+                width: 40.w,
+                height: 4.h,
+                margin: EdgeInsets.only(bottom: 12.h),
                 decoration: BoxDecoration(
                   color: AppColors.neutralLine200,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(2.r),
                 ),
               ),
               ListTile(
-                leading: const Icon(
+                leading: Icon(
                   Icons.camera_alt_outlined,
                   color: _greenActive,
+                  size: 24.sp,
                 ),
                 title: Text(
                   'takePhoto'.tr,
                   style: AppTextStyles.bodyMedium.copyWith(
-                    fontSize: 15,
+                    fontSize: 15.sp,
                     color: AppColors.neutralInk900,
                   ),
                 ),
@@ -751,14 +771,15 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
                 },
               ),
               ListTile(
-                leading: const Icon(
+                leading: Icon(
                   Icons.photo_library_outlined,
                   color: _greenActive,
+                  size: 24.sp,
                 ),
                 title: Text(
                   'chooseFromGallery'.tr,
                   style: AppTextStyles.bodyMedium.copyWith(
-                    fontSize: 15,
+                    fontSize: 15.sp,
                     color: AppColors.neutralInk900,
                   ),
                 ),
@@ -767,7 +788,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
                   _pickFromGallery();
                 },
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8.h),
             ],
           ),
         ),
@@ -869,11 +890,11 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
               !isCreating;
 
           return Container(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-            decoration: const BoxDecoration(
+            padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 16.h),
+            decoration: BoxDecoration(
               color: AppColors.surfaceWhite,
               border: Border(
-                top: BorderSide(color: AppColors.neutralLine100, width: 1),
+                top: BorderSide(color: AppColors.neutralLine100, width: 1.w),
               ),
             ),
             child: Row(
@@ -886,11 +907,11 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
                         : () => Navigator.of(context).pop(),
                     borderColor: AppColors.neutralLine200,
                     textColor: AppColors.neutralInk700,
-                    height: 48,
-                    borderRadius: 12,
+                    height: 48.h,
+                    borderRadius: 12.r,
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12.w),
                 Expanded(
                   child: CustomButton(
                     text: 'createTicket'.tr,
@@ -899,8 +920,8 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
                     isLoading: isCreating,
                     backgroundColor: AppColors.brandSage500,
                     textColor: AppColors.surfaceWhite,
-                    height: 48,
-                    borderRadius: 12,
+                    height: 48.h,
+                    borderRadius: 12.r,
                     showShadow: false,
                   ),
                 ),

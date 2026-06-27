@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../controllers/first_login_controller.dart';
@@ -14,23 +15,24 @@ class FirstLoginProgressBar extends StatelessWidget {
           () => Column(
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(4.r),
             child: LinearProgressIndicator(
               value: controller.currentStep.value == 1 ? 0.5 : 1.0,
-              minHeight: 8,
+              minHeight: 8.h,
               backgroundColor: Colors.white.withOpacity(0.2),
               valueColor:
               const AlwaysStoppedAnimation<Color>(AppColors.brandSage500),
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
+              Flexible(
+                child: Text(
                 'change_password'.tr,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 12.sp,
                   color: controller.currentStep.value == 1
                       ? Colors.white
                       : Colors.white.withOpacity(0.7),
@@ -38,11 +40,15 @@ class FirstLoginProgressBar extends StatelessWidget {
                       ? FontWeight.w600
                       : FontWeight.normal,
                 ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
-              Text(
+              ),
+              Flexible(
+                child: Text(
                 'two_factor_auth'.tr,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 12.sp,
                   color: controller.currentStep.value == 2
                       ? Colors.white
                       : Colors.white.withOpacity(0.7),
@@ -50,6 +56,10 @@ class FirstLoginProgressBar extends StatelessWidget {
                       ? FontWeight.w600
                       : FontWeight.normal,
                 ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.end,
+              ),
               ),
             ],
           ),

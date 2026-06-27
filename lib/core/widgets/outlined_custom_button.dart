@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_text_styles.dart';
+import '../utils/accessibility.dart';
 
 class OutlinedCustomButton extends StatelessWidget {
   final String text;
@@ -30,10 +31,10 @@ class OutlinedCustomButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final effectiveBorderColor = borderColor ?? AppColors.brandSage500;
     final effectiveTextColor = textColor ?? AppColors.brandSage500;
+    final minHeight = Accessibility.buttonMinHeight(context, base: height);
 
     return SizedBox(
       width: width ?? double.infinity,
-      height: height,
       child: OutlinedButton(
         onPressed: isLoading ? null : onPressed,
         style: OutlinedButton.styleFrom(
@@ -42,12 +43,14 @@ class OutlinedCustomButton extends StatelessWidget {
             color: effectiveBorderColor,
             width: 2,
           ),
+          minimumSize: Size(width ?? double.infinity, minHeight),
+          tapTargetSize: MaterialTapTargetSize.padded,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadius),
           ),
           padding: EdgeInsets.symmetric(
             horizontal: icon != null ? 12 : 24,
-            vertical: 0,
+            vertical: 12,
           ),
         ),
         child: isLoading
@@ -82,6 +85,9 @@ class OutlinedCustomButton extends StatelessWidget {
           style: AppTextStyles.button.copyWith(
             color: effectiveTextColor,
           ),
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
         ),
       ),
     );

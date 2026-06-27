@@ -48,6 +48,10 @@ class MaintenanceController extends GetxController {
   // Category task counts (dynamically calculated)
   final RxMap<int, int> categoryTaskCounts = <int, int>{}.obs;
 
+  /// Pre-built filter chips — updated atomically so the bar renders all at once.
+  final RxList<Map<String, dynamic>> filterItems =
+      <Map<String, dynamic>>[].obs;
+
   // Expanded card state
   final Rxn<String> expandedCardId = Rxn<String>();
 
@@ -730,6 +734,7 @@ class MaintenanceController extends GetxController {
   Future<void> fetchMaintenanceCategories() async {
     // Don't refetch if already loaded
     if (categories.isNotEmpty && !hasCategoriesError.value) {
+      _syncFilterItems();
       return;
     }
 
@@ -818,7 +823,7 @@ class MaintenanceController extends GetxController {
       }
     } catch (e) {
       print('❌ [MaintenanceController] Error fetching categories: $e');
-      // Only log error, don't affect UI or behavior
+      _syncFilterItems();
     } finally {
       isLoadingCategories.value = false;
     }
@@ -838,6 +843,7 @@ class MaintenanceController extends GetxController {
 
     // Trigger reactive update for filter list rebuild
     categoryTaskCounts.refresh();
+    _syncFilterItems();
   }
 
   /// Set selected category ID for filtering
@@ -861,79 +867,54 @@ class MaintenanceController extends GetxController {
     }
   }
 
-  /// Build filter list: [All] + API categories
-  /// Returns list of filter items with id, label, and count
-  /// Uses localized category names based on user's language settings
-  List<Map<String, dynamic>> buildFilterList() {
+  /// Rebuild filter list atomically: [All] + API categories.
+  /// Called after categories or task counts change so chips appear together.
+  void _syncFilterItems() {
     final filterList = <Map<String, dynamic>>[];
 
-    // Get user's language settings from LocaleController
-    String categoryLabel;
+    String allLabel;
+    bool useEnglish = true;
     try {
       final localeController = Get.find<LocaleController>();
-      final isEnglish = localeController.isEnglish;
-      final isItalian = localeController.isItalian;
-      
-      print('🌐 [MaintenanceController] User language - isEnglish: $isEnglish, isItalian: $isItalian');
-      
-      // Always add "All" filter first (localized using translation system)
-      categoryLabel = 'all'.tr; // Uses GetX translation: 'All' (EN) or 'Tutto' (IT)
-    } catch (e) {
-      print('⚠️ [MaintenanceController] LocaleController not found, defaulting to English');
-      categoryLabel = 'All';
+      useEnglish = localeController.isEnglish;
+      allLabel = 'allCategories'.tr;
+    } catch (_) {
+      allLabel = 'All';
     }
 
     filterList.add({
       'id': 'all',
-      'label': categoryLabel,
+      'label': allLabel,
       'count': totalTaskCount.value,
     });
 
-    // Add category filters dynamically from API
-    if (categories.isNotEmpty) {
-      // Get user's language settings
-      bool useEnglish = true; // Default to English
-      try {
-        final localeController = Get.find<LocaleController>();
-        useEnglish = localeController.isEnglish;
-        print('🌐 [MaintenanceController] Using ${useEnglish ? "English" : "Italian"} category names');
-      } catch (e) {
-        print('⚠️ [MaintenanceController] LocaleController not found, defaulting to English');
+    for (final category in categories) {
+      final count = categoryTaskCounts[category.id] ?? 0;
+
+      final String label;
+      if (useEnglish) {
+        label = category.nameEn.isNotEmpty
+            ? category.nameEn
+            : (category.name.isNotEmpty
+                  ? category.name
+                  : 'Category ${category.id}');
+      } else {
+        label = category.name.isNotEmpty
+            ? category.name
+            : (category.nameEn.isNotEmpty
+                  ? category.nameEn
+                  : 'Categoria ${category.id}');
       }
 
-      for (final category in categories) {
-        final count = categoryTaskCounts[category.id] ?? 0;
-        
-        // Use name_en for English, name (name_it) for Italian
-        String label;
-        if (useEnglish) {
-          // English: use name_en
-          label = category.nameEn.isNotEmpty
-              ? category.nameEn
-              : (category.name.isNotEmpty
-                    ? category.name
-                    : 'Category ${category.id}');
-        } else {
-          // Italian: use name (which is mapped from name_it)
-          label = category.name.isNotEmpty
-              ? category.name
-              : (category.nameEn.isNotEmpty
-                    ? category.nameEn
-                    : 'Categoria ${category.id}');
-        }
-        
-        print('🏷️ [MaintenanceController] Category ${category.id} - Label: "$label" (${useEnglish ? "EN" : "IT"})');
-        
-        filterList.add({
-          'id': 'category_${category.id}',
-          'categoryId': category.id,
-          'label': label,
-          'count': count,
-        });
-      }
+      filterList.add({
+        'id': 'category_${category.id}',
+        'categoryId': category.id,
+        'label': label,
+        'count': count,
+      });
     }
 
-    return filterList;
+    filterItems.assignAll(filterList);
   }
 
   /// Refresh all data (pull-to-refresh)

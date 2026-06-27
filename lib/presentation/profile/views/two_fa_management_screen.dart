@@ -15,6 +15,7 @@ import '../../../app/theme/app_shadows.dart';
 import '../../../core/controllers/message_popup_controller.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/custom_text_field.dart';
+import '../../../core/widgets/tablet_centered_layout.dart';
 import '../controllers/two_fa_management_controller.dart';
 
 class TwoFAManagementScreen extends GetView<TwoFAManagementController> {
@@ -29,7 +30,8 @@ class TwoFAManagementScreen extends GetView<TwoFAManagementController> {
         children: [
           _buildHeader(),
           Expanded(
-            child: Obx(() {
+            child: TabletCenteredLayout(
+              child: Obx(() {
               // Show setup flow
               if (controller.isInSetupMode.value) {
                 if (controller.selectedMethod.value != null) {
@@ -47,6 +49,7 @@ class TwoFAManagementScreen extends GetView<TwoFAManagementController> {
               // This shouldn't be reached as we open directly to method selection
               return _buildMethodSelection();
             }),
+            ),
           ),
         ],
       ),
@@ -111,6 +114,8 @@ class TwoFAManagementScreen extends GetView<TwoFAManagementController> {
                         color: AppColors.neutralInk900,
                         fontWeight: FontWeight.w600,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     )),
                     SizedBox(height: 2.h),
                     Text(
@@ -118,6 +123,8 @@ class TwoFAManagementScreen extends GetView<TwoFAManagementController> {
                       style: AppTextStyles.caption.copyWith(
                         color: AppColors.neutralInk500,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),

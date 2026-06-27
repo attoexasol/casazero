@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
@@ -42,9 +43,8 @@ class _WelcomeUserSectionState extends State<WelcomeUserSection>
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     // Slide animation (translateY +20px → 0)
-    // Using double for absolute pixel offset with Transform.translate
     _slideAnimation = Tween<double>(
-      begin: 20.0, // +20px absolute offset (slide up into view)
+      begin: 20.h,
       end: 0.0,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
@@ -65,19 +65,12 @@ class _WelcomeUserSectionState extends State<WelcomeUserSection>
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      // ============================================================================
-      // LANGUAGE-BASED TEXT LOGIC INTEGRATION POINT
-      // ============================================================================
-      // Get LocaleController to determine current language
       final localeController = Get.find<LocaleController>();
-      final isItalian = localeController.isItalian;
 
       // Get user's first name
       final firstName = widget.user?.firstName ?? 'User';
 
       // Build welcome text based on language
-      // Italian: "BENVENUTO " + firstName
-      // English: "Welcome " + firstName
       final welcomeText = 'welcome'.tr + ' $firstName';
 
       // Access reactive locale property to trigger updates on language change
@@ -89,7 +82,7 @@ class _WelcomeUserSectionState extends State<WelcomeUserSection>
           animation: _slideAnimation,
           builder: (context, child) {
             return Transform.translate(
-              offset: Offset(0, _slideAnimation.value), // Absolute +20px → 0px
+              offset: Offset(0, _slideAnimation.value),
               child: child,
             );
           },
@@ -102,19 +95,17 @@ class _WelcomeUserSectionState extends State<WelcomeUserSection>
   /// Build outer container with padding, max-width, and negative top margin
   Widget _buildContainer(String welcomeText) {
     return Container(
-      color: AppColors.surfaceWhite, // Background color: white
-      padding: const EdgeInsets.only(
-        top: 16, // Top padding: 16px (pt-4)
-        left: 24, // Horizontal padding: 24px (px-6)
-        right: 24, // Horizontal padding: 24px (px-6)
+      color: AppColors.surfaceWhite,
+      padding: EdgeInsets.only(
+        top: 16.h,
+        left: 24.w,
+        right: 24.w,
       ),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: 448,
-          ), // Max width: 448px (max-w-md)
+          constraints: BoxConstraints(maxWidth: 448.w),
           child: Transform.translate(
-            offset: const Offset(0, -16), // Negative top margin: -16px (-mt-4)
+            offset: Offset(0, -16.h),
             child: _buildWelcomeText(welcomeText),
           ),
         ),
@@ -126,18 +117,18 @@ class _WelcomeUserSectionState extends State<WelcomeUserSection>
   Widget _buildWelcomeText(String welcomeText) {
     return Text(
       welcomeText,
-      textAlign: TextAlign.center, // Text alignment: center
+      textAlign: TextAlign.center,
       style: TextStyle(
-        fontSize: 22, // Font size: 1.375rem (~22px)
-        fontWeight: FontWeight.w500, // Font weight: Medium (500)
-        letterSpacing: -0.33, // Letter spacing: -0.015em (22 * -0.015 = -0.33)
-        color: AppColors.neutralInk500, // Text color: neutral-ink-700
+        fontSize: 22.sp,
+        fontWeight: FontWeight.w500,
+        letterSpacing: -0.33,
+        color: AppColors.neutralInk500,
         fontFamily: AppTextStyles.fontFamily,
-        height: 1.4, // Maintain vertical rhythm
+        height: 1.4,
       ),
-      // Handle long names gracefully without overflow
       softWrap: true,
-      overflow: TextOverflow.visible,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }

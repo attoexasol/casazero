@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/controllers/message_popup_controller.dart';
+import '../../../core/widgets/responsive_alert_dialog.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../app/routes/app_routes.dart';
@@ -299,54 +300,89 @@ class OtpVerificationController extends GetxController {
   }
 
   void cancelVerification() {
-    // If from document password flow, just go back with false result (don't logout)
     if (fromDocumentPassword.value) {
       Get.dialog(
-        AlertDialog(
-          title: Text('cancel_verification'.tr),
-          content: Text('document_password_2fa_cancel_message'.tr),
-          actions: [
-            TextButton(
-              onPressed: () => Get.back(),
-              child: Text('no'.tr),
+        Builder(
+          builder: (_) => ResponsiveAlertDialog(
+            scrollable: true,
+            title: Text(
+              'cancel_verification'.tr,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            TextButton(
-              onPressed: () {
-                Get.back(); // Close dialog
-                // Cancel document password flow - return false result
-                try {
-                  final documentPasswordController = Get.find<DocumentPasswordController>();
-                  documentPasswordController.cancel2FAFlow();
-                } catch (e) {
-                  // Controller might not be found, that's okay
-                }
-                // Return false to indicate cancellation
-                Get.back(result: false);
-              },
-              child: Text('yes'.tr),
+            content: Text(
+              'document_password_2fa_cancel_message'.tr,
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
             ),
-          ],
+            actions: [
+              TextButton(
+                onPressed: () => Get.back(),
+                child: Text(
+                  'no'.tr,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Get.back();
+                  try {
+                    final documentPasswordController =
+                        Get.find<DocumentPasswordController>();
+                    documentPasswordController.cancel2FAFlow();
+                  } catch (e) {
+                    // Controller might not be found, that's okay
+                  }
+                  Get.back(result: false);
+                },
+                child: Text(
+                  'yes'.tr,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     } else {
-      // For login flow, logout on cancel
       Get.dialog(
-        AlertDialog(
-          title: Text('cancel_verification'.tr),
-          content: Text('cancel_verification_message'.tr),
-          actions: [
-            TextButton(
-              onPressed: () => Get.back(),
-              child: Text('no'.tr),
+        Builder(
+          builder: (_) => ResponsiveAlertDialog(
+            scrollable: true,
+            title: Text(
+              'cancel_verification'.tr,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            TextButton(
-              onPressed: () {
-                Get.back(); // Close dialog
-                _logout();
-              },
-              child: Text('yes'.tr),
+            content: Text(
+              'cancel_verification_message'.tr,
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
             ),
-          ],
+            actions: [
+              TextButton(
+                onPressed: () => Get.back(),
+                child: Text(
+                  'no'.tr,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Get.back();
+                  _logout();
+                },
+                child: Text(
+                  'yes'.tr,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }

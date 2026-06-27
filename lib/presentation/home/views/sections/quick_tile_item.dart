@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../app/theme/app_shadows.dart';
@@ -17,12 +18,12 @@ class QuickTileItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(16.r),
       child: Container(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(24.r),
         decoration: BoxDecoration(
           color: AppColors.surfaceWhite.withOpacity(0.85),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
           border: Border.all(color: AppColors.neutralLine200.withOpacity(0.5)),
           boxShadow: AppShadows.shadowLg,
         ),
@@ -31,8 +32,8 @@ class QuickTileItem extends StatelessWidget {
           children: [
             // ICON
             Container(
-              width: 48,
-              height: 48,
+              width: 48.w,
+              height: 48.h,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
@@ -40,7 +41,7 @@ class QuickTileItem extends StatelessWidget {
                     AppColors.brandSage400,
                   ],
                 ),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12.r),
                 boxShadow: AppShadows.customColoredShadow(
                   AppColors.brandSage500,
                   opacity: 0.3,
@@ -49,7 +50,7 @@ class QuickTileItem extends StatelessWidget {
               child: Icon(
                 data['icon'],
                 color: Colors.white,
-                size: 22,
+                size: 22.sp,
               ),
             ),
 
@@ -59,16 +60,22 @@ class QuickTileItem extends StatelessWidget {
               data['title'],
               style: AppTextStyles.bodyMedium.copyWith(
                 fontWeight: FontWeight.w600,
+                fontSize: 14.sp,
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
 
-            const SizedBox(height: 4),
+            SizedBox(height: 4.h),
 
             Text(
               data['label'],
               style: AppTextStyles.bodySmall.copyWith(
                 color: AppColors.neutralInk500,
+                fontSize: 12.sp,
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),

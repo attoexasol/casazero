@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_text_styles.dart';
@@ -9,7 +10,7 @@ enum MessageType { success, error, warning, info, confirmation }
 
 /// Action button configuration
 class PopupAction {
-  final String labelKey; // Localization key
+  final String labelKey;
   final VoidCallback? onPressed;
   final bool isPrimary;
 
@@ -38,62 +39,72 @@ class CustomMessagePopup extends StatelessWidget {
     this.secondaryAction,
   });
 
+  double _resolveMaxWidth(double screenWidth) {
+    if (screenWidth >= 600) return 360.0;
+    return (screenWidth * 0.78).clamp(260.w, 360.w);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final maxWidth = (screenWidth * 0.78).clamp(260.0, 360.0);
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final maxWidth = _resolveMaxWidth(screenWidth);
+    final viewInsets = MediaQuery.viewInsetsOf(context);
 
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Container(
-        constraints: BoxConstraints(maxWidth: maxWidth),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceWhite,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 20,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Obx(() {
-          // Rebuild when locale changes so title/message/buttons show in current language (en vs it)
-          final _ = Get.find<LocaleController>().locale;
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header with icon and title
-              _buildHeader(),
-              const SizedBox(height: 4),
-
-              // Message content (localized)
-              Padding(
-                padding: EdgeInsets.fromLTRB(
-                  16,
-                  6,
-                  16,
-                  (primaryAction != null || secondaryAction != null) ? 0 : 16,
-                ),
-                child: Text(
-                  messageKey.tr,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.neutralInk700,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
+      insetPadding: EdgeInsets.fromLTRB(
+        24.w,
+        24.h,
+        24.w,
+        24.h + viewInsets.bottom,
+      ),
+      child: Center(
+        child: Container(
+          constraints: BoxConstraints(maxWidth: maxWidth),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceWhite,
+            borderRadius: BorderRadius.circular(14.r),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 20.r,
+                offset: Offset(0, 4.h),
               ),
-              const SizedBox(height: 8),
-
-              // Action buttons only for confirmation (when primary/secondary provided)
-              if (primaryAction != null || secondaryAction != null)
-                _buildActions(),
             ],
-          );
-        }),
+          ),
+          child: Obx(() {
+            final _ = Get.find<LocaleController>().locale;
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildHeader(),
+                SizedBox(height: 4.h),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    16.w,
+                    6.h,
+                    16.w,
+                    (primaryAction != null || secondaryAction != null) ? 0 : 16.h,
+                  ),
+                  child: Text(
+                    messageKey.tr,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.neutralInk700,
+                      fontSize: 14.sp,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 6,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                if (primaryAction != null || secondaryAction != null)
+                  _buildActions(),
+              ],
+            );
+          }),
+        ),
       ),
     );
   }
@@ -132,28 +143,30 @@ class CustomMessagePopup extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
       decoration: BoxDecoration(
         color: iconColor.withOpacity(0.1),
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(14),
-          topRight: Radius.circular(14),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(14.r),
+          topRight: Radius.circular(14.r),
         ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: iconColor, size: 22),
-          const SizedBox(width: 10),
+          Icon(icon, color: iconColor, size: 22.sp),
+          SizedBox(width: 10.w),
           Flexible(
             child: Text(
               title,
               style: AppTextStyles.h4.copyWith(
                 fontWeight: FontWeight.w600,
                 color: AppColors.neutralInk900,
-                fontSize: 17,
+                fontSize: 17.sp,
               ),
               textAlign: TextAlign.start,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -164,7 +177,6 @@ class CustomMessagePopup extends StatelessWidget {
   Widget _buildActions() {
     final actions = <Widget>[];
 
-    // Build buttons based on provided actions
     if (secondaryAction != null) {
       actions.add(
         Expanded(
@@ -174,9 +186,9 @@ class CustomMessagePopup extends StatelessWidget {
               secondaryAction?.onPressed?.call();
             },
             style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
+              padding: EdgeInsets.symmetric(vertical: 14.h),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(8.r),
               ),
             ),
             child: Text(
@@ -184,8 +196,10 @@ class CustomMessagePopup extends StatelessWidget {
               style: AppTextStyles.button.copyWith(
                 color: AppColors.neutralInk700,
                 fontWeight: FontWeight.w800,
-                fontSize: 14,
+                fontSize: 14.sp,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ),
@@ -195,8 +209,8 @@ class CustomMessagePopup extends StatelessWidget {
     if (primaryAction != null) {
       actions.add(
         SizedBox(
-          height: 40,
-          width: 90,
+          height: 40.h,
+          width: 90.w,
           child: ElevatedButton(
             onPressed: () {
               Get.back(result: true);
@@ -208,7 +222,7 @@ class CustomMessagePopup extends StatelessWidget {
               elevation: 0,
               padding: EdgeInsets.zero,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(8.r),
               ),
             ),
             child: Text(
@@ -216,18 +230,18 @@ class CustomMessagePopup extends StatelessWidget {
               style: AppTextStyles.button.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.w800,
-                fontSize: 14,
+                fontSize: 14.sp,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ),
       );
     }
 
-    // Buttons only for confirmation; never show OK for info/error/success/warning
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-
+      padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
       child: Row(
         children: actions.length > 1
             ? [const Spacer(), ...actions]

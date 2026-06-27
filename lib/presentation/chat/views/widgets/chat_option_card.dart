@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 /// Hub-style selectable card for chat entry options (group / admin).
@@ -80,11 +81,11 @@ class _ChatOptionCardState extends State<ChatOptionCard> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(20.r),
               child: Row(
                 children: [
                   _buildIcon(),
-                  const SizedBox(width: 16),
+                  SizedBox(width: 16.w),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,21 +95,25 @@ class _ChatOptionCardState extends State<ChatOptionCard> {
                           widget.title,
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
-                            fontSize: 16,
+                            fontSize: 16.sp,
                             color: _hovered
                                 ? widget.hoverColor
                                 : Colors.black87,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         if (widget.subtitle != null) ...[
-                          const SizedBox(height: 4),
+                          SizedBox(height: 4.h),
                           Text(
                             widget.subtitle!,
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: 13.sp,
                               height: 1.35,
                               color: Colors.grey.shade600,
                             ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ],
@@ -134,18 +139,18 @@ class _ChatOptionCardState extends State<ChatOptionCard> {
     final path = widget.imagePath?.toLowerCase();
 
     if (!widget.wrapIconInContainer) {
-      return _buildRawIcon(path, iconSize: 40);
+      return _buildRawIcon(path, iconSize: 40.sp);
     }
 
     return Container(
-      width: 56,
-      height: 56,
+      width: 56.w,
+      height: 56.h,
       decoration: BoxDecoration(
         gradient: LinearGradient(colors: widget.gradient),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Center(
-        child: _buildRawIcon(path, forceWhite: true, iconSize: 26),
+        child: _buildRawIcon(path, forceWhite: true, iconSize: 26.sp),
       ),
     );
   }

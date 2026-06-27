@@ -2,6 +2,7 @@
 
 import 'package:casazero/presentation/main/main_scaffold.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../core/widgets/floating_bottom_nav_bar.dart';
 import '../../../core/widgets/loading_indicator.dart';
@@ -51,11 +52,11 @@ class HomeScreen extends GetView<HomeController> {
           // ResidenceName handles its own animations internally (matching React Framer Motion)
           ResidenceName(user: user),
 
-          SizedBox(height: 20),
+          SizedBox(height: 20.h),
           // HeroImage handles its own animations internally (matching React Framer Motion)
           const HeroImage(),
 
-          SizedBox(height: 20),
+          SizedBox(height: 20.h),
           // Welcome User Section (placed directly below Hero image)
           WelcomeUserSection(user: user),
 
@@ -107,7 +108,7 @@ class HomeScreen extends GetView<HomeController> {
           //     .animate(delay: 100.ms)
           //     .fadeIn()
           //     .slideY(begin: 0.15),
-            const SizedBox(height: 20),
+            SizedBox(height: 20.h),
           // if (controller.permissions.canManageBuildings)
           //   ViewAllBuildingsCard(
           //     onTap: () =>

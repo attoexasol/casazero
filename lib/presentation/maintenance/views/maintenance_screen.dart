@@ -1,8 +1,10 @@
 // presentation/maintenance/views/maintenance_screen.dart
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:casazero/app/theme/app_colors.dart';
 import 'package:casazero/core/utils/permissions.dart';
 import 'package:casazero/core/widgets/floating_bottom_nav_bar.dart';
-import 'package:flutter/material.dart';
+import 'package:casazero/core/widgets/tablet_centered_layout.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'sections/maintenance_filter_bar.dart';
@@ -91,25 +93,40 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
     final canCreateTasks =
         true; // All users can create personal maintenance tasks
 
-    return Scaffold(
-      backgroundColor: AppColors.surfaceWarm50,
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              // Filter Bar
-              MaintenanceFilterBar(
-                activeFilter: _activeFilter,
-                onFilterChanged: (filter) {
-                  setState(() {
-                    _activeFilter = filter;
-                  });
-                },
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Column(
+          children: [
+            SizedBox(height: 12.h),
+            ClipRect(
+              clipBehavior: Clip.hardEdge,
+              child: SizedBox(
+                height: 48.h,
+                child: Obx(
+                  () => MaintenanceFilterBar(
+                    activeFilter: _activeFilter,
+                    onFilterChanged: (filter) {
+                      setState(() {
+                        _activeFilter = filter;
+                      });
+                    },
+                    apiCategories: _controller.categories,
+                    categoryCounts: _controller.categoryTaskCounts,
+                    isLoading: _controller.isLoadingCategories.value ||
+                        (_controller.isLoadingTasks.value &&
+                            _controller.tasks.isEmpty),
+                    totalTaskCount: _controller.totalTaskCount.value,
+                  ),
+                ),
               ),
+            ),
 
-              // Tasks List
-              Expanded(
-                child: Obx(() {
+            const SizedBox(height: 12),
+
+            /// TASKS LIST
+            Expanded(
+              child: Obx(() {
                   // Show error state if there's an error
                   if (_controller.hasError.value &&
                       _controller.tasks.isEmpty &&
@@ -126,20 +143,22 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                           const SizedBox(height: 16),
                           Text(
                             'Error Loading Tasks',
-                            style: const TextStyle(
-                              fontSize: 18,
+                            style: TextStyle(
+                              fontSize: 18.sp,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          SizedBox(height: 8.h),
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 32),
+                            padding: EdgeInsets.symmetric(horizontal: 32.w),
                             child: Text(
                               _controller.errorMessage.value.isNotEmpty
                                   ? _controller.errorMessage.value
                                   : 'Failed to load maintenance tasks. Please try again.',
                               textAlign: TextAlign.center,
                               style: TextStyle(color: Colors.grey.shade600),
+                              maxLines: 4,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           const SizedBox(height: 24),
@@ -176,36 +195,35 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                     );
                   }
 
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: RefreshIndicator(
-                      onRefresh: () => _controller.refreshData(),
-                      color: AppColors.brandSage500,
-                      child: ListView.builder(
-                        padding: FloatingBottomNavBar.screenPadding(context),
-                        itemCount: filteredTasks.length,
-                        itemBuilder: (context, index) {
-                          final task = filteredTasks[index];
-                          // Note: Task frequency is already localized based on user's language settings
-                          // The MaintenanceTask model parses frequency from API response:
-                          // - For English: uses maintenance_frequency.name_en
-                          // - For Italian: uses maintenance_frequency.name_it
-                          // The MaintenanceTaskCard displays task.frequency directly (already localized)
-                          return MaintenanceTaskCard(
-                                task: task,
-                                onAskAI: widget.onAskAI,
-                              )
-                              .animate()
-                              .fadeIn(delay: Duration(milliseconds: 50 * index))
-                              .slideY(begin: 0.1, end: 0);
-                        },
+                  return TabletCenteredLayout(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.w),
+                      child: RefreshIndicator(
+                          onRefresh: () => _controller.refreshData(),
+                          color: AppColors.brandSage500,
+                          child: ListView.builder(
+                            padding:
+                                FloatingBottomNavBar.screenPadding(context),
+                            itemCount: filteredTasks.length,
+                            itemBuilder: (context, index) {
+                              final task = filteredTasks[index];
+                              return MaintenanceTaskCard(
+                                    task: task,
+                                    onAskAI: widget.onAskAI,
+                                  )
+                                  .animate()
+                                  .fadeIn(
+                                      delay: Duration(milliseconds: 50 * index))
+                                  .slideY(begin: 0.1, end: 0);
+                            },
+                          ),
+                        ),
                       ),
-                    ),
                   );
                 }),
-              ),
-            ],
-          ),
+            ),
+          ],
+        ),
 
           // Floating Action Button
           // Positioned(
@@ -256,7 +274,6 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
           //   },
           //     ),
         ],
-      ),
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../core/widgets/tablet_centered_layout.dart';
 import '../controllers/admin_chat_controller.dart';
 import '../models/chat_message_model.dart';
 
@@ -14,12 +15,14 @@ class AdminChatScreen extends GetView<AdminChatController> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return TabletCenteredLayout(
+      child: Column(
       children: [
         _buildHeader(context),
         Expanded(child: _buildMessageList()),
         _buildInputArea(context),
       ],
+      ),
     );
   }
 
@@ -27,9 +30,9 @@ class AdminChatScreen extends GetView<AdminChatController> {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 16.h,
         left: 24.w,
         right: 24.w,
+        top: 16.h,
         bottom: 16.h,
       ),
       decoration: BoxDecoration(
@@ -68,6 +71,8 @@ class AdminChatScreen extends GetView<AdminChatController> {
                     fontWeight: FontWeight.w600,
                     color: AppColors.neutralInk900,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: 2.h),
                 Text(
@@ -76,6 +81,8 @@ class AdminChatScreen extends GetView<AdminChatController> {
                     fontSize: 12.sp,
                     color: AppColors.neutralInk500,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -154,7 +161,7 @@ class AdminChatScreen extends GetView<AdminChatController> {
               subtitle,
               style: AppTextStyles.caption.copyWith(
                 color: AppColors.neutralInk500,
-                fontSize: 13,
+                fontSize: 13.sp,
               ),
               textAlign: TextAlign.center,
             ),
@@ -361,12 +368,16 @@ class AdminChatScreen extends GetView<AdminChatController> {
       ),
     );
 
+    final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
+    final bottomSafe =
+        keyboardOpen ? 0.0 : MediaQuery.paddingOf(context).bottom;
+
     return Container(
       padding: EdgeInsets.fromLTRB(
         16.w,
         12.h,
         16.w,
-        12.h + MediaQuery.of(context).padding.bottom,
+        12.h + bottomSafe,
       ),
       decoration: BoxDecoration(
         color: AppColors.surfaceWhite,

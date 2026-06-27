@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:casazero/presentation/documents/controllers/documents_controller.dart';
 import 'package:casazero/presentation/profile/controllers/profile_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../core/controllers/message_popup_controller.dart';
+import '../../../core/widgets/responsive_alert_dialog.dart';
 import '../../../data/repositories/home_repository.dart';
 import '../../../data/repositories/document_repository.dart';
 import '../../../data/repositories/auth_repository.dart';
@@ -403,10 +405,15 @@ class HomeController extends GetxController {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Select Residence'),
-        content: SizedBox(
-          width: double.maxFinite,
+      builder: (dialogContext) => ResponsiveAlertDialog(
+        scrollable: true,
+        title: Text(
+          'Select Residence',
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        content: ResponsiveAlertDialog.boundedList(
+          context: dialogContext,
           child: ListView.builder(
             shrinkWrap: true,
             itemCount: residences.length,
@@ -425,17 +432,25 @@ class HomeController extends GetxController {
                     fontWeight: isSelected
                         ? FontWeight.bold
                         : FontWeight.normal,
+                    fontSize: 15.sp,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 subtitle: residence.residenceAddress != null
-                    ? Text(residence.residenceAddress!)
+                    ? Text(
+                        residence.residenceAddress!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 13.sp),
+                      )
                     : null,
                 trailing: isSelected
                     ? const Icon(Icons.check_circle, color: Colors.green)
                     : null,
                 onTap: () {
                   selectResidence(residence);
-                  Navigator.pop(context);
+                  Navigator.pop(dialogContext);
                 },
               );
             },
@@ -443,8 +458,12 @@ class HomeController extends GetxController {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('cancel'.tr),
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(
+              'cancel'.tr,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),

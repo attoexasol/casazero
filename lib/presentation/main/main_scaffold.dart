@@ -1,4 +1,5 @@
 import 'package:casazero/core/controllers/message_popup_controller.dart';
+import 'package:casazero/core/widgets/responsive_alert_dialog.dart';
 import 'package:casazero/core/widgets/floating_bottom_nav_bar.dart';
 import 'package:casazero/core/widgets/notifications_modal.dart';
 import 'package:flutter/cupertino.dart';
@@ -33,6 +34,7 @@ import '../tickets/controllers/tickets_controller.dart';
 import '../../data/models/user_model.dart';
 import '../../data/models/feed_item_model.dart';
 import '../../core/utils/permissions.dart';
+import '../../core/utils/accessibility.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../trusted_device/views/trusted_devices_screen.dart';
@@ -63,6 +65,14 @@ enum AppScreen {
 class MainScaffold extends GetView<HomeController> {
   const MainScaffold({super.key});
 
+  /// Start loading maintenance categories early so the filter bar is ready
+  /// before the user opens the maintenance tab.
+  void _ensureMaintenancePreloaded() {
+    if (!Get.isRegistered<MaintenanceController>()) {
+      Get.put(MaintenanceController());
+    }
+  }
+
   bool _isRouteObscuredByModal(BuildContext context) {
     final route = ModalRoute.of(context);
     return route != null && !route.isCurrent;
@@ -70,6 +80,7 @@ class MainScaffold extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
+    _ensureMaintenancePreloaded();
     return Obx(
       () => PopScope(
         canPop: false,
@@ -242,13 +253,18 @@ class MainScaffold extends GetView<HomeController> {
             currentScreen == AppScreen.chat ||
             currentScreen == AppScreen.adminChat ||
             currentScreen == AppScreen.tickets);
-    final statusBarHeight = MediaQuery.of(Get.context!).padding.top;
+    final statusBarHeight = MediaQuery.paddingOf(Get.context!).top;
+    final toolbarHeight = 56.h;
+    final leadingInset = showBackButton ? 48.w : 8.w;
+    final trailingInset = showNotification ? 48.w : 8.w;
+    final titleSideInset =
+        leadingInset > trailingInset ? leadingInset : trailingInset;
 
     return PreferredSize(
-      preferredSize: Size.fromHeight(64.h + statusBarHeight),
+      preferredSize: Size.fromHeight(toolbarHeight + statusBarHeight),
       child:
           Container(
-                height: 50.h + statusBarHeight,
+                height: toolbarHeight + statusBarHeight,
                 padding: EdgeInsets.only(top: statusBarHeight),
                 decoration: BoxDecoration(
                   color: AppColors.surfaceWhite.withOpacity(0.95),
@@ -261,8 +277,8 @@ class MainScaffold extends GetView<HomeController> {
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.05),
-                      blurRadius: 15,
-                      offset: const Offset(0, 4),
+                      blurRadius: 15.r,
+                      offset: Offset(0, 4.h),
                     ),
                   ],
                 ),
@@ -291,10 +307,7 @@ class MainScaffold extends GetView<HomeController> {
                                         color: AppColors.neutralInk900,
                                       ),
                                       padding: EdgeInsets.zero,
-                                      constraints: BoxConstraints(
-                                        minWidth: 44.w,
-                                        minHeight: 44.w,
-                                      ),
+                                      constraints: Accessibility.iconButtonConstraints,
                                     ),
                                   if (showBackButton) SizedBox(width: 4.w),
 
@@ -329,23 +342,32 @@ class MainScaffold extends GetView<HomeController> {
                                 !(variant == 'branded' &&
                                     !showNavigationControls) &&
                                 !(showResidenceSwitcher && title != null))
-                              Center(
-                                child: _buildTitleSection(
-                                  title: title,
-                                  showNavigationControls:
-                                      showNavigationControls,
-                                  variant: variant,
-                                  showResidenceSwitcher: showResidenceSwitcher,
-                                  currentResidence: showResidenceSwitcher
-                                      ? (controller
-                                                .selectedResidence
-                                                .value
-                                                ?.residenceName ??
-                                            'Select Residence')
-                                      : null,
-                                  onResidenceSwitch: showResidenceSwitcher
-                                      ? () => _showResidenceSelectorDialog()
-                                      : null,
+                              Positioned.fill(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: titleSideInset,
+                                  ),
+                                  child: Center(
+                                    child: _buildTitleSection(
+                                      title: title,
+                                      showNavigationControls:
+                                          showNavigationControls,
+                                      variant: variant,
+                                      showResidenceSwitcher:
+                                          showResidenceSwitcher,
+                                      currentResidence: showResidenceSwitcher
+                                          ? (controller
+                                                    .selectedResidence
+                                                    .value
+                                                    ?.residenceName ??
+                                                'Select Residence')
+                                          : null,
+                                      onResidenceSwitch: showResidenceSwitcher
+                                          ? () =>
+                                              _showResidenceSelectorDialog()
+                                          : null,
+                                    ),
+                                  ),
                                 ),
                               ),
 
@@ -420,8 +442,9 @@ class MainScaffold extends GetView<HomeController> {
           onTap: enabled ? onTap : null,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 300),
-            width: 43.w,
-            height: 43.w,
+            width: 48.w,
+            height: 48.w,
+            constraints: Accessibility.iconButtonConstraints,
             decoration: BoxDecoration(
               color: enabled ? AppColors.brandSage50 : AppColors.neutralLine100,
               shape: BoxShape.circle,
@@ -429,8 +452,8 @@ class MainScaffold extends GetView<HomeController> {
                   ? [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.05),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
+                        blurRadius: 4.r,
+                        offset: Offset(0, 2.h),
                       ),
                     ]
                   : [],
@@ -481,8 +504,8 @@ class MainScaffold extends GetView<HomeController> {
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.05),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+                  blurRadius: 4.r,
+                  offset: Offset(0, 2.h),
                 ),
               ],
             ),
@@ -516,9 +539,11 @@ class MainScaffold extends GetView<HomeController> {
 
     // Title
     if (title != null) {
-      return Center(
+      return SizedBox(
+        width: double.infinity,
         child: Text(
           title,
+          textAlign: TextAlign.center,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: AppTextStyles.bodyMedium.copyWith(
@@ -562,8 +587,8 @@ class MainScaffold extends GetView<HomeController> {
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.05),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+                  blurRadius: 4.r,
+                  offset: Offset(0, 2.h),
                 ),
               ],
             ),
@@ -653,7 +678,10 @@ class _AnimatedNotificationButtonState extends State<_AnimatedNotificationButton
         cursor: SystemMouseCursors.click,
         child: GestureDetector(
           onTap: _handleTap,
-          child: ScaleTransition(
+          behavior: HitTestBehavior.opaque,
+          child: ConstrainedBox(
+            constraints: Accessibility.iconButtonConstraints,
+            child: ScaleTransition(
             scale: _scaleAnimation,
             alignment: Alignment.center,
             child: Stack(
@@ -684,13 +712,13 @@ class _AnimatedNotificationButtonState extends State<_AnimatedNotificationButton
                         borderRadius: BorderRadius.circular(10.r),
                         border: Border.all(
                           color: AppColors.surfaceWhite,
-                          width: 2,
+                          width: 2.w,
                         ),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.2),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
+                            blurRadius: 8.r,
+                            offset: Offset(0, 2.h),
                           ),
                         ],
                       ),
@@ -749,6 +777,7 @@ class _AnimatedNotificationButtonState extends State<_AnimatedNotificationButton
               ],
             ),
           ),
+          ),
         ),
       ),
     );
@@ -760,80 +789,101 @@ extension _MainScaffoldNotification on MainScaffold {
   void _showResidenceSelectorDialog() {
     Get.dialog(
       Obx(
-        () => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Text(
-            'select_residence'.tr,
-            style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
-          ),
-          content: controller.isLoadingResidences.value
-              ? const SizedBox(
-                  height: 100,
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              : controller.residences.isEmpty
-              ? SizedBox(
-                  height: 100,
-                  child: Center(
-                    child: Text(
-                      'no_residences_available'.tr,
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  ),
-                )
-              : SizedBox(
-                  width: double.maxFinite,
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: controller.residences.length,
-                    itemBuilder: (context, index) {
-                      final residence = controller.residences[index];
-                      final isSelected =
-                          controller.selectedResidence.value?.id ==
-                          residence.id;
-
-                      return ListTile(
-                        leading: Icon(
-                          Icons.apartment_rounded,
-                          color: isSelected
-                              ? AppColors.brandSage600
-                              : Colors.grey,
+        () => Builder(
+          builder: (dialogContext) => ResponsiveAlertDialog(
+            scrollable: controller.residences.isNotEmpty &&
+                !controller.isLoadingResidences.value,
+            title: Text(
+              'select_residence'.tr,
+              style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            content: controller.isLoadingResidences.value
+                ? ResponsiveAlertDialog.loadingPlaceholder()
+                : controller.residences.isEmpty
+                ? SizedBox(
+                    height: 100.h,
+                    child: Center(
+                      child: Text(
+                        'no_residences_available'.tr,
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 14.sp,
                         ),
-                        title: Text(
-                          residence.residenceName,
-                          style: TextStyle(
-                            fontWeight: isSelected
-                                ? FontWeight.bold
-                                : FontWeight.normal,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  )
+                : ResponsiveAlertDialog.boundedList(
+                    context: dialogContext,
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: controller.residences.length,
+                      itemBuilder: (context, index) {
+                        final residence = controller.residences[index];
+                        final isSelected =
+                            controller.selectedResidence.value?.id ==
+                            residence.id;
+
+                        return ListTile(
+                          leading: Icon(
+                            Icons.apartment_rounded,
                             color: isSelected
                                 ? AppColors.brandSage600
-                                : Colors.black87,
+                                : Colors.grey,
                           ),
-                        ),
-                        subtitle:
-                            residence.residenceAddress != null &&
-                                residence.residenceAddress!.isNotEmpty
-                            ? Text(residence.residenceAddress!)
-                            : null,
-                        trailing: isSelected
-                            ? Icon(
-                                Icons.check_circle,
-                                color: AppColors.brandSage600,
-                              )
-                            : null,
-                        onTap: () {
-                          controller.selectResidence(residence);
-                          Get.back();
-                        },
-                      );
-                    },
+                          title: Text(
+                            residence.residenceName,
+                            style: TextStyle(
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: isSelected
+                                  ? AppColors.brandSage600
+                                  : Colors.black87,
+                              fontSize: 15.sp,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle:
+                              residence.residenceAddress != null &&
+                                  residence.residenceAddress!.isNotEmpty
+                              ? Text(
+                                  residence.residenceAddress!,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontSize: 13.sp),
+                                )
+                              : null,
+                          trailing: isSelected
+                              ? Icon(
+                                  Icons.check_circle,
+                                  color: AppColors.brandSage600,
+                                )
+                              : null,
+                          onTap: () {
+                            controller.selectResidence(residence);
+                            Get.back();
+                          },
+                        );
+                      },
+                    ),
                   ),
+            actions: [
+              TextButton(
+                onPressed: () => Get.back(),
+                child: Text(
+                  'cancel'.tr,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-          actions: [
-            TextButton(onPressed: () => Get.back(), child: Text('cancel'.tr)),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1178,8 +1228,9 @@ class _KeyboardBottomPadding extends StatelessWidget {
     final keyboardInset = _isRouteObscuredByModal(context)
         ? 0.0
         : MediaQuery.viewInsetsOf(context).bottom;
-    final safeBottom =
-        includeSafeAreaBottom ? MediaQuery.paddingOf(context).bottom : 0.0;
+    final safeBottom = includeSafeAreaBottom && keyboardInset == 0
+        ? MediaQuery.paddingOf(context).bottom
+        : 0.0;
 
     return Padding(
       padding: EdgeInsets.only(bottom: keyboardInset + safeBottom),

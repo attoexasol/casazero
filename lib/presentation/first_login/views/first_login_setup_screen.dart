@@ -2,6 +2,7 @@
 import 'package:casazero/core/widgets/casazero_logo.dart';
 import 'package:casazero/presentation/first_login/views/sections/first_login_progress_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../../core/controllers/message_popup_controller.dart';
@@ -57,22 +58,22 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
             child: Center(
               child: SingleChildScrollView(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48),
+                  padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 48.h),
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 430),
+                    constraints: BoxConstraints(maxWidth: 430.w),
                     child: Column(
                       children: [
                         CasaZeroLogo(
                           assetPath: 'assets/images/white_logo.png',
                           maxLogoWidthFactor: 0.4,
                         ),
-                        const SizedBox(height: 32),
+                        SizedBox(height: 32.h),
                         FirstLoginProgressBar(controller: controller),
-                        const SizedBox(height: 24),
+                        SizedBox(height: 24.h),
                         Obx(() => controller.currentStep.value == 1
                             ? _buildPasswordChangeCard()
                             : _build2FACard()),
-                        const SizedBox(height: 24),
+                        SizedBox(height: 24.h),
                         _buildCopyright(),
                       ],
                     ),
@@ -90,40 +91,40 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
     return Column(
       children: [
         Container(
-          width: 240,
-          height: 80,
+          width: 240.w,
+          height: 80.h,
           alignment: Alignment.center,
           child: Image.asset(
             'assets/images/white_logo.png',
-            width: 180,
+            width: 180.w,
             fit: BoxFit.contain,
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12.h),
         Text(
           'smart_living'.tr,
           style: TextStyle(
             color: Colors.white.withOpacity(0.9),
-            fontSize: 14,
-            letterSpacing: 1.5,
+            fontSize: 14.sp,
+            letterSpacing: 1.5.w,
           ),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16.h),
         Text(
           'first_login_setup'.tr,
-          style: const TextStyle(
-            fontSize: 24,
+          style: TextStyle(
+            fontSize: 24.sp,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8.h),
         Text(
           'secure_your_account'.tr,
           textAlign: TextAlign.center,
           style: TextStyle(
             color: Colors.white.withOpacity(0.7),
-            fontSize: 14,
+            fontSize: 14.sp,
           ),
         ),
       ],
@@ -135,22 +136,22 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
           () => Column(
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(4.r),
             child: LinearProgressIndicator(
               value: controller.currentStep.value == 1 ? 0.5 : 1.0,
-              minHeight: 8,
+              minHeight: 8.h,
               backgroundColor: Colors.white.withOpacity(0.2),
               valueColor: const AlwaysStoppedAnimation<Color>(AppColors.brandSage500),
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'change_password'.tr,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 12.sp,
                   color: controller.currentStep.value == 1
                       ? Colors.white
                       : Colors.white.withOpacity(0.7),
@@ -162,7 +163,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
               Text(
                 'two_factor_auth'.tr,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 12.sp,
                   color: controller.currentStep.value == 2
                       ? Colors.white
                       : Colors.white.withOpacity(0.7),
@@ -180,19 +181,19 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
 
   Widget _buildPasswordChangeCard() {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(24.r),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24.r),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(24.r),
             border: Border.all(color: Colors.white.withOpacity(0.2)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.2),
-                blurRadius: 40,
+                blurRadius: 40.r,
               ),
             ],
           ),
@@ -202,34 +203,34 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
               Row(
                 children: [
                   Container(
-                    width: 48,
-                    height: 48,
+                    width: 48.w,
+                    height: 48.h,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(16.r),
                       gradient: const LinearGradient(
                         colors: [AppColors.brandSage500, AppColors.brandSage600],
                       ),
                     ),
-                    child: const Icon(Icons.lock, color: Colors.white, size: 24),
+                    child: Icon(Icons.lock, color: Colors.white, size: 24.sp),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12.w),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'change_password'.tr,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white,
-                            fontSize: 18,
+                            fontSize: 18.sp,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
                           'create_strong_password'.tr,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white70,
-                            fontSize: 12,
+                            fontSize: 12.sp,
                           ),
                         ),
                       ],
@@ -237,12 +238,12 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
               _buildAlert(
                 icon: Icons.info_outline,
                 text: 'first_login_password_change'.tr,
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
               Obx(
                     () => CustomTextField(
                   label: 'current_password'.tr,
@@ -260,7 +261,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
               Obx(
                     () => CustomTextField(
                   label: 'new_password'.tr,
@@ -278,7 +279,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
               Obx(
                     () => CustomTextField(
                   label: 'confirm_password'.tr,
@@ -296,7 +297,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
               Obx(() => controller.hasPasswordInput.value
                   ? _buildPasswordRequirements()
                   : const SizedBox.shrink()),
@@ -308,12 +309,12 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                 if (!allMet) return const SizedBox.shrink();
                 return Column(
                   children: [
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12.h),
                     _buildValidPasswordIndicator(),
                   ],
                 );
               }),
-              const SizedBox(height: 24),
+              SizedBox(height: 24.h),
               Obx(
                     () => CustomButton(
                   text: 'continue'.tr,
@@ -341,19 +342,19 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
 
   Widget _buildMethodSelectionCard() {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(24.r),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24.r),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(24.r),
             border: Border.all(color: Colors.white.withOpacity(0.2)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.2),
-                blurRadius: 40,
+                blurRadius: 40.r,
               ),
             ],
           ),
@@ -363,34 +364,34 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
               Row(
                 children: [
                   Container(
-                    width: 48,
-                    height: 48,
+                    width: 48.w,
+                    height: 48.h,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(16.r),
                       gradient: const LinearGradient(
                         colors: [AppColors.brandSage500, AppColors.brandSage600],
                       ),
                     ),
-                    child: const Icon(Icons.security, color: Colors.white, size: 24),
+                    child: Icon(Icons.security, color: Colors.white, size: 24.sp),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12.w),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'two_factor_auth'.tr,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white,
-                            fontSize: 18,
+                            fontSize: 18.sp,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
                           'choose_security_method'.tr,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white70,
-                            fontSize: 12,
+                            fontSize: 12.sp,
                           ),
                         ),
                       ],
@@ -398,18 +399,18 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
               _buildAlert(
                 icon: Icons.shield_outlined,
                 text: '2fa_security_notice'.tr,
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
               Obx(() => Column(
                 children: controller.twoFactorMethods
                     .map((method) => _buildMethodCard(method))
                     .toList(),
               )),
-              const SizedBox(height: 24),
+              SizedBox(height: 24.h),
               Row(
                 children: [
                   Expanded(
@@ -419,13 +420,13 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                         foregroundColor: Colors.white,
                         side: const BorderSide(color: Colors.white),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(12.r),
                         ),
                       ),
                       child: Text('back'.tr),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12.w),
                   Expanded(
                     child: TextButton(
                       onPressed: controller.setup2FA,
@@ -446,15 +447,15 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
 
   Widget _buildMethodCard(TwoFactorMethod method) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: 12.h),
       child: InkWell(
         onTap: () => controller.selectTwoFactorMethod(method),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16.r),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(16.r),
             border: Border.all(
               color: Colors.white.withOpacity(0.2),
             ),
@@ -462,37 +463,37 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
           child: Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 48.w,
+                height: 48.h,
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: Icon(
                   _getMethodIcon(method.icon),
                   color: Colors.white,
-                  size: 24,
+                  size: 24.sp,
                 ),
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: 16.w),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       method.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
-                        fontSize: 16,
+                        fontSize: 16.sp,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4.h),
                     Text(
                       method.description,
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.7),
-                        fontSize: 13,
+                        fontSize: 13.sp,
                       ),
                     ),
                   ],
@@ -514,19 +515,19 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
     if (method == null) return const SizedBox.shrink();
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(24.r),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24.r),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(24.r),
             border: Border.all(color: Colors.white.withOpacity(0.2)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.2),
-                blurRadius: 40,
+                blurRadius: 40.r,
               ),
             ],
           ),
@@ -539,24 +540,24 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
                     onPressed: controller.cancelMethodConfiguration,
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8.w),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           method.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white,
-                            fontSize: 18,
+                            fontSize: 18.sp,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
                           'configure_method'.tr,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white70,
-                            fontSize: 12,
+                            fontSize: 12.sp,
                           ),
                         ),
                       ],
@@ -564,14 +565,14 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
               if (method.type == TwoFactorMethodType.authenticator)
                 _buildAuthenticatorSetup()
               else if (method.type == TwoFactorMethodType.email)
                 _buildEmailSetup()
               else if (method.type == TwoFactorMethodType.sms)
                   _buildSMSSetup(),
-              const SizedBox(height: 24),
+              SizedBox(height: 24.h),
               Row(
                 children: [
                   Expanded(
@@ -581,13 +582,13 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                         foregroundColor: Colors.white,
                         side: const BorderSide(color: Colors.white),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(12.r),
                         ),
                       ),
                       child: Text('cancel'.tr),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12.w),
                   Expanded(
                     child: Obx(
                           () => CustomButton(
@@ -614,19 +615,19 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
           icon: Icons.phone_android,
           text: 'scan_qr_instructions'.tr,
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16.h),
         if (controller.qrCodeData.value.isNotEmpty) ...[
           Center(
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16.r),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(16.r),
               ),
               child: _buildQRCodeImage(),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           Center(
             child: TextButton.icon(
               onPressed: controller.toggleManualEntry,
@@ -635,7 +636,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                     ? Icons.visibility_off
                     : Icons.visibility,
                 color: Colors.white70,
-                size: 18,
+                size: 18.sp,
               ),
               label: Text(
                 controller.showManualEntry.value
@@ -643,18 +644,18 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                     : 'show_manual_entry'.tr,
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.8),
-                  fontSize: 13,
+                  fontSize: 13.sp,
                 ),
               ),
             ),
           ),
           if (controller.showManualEntry.value) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all(12.r),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12.r),
                 border: Border.all(color: Colors.white.withOpacity(0.3)),
               ),
               child: Column(
@@ -664,26 +665,26 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                     '${'manual_entry_key'.tr}:',
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.9),
-                      fontSize: 12,
+                      fontSize: 12.sp,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8.h),
                   Row(
                     children: [
                       Expanded(
                         child: SelectableText(
                           controller.totpSecret.value,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'monospace',
-                            fontSize: 14,
+                            fontSize: 14.sp,
                             color: Colors.white,
-                            letterSpacing: 2,
+                            letterSpacing: 2.w,
                           ),
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.copy, color: Colors.white, size: 18),
+                        icon: Icon(Icons.copy, color: Colors.white, size: 18.sp),
                         onPressed: () {
                           Clipboard.setData(
                             ClipboardData(text: controller.totpSecret.value),
@@ -700,7 +701,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
               ),
             ),
           ],
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
         ],
         CustomTextField(
           label: 'verification_code'.tr,
@@ -728,24 +729,24 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
           icon: Icons.email_outlined,
           text: 'email_2fa_instructions'.tr,
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16.h),
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: EdgeInsets.all(12.r),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12.r),
             border: Border.all(color: Colors.white.withOpacity(0.3)),
           ),
           child: Row(
             children: [
-              const Icon(Icons.email, color: Colors.white, size: 20),
-              const SizedBox(width: 12),
+              Icon(Icons.email, color: Colors.white, size: 20.sp),
+              SizedBox(width: 12.w),
               Expanded(
                 child: Text(
                   controller.userEmail,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
-                    fontSize: 14,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -753,7 +754,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16.h),
         if (!controller.isVerificationSent.value)
           CustomButton(
             text: 'send_verification_code'.tr,
@@ -775,14 +776,14 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
               }
             },
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           if (controller.verificationCountdown.value > 0)
             Center(
               child: Text(
                 '${'resend_in'.tr} ${controller.verificationCountdown.value}s',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.7),
-                  fontSize: 12,
+                  fontSize: 12.sp,
                 ),
               ),
             )
@@ -792,9 +793,9 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                 onPressed: controller.sendVerificationCode,
                 child: Text(
                   'resend_code'.tr,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
-                    fontSize: 13,
+                    fontSize: 13.sp,
                   ),
                 ),
               ),
@@ -812,14 +813,14 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
           icon: Icons.sms_outlined,
           text: 'sms_2fa_instructions'.tr,
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16.h),
         CustomTextField(
           label: 'phone_number'.tr,
           hint: '+1 (555) 123-4567',
           controller: controller.phoneNumberController,
           keyboardType: TextInputType.phone,
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16.h),
         if (!controller.isVerificationSent.value)
           CustomButton(
             text: 'send_verification_code'.tr,
@@ -841,14 +842,14 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
               }
             },
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           if (controller.verificationCountdown.value > 0)
             Center(
               child: Text(
                 '${'resend_in'.tr} ${controller.verificationCountdown.value}s',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.7),
-                  fontSize: 12,
+                  fontSize: 12.sp,
                 ),
               ),
             )
@@ -858,9 +859,9 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                 onPressed: controller.sendVerificationCode,
                 child: Text(
                   'resend_code'.tr,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
-                    fontSize: 13,
+                    fontSize: 13.sp,
                   ),
                 ),
               ),
@@ -885,22 +886,22 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
 
   Widget _buildAlert({required IconData icon, required String text}) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         border: Border.all(color: Colors.white.withOpacity(0.3)),
       ),
       child: Row(
         children: [
-          Icon(icon, color: Colors.white, size: 18),
-          const SizedBox(width: 12),
+          Icon(icon, color: Colors.white, size: 18.sp),
+          SizedBox(width: 12.w),
           Expanded(
             child: Text(
               text,
               style: TextStyle(
                 color: Colors.white.withOpacity(0.9),
-                fontSize: 13,
+                fontSize: 13.sp,
               ),
             ),
           ),
@@ -915,12 +916,12 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
 
       return AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16.r),
         decoration: BoxDecoration(
           color: allMet
               ? Colors.green.withOpacity(0.2)
               : Colors.white.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           border: Border.all(
             color: allMet
                 ? Colors.green.withOpacity(0.4)
@@ -937,20 +938,20 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                   '${'password_requirements'.tr}:',
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.9),
-                    fontSize: 14,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 if (allMet)
                   Row(
                     children: [
-                      const Icon(Icons.check, color: Colors.white, size: 16),
-                      const SizedBox(width: 4),
+                      Icon(Icons.check, color: Colors.white, size: 16.sp),
+                      SizedBox(width: 4.w),
                       Text(
                         'complete'.tr,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
-                          fontSize: 12,
+                          fontSize: 12.sp,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -958,24 +959,24 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                   ),
               ],
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12.h),
             ...controller.passwordRequirements.map((req) {
               return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: EdgeInsets.only(bottom: 8.h),
                 child: Row(
                   children: [
                     Container(
-                      width: 20,
-                      height: 20,
+                      width: 20.w,
+                      height: 20.h,
                       decoration: BoxDecoration(
                         color: req.isMet ? Colors.green : Colors.grey[400],
                         shape: BoxShape.circle,
                       ),
                       child: req.isMet
-                          ? const Icon(Icons.check, color: Colors.white, size: 14)
+                          ? Icon(Icons.check, color: Colors.white, size: 14.sp)
                           : null,
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12.w),
                     Expanded(
                       child: Text(
                         req.label,
@@ -983,7 +984,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                           color: req.isMet
                               ? Colors.white
                               : Colors.white.withOpacity(0.7),
-                          fontSize: 13,
+                          fontSize: 13.sp,
                           fontWeight:
                           req.isMet ? FontWeight.w500 : FontWeight.normal,
                         ),
@@ -1001,26 +1002,26 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
 
   Widget _buildValidPasswordIndicator() {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
         color: Colors.green.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         border: Border.all(color: Colors.green.withOpacity(0.4)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.check_circle, color: Colors.white, size: 20),
-          const SizedBox(width: 8),
+          Icon(Icons.check_circle, color: Colors.white, size: 20.sp),
+          SizedBox(width: 8.w),
           Flexible(
             child: Text(
               'valid_password'.tr,
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white,
-                fontSize: 14,
+                fontSize: 14.sp,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -1035,7 +1036,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
       'copyright'.tr,
       textAlign: TextAlign.center,
       style: TextStyle(
-        fontSize: 12,
+        fontSize: 12.sp,
         color: Colors.white.withOpacity(0.6),
       ),
     );
@@ -1047,9 +1048,9 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
     final qrData = controller.qrCodeData.value;
 
     if (qrData.isEmpty) {
-      return const SizedBox(
-        width: 200,
-        height: 200,
+      return SizedBox(
+        width: 200.w,
+        height: 200.h,
         child: Center(child: CircularProgressIndicator()),
       );
     }
@@ -1062,8 +1063,8 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
 
         return SvgPicture.memory(
           base64Decode(base64String),
-          width: 200,
-          height: 200,
+          width: 200.w,
+          height: 200.h,
           fit: BoxFit.contain,
         );
       }
@@ -1074,18 +1075,18 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
 
       return Image.memory(
         bytes,
-        width: 200,
-        height: 200,
+        width: 200.w,
+        height: 200.h,
         fit: BoxFit.contain,
       );
     } catch (e) {
       print("QR decode error: $e");
       return Container(
-        width: 200,
-        height: 200,
+        width: 200.w,
+        height: 200.h,
         color: Colors.grey[300],
-        child: const Center(
-          child: Icon(Icons.error, size: 48, color: Colors.red),
+        child: Center(
+          child: Icon(Icons.error, size: 48.sp, color: Colors.red),
         ),
       );
     }

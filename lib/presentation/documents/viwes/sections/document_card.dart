@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../data/models/document_model.dart';
 import 'document_colors.dart';
@@ -40,10 +41,8 @@ class _DocumentCardState extends State<DocumentCard> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final scale = size.width / 390;
-    final cardRadius = 24 * scale;
-    final borderWidth = 1.2 * scale;
+    final cardRadius = 24.r;
+    final borderWidth = 1.2.w;
     // Inner corner radius must account for the card border so the accent
     // strip follows the same curve as the card edge.
     final innerRadius = cardRadius - borderWidth;
@@ -64,7 +63,7 @@ class _DocumentCardState extends State<DocumentCard> {
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOut,
           clipBehavior: Clip.antiAlias,
-          margin: const EdgeInsets.only(bottom: 12),
+          margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.95),
             borderRadius: BorderRadius.circular(cardRadius),
@@ -75,19 +74,19 @@ class _DocumentCardState extends State<DocumentCard> {
             boxShadow: [
               BoxShadow(
                 color: const Color(0x22000000),
-                offset: Offset(0, 4 * scale),
-                blurRadius: 12 * scale,
+                offset: Offset(0, 4.h),
+                blurRadius: 12.r,
               ),
               BoxShadow(
                 color: const Color(0x11000000),
-                offset: Offset(0, 2 * scale),
-                blurRadius: 8 * scale,
+                offset: Offset(0, 2.h),
+                blurRadius: 8.r,
               ),
               BoxShadow(
                 color: typeColor.withOpacity(_isPressed ? 0.28 : 0.0),
-                blurRadius: _isPressed ? 30 * scale : 4 * scale,
-                spreadRadius: _isPressed ? 2 * scale : 0,
-                offset: Offset(0, _isPressed ? 10 * scale : 4 * scale),
+                blurRadius: _isPressed ? 30.r : 4.r,
+                spreadRadius: _isPressed ? 2.r : 0,
+                offset: Offset(0, _isPressed ? 10.h : 4.h),
               ),
             ],
           ),
@@ -96,7 +95,7 @@ class _DocumentCardState extends State<DocumentCard> {
             children: [
               /// LEFT ACCENT BORDER
               Container(
-                width: 8 * scale,
+                width: 8.w,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [accentColor, accentColor.withOpacity(0.5)],
@@ -113,13 +112,11 @@ class _DocumentCardState extends State<DocumentCard> {
               /// CONTENT SECTION
               Expanded(
                 child: Padding(
-                  padding: EdgeInsets.all(14 * scale),
+                  padding: EdgeInsets.all(14.w),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       /// FILE TYPE ICON BOX
-                      // Icon box background uses category color to match sidebar
-                      // Icon itself uses file type color for visual clarity
                       Builder(
                         builder: (context) {
                           final fileTypeData = _getFileTypeIcon();
@@ -127,25 +124,23 @@ class _DocumentCardState extends State<DocumentCard> {
                           final fileColor = fileTypeData['color'] as Color;
 
                           return Container(
-                            width: 48 * scale,
-                            height: 48 * scale,
+                            width: 48.w,
+                            height: 48.w,
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
-                              color: accentColor.withOpacity(
-                                0.15,
-                              ), // Background matches category color (sidebar)
-                              borderRadius: BorderRadius.circular(14 * scale),
+                              color: accentColor.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(14.r),
                             ),
                             child: Icon(
                               fileIcon,
-                              size: 24 * scale,
-                              color: fileColor, // Icon color remains file type color
+                              size: 24.sp,
+                              color: fileColor,
                             ),
                           );
                         },
                       ),
 
-                      SizedBox(width: 12 * scale),
+                      SizedBox(width: 12.w),
 
                       /// TEXT SECTION
                       Expanded(
@@ -157,92 +152,82 @@ class _DocumentCardState extends State<DocumentCard> {
                               widget.document.title,
                               style: TextStyle(
                                 fontWeight: FontWeight.w600,
-                                fontSize: 15 * scale,
+                                fontSize: 15.sp,
                                 color: Colors.black,
                               ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
 
-                            SizedBox(height: 4 * scale),
+                            SizedBox(height: 4.h),
 
                             /// DATE & SIZE
                             Text(
                               "${widget.document.date} • ${widget.document.size}",
                               style: TextStyle(
                                 color: Colors.grey.shade600,
-                                fontSize: 13 * scale,
+                                fontSize: 13.sp,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
 
-                            SizedBox(height: 6 * scale),
+                            SizedBox(height: 6.h),
 
                             /// TAGS
                             Wrap(
-                              spacing: 6 * scale,
-                              runSpacing: -4,
+                              spacing: 6.w,
+                              runSpacing: 4.h,
                               children: widget.document.tags.map((tag) {
                                 return Container(
                                   padding: EdgeInsets.symmetric(
-                                    horizontal: 8 * scale,
-                                    vertical: 3 * scale,
+                                    horizontal: 8.w,
+                                    vertical: 3.h,
                                   ),
                                   decoration: BoxDecoration(
                                     color: Colors.grey.shade100,
-                                    borderRadius: BorderRadius.circular(
-                                      20 * scale,
-                                    ),
+                                    borderRadius: BorderRadius.circular(20.r),
                                   ),
                                   child: Text(
                                     tag,
                                     style: TextStyle(
-                                      fontSize: 11 * scale,
+                                      fontSize: 11.sp,
                                       color: Colors.grey.shade700,
                                     ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 );
                               }).toList(),
                             ),
 
-                            SizedBox(height: 10 * scale),
+                            SizedBox(height: 10.h),
 
                             /// ACTION BUTTONS
                             Listener(
-                              // Stop pointer events from propagating to parent GestureDetector
-                              onPointerDown: (event) {
-                                // Consume the pointer event to prevent parent from receiving it
-                              },
+                              onPointerDown: (event) {},
                               child: Row(
                                 children: [
-                                  // Download Button (with optional in-button loader)
                                   if (widget.onDownload != null)
-                                    _downloadActionBtn(scale),
+                                    _downloadActionBtn(),
 
-                                  // Share Button
                                   if (widget.onShare != null)
                                     Padding(
-                                      padding: EdgeInsets.only(
-                                        left: 15 * scale,
-                                      ),
+                                      padding: EdgeInsets.only(left: 15.w),
                                       child: _actionIconBtn(
                                         Icons.share_outlined,
                                         widget.onShare!,
-                                        scale,
                                       ),
                                     ),
 
                                   const Spacer(),
 
-                                  // Delete Button
-                                  // Positioned at bottom-right, after Spacer to align right
-                                  // Consistent visibility: shows for all cards when onDelete callback is provided
                                   if (widget.onDelete != null)
                                     Padding(
-                                      padding: EdgeInsets.only(
-                                        left: 15 * scale,
-                                      ),
+                                      padding: EdgeInsets.only(left: 15.w),
                                       child: _actionBtn(
                                         "assets/images/delete.svg",
                                         widget.onDelete!,
-                                        scale,
                                       ),
                                     ),
                                 ],
@@ -263,10 +248,10 @@ class _DocumentCardState extends State<DocumentCard> {
   }
 
   /// Download action button: shows icon normally, shows in-button loader while downloading.
-  Widget _downloadActionBtn(double scale) {
-    final size = 20.0 * scale;
+  Widget _downloadActionBtn() {
+    final size = 20.w;
     return Padding(
-      padding: EdgeInsets.only(right: 8 * scale),
+      padding: EdgeInsets.only(right: 8.w),
       child: GestureDetector(
         onTap: _isDownloading
             ? null
@@ -280,7 +265,9 @@ class _DocumentCardState extends State<DocumentCard> {
                 }
               },
         onTapDown: (_) {
-          if (!_isDownloading) print('🔘 [DocumentCard] Action button tap down: download');
+          if (!_isDownloading) {
+            print('🔘 [DocumentCard] Action button tap down: download');
+          }
         },
         behavior: HitTestBehavior.opaque,
         child: SizedBox(
@@ -291,8 +278,10 @@ class _DocumentCardState extends State<DocumentCard> {
                   width: size,
                   height: size,
                   child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.grey.shade700),
+                    strokeWidth: 2.w,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Colors.grey.shade700,
+                    ),
                   ),
                 )
               : SvgPicture.asset(
@@ -306,45 +295,39 @@ class _DocumentCardState extends State<DocumentCard> {
   }
 
   /// Action Button with SVG
-  Widget _actionBtn(String asset, VoidCallback onTap, double scale) {
+  Widget _actionBtn(String asset, VoidCallback onTap) {
     return Padding(
-      padding: EdgeInsets.only(right: 8 * scale),
+      padding: EdgeInsets.only(right: 8.w),
       child: GestureDetector(
         onTap: () {
           print('🔘 [DocumentCard] Action button tapped: $asset');
           onTap();
         },
         onTapDown: (_) {
-          // Consume the tap event to prevent parent GestureDetector from handling it
           print('🔘 [DocumentCard] Action button tap down: $asset');
         },
         behavior: HitTestBehavior.opaque,
-        child: SvgPicture.asset(asset, width: 20 * scale, height: 20 * scale),
+        child: SvgPicture.asset(asset, width: 20.w, height: 20.w),
       ),
     );
   }
 
   /// Action Button with Material Icon (for Share button)
-  Widget _actionIconBtn(IconData icon, VoidCallback onTap, double scale) {
+  Widget _actionIconBtn(IconData icon, VoidCallback onTap) {
     return Padding(
-      padding: EdgeInsets.only(right: 8 * scale),
+      padding: EdgeInsets.only(right: 8.w),
       child: Listener(
-        onPointerDown: (_) {
-          // Stop event propagation to prevent parent GestureDetector from handling the tap
-        },
+        onPointerDown: (_) {},
         child: GestureDetector(
-          onTap: () {
-            onTap();
-          },
+          onTap: onTap,
           behavior: HitTestBehavior.opaque,
-          child: Icon(icon, size: 20 * scale, color: Colors.grey.shade700),
+          child: Icon(icon, size: 20.sp, color: Colors.grey.shade700),
         ),
       ),
     );
   }
 
   String _documentTypeKey(DocumentModel document) {
-    // Prefer tags/type hints if available, fallback to category keywords
     final lowerTags = document.tags.map((t) => t.toLowerCase()).toList();
     if (lowerTags.any((t) => t.contains('compliance'))) return 'compliance';
     if (lowerTags.any((t) => t.contains('owner') || t.contains('ownership'))) {
@@ -361,10 +344,7 @@ class _DocumentCardState extends State<DocumentCard> {
   }
 
   /// Get file type icon based on file extension or mime type
-  /// Returns IconData and Color for the file type
-  /// Handles uppercase/lowercase extensions, missing extensions, and null safety
   Map<String, dynamic> _getFileTypeIcon() {
-    // Try to get file extension from fileUrl first
     String? extension;
     if (widget.document.fileUrl != null &&
         widget.document.fileUrl!.isNotEmpty) {
@@ -375,44 +355,33 @@ class _DocumentCardState extends State<DocumentCard> {
       }
     }
 
-    // Fallback to type field if no extension found in fileUrl
     if (extension == null || extension.isEmpty) {
       final type = widget.document.type.toLowerCase();
-      // Remove common prefixes and extract extension
       if (type.contains('.')) {
         extension = type.substring(type.lastIndexOf('.') + 1);
       } else {
-        // Type might be just the extension (e.g., "PDF", "JPG")
         extension = type;
       }
     }
 
-    // Map file extension to icon and color
     switch (extension) {
-      // PDF files → PDF icon (red tone)
       case 'pdf':
         return {
           'icon': Icons.picture_as_pdf_outlined,
-          'color': const Color(0xFFDC2626), // Red tone
+          'color': const Color(0xFFDC2626),
         };
-
-      // Word documents → Word document icon (blue tone)
       case 'doc':
       case 'docx':
         return {
           'icon': Icons.description_outlined,
-          'color': const Color(0xFF2563EB), // Blue tone
+          'color': const Color(0xFF2563EB),
         };
-
-      // Excel files → Spreadsheet icon (green tone)
       case 'xls':
       case 'xlsx':
         return {
           'icon': Icons.table_chart_outlined,
-          'color': const Color(0xFF16A34A), // Green tone
+          'color': const Color(0xFF16A34A),
         };
-
-      // Image files → Image icon (accent color)
       case 'jpg':
       case 'jpeg':
       case 'png':
@@ -422,17 +391,13 @@ class _DocumentCardState extends State<DocumentCard> {
       case 'svg':
         return {
           'icon': Icons.image_outlined,
-          'color': const Color(0xFF4CAF47), // Accent color (brand sage)
+          'color': const Color(0xFF4CAF47),
         };
-
-      // Text files → Text file icon
       case 'txt':
         return {
           'icon': Icons.text_snippet_outlined,
-          'color': Colors.grey.shade700, // Neutral color
+          'color': Colors.grey.shade700,
         };
-
-      // Archive files → Archive icon
       case 'zip':
       case 'rar':
       case '7z':
@@ -440,16 +405,13 @@ class _DocumentCardState extends State<DocumentCard> {
       case 'gz':
         return {
           'icon': Icons.folder_zip_outlined,
-          'color': Colors.grey.shade700, // Neutral color
+          'color': Colors.grey.shade700,
         };
-
-      // Default/Unknown → Generic file icon (neutral color)
       default:
         return {
           'icon': Icons.insert_drive_file_outlined,
-          'color': Colors.grey.shade700, // Neutral color
+          'color': Colors.grey.shade700,
         };
     }
   }
-
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../controllers/home_controller.dart';
@@ -69,9 +70,21 @@ class _HeroImageState extends State<HeroImage>
     super.dispose();
   }
 
+  /// Hero height scaled to viewport (design: 500px @ 844px height), clamped for
+  /// small phones so the section is neither clipped nor oversized.
+  double _heroHeight(BuildContext context) {
+    final viewportHeight = MediaQuery.sizeOf(context).height;
+    const designViewportHeight = 844.0;
+    const designHeroHeight = 500.0;
+    final proportionalHeight =
+        viewportHeight * (designHeroHeight / designViewportHeight);
+    return proportionalHeight.clamp(280.h, 500.h);
+  }
+
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<HomeController>();
+    final heroHeight = _heroHeight(context);
 
     return Obx(() {
       final residencePhoto = controller.residenceData.value?['residence_photo'];
@@ -84,7 +97,7 @@ class _HeroImageState extends State<HeroImage>
             opacity: _fadeAnimation,
             child: ScaleTransition(
               scale: _scaleAnimation,
-              child: _buildImageStack(imageUrl),
+              child: _buildImageStack(imageUrl, heroHeight),
             ),
           );
         },
@@ -93,11 +106,11 @@ class _HeroImageState extends State<HeroImage>
   }
 
   /// Build the complete image stack with all overlays and effects
-  Widget _buildImageStack(String imageUrl) {
+  Widget _buildImageStack(String imageUrl, double heroHeight) {
     return Container(
       margin: const EdgeInsets.only(top: 5),
       width: double.infinity,
-      height: 500, // Fixed height: 500px equivalent
+      height: heroHeight,
       child: ClipRect(
         clipBehavior: Clip
             .antiAlias, // Smooth anti-aliased edges for better gradient blending
@@ -110,7 +123,7 @@ class _HeroImageState extends State<HeroImage>
             // Base layer: Image with scale animation (hover effect equivalent)
             ScaleTransition(
               scale: _imageScaleAnimation,
-              child: _buildImage(imageUrl),
+              child: _buildImage(imageUrl, heroHeight),
             ),
 
             // ============================================================================
@@ -293,39 +306,40 @@ class _HeroImageState extends State<HeroImage>
   }
 
   /// Build the main image widget (API or fallback)
-  Widget _buildImage(String imageUrl) {
+  Widget _buildImage(String imageUrl, double heroHeight) {
     if (imageUrl.isNotEmpty) {
       // Use API image if available
       return CachedNetworkImage(
         imageUrl: imageUrl,
         width: double.infinity,
-        height: 420,
+        height: heroHeight,
         fit: BoxFit.cover,
         placeholder: (context, url) => Container(
           width: double.infinity,
-          height: 420,
+          height: heroHeight,
           color: Colors.grey[200],
           child: const Center(child: CircularProgressIndicator()),
         ),
-        errorWidget: (context, url, error) => _buildFallbackImage(),
+        errorWidget: (context, url, error) =>
+            _buildFallbackImage(heroHeight),
       );
     } else {
       // Fallback to asset image
-      return _buildFallbackImage();
+      return _buildFallbackImage(heroHeight);
     }
   }
 
   /// Build fallback asset image
-  Widget _buildFallbackImage() {
+  Widget _buildFallbackImage(double heroHeight) {
     return Image.asset(
       'assets/images/residence_hero.jpeg',
       width: double.infinity,
-      height: 500,
+      height: heroHeight,
       fit: BoxFit.cover,
       errorBuilder: (context, error, stackTrace) {
         return Container(
           width: double.infinity,
-          height: 500,
+          height: heroHeight,
           color: Colors.grey[200],
           child: const Center(
             child: Icon(

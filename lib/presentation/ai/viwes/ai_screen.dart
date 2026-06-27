@@ -7,6 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../app/theme/app_shadows.dart';
+import '../../../core/widgets/tablet_centered_layout.dart';
 import '../../home/controllers/home_controller.dart';
 import '../controllers/ai_controller.dart';
 
@@ -19,7 +20,8 @@ class AIScreen extends StatelessWidget {
     final controller = Get.find<AiController>();
 
     return Obx(
-      () => Column(
+      () => TabletCenteredLayout(
+        child: Column(
         children: [
           // Premium Header with Cube Icon
           _buildHeader(controller),
@@ -30,6 +32,7 @@ class AIScreen extends StatelessWidget {
           // Premium Input - always at bottom
           _buildInputArea(controller),
         ],
+        ),
       ),
     );
   }
@@ -76,6 +79,8 @@ class AIScreen extends StatelessWidget {
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.neutralInk900,
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               )
                               .animate()
                               .fadeIn(duration: 300.ms, delay: 300.ms)
@@ -92,6 +97,8 @@ class AIScreen extends StatelessWidget {
                                   fontSize: 14.sp,
                                   color: AppColors.neutralInk500,
                                 ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               )
                               .animate()
                               .fadeIn(duration: 300.ms, delay: 400.ms)

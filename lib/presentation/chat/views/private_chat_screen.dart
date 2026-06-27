@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../core/widgets/tablet_centered_layout.dart';
 import '../controllers/private_chat_controller.dart';
 import '../providers/private_chat_provider.dart';
 import 'widgets/private_chat_bubble.dart';
@@ -18,12 +19,14 @@ class PrivateChatScreen extends GetView<PrivateChatController> {
   Widget build(BuildContext context) {
     final provider = Get.find<PrivateChatProvider>();
 
-    return Column(
+    return TabletCenteredLayout(
+      child: Column(
       children: [
         Obx(() => _buildHeader(context, provider)),
         Expanded(child: _buildMessageList(provider)),
         _buildInputArea(context),
       ],
+      ),
     );
   }
 
@@ -35,9 +38,9 @@ class PrivateChatScreen extends GetView<PrivateChatController> {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 16.h,
         left: 24.w,
         right: 24.w,
+        top: 16.h,
         bottom: 16.h,
       ),
       decoration: BoxDecoration(
@@ -71,7 +74,7 @@ class PrivateChatScreen extends GetView<PrivateChatController> {
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: AppColors.surfaceWhite,
-                        width: 2,
+                        width: 2.w,
                       ),
                     ),
                   ),
@@ -91,6 +94,8 @@ class PrivateChatScreen extends GetView<PrivateChatController> {
                     fontWeight: FontWeight.w600,
                     color: AppColors.neutralInk900,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: 2.h),
                 Text(
@@ -101,6 +106,8 @@ class PrivateChatScreen extends GetView<PrivateChatController> {
                     fontSize: 12.sp,
                     color: AppColors.neutralInk500,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -191,7 +198,7 @@ class PrivateChatScreen extends GetView<PrivateChatController> {
               subtitle,
               style: AppTextStyles.caption.copyWith(
                 color: AppColors.neutralInk500,
-                fontSize: 13,
+                fontSize: 13.sp,
               ),
               textAlign: TextAlign.center,
             ),

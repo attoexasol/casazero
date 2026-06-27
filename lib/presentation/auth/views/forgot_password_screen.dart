@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/widgets/casazero_logo.dart';
@@ -69,9 +70,9 @@ class ForgotPasswordScreen extends GetView<ForgotPasswordController> {
         Expanded(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: EdgeInsets.symmetric(horizontal: 24.w),
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 430),
+                constraints: BoxConstraints(maxWidth: 430.w),
                 child: Column(
                   children: [
                     CasaZeroLogo(
@@ -79,7 +80,7 @@ class ForgotPasswordScreen extends GetView<ForgotPasswordController> {
                       maxLogoWidthFactor: 0.4,
                       showTagline: false,
                     ),
-                    const SizedBox(height: 40),
+                    SizedBox(height: 40.h),
                     _buildGlassCard(),
                   ],
                 ),
@@ -93,7 +94,7 @@ class ForgotPasswordScreen extends GetView<ForgotPasswordController> {
 
   Widget _buildBackButton() {
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(24.r),
       child: Align(
         alignment: Alignment.centerLeft,
         child:
@@ -105,14 +106,14 @@ class ForgotPasswordScreen extends GetView<ForgotPasswordController> {
                       Icon(
                         Icons.arrow_back,
                         color: Colors.white.withOpacity(0.9),
-                        size: 20,
+                        size: 20.sp,
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8.w),
                       Text(
                         'back'.tr,
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.9),
-                          fontSize: 14,
+                          fontSize: 14.sp,
                         ),
                       ),
                     ],
@@ -132,20 +133,20 @@ class ForgotPasswordScreen extends GetView<ForgotPasswordController> {
     return Container(
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(24.r),
             border: Border.all(color: Colors.white.withOpacity(0.2)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
+                blurRadius: 20.r,
+                offset: Offset(0, 10.h),
               ),
             ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(24.r),
             child: Container(
-              padding: const EdgeInsets.all(32),
+              padding: EdgeInsets.all(32.r),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
@@ -177,20 +178,20 @@ class ForgotPasswordScreen extends GetView<ForgotPasswordController> {
             Text(
               'reset_password'.tr,
               style: TextStyle(
-                fontSize: 24,
+                fontSize: 24.sp,
                 fontWeight: FontWeight.bold,
                 color: Colors.white.withOpacity(0.95),
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
             Text(
               'reset_password_description'.tr,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 13.sp,
                 color: Colors.white.withOpacity(0.7),
               ),
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: 32.h),
 
             // FORM FIELDS
             Column(
@@ -208,7 +209,7 @@ class ForgotPasswordScreen extends GetView<ForgotPasswordController> {
               ],
             ),
 
-            const SizedBox(height: 32),
+            SizedBox(height: 32.h),
 
             // Submit Button
             Obx(() => _submitButton(ctrl)),
@@ -224,7 +225,7 @@ class ForgotPasswordScreen extends GetView<ForgotPasswordController> {
   Widget _submitButton(ForgotPasswordController ctrl) {
     return SizedBox(
       width: double.infinity,
-      height: 48,
+      height: 48.h,
       child: ElevatedButton(
         onPressed: ctrl.canSubmit && !ctrl.isLoading.value
             ? () => ctrl.handleResetPassword(onSuccess: onSuccess)
@@ -235,7 +236,7 @@ class ForgotPasswordScreen extends GetView<ForgotPasswordController> {
               : const Color(0xFF9CA3AF),
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12.r),
           ),
           elevation: 8,
           shadowColor: ctrl.canSubmit
@@ -243,18 +244,18 @@ class ForgotPasswordScreen extends GetView<ForgotPasswordController> {
               : Colors.transparent,
         ),
         child: ctrl.isLoading.value
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
+            ? SizedBox(
+                width: 20.w,
+                height: 20.h,
+                child: const CircularProgressIndicator(
                   strokeWidth: 2,
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 ),
               )
             : Text(
                 'reset_password'.tr,
-                style: const TextStyle(
-                  fontSize: 15,
+                style: TextStyle(
+                  fontSize: 15.sp,
                   fontWeight: FontWeight.w600,
                 ),
               ),

@@ -28,108 +28,121 @@ class TwoFAManagementWidgets {
     final isAuthenticator = method.type.name == 'authenticator';
 
     Get.bottomSheet(
-      Obx(() => Container(
-        decoration: const BoxDecoration(
-          color: AppColors.surfaceWhite,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          ),
-        ),
-        padding: const EdgeInsets.all(24),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Handle bar
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.neutralInk300,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+      Builder(
+        builder: (sheetContext) {
+          final viewInsets = MediaQuery.viewInsetsOf(sheetContext);
+          final safePadding = MediaQuery.paddingOf(sheetContext);
+          return Obx(
+            () => Container(
+              decoration: const BoxDecoration(
+                color: AppColors.surfaceWhite,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
                 ),
               ),
-              const SizedBox(height: 24),
-
-              // Title
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      method.name,
-                      style: AppTextStyles.h4,
+              padding: EdgeInsets.fromLTRB(
+                24,
+                24,
+                24,
+                24 + safePadding.bottom + viewInsets.bottom,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Handle bar
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: AppColors.neutralInk300,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () {
-                      controller.cancelActivation();
-                      Get.back();
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                method.description,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.neutralInk500,
+                    const SizedBox(height: 24),
+
+                    // Title
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            method.name,
+                            style: AppTextStyles.h4,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () {
+                            controller.cancelActivation();
+                            Get.back();
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      method.description,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.neutralInk500,
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Show QR Code for Authenticator or Instructions for Email/SMS
+                    if (isAuthenticator)
+                      _buildAuthenticatorSetup(
+                        controller,
+                        controller.otpauthUrl.value,
+                      )
+                    else
+                      _buildEmailSMSInstructions(controller),
+
+                    const SizedBox(height: 24),
+
+                    // Verification Code Input
+                    CustomTextField(
+                      controller: controller.verificationCodeController,
+                      label: 'verification_code'.tr,
+                      hint: 'Enter 6-digit code',
+                      keyboardType: TextInputType.number,
+                      maxLength: 6,
+                      //inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Verify Button
+                    CustomButton(
+                      text: 'verify_and_activate'.tr,
+                      onPressed: controller.isProcessing.value
+                          ? null
+                          : controller.verifyAndActivate,
+                      isLoading: controller.isProcessing.value,
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Cancel Button
+                    CustomButton(
+                      text: 'cancel'.tr,
+                      onPressed: () {
+                        controller.cancelActivation();
+                        Get.back();
+                      },
+                      // variant: ButtonVariant.outlined,
+                    ),
+                  ],
                 ),
               ),
-
-              const SizedBox(height: 24),
-
-              // Show QR Code for Authenticator or Instructions for Email/SMS
-              if (isAuthenticator)
-                _buildAuthenticatorSetup(controller, controller.otpauthUrl.value)
-              else
-                _buildEmailSMSInstructions(controller),
-
-              const SizedBox(height: 24),
-
-              // Verification Code Input
-              CustomTextField(
-                controller: controller.verificationCodeController,
-                label: 'verification_code'.tr,
-                hint: 'Enter 6-digit code',
-                keyboardType: TextInputType.number,
-                maxLength: 6,
-                //inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              ),
-
-              const SizedBox(height: 24),
-
-              // Verify Button
-              CustomButton(
-                text: 'verify_and_activate'.tr,
-                onPressed: controller.isProcessing.value
-                    ? null
-                    : controller.verifyAndActivate,
-                isLoading: controller.isProcessing.value,
-              ),
-
-              const SizedBox(height: 16),
-
-              // Cancel Button
-              CustomButton(
-                text: 'cancel'.tr,
-                onPressed: () {
-                  controller.cancelActivation();
-                  Get.back();
-                },
-                // variant: ButtonVariant.outlined,
-              ),
-
-              // Safe area padding
-              SizedBox(height: MediaQuery.of(Get.context!).padding.bottom),
-            ],
-          ),
-        ),
-      )),
+            ),
+          );
+        },
+      ),
       isScrollControlled: true,
       isDismissible: false,
     );
@@ -335,150 +348,161 @@ class TwoFAManagementWidgets {
     final isAuthenticator = controller.current2FAMethod.value == 'authenticator';
 
     Get.bottomSheet(
-      Obx(() => Container(
-        decoration: const BoxDecoration(
-          color: AppColors.surfaceWhite,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          ),
-        ),
-        padding: const EdgeInsets.all(24),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Handle bar
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.neutralInk300,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+      Builder(
+        builder: (sheetContext) {
+          final viewInsets = MediaQuery.viewInsetsOf(sheetContext);
+          final safePadding = MediaQuery.paddingOf(sheetContext);
+          return Obx(
+            () => Container(
+              decoration: const BoxDecoration(
+                color: AppColors.surfaceWhite,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
                 ),
               ),
-              const SizedBox(height: 24),
-
-              // Title
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'verify_your_identity'.tr,
-                      style: AppTextStyles.h4,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () {
-                      controller.cancelDeactivation();
-                      Get.back();
-                    },
-                  ),
-                ],
+              padding: EdgeInsets.fromLTRB(
+                24,
+                24,
+                24,
+                24 + safePadding.bottom + viewInsets.bottom,
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Enter the verification code to deactivate 2FA',
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.neutralInk500,
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Current Method Info
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.warning.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.warning.withOpacity(0.3)),
-                ),
-                child: Row(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: AppColors.warning,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        isAuthenticator
-                            ? 'Enter the code from your authenticator app'
-                            : 'A verification code has been sent to ${controller.getMaskedContact()}',
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.neutralInk700,
+                    // Handle bar
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: AppColors.neutralInk300,
+                          borderRadius: BorderRadius.circular(2),
                         ),
                       ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Title
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'verify_your_identity'.tr,
+                            style: AppTextStyles.h4,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () {
+                            controller.cancelDeactivation();
+                            Get.back();
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Enter the verification code to deactivate 2FA',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.neutralInk500,
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Current Method Info
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.warning.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppColors.warning.withOpacity(0.3),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            color: AppColors.warning,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              isAuthenticator
+                                  ? 'Enter the code from your authenticator app'
+                                  : 'A verification code has been sent to ${controller.getMaskedContact()}',
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: AppColors.neutralInk700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // OTP Input
+                    CustomTextField(
+                      controller: controller.otpController,
+                      label: 'verification_code'.tr,
+                      hint: 'Enter 6-digit code',
+                      keyboardType: TextInputType.number,
+                      maxLength: 6,
+                      //inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    ),
+
+                    // Resend OTP (for email/SMS)
+                    if (!isAuthenticator) ...[
+                      const SizedBox(height: 16),
+                      controller.countdown.value > 0
+                          ? Text(
+                              'Resend code in ${controller.countdown.value}s',
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: AppColors.neutralInk500,
+                              ),
+                            )
+                          : TextButton(
+                              onPressed: controller.isResending.value
+                                  ? null
+                                  : controller.resendDeactivationOTP,
+                              child: Text('resend_code'.tr),
+                            ),
+                    ],
+
+                    const SizedBox(height: 24),
+
+                    // Verify and Deactivate Button
+                    CustomButton(
+                      text: 'verify_and_deactivate'.tr,
+                      onPressed: controller.isProcessing.value
+                          ? null
+                          : controller.verifyAndDeactivate,
+                      isLoading: controller.isProcessing.value,
+                      backgroundColor: AppColors.danger,
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Cancel Button
+                    CustomButton(
+                      text: 'cancel'.tr,
+                      onPressed: () {
+                        controller.cancelDeactivation();
+                        Get.back();
+                      },
                     ),
                   ],
                 ),
               ),
-
-              const SizedBox(height: 24),
-
-              // OTP Input
-              CustomTextField(
-                controller: controller.otpController,
-                label: 'verification_code'.tr,
-                hint: 'Enter 6-digit code',
-                keyboardType: TextInputType.number,
-                maxLength: 6,
-                //inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              ),
-
-              // Resend OTP (for email/SMS)
-              if (!isAuthenticator) ...[
-                const SizedBox(height: 16),
-                controller.countdown.value > 0
-                    ? Text(
-                  'Resend code in ${controller.countdown.value}s',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.neutralInk500,
-                  ),
-                )
-                    : TextButton(
-                  onPressed: controller.isResending.value
-                      ? null
-                      : controller.resendDeactivationOTP,
-                  child: Text('resend_code'.tr),
-                ),
-              ],
-
-              const SizedBox(height: 24),
-
-              // Verify and Deactivate Button
-              CustomButton(
-                text: 'verify_and_deactivate'.tr,
-                onPressed: controller.isProcessing.value
-                    ? null
-                    : controller.verifyAndDeactivate,
-                isLoading: controller.isProcessing.value,
-                backgroundColor: AppColors.danger,
-              ),
-
-              const SizedBox(height: 16),
-
-              // Cancel Button
-              CustomButton(
-                text: 'cancel'.tr,
-                onPressed: () {
-                  controller.cancelDeactivation();
-                  Get.back();
-                },
-
-              ),
-
-              // Safe area padding
-              SizedBox(height: MediaQuery.of(Get.context!).padding.bottom),
-            ],
-          ),
-        ),
-      )),
+            ),
+          );
+        },
+      ),
       isScrollControlled: true,
       isDismissible: false,
     );

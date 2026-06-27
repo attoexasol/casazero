@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
@@ -17,28 +18,34 @@ class LatestNotifications extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.find<HomeController>();
 
-    return Padding(
-      padding: const EdgeInsets.only(left: 24, right: 24, top: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Title Row with animated dot
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: 448.w),
+        child: Padding(
+          padding: EdgeInsets.only(left: 24.w, right: 24.w, top: 24.h),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'latest_notifications'.tr,
-                style: AppTextStyles.h4.copyWith(
-                  fontSize: 18, // 1.125rem
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.01 * 18, // -0.01em
-                  color: AppColors.neutralInk800,
-                ),
-              ),
-              // Animated pulsing dot
-              Container(
-                    width: 8, // w-2 = 8px
-                    height: 8,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      'latest_notifications'.tr,
+                      style: AppTextStyles.h4.copyWith(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.01 * 18,
+                        color: AppColors.neutralInk800,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  SizedBox(width: 8.w),
+                  Container(
+                        width: 8.w,
+                        height: 8.h,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: AppColors.accentLime500,
@@ -68,8 +75,7 @@ class LatestNotifications extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 16), // space-y-4 = 16px
-          // Reactive notification list - observes controller.feedItems directly
+          SizedBox(height: 16.h),
           Obx(() {
             final feedItems = controller.feedItems;
 
@@ -77,7 +83,7 @@ class LatestNotifications extends StatelessWidget {
             if (feedItems.isEmpty) {
               return Center(
                 child: Padding(
-                  padding: const EdgeInsets.all(32.0),
+                  padding: EdgeInsets.all(32.r),
                   child: Text(
                     'no_notifications'.tr,
                     style: AppTextStyles.bodyMedium.copyWith(
@@ -95,7 +101,7 @@ class LatestNotifications extends StatelessWidget {
                 final notification = entry.value as FeedItemModel;
                 return Padding(
                   padding: EdgeInsets.only(
-                    bottom: index < feedItems.length - 1 ? 10 : 0,
+                    bottom: index < feedItems.length - 1 ? 10.h : 0,
                   ),
                   child:
                       _LatestNotificationCard(
@@ -114,7 +120,9 @@ class LatestNotifications extends StatelessWidget {
               }).toList(),
             );
           }),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -270,7 +278,7 @@ class _LatestNotificationCardState extends State<_LatestNotificationCard> {
 
                   // Content
                   Padding(
-                    padding: const EdgeInsets.all(14), // p-3.5 = 14px
+                    padding: EdgeInsets.all(14.r),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -302,21 +310,21 @@ class _LatestNotificationCardState extends State<_LatestNotificationCard> {
                                   style: AppTextStyles.bodyMedium.copyWith(
                                     fontWeight: FontWeight.w600,
                                     color: AppColors.neutralInk800,
-                                    fontSize: 14,
-                                    height: 1.2, // leading-tight
+                                    height: 1.2,
                                   ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
 
-                                const SizedBox(height: 4), // mb-1 = 4px
+                                SizedBox(height: 4.h),
                                 // Description
                                 Text(
                                   displayContent,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: AppTextStyles.bodySmall.copyWith(
-                                    fontSize: 12, // text-xs
                                     color: AppColors.neutralInk500,
-                                    height: 1.5, // leading-relaxed
+                                    height: 1.5,
                                   ),
                                 ),
 
@@ -336,7 +344,6 @@ class _LatestNotificationCardState extends State<_LatestNotificationCard> {
                                     Text(
                                       notification.timeAgo,
                                       style: AppTextStyles.caption.copyWith(
-                                        fontSize: 12,
                                         color: AppColors.neutralInk400,
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -375,10 +382,10 @@ class _LatestNotificationCardState extends State<_LatestNotificationCard> {
     }
 
     return Container(
-      width: 44, // w-11 = 44px
-      height: 44,
+      width: 44.w,
+      height: 44.w,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12), // rounded-xl
+        borderRadius: BorderRadius.circular(12.r),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -408,7 +415,7 @@ class _LatestNotificationCardState extends State<_LatestNotificationCard> {
           Center(
             child: Icon(
               iconData,
-              size: 20, // w-5 h-5 = 20px
+              size: 20.sp,
               color: iconColor,
             ),
           ),

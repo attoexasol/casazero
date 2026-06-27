@@ -11,6 +11,7 @@ import 'package:get/get.dart';
 import '../../../core/controllers/message_popup_controller.dart';
 import '../../../core/utils/permissions.dart';
 import '../../../core/widgets/floating_bottom_nav_bar.dart';
+import '../../../core/widgets/tablet_centered_layout.dart';
 import '../controllers/documents_controller.dart';
 
 class DocumentsScreen extends StatefulWidget {
@@ -89,7 +90,8 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
 
             /// DOCUMENTS LIST
             Expanded(
-              child: Obx(() {
+              child: TabletCenteredLayout(
+                child: Obx(() {
                 // Show error state if there's an error
                 if (_controller.hasError.value &&
                     _controller.documents.isEmpty &&
@@ -98,31 +100,37 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.error_outline,
-                          size: 64,
+                          size: 64.sp,
                           color: Colors.red,
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16.h),
                         Text(
                           'Error Loading Documents',
-                          style: const TextStyle(
-                            fontSize: 18,
+                          style: TextStyle(
+                            fontSize: 18.sp,
                             fontWeight: FontWeight.w600,
                           ),
+                          textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8.h),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          padding: EdgeInsets.symmetric(horizontal: 32.w),
                           child: Text(
                             _controller.errorMessage.value.isNotEmpty
                                 ? _controller.errorMessage.value
                                 : 'Failed to load documents. Please try again.',
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.grey.shade600),
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 14.sp,
+                            ),
+                            maxLines: 4,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        SizedBox(height: 24.h),
                         ElevatedButton(
                           onPressed: () => _controller.retryFetchDocuments(),
                           style: ElevatedButton.styleFrom(
@@ -173,7 +181,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                 }
 
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: EdgeInsets.zero,
                   child: RefreshIndicator(
                     onRefresh: () => _controller.refreshData(),
                     color: const Color(0xFF4CAF47),
@@ -221,6 +229,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                   ),
                 );
               }),
+              ),
             ),
           ],
         ),

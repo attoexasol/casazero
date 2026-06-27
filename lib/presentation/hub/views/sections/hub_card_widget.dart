@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../data/models/hub_card_model.dart';
 
@@ -73,13 +74,13 @@ class _HubCardWidgetState extends State<HubCardWidget> {
             /// MAIN CONTENT
             Center(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16.r),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _buildIcon(),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12.h),
                     /// TITLE
                     Text(
                       widget.card.title,
@@ -88,7 +89,7 @@ class _HubCardWidgetState extends State<HubCardWidget> {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        fontSize: 14,
+                        fontSize: 14.sp,
                         color: hovered
                             ? widget.card.hoverColor
                             : Colors.black87,
@@ -115,7 +116,7 @@ class _HubCardWidgetState extends State<HubCardWidget> {
 
     // 🔹 FIRST CARD STYLE (no container) - larger icon
     if (!widget.card.wrapIconInContainer) {
-      return _buildRawIcon(path, iconSize: 55);
+      return _buildRawIcon(path, iconSize: 55.sp);
     }
 
     // 🔹 OTHER CARDS (icon inside container) - smaller icon

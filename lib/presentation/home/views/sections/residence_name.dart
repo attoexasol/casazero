@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
@@ -42,9 +43,8 @@ class _ResidenceNameState extends State<ResidenceName>
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     // Slide animation (translateY -10px → 0)
-    // Using double for absolute pixel offset with Transform.translate
     _slideAnimation = Tween<double>(
-      begin: -10.0, // -10px absolute offset
+      begin: -10.h,
       end: 0.0,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
@@ -79,7 +79,7 @@ class _ResidenceNameState extends State<ResidenceName>
           animation: _slideAnimation,
           builder: (context, child) {
             return Transform.translate(
-              offset: Offset(0, _slideAnimation.value), // Absolute -10px → 0px
+              offset: Offset(0, _slideAnimation.value),
               child: child,
             );
           },
@@ -92,16 +92,14 @@ class _ResidenceNameState extends State<ResidenceName>
   /// Build outer container with padding and max-width constraint
   Widget _buildContainer(String residenceName) {
     return Padding(
-      padding: const EdgeInsets.only(
-        top: 24, // Top padding: 24px (pt-6)
-        left: 24, // Horizontal padding: 24px (px-6)
-        right: 24, // Horizontal padding: 24px (px-6)
+      padding: EdgeInsets.only(
+        top: 24.h,
+        left: 24.w,
+        right: 24.w,
       ),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: 448,
-          ), // Max width: 448px (max-w-md)
+          constraints: BoxConstraints(maxWidth: 448.w),
           child: _buildTitleText(residenceName),
         ),
       ),
@@ -112,18 +110,18 @@ class _ResidenceNameState extends State<ResidenceName>
   Widget _buildTitleText(String residenceName) {
     return Text(
       residenceName,
-      textAlign: TextAlign.center, // Center aligned text
+      textAlign: TextAlign.center,
       style: TextStyle(
-        fontSize: 28, // Font size: 1.75rem (~28px)
-        fontWeight: FontWeight.w600, // Font weight: SemiBold (600)
-        letterSpacing: -0.7, // Letter spacing: -0.025em (28 * -0.025 = -0.7)
-        color: AppColors.neutralInk900, // Text color: neutral-ink-900
+        fontSize: 28.sp,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.7,
+        color: AppColors.neutralInk900,
         fontFamily: AppTextStyles.fontFamily,
-        height: 1.4, // Maintain vertical rhythm
+        height: 1.4,
       ),
-      // Support long residence names gracefully (wrap or soft break)
       softWrap: true,
-      overflow: TextOverflow.visible,
+      maxLines: 3,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }

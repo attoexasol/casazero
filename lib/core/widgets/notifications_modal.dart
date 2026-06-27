@@ -14,6 +14,7 @@ import '../../data/models/feed_item_model.dart';
 import '../../core/localization/locale_controller.dart';
 import '../../core/services/download_service.dart';
 import '../../presentation/main/main_scaffold.dart';
+import '../utils/accessibility.dart';
 
 /// Modal Bottom Sheet for displaying all notifications
 /// Converted from React NotificationsScreen.tsx
@@ -53,12 +54,23 @@ class _NotificationsModalContentState
 
   @override
   Widget build(BuildContext context) {
-    // Fixed height: 75% of screen height
-    final fixedHeight = MediaQuery.of(context).size.height * 0.80;
+    final screenSize = MediaQuery.sizeOf(context);
+    final viewPadding = MediaQuery.paddingOf(context);
+    final modalMaxWidth = screenSize.width >= 600 ? 560.0 : screenSize.width;
+    final modalHeight = (screenSize.height * 0.80)
+        .clamp(320.0, screenSize.height - viewPadding.top - 16);
 
-    return SizedBox(
-      height: fixedHeight,
-      child: Container(
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: modalMaxWidth,
+          maxHeight: modalHeight,
+        ),
+        child: SizedBox(
+          width: modalMaxWidth,
+          height: modalHeight,
+          child: Container(
         decoration: BoxDecoration(
           color: AppColors.surfaceWhite,
           borderRadius: BorderRadius.only(
@@ -130,15 +142,16 @@ class _NotificationsModalContentState
                                     color: AppColors.brandSage600,
                                     fontWeight: FontWeight.w500,
                                   ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                                 style: TextButton.styleFrom(
                                   padding: EdgeInsets.symmetric(
                                     horizontal: 12.w,
                                     vertical: 6.h,
                                   ),
-                                  minimumSize: Size.zero,
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
+                                  minimumSize: Size(48.w, Accessibility.minTouchTarget),
+                                  tapTargetSize: MaterialTapTargetSize.padded,
                                 ),
                               ),
                             ],
@@ -209,6 +222,8 @@ class _NotificationsModalContentState
             // ),
           ],
         ),
+          ),
+        ),
       ),
     );
   }
@@ -218,7 +233,10 @@ class _NotificationsModalContentState
 
     return GestureDetector(
       onTap: () => setState(() => _filter = filter),
-      child: Container(
+      behavior: HitTestBehavior.opaque,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: Accessibility.minTouchTarget),
+        child: Container(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.brandSage600 : AppColors.surfaceWhite,
@@ -239,7 +257,10 @@ class _NotificationsModalContentState
                 : AppColors.neutralInk700,
             fontWeight: FontWeight.w500,
           ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
         ),
+      ),
       ),
     );
   }
@@ -625,6 +646,8 @@ class _NotificationCard extends StatelessWidget {
                               fontWeight: FontWeight.w600,
                               color: AppColors.neutralInk800,
                             ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         if (!isRead) ...[
@@ -651,6 +674,8 @@ class _NotificationCard extends StatelessWidget {
                           fontSize: 14.sp,
                           color: AppColors.neutralInk500,
                         ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       SizedBox(height: 8.h),
                     ],
@@ -699,9 +724,9 @@ class _NotificationCard extends StatelessWidget {
                                               horizontal: 12.w,
                                               vertical: 0,
                                             ),
-                                            minimumSize: Size(0, 32.h),
+                                            minimumSize: Size(0, Accessibility.minTouchTarget),
                                             tapTargetSize:
-                                                MaterialTapTargetSize.shrinkWrap,
+                                                MaterialTapTargetSize.padded,
                                           ),
                                           child: Text(
                                             label,
@@ -710,7 +735,7 @@ class _NotificationCard extends StatelessWidget {
                                               fontWeight: FontWeight.w500,
                                               color: AppColors.brandSage600,
                                             ),
-                                            maxLines: 1,
+                                            maxLines: 2,
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
@@ -724,7 +749,7 @@ class _NotificationCard extends StatelessWidget {
                                 if (actionLabel != null) SizedBox(width: 8.w),
                                 Flexible(
                                   child: SizedBox(
-                                    height: 32.h,
+                                    height: Accessibility.minTouchTarget,
                                     child: TextButton(
                                       onPressed: onMarkAsRead,
                                       style: TextButton.styleFrom(
@@ -732,9 +757,9 @@ class _NotificationCard extends StatelessWidget {
                                           horizontal: 12.w,
                                           vertical: 0,
                                         ),
-                                        minimumSize: Size(0, 32.h),
+                                        minimumSize: Size(0, Accessibility.minTouchTarget),
                                         tapTargetSize:
-                                            MaterialTapTargetSize.shrinkWrap,
+                                            MaterialTapTargetSize.padded,
                                       ),
                                       child: Text(
                                         'markAsRead'.tr.isEmpty
@@ -744,7 +769,7 @@ class _NotificationCard extends StatelessWidget {
                                           fontSize: 12.sp,
                                           color: AppColors.neutralInk700,
                                         ),
-                                        maxLines: 1,
+                                        maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),

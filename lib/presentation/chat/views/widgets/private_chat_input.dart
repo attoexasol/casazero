@@ -37,12 +37,16 @@ class PrivateChatInput extends StatelessWidget {
       ),
     );
 
+    final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
+    final bottomSafe =
+        keyboardOpen ? 0.0 : MediaQuery.paddingOf(context).bottom;
+
     return Container(
       padding: EdgeInsets.fromLTRB(
         16.w,
         12.h,
         16.w,
-        12.h + MediaQuery.of(context).padding.bottom,
+        12.h + bottomSafe,
       ),
       decoration: BoxDecoration(
         color: AppColors.surfaceWhite,

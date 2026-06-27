@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../app/theme/app_colors.dart';
@@ -36,7 +37,7 @@ class ProfileHeaderCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: AppShadows.shadowProfileCard,
         ),
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20.r),
         child: Column(
           children: [
             // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ HEADER ROW Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
@@ -44,7 +45,7 @@ class ProfileHeaderCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _avatar(initials, profileController),
-                const SizedBox(width: 16),
+                SizedBox(width: 16.w),
                 Expanded(child: _userInfo(currentUser, roleBadge)),
                 _editButton(context),
 
@@ -192,13 +193,13 @@ class ProfileHeaderCard extends StatelessWidget {
     return Stack(
       children: [
         CircleAvatar(
-          radius: 32,
+          radius: 32.r,
           backgroundColor: AppColors.brandSage500,
           child: Text(
             initials,
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white,
-              fontSize: 20,
+              fontSize: 20.sp,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -282,19 +283,22 @@ class ProfileHeaderCard extends StatelessWidget {
         Text(
           currentUser.fullName,
           style: AppTextStyles.h4,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: 4.h),
 
-        // Role Badge
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
           decoration: BoxDecoration(
             color: badge['color'],
-            borderRadius: BorderRadius.circular(50),
+            borderRadius: BorderRadius.circular(50.r),
           ),
           child: Text(
             badge["label"],
-            style: const TextStyle(color: Colors.white, fontSize: 12),
+            style: TextStyle(color: Colors.white, fontSize: 12.sp),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
 
@@ -333,9 +337,9 @@ class ProfileHeaderCard extends StatelessWidget {
     return Column(
       children: [
         const Divider(),
-        const SizedBox(height: 12),
+        SizedBox(height: 12.h),
         _infoRow("mail", currentUser.email),
-        const SizedBox(height: 12),
+        SizedBox(height: 12.h),
         _infoRow("phone", currentUser.phone),
       ],
     );
@@ -346,20 +350,22 @@ class ProfileHeaderCard extends StatelessWidget {
       children: [
         SvgPicture.asset(
           icon == "mail" ? 'assets/images/mail_icon.svg' : 'assets/images/phone_icon.svg',
-          width: 18,
-          height: 18,
+          width: 18.w,
+          height: 18.h,
           colorFilter: const ColorFilter.mode(
             AppColors.neutralInk500,
             BlendMode.srcIn,
           ),
         ),
-        const SizedBox(width: 10),
+        SizedBox(width: 10.w),
         Expanded(
           child: Text(
             data,
             style: AppTextStyles.bodyMedium.copyWith(
               color: AppColors.neutralInk700,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],

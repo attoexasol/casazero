@@ -9,6 +9,7 @@ import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/widgets/custom_text_field.dart';
 import '../../../core/widgets/custom_button.dart';
+import '../../../core/widgets/responsive_alert_dialog.dart';
 import '../../otp_verification/controllers/otp_verification_controller.dart';
 import '../../profile/controllers/document_password_controller.dart';
 
@@ -91,6 +92,8 @@ class DocumentPassword2FAVerificationScreen extends GetView<OtpVerificationContr
                         color: AppColors.neutralInk900,
                         fontWeight: FontWeight.w600,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     SizedBox(height: 2.h),
                     Text(
@@ -98,6 +101,8 @@ class DocumentPassword2FAVerificationScreen extends GetView<OtpVerificationContr
                       style: AppTextStyles.caption.copyWith(
                         color: AppColors.neutralInk500,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -401,30 +406,56 @@ class DocumentPassword2FAVerificationScreen extends GetView<OtpVerificationContr
 
   void _handleCancel() {
     Get.dialog(
-      AlertDialog(
-        title: Text('cancel_verification'.tr),
-        content: Text('document_password_2fa_cancel_message'.tr),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text('no'.tr),
+      Builder(
+        builder: (_) => ResponsiveAlertDialog(
+          scrollable: true,
+          clipBehavior: Clip.antiAlias,
+          title: Text(
+            'cancel_verification'.tr,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
-          TextButton(
-            onPressed: () {
-              Get.back(); // Close dialog
-              // Cancel document password flow - return false result
-              try {
-                final documentPasswordController = Get.find<DocumentPasswordController>();
-                documentPasswordController.cancel2FAFlow();
-              } catch (e) {
-                // Controller might not be found, that's okay
-              }
-              // Return false to indicate cancellation
-              Get.back(result: false);
-            },
-            child: Text('yes'.tr),
+          content: Text(
+            'document_password_2fa_cancel_message'.tr,
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
           ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(),
+              child: Text(
+                'no'.tr,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Get.back();
+                try {
+                  final documentPasswordController =
+                      Get.find<DocumentPasswordController>();
+                  documentPasswordController.cancel2FAFlow();
+                } catch (e) {
+                  // Controller might not be found, that's okay
+                }
+                Get.back(result: false);
+              },
+              child: Text(
+                'yes'.tr,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+          actionsAlignment: MainAxisAlignment.end,
+          actionsPadding: EdgeInsets.symmetric(
+            horizontal: 16.w,
+            vertical: 8.h,
+          ),
+          contentPadding: EdgeInsets.fromLTRB(24.w, 20.h, 24.w, 0),
+          titlePadding: EdgeInsets.fromLTRB(24.w, 24.h, 24.w, 0),
+        ),
       ),
     );
   }

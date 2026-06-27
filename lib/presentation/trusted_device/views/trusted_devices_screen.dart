@@ -9,6 +9,7 @@ import '../controllers/trusted_devices_controller.dart';
 import '../../../data/models/trusted_device_model.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../core/widgets/tablet_centered_layout.dart';
 
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -23,7 +24,8 @@ class TrustedDevicesScreen extends GetView<TrustedDevicesController> {
         children: [
           _buildHeader(),
           Expanded(
-            child: Obx(() {
+            child: TabletCenteredLayout(
+              child: Obx(() {
               if (controller.isLoading.value) {
                 return const Center(child: CircularProgressIndicator());
               }
@@ -47,6 +49,7 @@ class TrustedDevicesScreen extends GetView<TrustedDevicesController> {
                 ),
               );
             }),
+            ),
           ),
         ],
       ),
@@ -94,6 +97,8 @@ class TrustedDevicesScreen extends GetView<TrustedDevicesController> {
                         color: AppColors.neutralInk900,
                         fontWeight: FontWeight.w600,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     SizedBox(height: 2.h),
                     Text(
@@ -101,6 +106,8 @@ class TrustedDevicesScreen extends GetView<TrustedDevicesController> {
                       style: AppTextStyles.caption.copyWith(
                         color: AppColors.neutralInk500,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),

@@ -4,6 +4,9 @@
 // Returns the entered password on OK, null on Cancel.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import 'responsive_alert_dialog.dart';
 
 /// Shows the password dialog FIRST after download. User enters ZIP password
 /// (or leaves empty for unencrypted ZIP). Returns password on OK, null on Cancel.
@@ -13,47 +16,59 @@ Future<String?> showZipPasswordDialog(BuildContext context) async {
   final result = await showDialog<bool>(
     context: context,
     barrierDismissible: false,
-    builder: (ctx) {
-      return AlertDialog(
-        title: const Text('ZIP password'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Enter the ZIP password. Leave empty if the file is not protected.',
-              style: TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: controller,
-              autofocus: true,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Password',
-                hintText: 'Enter password or leave empty',
-                border: OutlineInputBorder(),
-              ),
-              onSubmitted: (_) => Navigator.of(ctx).pop(true),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
+    builder: (ctx) => ResponsiveAlertDialog(
+      scrollable: true,
+      title: const Text(
+        'ZIP password',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Enter the ZIP password. Leave empty if the file is not protected.',
+            style: TextStyle(fontSize: 14.sp),
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
           ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('OK'),
+          SizedBox(height: 16.h),
+          TextField(
+            controller: controller,
+            autofocus: true,
+            obscureText: true,
+            decoration: const InputDecoration(
+              labelText: 'Password',
+              hintText: 'Enter password or leave empty',
+              border: OutlineInputBorder(),
+            ),
+            onSubmitted: (_) => Navigator.of(ctx).pop(true),
           ),
         ],
-      );
-    },
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: const Text(
+            'Cancel',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(ctx).pop(true),
+          child: const Text(
+            'OK',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    ),
   );
   final raw = result == true ? controller.text : null;
   controller.dispose();
-  // Return null only on Cancel; return '' when OK with empty field (no password)
   if (result != true) return null;
   return raw?.trim() ?? '';
 }

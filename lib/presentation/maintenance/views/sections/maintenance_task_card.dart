@@ -4,6 +4,7 @@ import 'package:casazero/app/theme/app_shadows.dart';
 import 'package:casazero/app/theme/app_text_styles.dart';
 import 'package:casazero/core/controllers/message_popup_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
@@ -321,14 +322,14 @@ class MaintenanceTaskCard extends StatelessWidget {
           controller.expandedCardId.value == task.id;
 
       final priorityBorderColor = _getPriorityBorderColor();
-      const cardRadius = 16.0;
-      final borderWidth = isOverdue ? 2.0 : 0.0;
+      final cardRadius = 16.r;
+      final borderWidth = isOverdue ? 2.w : 0.0;
       // Inner corner radius must account for the card border so the accent
       // strip follows the same curve as the card edge.
       final innerRadius = cardRadius - borderWidth;
 
       return Container(
-        margin: const EdgeInsets.only(bottom: 12),
+        margin: EdgeInsets.only(bottom: 12.h),
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           color: AppColors.surfaceWhite,
@@ -347,7 +348,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                 children: [
                   /// LEFT ACCENT BORDER
                   Container(
-                    width: 8,
+                    width: 8.w,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
@@ -371,7 +372,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                       children: [
                         // Compact View
                         Padding(
-                          padding: const EdgeInsets.all(16),
+                          padding: EdgeInsets.all(16.w),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -380,8 +381,8 @@ class MaintenanceTaskCard extends StatelessWidget {
                                 children: [
                                   Expanded(
                                     child: Wrap(
-                                      spacing: 8,
-                                      runSpacing: 8,
+                                      spacing: 8.w,
+                                      runSpacing: 8.h,
                                       children: [
                                         // Priority Badge (background matches left border color)
                                         Obx(() {
@@ -393,9 +394,9 @@ class MaintenanceTaskCard extends StatelessWidget {
                                           final priorityLabel =
                                               _getLocalizedPriorityLabel();
                                           return Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 10,
-                                              vertical: 4,
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 10.w,
+                                              vertical: 4.h,
                                             ),
                                             decoration: BoxDecoration(
                                               color:
@@ -405,26 +406,28 @@ class MaintenanceTaskCard extends StatelessWidget {
                                                     _getPriorityBadgeBorderColor(),
                                               ),
                                               borderRadius:
-                                                  BorderRadius.circular(6),
+                                                  BorderRadius.circular(6.r),
                                             ),
                                             child: Text(
                                               priorityLabel,
                                               style: TextStyle(
-                                                fontSize: 12,
+                                                fontSize: 12.sp,
                                                 fontWeight: FontWeight.w600,
                                                 color:
                                                     _getPriorityBadgeTextColor(),
                                                 height: 1.2,
                                                 letterSpacing: 0,
                                               ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
                                             ),
                                           );
                                         }),
                                         // Status Badge
                                         Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                            vertical: 4,
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 10.w,
+                                            vertical: 4.h,
                                           ),
                                           decoration: BoxDecoration(
                                             color: _getStatusColor(task.status),
@@ -434,13 +437,13 @@ class MaintenanceTaskCard extends StatelessWidget {
                                               ).withOpacity(0.3),
                                             ),
                                             borderRadius: BorderRadius.circular(
-                                              6,
+                                              6.r,
                                             ),
                                           ),
                                           child: Text(
                                             _getStatusLabel(task.status),
                                             style: TextStyle(
-                                              fontSize: 12,
+                                              fontSize: 12.sp,
                                               fontWeight: FontWeight.w600,
                                               color: _getStatusTextColor(
                                                 task.status,
@@ -448,6 +451,8 @@ class MaintenanceTaskCard extends StatelessWidget {
                                               height: 1.2,
                                               letterSpacing: 0,
                                             ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
                                       ],
@@ -458,12 +463,13 @@ class MaintenanceTaskCard extends StatelessWidget {
                                     duration: const Duration(milliseconds: 300),
                                     child: Icon(
                                       Icons.keyboard_arrow_down,
+                                      size: 24.sp,
                                       color: AppColors.neutralInk500,
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 12),
+                              SizedBox(height: 12.h),
 
                               // Title (uses item_name_en/item_name_it, reactive to language changes)
                               Obx(() {
@@ -479,9 +485,11 @@ class MaintenanceTaskCard extends StatelessWidget {
                                     fontWeight: FontWeight.w600,
                                     color: AppColors.neutralInk900,
                                   ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 );
                               }),
-                              const SizedBox(height: 8),
+                              SizedBox(height: 8.h),
 
                               // Category and Frequency
                               isExpanded
@@ -490,14 +498,14 @@ class MaintenanceTaskCard extends StatelessWidget {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 4,
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 8.w,
+                                            vertical: 4.h,
                                           ),
                                           decoration: BoxDecoration(
                                             color: AppColors.surfaceWarm50,
                                             borderRadius: BorderRadius.circular(
-                                              6,
+                                              6.r,
                                             ),
                                           ),
                                           child: Obx(() {
@@ -520,7 +528,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                             );
                                           }),
                                         ),
-                                        const SizedBox(height: 6),
+                                        SizedBox(height: 6.h),
                                         // Use Obx to make frequency reactive to language changes
                                         Obx(() {
                                           final localeController =
@@ -548,14 +556,14 @@ class MaintenanceTaskCard extends StatelessWidget {
                                       children: [
                                         Flexible(
                                           child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 4,
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 8.w,
+                                              vertical: 4.h,
                                             ),
                                             decoration: BoxDecoration(
                                               color: AppColors.surfaceWarm50,
                                               borderRadius:
-                                                  BorderRadius.circular(6),
+                                                  BorderRadius.circular(6.r),
                                             ),
                                             child: Obx(() {
                                               final localeController =
@@ -578,14 +586,14 @@ class MaintenanceTaskCard extends StatelessWidget {
                                             }),
                                           ),
                                         ),
-                                        const SizedBox(width: 8),
+                                        SizedBox(width: 8.w),
                                         Text(
                                           '•',
                                           style: TextStyle(
                                             color: AppColors.neutralInk400,
                                           ),
                                         ),
-                                        const SizedBox(width: 8),
+                                        SizedBox(width: 8.w),
                                         // Use Obx to make frequency reactive to language changes
                                         Flexible(
                                           child: Obx(() {
@@ -612,7 +620,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                         ),
                                       ],
                                     ),
-                              const SizedBox(height: 12),
+                              SizedBox(height: 12.h),
 
                               // Dates
                               // TEMP: Log lastMaintenanceDate for verification
@@ -629,27 +637,30 @@ class MaintenanceTaskCard extends StatelessWidget {
                                 children: [
                                   if (task.nextDue != null)
                                     Row(
-                                      mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Icon(
                                           Icons.calendar_today,
-                                          size: 14,
+                                          size: 14.sp,
                                           color: isOverdue
                                               ? Colors.red.shade600
                                               : AppColors.neutralInk500,
                                         ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          '${'startDate'.tr}: ${_formatDate(task.nextDue)}',
-                                          style: AppTextStyles.bodySmall
-                                              .copyWith(
-                                                color: isOverdue
-                                                    ? Colors.red.shade600
-                                                    : AppColors.neutralInk700,
-                                                fontWeight: isOverdue
-                                                    ? FontWeight.w600
-                                                    : FontWeight.normal,
-                                              ),
+                                        SizedBox(width: 4.w),
+                                        Expanded(
+                                          child: Text(
+                                            '${'startDate'.tr}: ${_formatDate(task.nextDue)}',
+                                            style: AppTextStyles.bodySmall
+                                                .copyWith(
+                                                  color: isOverdue
+                                                      ? Colors.red.shade600
+                                                      : AppColors.neutralInk700,
+                                                  fontWeight: isOverdue
+                                                      ? FontWeight.w600
+                                                      : FontWeight.normal,
+                                                ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -657,7 +668,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                   if (task.lastMaintenanceDate != null &&
                                       task.lastMaintenanceDate!.isNotEmpty) ...[
                                     if (task.nextDue != null)
-                                      const SizedBox(height: 8),
+                                      SizedBox(height: 8.h),
                                     // Row(
                                     //   mainAxisSize: MainAxisSize.min,
                                     //   children: [
@@ -688,7 +699,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                           Divider(height: 1, color: AppColors.neutralLine200),
                           Container(
                             color: AppColors.surfaceWarm50.withOpacity(0.3),
-                            padding: const EdgeInsets.all(16),
+                            padding: EdgeInsets.all(16.w),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -713,7 +724,7 @@ class MaintenanceTaskCard extends StatelessWidget {
 
                                 // Residence Name
                                 if (task.residenceObj != null) ...[
-                                  const SizedBox(height: 16),
+                                  SizedBox(height: 16.h),
                                   Text(
                                     'residence_title'.tr,
                                     style: AppTextStyles.bodySmall.copyWith(
@@ -721,12 +732,14 @@ class MaintenanceTaskCard extends StatelessWidget {
                                       color: AppColors.neutralInk700,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
+                                  SizedBox(height: 4.h),
                                   Text(
                                     task.residenceObj!.residenceName,
                                     style: AppTextStyles.bodyMedium.copyWith(
                                       color: AppColors.neutralInk700,
                                     ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
 
@@ -737,7 +750,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                             task.companyObj!
                                                 .phone!
                                                 .isNotEmpty))) ...[
-                                  const SizedBox(height: 16),
+                                  SizedBox(height: 16.h),
                                   Obx(() {
                                     final localeController =
                                         Get.find<LocaleController>();
@@ -752,7 +765,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                       ),
                                     );
                                   }),
-                                  const SizedBox(height: 4),
+                                  SizedBox(height: 4.h),
                                   if (task.companyObj!.name.isNotEmpty)
                                     Text(
                                       task.companyObj!.name,
@@ -760,11 +773,13 @@ class MaintenanceTaskCard extends StatelessWidget {
                                         color: AppColors.neutralInk700,
                                         fontWeight: FontWeight.w500,
                                       ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   if (task.companyObj!.phone != null &&
                                       task.companyObj!.phone!.isNotEmpty) ...[
                                     if (task.companyObj!.name.isNotEmpty)
-                                      const SizedBox(height: 4),
+                                      SizedBox(height: 4.h),
                                     Row(
                                       children: [
                                         Expanded(
@@ -775,12 +790,14 @@ class MaintenanceTaskCard extends StatelessWidget {
                                                   color:
                                                       AppColors.neutralInk700,
                                                 ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
                                         IconButton(
-                                          icon: const Icon(
+                                          icon: Icon(
                                             Icons.call,
-                                            size: 20,
+                                            size: 20.sp,
                                             color: AppColors.brandSage400,
                                           ),
                                           padding: EdgeInsets.zero,
@@ -829,7 +846,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                 // Attachments
                                 if (task.attachments != null &&
                                     task.attachments!.isNotEmpty) ...[
-                                  const SizedBox(height: 16),
+                                  SizedBox(height: 16.h),
                                   Text(
                                     'attachments'.tr,
                                     style: AppTextStyles.bodySmall.copyWith(
@@ -837,23 +854,23 @@ class MaintenanceTaskCard extends StatelessWidget {
                                       color: AppColors.neutralInk700,
                                     ),
                                   ),
-                                  const SizedBox(height: 8),
+                                  SizedBox(height: 8.h),
                                   ...task.attachments!.map((file) {
                                     return Container(
-                                      margin: const EdgeInsets.only(bottom: 8),
-                                      padding: const EdgeInsets.all(12),
+                                      margin: EdgeInsets.only(bottom: 8.h),
+                                      padding: EdgeInsets.all(12.w),
                                       decoration: BoxDecoration(
                                         color: AppColors.surfaceWhite,
                                         border: Border.all(
                                           color: AppColors.neutralLine200,
                                         ),
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(12.r),
                                       ),
                                       child: Row(
                                         children: [
                                           Container(
-                                            width: 32,
-                                            height: 32,
+                                            width: 32.w,
+                                            height: 32.w,
                                             decoration: BoxDecoration(
                                               gradient: LinearGradient(
                                                 begin: Alignment.topLeft,
@@ -868,15 +885,15 @@ class MaintenanceTaskCard extends StatelessWidget {
                                                 ],
                                               ),
                                               borderRadius:
-                                                  BorderRadius.circular(8),
+                                                  BorderRadius.circular(8.r),
                                             ),
-                                            child: const Icon(
+                                            child: Icon(
                                               Icons.description,
-                                              size: 16,
+                                              size: 16.sp,
                                               color: Color(0xFF6A8F7B),
                                             ),
                                           ),
-                                          const SizedBox(width: 12),
+                                          SizedBox(width: 12.w),
                                           Expanded(
                                             child: Column(
                                               crossAxisAlignment:
@@ -889,6 +906,9 @@ class MaintenanceTaskCard extends StatelessWidget {
                                                         fontWeight:
                                                             FontWeight.w500,
                                                       ),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
                                                 Text(
                                                   file.type,
@@ -897,13 +917,16 @@ class MaintenanceTaskCard extends StatelessWidget {
                                                         color: AppColors
                                                             .neutralInk500,
                                                       ),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
                                               ],
                                             ),
                                           ),
                                           Icon(
                                             Icons.file_download_outlined,
-                                            size: 18,
+                                            size: 18.sp,
                                             color: AppColors.neutralInk500,
                                           ),
                                         ],
@@ -915,7 +938,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                 // Contacts
                                 if (task.contacts != null &&
                                     task.contacts!.isNotEmpty) ...[
-                                  const SizedBox(height: 16),
+                                  SizedBox(height: 16.h),
                                   Text(
                                     'contacts'.tr,
                                     style: AppTextStyles.bodySmall.copyWith(
@@ -923,17 +946,17 @@ class MaintenanceTaskCard extends StatelessWidget {
                                       color: AppColors.neutralInk700,
                                     ),
                                   ),
-                                  const SizedBox(height: 8),
+                                  SizedBox(height: 8.h),
                                   ...task.contacts!.map((contact) {
                                     return Container(
-                                      margin: const EdgeInsets.only(bottom: 8),
-                                      padding: const EdgeInsets.all(12),
+                                      margin: EdgeInsets.only(bottom: 8.h),
+                                      padding: EdgeInsets.all(12.w),
                                       decoration: BoxDecoration(
                                         color: AppColors.surfaceWhite,
                                         border: Border.all(
                                           color: AppColors.neutralLine200,
                                         ),
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(12.r),
                                       ),
                                       child: Column(
                                         crossAxisAlignment:
@@ -945,6 +968,8 @@ class MaintenanceTaskCard extends StatelessWidget {
                                                 .copyWith(
                                                   fontWeight: FontWeight.w600,
                                                 ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
                                           Text(
                                             contact.role,
@@ -953,45 +978,57 @@ class MaintenanceTaskCard extends StatelessWidget {
                                                   color:
                                                       AppColors.neutralInk700,
                                                 ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
                                           if (contact.phone != null) ...[
-                                            const SizedBox(height: 4),
+                                            SizedBox(height: 4.h),
                                             Row(
                                               children: [
                                                 Icon(
                                                   Icons.phone,
-                                                  size: 12,
+                                                  size: 12.sp,
                                                   color: AppColors.brandSage400,
                                                 ),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  contact.phone!,
-                                                  style: AppTextStyles.bodySmall
-                                                      .copyWith(
-                                                        color: AppColors
-                                                            .brandSage400,
-                                                      ),
+                                                SizedBox(width: 4.w),
+                                                Expanded(
+                                                  child: Text(
+                                                    contact.phone!,
+                                                    style: AppTextStyles.bodySmall
+                                                        .copyWith(
+                                                          color: AppColors
+                                                              .brandSage400,
+                                                        ),
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
                                                 ),
                                               ],
                                             ),
                                           ],
                                           if (contact.email != null) ...[
-                                            const SizedBox(height: 4),
+                                            SizedBox(height: 4.h),
                                             Row(
                                               children: [
                                                 Icon(
                                                   Icons.email,
-                                                  size: 12,
+                                                  size: 12.sp,
                                                   color: AppColors.brandSage400,
                                                 ),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  contact.email!,
-                                                  style: AppTextStyles.bodySmall
-                                                      .copyWith(
-                                                        color: AppColors
-                                                            .brandSage400,
-                                                      ),
+                                                SizedBox(width: 4.w),
+                                                Expanded(
+                                                  child: Text(
+                                                    contact.email!,
+                                                    style: AppTextStyles.bodySmall
+                                                        .copyWith(
+                                                          color: AppColors
+                                                              .brandSage400,
+                                                        ),
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
                                                 ),
                                               ],
                                             ),
@@ -1003,7 +1040,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                 ],
 
                                 // Action Buttons
-                                const SizedBox(height: 16),
+                                SizedBox(height: 16.h),
                                 Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
@@ -1017,11 +1054,11 @@ class MaintenanceTaskCard extends StatelessWidget {
                                           backgroundColor:
                                               AppColors.brandSage400, // ✅ green
                                           shape: const StadiumBorder(),
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 10,
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 16.w,
+                                            vertical: 10.h,
                                           ),
-                                          minimumSize: const Size(0, 48),
+                                          minimumSize: Size(0, 48.h),
                                           elevation: 0,
                                         ),
                                         child: Row(
@@ -1035,10 +1072,10 @@ class MaintenanceTaskCard extends StatelessWidget {
                                                           .completed
                                                   ? Icons.undo
                                                   : Icons.check_circle_outline,
-                                              size: 17,
+                                              size: 17.sp,
                                               color: AppColors.surfaceWhite,
                                             ),
-                                            const SizedBox(width: 8),
+                                            SizedBox(width: 8.w),
                                             Flexible(
                                               child: Text(
                                                 task.status ==
@@ -1050,7 +1087,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                                     .copyWith(
                                                       color: AppColors
                                                           .surfaceWhite,
-                                                      fontSize: 14,
+                                                      fontSize: 14.sp,
                                                       fontWeight:
                                                           FontWeight.w600,
                                                     ),
@@ -1062,7 +1099,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(width: 12),
+                                    SizedBox(width: 12.w),
                                     // Secondary Action: Schedule Visit (icon only with text below)
                                     Column(
                                       mainAxisSize: MainAxisSize.min,
@@ -1075,34 +1112,38 @@ class MaintenanceTaskCard extends StatelessWidget {
                                             backgroundColor: Colors.transparent,
                                             shape: RoundedRectangleBorder(
                                               borderRadius:
-                                                  BorderRadius.circular(12),
+                                                  BorderRadius.circular(12.r),
                                             ),
-                                            padding: const EdgeInsets.all(12),
-                                            minimumSize: const Size(48, 48),
-                                            maximumSize: const Size(48, 48),
-                                            tapTargetSize: MaterialTapTargetSize
-                                                .shrinkWrap,
+                                            padding: EdgeInsets.all(12.w),
+                                            minimumSize: Size(48.w, 48.w),
+                                            tapTargetSize:
+                                                MaterialTapTargetSize.padded,
                                           ),
-                                          child: const Icon(
+                                          child: Icon(
                                             Icons.calendar_today,
-                                            size: 20,
+                                            size: 20.sp,
                                             color: Color(0xFF6A8F7B),
                                           ),
                                         ),
                                         //const SizedBox(height: 2),
-                                        Text(
-                                          'scheduleVisit'.tr,
-                                          style: AppTextStyles.bodySmall
-                                              .copyWith(
-                                                color: const Color(0xFF6A8F7B),
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                          textAlign: TextAlign.center,
+                                        SizedBox(
+                                          width: 56.w,
+                                          child: Text(
+                                            'scheduleVisit'.tr,
+                                            style: AppTextStyles.bodySmall
+                                                .copyWith(
+                                                  color: const Color(0xFF6A8F7B),
+                                                  fontSize: 10.sp,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                            textAlign: TextAlign.center,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(width: 12),
+                                    SizedBox(width: 12.w),
                                     // Secondary Action: Ask AI (icon only with text below)
                                     Column(
                                       mainAxisSize: MainAxisSize.min,
@@ -1113,30 +1154,34 @@ class MaintenanceTaskCard extends StatelessWidget {
                                             backgroundColor: Colors.transparent,
                                             shape: RoundedRectangleBorder(
                                               borderRadius:
-                                                  BorderRadius.circular(12),
+                                                  BorderRadius.circular(12.r),
                                             ),
-                                            padding: const EdgeInsets.all(12),
-                                            minimumSize: const Size(48, 48),
-                                            maximumSize: const Size(48, 48),
-                                            tapTargetSize: MaterialTapTargetSize
-                                                .shrinkWrap,
+                                            padding: EdgeInsets.all(12.w),
+                                            minimumSize: Size(48.w, 48.w),
+                                            tapTargetSize:
+                                                MaterialTapTargetSize.padded,
                                           ),
-                                          child: const Icon(
+                                          child: Icon(
                                             Icons.chat_bubble_outline,
-                                            size: 20,
+                                            size: 20.sp,
                                             color: Color(0xFF6A8F7B),
                                           ),
                                         ),
                                         //const SizedBox(height: 2),
-                                        Text(
-                                          'askAI'.tr,
-                                          style: AppTextStyles.bodySmall
-                                              .copyWith(
-                                                color: const Color(0xFF6A8F7B),
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                          textAlign: TextAlign.center,
+                                        SizedBox(
+                                          width: 56.w,
+                                          child: Text(
+                                            'askAI'.tr,
+                                            style: AppTextStyles.bodySmall
+                                                .copyWith(
+                                                  color: const Color(0xFF6A8F7B),
+                                                  fontSize: 10.sp,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                            textAlign: TextAlign.center,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
                                         ),
                                       ],
                                     ),

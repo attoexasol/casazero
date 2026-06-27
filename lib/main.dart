@@ -202,15 +202,14 @@ class CasaZeroApp extends StatelessWidget {
             defaultTransition: Transition.fade,
             transitionDuration: const Duration(milliseconds: 300),
 
-            // PLATFORM-SPECIFIC TEXT SCALER FIX
-            // Note: SafeArea removed from builder to allow GetX popups to display properly
-            // SafeArea should be applied at individual screen/widget level if needed
+            // ACCESSIBILITY: respect system text scale, clamp extremes to protect layout
             builder: (context, widget) {
-              // Ensure GetX has proper context for overlays
+              final textScaler = MediaQuery.textScalerOf(context).clamp(
+                minScaleFactor: 0.85,
+                maxScaleFactor: 1.3,
+              );
               return MediaQuery(
-                data: MediaQuery.of(
-                  context,
-                ).copyWith(textScaler: const TextScaler.linear(1.0)),
+                data: MediaQuery.of(context).copyWith(textScaler: textScaler),
                 child: widget!,
               );
             },

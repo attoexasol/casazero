@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class EmptyState extends StatelessWidget {
   final String title;
@@ -14,24 +15,37 @@ class EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: EdgeInsets.all(32.r),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.insert_drive_file_outlined,
-                size: 64, color: Colors.grey),
-            const SizedBox(height: 16),
+            Icon(
+              Icons.insert_drive_file_outlined,
+              size: 64.sp,
+              color: Colors.grey,
+            ),
+            SizedBox(height: 16.h),
             Text(
               title,
-              style: const TextStyle(
-                  fontSize: 18, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: 6.h),
             Text(
               description,
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey.shade600),
-            )
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: Colors.grey.shade600,
+              ),
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
         ),
       ),

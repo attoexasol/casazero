@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../app/theme/app_colors.dart';
@@ -55,7 +56,7 @@ class NotificationSettingsCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: AppShadows.shadowProfileCard,
         ),
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20.r),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -63,14 +64,16 @@ class NotificationSettingsCard extends StatelessWidget {
               "notification_preferences".tr,
               style: AppTextStyles.CardHeaderText,
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4.h),
             Text(
               "notification_desc".tr,
               style: AppTextStyles.cardText.copyWith(
                 color: AppColors.neutralInk500,
               ),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
 
             _buildSwitch(
               key: const ValueKey('documents'),

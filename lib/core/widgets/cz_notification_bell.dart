@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../app/theme/app_colors.dart';
+import '../utils/accessibility.dart';
 
 class CZNotificationBell extends StatefulWidget {
   final int count;
@@ -59,7 +60,12 @@ class _CZNotificationBellState extends State<CZNotificationBell>
       child: InkWell(
         borderRadius: BorderRadius.circular(50.r),
         onTap: _handleTap,
-        child: Stack(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minWidth: Accessibility.minTouchTarget,
+            minHeight: Accessibility.minTouchTarget,
+          ),
+          child: Stack(
           clipBehavior: Clip.none,
           children: [
             Container(
@@ -77,15 +83,15 @@ class _CZNotificationBellState extends State<CZNotificationBell>
 
             if (widget.count > 0)
               Positioned(
-                right: -2,
-                top: -2,
+                right: -2.w,
+                top: -2.h,
                 child: Container(
                   width: 22.w,
                   height: 22.w,
                   decoration: BoxDecoration(
                     color: Colors.redAccent,
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
+                    border: Border.all(color: Colors.white, width: 2.w),
                   ),
                   alignment: Alignment.center,
                   child: Text(
@@ -99,6 +105,7 @@ class _CZNotificationBellState extends State<CZNotificationBell>
                 ),
               ),
           ],
+        ),
         ),
       ),
     );

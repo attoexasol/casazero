@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../app/theme/app_shadows.dart';
 import '../../../../data/models/feed_item_model.dart';
 import '../../../../core/localization/locale_controller.dart';
+import '../../../../core/utils/accessibility.dart';
 
 class NotificationItem extends StatelessWidget {
   final dynamic item;
@@ -303,7 +305,7 @@ class NotificationItem extends StatelessWidget {
     required VoidCallback? onPressed,
   }) {
     return SizedBox(
-      height: 32,
+      height: Accessibility.minTouchTarget,
       child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
@@ -316,7 +318,8 @@ class NotificationItem extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          minimumSize: const Size(0, 32),
+          minimumSize: const Size(0, Accessibility.minTouchTarget),
+          tapTargetSize: MaterialTapTargetSize.padded,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -330,9 +333,9 @@ class NotificationItem extends StatelessWidget {
                 style: AppTextStyles.caption.copyWith(
                   color: AppColors.brandSage600,
                   fontWeight: FontWeight.w600,
-                  fontSize: 11,
+                  fontSize: 11.sp,
                 ),
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
             ),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../core/controllers/message_popup_controller.dart';
+import '../../../core/widgets/tablet_centered_layout.dart';
 
 enum DeviceType { light, climate, security, appliance, blinds }
 
@@ -260,40 +262,42 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
   Widget build(BuildContext context) {
     // NO SCAFFOLD - This screen is wrapped by MainScaffold
     return SingleChildScrollView(
-      padding: const EdgeInsets.only(bottom: 80),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.only(bottom: 80.h),
+      child: TabletCenteredLayout(
+        child: Padding(
+        padding: EdgeInsets.all(24.r),
         child: Column(
           children: [
             // Quick Stats
             _buildQuickStats(),
 
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
 
             // Room Filter
             _buildRoomFilter(),
 
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
 
             // Devices Grid
             _buildDevicesList(),
 
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
 
             // Quick Actions
             if (_canControlDevices) _buildQuickActions(),
 
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
 
             // Weather Info
             _buildWeatherInfo(),
 
             // View-Only Warning
             if (!_canControlDevices) ...[
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
               _buildViewOnlyWarning(),
             ],
           ],
+        ),
         ),
       ),
 
@@ -301,39 +305,59 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
   }
 
   Widget _buildQuickStats() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildStatCard(
-            icon: Icons.power,
-            iconColor: Colors.green.shade600,
-            iconBg: Colors.green.shade100,
-            value: '${_getActiveDevicesCount()}',
-            label: 'Active',
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildStatCard(
-            icon: Icons.bolt,
-            iconColor: Colors.blue.shade600,
-            iconBg: Colors.blue.shade100,
-            value: '245W',
-            label: 'Usage',
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildStatCard(
-            icon: Icons.thermostat,
-            iconColor: Colors.orange.shade600,
-            iconBg: Colors.orange.shade100,
-            value: '22Â°C',
-            label: 'Temp',
-          ),
-        ),
-      ],
-    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.2);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final useStacked = constraints.maxWidth < 340;
+
+        final activeCard = _buildStatCard(
+          icon: Icons.power,
+          iconColor: Colors.green.shade600,
+          iconBg: Colors.green.shade100,
+          value: '${_getActiveDevicesCount()}',
+          label: 'Active',
+        );
+        final usageCard = _buildStatCard(
+          icon: Icons.bolt,
+          iconColor: Colors.blue.shade600,
+          iconBg: Colors.blue.shade100,
+          value: '245W',
+          label: 'Usage',
+        );
+        final tempCard = _buildStatCard(
+          icon: Icons.thermostat,
+          iconColor: Colors.orange.shade600,
+          iconBg: Colors.orange.shade100,
+          value: '22Â°C',
+          label: 'Temp',
+        );
+
+        if (useStacked) {
+          return Column(
+            children: [
+              activeCard,
+              SizedBox(height: 12.h),
+              Row(
+                children: [
+                  Expanded(child: usageCard),
+                  SizedBox(width: 12.w),
+                  Expanded(child: tempCard),
+                ],
+              ),
+            ],
+          ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.2);
+        }
+
+        return Row(
+          children: [
+            Expanded(child: activeCard),
+            SizedBox(width: 12.w),
+            Expanded(child: usageCard),
+            SizedBox(width: 12.w),
+            Expanded(child: tempCard),
+          ],
+        ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.2);
+      },
+    );
   }
 
   Widget _buildStatCard({
@@ -344,45 +368,52 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
     required String label,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.8),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            blurRadius: 8.r,
+            offset: Offset(0, 2.h),
           ),
         ],
       ),
       child: Column(
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: 40.w,
+            height: 40.h,
             decoration: BoxDecoration(
               color: iconBg,
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: iconColor, size: 20),
+            child: Icon(icon, color: iconColor, size: 20.sp),
           ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1A1A1A),
+          SizedBox(height: 8.h),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 24.sp,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF1A1A1A),
+              ),
+              maxLines: 1,
             ),
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: 2.h),
           Text(
             label,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 11.sp,
               color: Colors.grey.shade600,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -420,12 +451,12 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
         children: rooms.map((room) {
           final isActive = _activeRoom == room['id'];
           return Container(
-            margin: const EdgeInsets.only(right: 8),
+            margin: EdgeInsets.only(right: 8.w),
             child: Material(
               color: isActive
                   ? const Color(0xFF6B8E23)
                   : Colors.white,
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(24.r),
               elevation: isActive ? 4 : 1,
               shadowColor: isActive
                   ? const Color(0xFF6B8E23).withOpacity(0.2)
@@ -436,18 +467,20 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
                     _activeRoom = room['id'] as String;
                   });
                 },
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(24.r),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 8.h,
                   ),
                   child: Text(
                     '${room['label']} (${room['count']})',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 13.sp,
                       color: isActive ? Colors.white : Colors.grey.shade700,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),
@@ -459,18 +492,46 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
   }
 
   Widget _buildDevicesList() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final contentWidth = constraints.maxWidth;
+        final useTwoColumns = contentWidth >= 520;
+        final columnSpacing = 12.w;
+        final itemWidth = useTwoColumns
+            ? (contentWidth - columnSpacing) / 2
+            : contentWidth;
+
+        final children = _filteredDevices.asMap().entries.map((entry) {
+      final index = entry.key;
+      final device = entry.value;
+      return SizedBox(
+        width: itemWidth,
+        child: _buildDeviceCard(device),
+      )
+          .animate()
+          .fadeIn(duration: 400.ms, delay: (100 + index * 50).ms)
+          .slideY(begin: 0.2, delay: (100 + index * 50).ms);
+    }).toList();
+
+    if (useTwoColumns) {
+      return Wrap(
+        spacing: columnSpacing,
+        runSpacing: 12.h,
+        children: children,
+      );
+    }
+
     return Column(
-      children: _filteredDevices.asMap().entries.map((entry) {
-        final index = entry.key;
-        final device = entry.value;
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: _buildDeviceCard(device),
-        )
-            .animate()
-            .fadeIn(duration: 400.ms, delay: (100 + index * 50).ms)
-            .slideY(begin: 0.2, delay: (100 + index * 50).ms);
-      }).toList(),
+      children: children
+          .map(
+            (child) => Padding(
+              padding: EdgeInsets.only(bottom: 12.h),
+              child: child,
+            ),
+          )
+          .toList(),
+    );
+      },
     );
   }
 
@@ -479,39 +540,40 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
         device.status == DeviceStatus.on || device.status == DeviceStatus.locked;
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            blurRadius: 8.r,
+            offset: Offset(0, 2.h),
           ),
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
               // Device Icon
               Container(
-                width: 48,
-                height: 48,
+                width: 48.w,
+                height: 48.h,
                 decoration: BoxDecoration(
                   color: isActive
                       ? const Color(0xFF6B8E23).withOpacity(0.1)
                       : Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: Icon(
                   device.icon,
                   color: isActive ? device.color : Colors.grey.shade400,
-                  size: 24,
+                  size: 24.sp,
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12.w),
 
               // Device Info
               Expanded(
@@ -520,41 +582,49 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
                   children: [
                     Text(
                       device.name,
-                      style: const TextStyle(
-                        fontSize: 15,
+                      style: TextStyle(
+                        fontSize: 15.sp,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF1A1A1A),
+                        color: const Color(0xFF1A1A1A),
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4.h),
                     Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _getDeviceStatusColor(device),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            _getDeviceStatusLabel(device),
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: _getDeviceStatusTextColor(device),
+                        Flexible(
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 8.w,
+                              vertical: 3.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _getDeviceStatusColor(device),
+                              borderRadius: BorderRadius.circular(6.r),
+                            ),
+                            child: Text(
+                              _getDeviceStatusLabel(device),
+                              style: TextStyle(
+                                fontSize: 11.sp,
+                                fontWeight: FontWeight.w600,
+                                color: _getDeviceStatusTextColor(device),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ),
                         if (device.value != null && device.value! > 0) ...[
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8.w),
                           Text(
                             '${device.value!.round()}${device.unit ?? '%'}',
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: 11.sp,
                               color: Colors.grey.shade600,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ],
@@ -576,38 +646,43 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
 
           // Device Controls (Slider)
           if (device.value != null && isActive) ...[
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  device.type == DeviceType.light
-                      ? 'Brightness'
-                      : device.type == DeviceType.blinds
-                      ? 'Position'
-                      : 'Temperature',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey.shade600,
+                Flexible(
+                  child: Text(
+                    device.type == DeviceType.light
+                        ? 'Brightness'
+                        : device.type == DeviceType.blinds
+                        ? 'Position'
+                        : 'Temperature',
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      color: Colors.grey.shade600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 Text(
                   '${device.value!.round()}${device.unit ?? '%'}',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 11.sp,
                     color: Colors.grey.shade600,
                   ),
+                  maxLines: 1,
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
             SliderTheme(
               data: SliderTheme.of(context).copyWith(
                 activeTrackColor: const Color(0xFF6B8E23),
                 inactiveTrackColor: Colors.grey.shade300,
                 thumbColor: const Color(0xFF6B8E23),
                 overlayColor: const Color(0xFF6B8E23).withOpacity(0.2),
-                trackHeight: 4,
+                trackHeight: 4.h,
               ),
               child: Slider(
                 value: device.value ?? 0,
@@ -627,7 +702,7 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
 
   Widget _buildQuickActions() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -637,49 +712,53 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
             Colors.white,
           ],
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            blurRadius: 8.r,
+            offset: Offset(0, 2.h),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Quick Actions',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 16.sp,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF1A1A1A),
+              color: const Color(0xFF1A1A1A),
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4.h),
           Text(
             'Common scenarios',
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 13.sp,
               color: Colors.grey.shade600,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           _buildQuickActionButton(
             icon: Icons.nightlight_round,
             label: 'Good Night',
             subtitle: 'Turn off all lights',
             onTap: _executeGoodNightScene,
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           _buildQuickActionButton(
             icon: Icons.wb_sunny,
             label: 'Good Morning',
             subtitle: 'Turn on all lights',
             onTap: _executeGoodMorningScene,
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           _buildQuickActionButton(
             icon: Icons.lock,
             label: 'Leaving Home',
@@ -700,34 +779,38 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
     return OutlinedButton(
       onPressed: onTap,
       style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
         side: BorderSide(color: Colors.grey.shade300),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
         ),
       ),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: Colors.grey.shade700),
-          const SizedBox(width: 12),
+          Icon(icon, size: 20.sp, color: Colors.grey.shade700),
+          SizedBox(width: 12.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
-                    fontSize: 14,
+                  style: TextStyle(
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF1A1A1A),
+                    color: const Color(0xFF1A1A1A),
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   subtitle,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 12.sp,
                     color: Colors.grey.shade600,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -739,7 +822,7 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
 
   Widget _buildWeatherInfo() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -749,55 +832,62 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
             Colors.white,
           ],
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            blurRadius: 8.r,
+            offset: Offset(0, 2.h),
           ),
         ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade100,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.wb_sunny,
-                  color: Colors.blue.shade600,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Outside',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey.shade600,
-                    ),
+          Flexible(
+            child: Row(
+              children: [
+                Container(
+                  width: 48.w,
+                  height: 48.h,
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade100,
+                    borderRadius: BorderRadius.circular(12.r),
                   ),
-                  const Text(
-                    '18Â°C',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1A1A1A),
-                    ),
+                  child: Icon(
+                    Icons.wb_sunny,
+                    color: Colors.blue.shade600,
+                    size: 24.sp,
                   ),
-                ],
-              ),
-            ],
+                ),
+                SizedBox(width: 12.w),
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Outside',
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          color: Colors.grey.shade600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        '18Â°C',
+                        style: TextStyle(
+                          fontSize: 24.sp,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF1A1A1A),
+                        ),
+                        maxLines: 1,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -805,17 +895,20 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
               Text(
                 'Humidity',
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 13.sp,
                   color: Colors.grey.shade600,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              const Text(
+              Text(
                 '65%',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 18.sp,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF1A1A1A),
+                  color: const Color(0xFF1A1A1A),
                 ),
+                maxLines: 1,
               ),
             ],
           ),
@@ -826,17 +919,17 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
 
   Widget _buildViewOnlyWarning() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: Colors.orange.shade50,
         border: Border.all(color: Colors.orange.shade200),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
       ),
       child: Text(
         'View-only mode. Contact your administrator for device control access.',
         textAlign: TextAlign.center,
         style: TextStyle(
-          fontSize: 13,
+          fontSize: 13.sp,
           color: Colors.orange.shade700,
         ),
       ),

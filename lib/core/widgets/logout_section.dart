@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../app/theme/app_shadows.dart';
 import '../../../presentation/profile/controllers/profile_controller.dart';
+import 'responsive_alert_dialog.dart';
 
 class LogoutSection extends StatelessWidget {
   final VoidCallback onLogoutTap;
@@ -19,11 +21,11 @@ class LogoutSection extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: AppShadows.shadowProfileCard,
       ),
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20.r),
       child: Column(
         children: [
           _saveSettingsButton(context),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           _logoutButton(context),
         ],
       ),
@@ -104,28 +106,33 @@ class LogoutSection extends StatelessWidget {
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+      builder: (dialogContext) => ResponsiveAlertDialog(
         title: Text(
           "confirm_logout".tr,
           style: AppTextStyles.h4,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
         ),
         content: Text(
           "are_you_sure_logout".tr,
           style: AppTextStyles.bodyMedium.copyWith(
             color: AppColors.neutralInk700,
           ),
+          maxLines: 4,
+          overflow: TextOverflow.ellipsis,
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("cancel".tr),
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(
+              "cancel".tr,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               onLogoutTap();
             },
             style: ElevatedButton.styleFrom(
@@ -133,10 +140,14 @@ class LogoutSection extends StatelessWidget {
               foregroundColor: Colors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(8.r),
               ),
             ),
-            child: Text("logout".tr),
+            child: Text(
+              "logout".tr,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),

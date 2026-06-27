@@ -4,6 +4,7 @@
 
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -117,12 +118,12 @@ const Color _circleAquaFill = AppColors.aquaGreen700;
 const Color _inProgressBrandDark = AppColors.brandSage800;
 const Color _inProgressBrandLightBg = AppColors.brandSage100;
 const Color _circleGrey = AppColors.neutralLine200;
-const double _circleDiameter = 44;
-const double _lineWidth = 2;
-const double _stepSpacing = 24;
-const double _indicatorWidth = 44;
-const double _timelineRowHeight = 132; // In-progress: full height
-const double _timelineRowHeightCompact = 92; // Completed & upcoming: smaller
+double get _circleDiameter => 44.r;
+double get _lineWidth => 2.w;
+double get _stepSpacing => 24.h;
+double get _indicatorWidth => 44.w;
+double get _timelineRowHeight => 132.h;
+double get _timelineRowHeightCompact => 92.h;
 
 /// Loading skeleton: placeholder rows matching timeline layout (circle + card).
 class _LoadingSkeleton extends StatelessWidget {
@@ -153,36 +154,36 @@ class _LoadingSkeleton extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: 16.w),
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 17,
-                      vertical: 16,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 17.w,
+                      vertical: 16.h,
                     ),
                     decoration: BoxDecoration(
                       color: AppColors.neutralLine100,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(20.r),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Container(
-                          height: 14,
-                          width: 140,
+                          height: 14.h,
+                          width: 140.w,
                           decoration: BoxDecoration(
                             color: AppColors.neutralLine200,
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(4.r),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8.h),
                         Container(
-                          height: 10,
-                          width: 60,
+                          height: 10.h,
+                          width: 60.w,
                           decoration: BoxDecoration(
                             color: AppColors.neutralLine200,
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(4.r),
                           ),
                         ),
                       ],
@@ -306,7 +307,7 @@ class _TimelineCircle extends StatelessWidget {
             ),
         ],
       ),
-      child: Icon(iconData, color: iconColor, size: 19),
+      child: Icon(iconData, color: iconColor, size: 19.sp),
     );
 
     if (isFuture) {
@@ -364,8 +365,8 @@ class _StepCard extends StatelessWidget {
 
     final isCompact = isCompleted || isFuture;
     final cardPadding = EdgeInsets.symmetric(
-      horizontal: 17,
-      vertical: isCompact ? 10 : 16,
+      horizontal: 17.w,
+      vertical: isCompact ? 10.h : 16.h,
     );
 
     final card = Semantics(
@@ -374,7 +375,7 @@ class _StepCard extends StatelessWidget {
         padding: cardPadding,
         decoration: BoxDecoration(
           color: cardColor,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(20.r),
           border: Border.all(color: borderColor, width: borderWidth),
           boxShadow: hasShadow
               ? [
@@ -403,6 +404,7 @@ class _StepCard extends StatelessWidget {
                       phase.name,
                       style: AppTextStyles.bodyMedium.copyWith(
                         fontWeight: FontWeight.w500,
+                        fontSize: 14.sp,
                         color: isFuture
                             ? AppColors.neutralInk400
                             : AppColors.neutralInk900,
@@ -411,19 +413,19 @@ class _StepCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (dateStr.isNotEmpty) ...[
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4.h),
                       Text(
                         dateStr,
                         style: AppTextStyles.bodySmall.copyWith(
                           color: isFuture
                               ? AppColors.neutralInk400
                               : AppColors.neutralInk500,
-                          fontSize: 12,
+                          fontSize: 12.sp,
                         ),
                       ),
                     ],
                     if (onViewDocument != null) ...[
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8.h),
                       Semantics(
                         button: true,
                         label: 'view_document'.tr,
@@ -431,33 +433,37 @@ class _StepCard extends StatelessWidget {
                           color: Colors.transparent,
                           child: InkWell(
                             onTap: onViewDocument,
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(8.r),
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 10,
-                                horizontal: 4,
+                              padding: EdgeInsets.symmetric(
+                                vertical: 10.h,
+                                horizontal: 4.w,
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
                                     Icons.description_outlined,
-                                    size: 16,
+                                    size: 16.sp,
                                     color: AppColors.brandSage800,
                                   ),
-                                  const SizedBox(width: 4),
+                                  SizedBox(width: 4.w),
                                   Icon(
                                     Icons.open_in_new,
-                                    size: 14,
+                                    size: 14.sp,
                                     color: AppColors.brandSage800,
                                   ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    'view_document'.tr,
-                                    style: AppTextStyles.bodySmall.copyWith(
-                                      color: AppColors.brandSage800,
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 12,
+                                  SizedBox(width: 6.w),
+                                  Flexible(
+                                    child: Text(
+                                      'view_document'.tr,
+                                      style: AppTextStyles.bodySmall.copyWith(
+                                        color: AppColors.brandSage800,
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 12.sp,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ],
@@ -471,15 +477,15 @@ class _StepCard extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8.w),
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (isCompleted || isActive)
                   Container(
-                    width: 7,
-                    height: 7,
-                    margin: const EdgeInsets.only(right: 6),
+                    width: 7.w,
+                    height: 7.h,
+                    margin: EdgeInsets.only(right: 6.w),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: isCompleted
@@ -487,15 +493,19 @@ class _StepCard extends StatelessWidget {
                           : _inProgressBrandDark,
                     ),
                   ),
-                Text(
-                  statusLabel,
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: isFuture
-                        ? AppColors.neutralInk400
-                        : (isActive
-                            ? _inProgressBrandDark
-                            : AppColors.neutralInk500),
-                    fontSize: 12,
+                Flexible(
+                  child: Text(
+                    statusLabel,
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: isFuture
+                          ? AppColors.neutralInk400
+                          : (isActive
+                              ? _inProgressBrandDark
+                              : AppColors.neutralInk500),
+                      fontSize: 12.sp,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -553,18 +563,18 @@ class _ConstructionProgressSectionState
       final displayPhases = _apiPhasesToDisplayModels(apiPhases);
 
       return Container(
-            margin: const EdgeInsets.only(top: 32, left: 24, right: 24),
+            margin: EdgeInsets.only(top: 32.h, left: 24.w, right: 24.w),
             child: Container(
               decoration: BoxDecoration(
                 color: AppColors.surfaceWhite,
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(24.r),
                 border: Border.all(color: AppColors.neutralLine100, width: 1),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.03),
-                    blurRadius: 4,
+                    blurRadius: 4.r,
                     spreadRadius: 0,
-                    offset: const Offset(0, 1),
+                    offset: Offset(0, 1.h),
                   ),
                 ],
               ),
@@ -578,8 +588,8 @@ class _ConstructionProgressSectionState
                       child: ImageFiltered(
                         imageFilter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
                         child: Container(
-                          width: 128,
-                          height: 128,
+                          width: 128.w,
+                          height: 128.h,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             gradient: RadialGradient(
@@ -596,7 +606,7 @@ class _ConstructionProgressSectionState
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+                    padding: EdgeInsets.fromLTRB(24.w, 24.h, 24.w, 32.h),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -607,11 +617,13 @@ class _ConstructionProgressSectionState
                                 'construction_progress'.tr,
                                 style: AppTextStyles.h4.copyWith(
                                   color: AppColors.neutralInk900,
+                                  fontSize: 20.sp,
                                 ),
+                                maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8.w),
                             AnimatedBuilder(
                               animation: _sparkleController,
                               builder: (context, child) {
@@ -624,45 +636,49 @@ class _ConstructionProgressSectionState
                                   child: child,
                                 );
                               },
-                              child: const Icon(
+                              child: Icon(
                                 Icons.auto_awesome,
                                 color: AppColors.aquaGreen700,
-                                size: 20,
+                                size: 20.sp,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 6),
+                        SizedBox(height: 6.h),
                         Text(
                           'your_home_is_being_built'.tr,
                           style: AppTextStyles.bodySmall.copyWith(
                             color: AppColors.neutralInk500,
+                            fontSize: 12.sp,
                           ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 20),
+                        SizedBox(height: 20.h),
                         if (loading)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 8),
-                            child: _LoadingSkeleton(),
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8.h),
+                            child: const _LoadingSkeleton(),
                           )
                         else if (displayPhases.isEmpty)
                           Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 24),
+                            padding: EdgeInsets.symmetric(vertical: 24.h),
                             child: Center(
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
                                     Icons.construction_outlined,
-                                    size: 40,
+                                    size: 40.sp,
                                     color: AppColors.neutralInk300,
                                   ),
-                                  const SizedBox(height: 12),
+                                  SizedBox(height: 12.h),
                                   Text(
                                     'no_construction_phases'.tr,
                                     textAlign: TextAlign.center,
                                     style: AppTextStyles.bodySmall.copyWith(
                                       color: AppColors.neutralInk500,
+                                      fontSize: 12.sp,
                                     ),
                                   ),
                                 ],
@@ -694,7 +710,7 @@ class _ConstructionProgressSectionState
                                           status: phase.status,
                                           rowHeight: rowHeight,
                                         ),
-                                        const SizedBox(width: 16),
+                                        SizedBox(width: 16.w),
                                         Expanded(
                                           child: _StepCard(
                                             phase: phase,

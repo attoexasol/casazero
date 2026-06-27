@@ -1,5 +1,6 @@
 import 'package:casazero/core/widgets/casazero_logo.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'dart:ui';
 import '../controllers/auth_controller.dart';
@@ -49,8 +50,8 @@ class AuthScreen extends GetView<AuthController> {
 
           // Language Selector
           Positioned(
-            top: 40,
-            right: 24,
+            top: MediaQuery.paddingOf(context).top + 8.h,
+            right: 24.w,
             child: Obx(() => _buildLanguageSelector(localeController)),
           ),
 
@@ -59,9 +60,9 @@ class AuthScreen extends GetView<AuthController> {
             child: Center(
               child: SingleChildScrollView(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  padding: EdgeInsets.symmetric(horizontal: 24.w),
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 448),
+                    constraints: BoxConstraints(maxWidth: 448.w),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -69,9 +70,9 @@ class AuthScreen extends GetView<AuthController> {
                           assetPath: 'assets/images/white_logo.png',
                           maxLogoWidthFactor: 0.4,
                         ),
-                        const SizedBox(height: 40),
+                        SizedBox(height: 40.h),
                         _buildLoginCard(),
-                        const SizedBox(height: 32),
+                        SizedBox(height: 32.h),
                         _buildCopyright(),
                       ],
                     ),
@@ -87,28 +88,28 @@ class AuthScreen extends GetView<AuthController> {
 
   Widget _buildLanguageSelector(LocaleController localeController) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(24.r),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(24.r),
             border: Border.all(color: Colors.white.withOpacity(0.3)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 4),
+                blurRadius: 20.r,
+                offset: Offset(0, 4.h),
               ),
             ],
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.language, color: Colors.white, size: 16),
-              const SizedBox(width: 4),
+              Icon(Icons.language, color: Colors.white, size: 16.sp),
+              SizedBox(width: 4.w),
               _buildLangButton('IT', 'it', localeController),
               _buildLangButton('EN', 'en', localeController),
             ],
@@ -128,16 +129,16 @@ class AuthScreen extends GetView<AuthController> {
       onTap: () => controller.changeLanguage(lang),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        margin: const EdgeInsets.symmetric(horizontal: 2),
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+        margin: EdgeInsets.symmetric(horizontal: 2.w),
         decoration: BoxDecoration(
           color: isActive ? Colors.white.withOpacity(0.9) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(20.r),
         ),
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 12.sp,
             fontWeight: FontWeight.w500,
             color: isActive ? AppColors.brandSage500 : Colors.white,
           ),
@@ -150,21 +151,21 @@ class AuthScreen extends GetView<AuthController> {
     return Column(
       children: [
         Container(
-          width: 240,
-          height: 80,
+          width: 240.w,
+          height: 80.h,
           alignment: Alignment.center,
           child: Image.asset(
             'assets/images/white_logo.png',
-            width: 180,
+            width: 180.w,
             fit: BoxFit.contain,
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12.h),
         Text(
           'smart_living'.tr,
           style: TextStyle(
             color: Colors.white.withOpacity(0.9),
-            fontSize: 14,
+            fontSize: 14.sp,
             letterSpacing: 1.5,
           ),
         ),
@@ -174,20 +175,20 @@ class AuthScreen extends GetView<AuthController> {
 
   Widget _buildLoginCard() {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(24.r),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
-          padding: const EdgeInsets.all(32),
+          padding: EdgeInsets.all(32.r),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(24.r),
             border: Border.all(color: Colors.white.withOpacity(0.2)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.2),
-                blurRadius: 40,
-                offset: const Offset(0, 10),
+                blurRadius: 40.r,
+                offset: Offset(0, 10.h),
               ),
             ],
           ),
@@ -203,7 +204,7 @@ class AuthScreen extends GetView<AuthController> {
                 borderColor: Colors.white.withOpacity(0.4),
                 textColor: const Color(0xFF1a1a1a),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20.h),
               Obx(
                 () => CustomTextField(
                   label: 'password'.tr,
@@ -225,7 +226,7 @@ class AuthScreen extends GetView<AuthController> {
                   onSubmitted: (_) => controller.login(),
                 ),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12.h),
               Align(
                 alignment: Alignment.centerRight,
                 child: GestureDetector(
@@ -233,24 +234,24 @@ class AuthScreen extends GetView<AuthController> {
                   child: Text(
                     'forgot_password'.tr,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 12.sp,
                       color: Colors.white.withOpacity(0.8),
                       decoration: TextDecoration.underline,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24.h),
               Obx(
                 () => CustomButton(
                   text: 'sign_in'.tr,
                   onPressed: controller.login,
                   isLoading: controller.isLoading.value,
                   backgroundColor: AppColors.brandSage800,
-                  height: 48,
+                  height: 48.h,
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24.h),
               _buildDemoModeDivider(),
             ],
           ),
@@ -263,20 +264,20 @@ class AuthScreen extends GetView<AuthController> {
     return Row(
       children: [
         Expanded(
-          child: Container(height: 1, color: Colors.white.withOpacity(0.2)),
+          child: Container(height: 1.h, color: Colors.white.withOpacity(0.2)),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: EdgeInsets.symmetric(horizontal: 12.w),
           child: Text(
             'demo_mode'.tr,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 12.sp,
               color: Colors.white.withOpacity(0.6),
             ),
           ),
         ),
         Expanded(
-          child: Container(height: 1, color: Colors.white.withOpacity(0.2)),
+          child: Container(height: 1.h, color: Colors.white.withOpacity(0.2)),
         ),
       ],
     );
@@ -286,7 +287,7 @@ class AuthScreen extends GetView<AuthController> {
     return Text(
       'copyright'.tr,
       textAlign: TextAlign.center,
-      style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.6)),
+      style: TextStyle(fontSize: 12.sp, color: Colors.white.withOpacity(0.6)),
     );
   }
 }

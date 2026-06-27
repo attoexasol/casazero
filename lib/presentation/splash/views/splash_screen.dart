@@ -2,11 +2,41 @@
 // Premium splash screen matching React design with constellation effects
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:math' as math;
 import '../../../app/theme/app_colors.dart';
 import '../controllers/splash_controller.dart';
+
+/// Design-proportional layout values (reference: 390×844 via ScreenUtil).
+class _SplashMetrics {
+  final double screenWidth;
+
+  const _SplashMetrics._(this.screenWidth);
+
+  factory _SplashMetrics.of(BuildContext context) {
+    return _SplashMetrics._(MediaQuery.sizeOf(context).width);
+  }
+
+  double get logoSize => 320.w.clamp(0.0, screenWidth * 0.85);
+
+  double get innerGlowSize => 400.w.clamp(0.0, screenWidth);
+
+  double get centralOrbSize => 384.w.clamp(0.0, screenWidth);
+
+  double get particleBaseRadius => 200.w;
+
+  double get particleRadiusVariance => 100.w;
+
+  double get particleDotSize => 4.w.clamp(2.w, 4.w);
+
+  double get brandNameBottom => 128.h;
+
+  double get loadingBottom => 64.h;
+
+  double get gradientLineWidth => 200.w.clamp(0.0, screenWidth * 0.65);
+}
 
 class SplashScreen extends GetView<SplashController> {
   const SplashScreen({super.key});
@@ -100,12 +130,15 @@ class _ConstellationParticles extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final metrics = _SplashMetrics.of(context);
     final particles = List.generate(30, (index) {
       final angle = (index / 30) * math.pi * 2;
-      final radius = 200.0 + math.Random(index).nextDouble() * 100;
+      final radius = metrics.particleBaseRadius +
+          math.Random(index).nextDouble() * metrics.particleRadiusVariance;
       return _ConstellationParticle(
         angle: angle,
         radius: radius,
+        dotSize: metrics.particleDotSize,
         delay: Duration(
           milliseconds: (math.Random(index).nextDouble() * 500).toInt(),
         ),
@@ -120,12 +153,14 @@ class _ConstellationParticles extends StatelessWidget {
 class _ConstellationParticle extends StatelessWidget {
   final double angle;
   final double radius;
+  final double dotSize;
   final Duration delay;
   final double scale;
 
   const _ConstellationParticle({
     required this.angle,
     required this.radius,
+    required this.dotSize,
     required this.delay,
     required this.scale,
   });
@@ -140,8 +175,8 @@ class _ConstellationParticle extends StatelessWidget {
       top: centerY,
       child:
           Container(
-            width: 4,
-            height: 4,
+            width: dotSize,
+            height: dotSize,
             decoration: const BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
@@ -201,6 +236,8 @@ class _CentralGlowOrbState extends State<_CentralGlowOrb>
 
   @override
   Widget build(BuildContext context) {
+    final orbSize = _SplashMetrics.of(context).centralOrbSize;
+
     return Center(
       child: AnimatedBuilder(
         animation: _controller,
@@ -211,8 +248,8 @@ class _CentralGlowOrbState extends State<_CentralGlowOrb>
           return Transform.scale(
             scale: scaleValue,
             child: Container(
-              width: 384,
-              height: 384,
+              width: orbSize,
+              height: orbSize,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
@@ -270,6 +307,10 @@ class _AnimatedLogoState extends State<_AnimatedLogo>
 
   @override
   Widget build(BuildContext context) {
+    final metrics = _SplashMetrics.of(context);
+    final innerGlowSize = metrics.innerGlowSize;
+    final logoSize = metrics.logoSize;
+
     return Stack(
           alignment: Alignment.center,
           children: [
@@ -283,8 +324,8 @@ class _AnimatedLogoState extends State<_AnimatedLogo>
                 return Transform.scale(
                   scale: scaleValue,
                   child: Container(
-                    width: 400,
-                    height: 400,
+                    width: innerGlowSize,
+                    height: innerGlowSize,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
@@ -309,8 +350,8 @@ class _AnimatedLogoState extends State<_AnimatedLogo>
                 return Transform.scale(
                   scale: scaleValue,
                   child: Container(
-                    width: 320,
-                    height: 320,
+                    width: logoSize,
+                    height: logoSize,
                     decoration: BoxDecoration(
                       image: const DecorationImage(
                         image: AssetImage('assets/images/white_logo.png'),
@@ -364,29 +405,33 @@ class _BrandNameText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final metrics = _SplashMetrics.of(context);
+
     return Positioned(
-      bottom: 128,
+      bottom: metrics.brandNameBottom,
       left: 0,
       right: 0,
       child: Column(
         children: [
-          const Text(
+          Text(
                 'CASAZERO',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 24,
-                  letterSpacing: 7.2, // 0.3em
+                  fontSize: 24.sp,
+                  letterSpacing: 7.2.sp,
                   fontWeight: FontWeight.w300,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
               )
               .animate()
               .fadeIn(duration: 800.ms, delay: 1500.ms)
               .slideY(begin: 0.3, end: 0, duration: 800.ms, delay: 1500.ms),
-          const SizedBox(height: 16),
-          // Gradient line
+          SizedBox(height: 16.h),
           Container(
-            height: 1,
-            width: 200,
+            height: 1.h,
+            width: metrics.gradientLineWidth,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [Colors.transparent, Colors.white, Colors.transparent],
@@ -411,8 +456,10 @@ class _LoadingIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loadingBottom = _SplashMetrics.of(context).loadingBottom;
+
     return Positioned(
-      bottom: 64,
+      bottom: loadingBottom,
       left: 0,
       right: 0,
       child: Row(
@@ -420,7 +467,7 @@ class _LoadingIndicator extends StatelessWidget {
         children: List.generate(
           4,
           (index) => Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6),
+            padding: EdgeInsets.symmetric(horizontal: 6.w),
             child: _LoadingDot(index: index),
           ),
         ),
@@ -459,10 +506,11 @@ class _LoadingDotState extends State<_LoadingDot>
 
   @override
   Widget build(BuildContext context) {
+    final dotBaseSize = 8.w;
+
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
-        // Calculate animation progress with delay for each dot
         final progress = (_controller.value - (widget.index * 0.15)) % 1.0;
         final opacity = progress < 0.5
             ? 0.3 + (progress * 1.4)
@@ -470,30 +518,29 @@ class _LoadingDotState extends State<_LoadingDot>
         final scale = progress < 0.5
             ? 1.0 + (progress * 0.8)
             : 1.4 - ((progress - 0.5) * 0.8);
+        final dotSize = dotBaseSize * scale;
 
         return Stack(
           alignment: Alignment.center,
           children: [
-            // Glow effect
             Container(
-              width: 8 * scale,
-              height: 8 * scale,
+              width: dotSize,
+              height: dotSize,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: Colors.white.withOpacity(opacity.clamp(0.0, 0.6)),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.white.withOpacity(opacity.clamp(0.0, 0.3)),
-                    blurRadius: 8,
-                    spreadRadius: 2,
+                    blurRadius: 8.r,
+                    spreadRadius: 2.r,
                   ),
                 ],
               ),
             ),
-            // Main dot
             Container(
-              width: 8 * scale,
-              height: 8 * scale,
+              width: dotSize,
+              height: dotSize,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: Colors.white.withOpacity(opacity.clamp(0.3, 1.0)),

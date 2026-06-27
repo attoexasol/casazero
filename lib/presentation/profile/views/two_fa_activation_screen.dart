@@ -3,7 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/controllers/message_popup_controller.dart';
+import '../../../core/widgets/tablet_centered_layout.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../app/theme/app_shadows.dart';
@@ -38,7 +40,8 @@ class TwoFAActivationScreen extends GetView<TwoFAManagementController> {
 
               // Content
               Expanded(
-                child: SingleChildScrollView(
+                child: TabletCenteredLayout(
+                  child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
                   child: Obx(() {
                     final step = _getCurrentStep();
@@ -53,6 +56,7 @@ class TwoFAActivationScreen extends GetView<TwoFAManagementController> {
                       ],
                     );
                   }),
+                  ),
                 ),
               ),
             ],
@@ -76,25 +80,25 @@ class TwoFAActivationScreen extends GetView<TwoFAManagementController> {
           ),
         ),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
       child: Row(
         children: [
           // Back Button
           InkWell(
             onTap: () => Get.back(),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(8.r),
             child: Container(
-              width: 36,
-              height: 36,
+              width: 36.w,
+              height: 36.w,
               alignment: Alignment.center,
-              child: const Icon(
+              child: Icon(
                 Icons.chevron_left,
-                size: 28,
+                size: 28.sp,
                 color: AppColors.neutralInk700,
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12.w),
 
           // Title
           Expanded(
@@ -106,12 +110,16 @@ class TwoFAActivationScreen extends GetView<TwoFAManagementController> {
                   style: AppTextStyles.h4.copyWith(
                     color: AppColors.neutralInk900,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   'enhance_account_security'.tr,
                   style: AppTextStyles.caption.copyWith(
                     color: AppColors.neutralInk500,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),

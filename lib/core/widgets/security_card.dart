@@ -1,6 +1,7 @@
 // core/widgets/security_card.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../app/theme/app_colors.dart';
@@ -31,21 +32,22 @@ class SecurityCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surfaceWhite,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         boxShadow: AppShadows.shadowProfileCard,
       ),
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // HEADER
           Text(
             "security".tr,
             style: AppTextStyles.CardHeaderText.copyWith(
               color: AppColors.neutralInk900,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
 
           // Change Password
           _item(
@@ -122,6 +124,25 @@ class SecurityCard extends StatelessWidget {
   }
 
   // -----------------------------------------------------------------------------
+  // RESPONSIVE DIALOG HELPERS
+  // -----------------------------------------------------------------------------
+  BoxConstraints _dialogConstraints(BuildContext context) {
+    final viewInsets = MediaQuery.viewInsetsOf(context);
+    final screenSize = MediaQuery.sizeOf(context);
+    final maxWidth = screenSize.width >= 600
+        ? 480.0
+        : (screenSize.width - 32.w).clamp(280.w, 480.w);
+    final maxHeight = (screenSize.height * 0.85 - viewInsets.bottom)
+        .clamp(280.h, screenSize.height * 0.85);
+    return BoxConstraints(maxWidth: maxWidth, maxHeight: maxHeight);
+  }
+
+  EdgeInsets _dialogInsetPadding(BuildContext context) {
+    final bottom = MediaQuery.viewInsetsOf(context).bottom;
+    return EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 16.h + bottom);
+  }
+
+  // -----------------------------------------------------------------------------
   // 2FA MANAGEMENT DIALOG (When Active)
   // -----------------------------------------------------------------------------
   void _show2FAManagementDialog(
@@ -130,33 +151,38 @@ class SecurityCard extends StatelessWidget {
   ) {
     Get.dialog(
       Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        insetPadding: _dialogInsetPadding(context),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+        child: ConstrainedBox(
+          constraints: _dialogConstraints(context),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(24.w),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
               // Header
               Row(
                 children: [
                   Expanded(
-                    child: Text('two_factor_auth'.tr, style: AppTextStyles.h4),
+                    child: Text('two_factor_auth'.tr, style: AppTextStyles.h4,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close),
+                    icon: Icon(Icons.close, size: 24.sp),
                     onPressed: () => Get.back(),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
 
-              // Status Card
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16.w),
                 decoration: BoxDecoration(
                   color: AppColors.success.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12.r),
                   border: Border.all(color: AppColors.success.withOpacity(0.3)),
                 ),
                 child: Row(
@@ -164,9 +190,9 @@ class SecurityCard extends StatelessWidget {
                     Icon(
                       Icons.verified_user,
                       color: AppColors.success,
-                      size: 32,
+                      size: 32.sp,
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12.w),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,19 +203,25 @@ class SecurityCard extends StatelessWidget {
                               fontWeight: FontWeight.w600,
                               color: AppColors.success,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 4),
+                          SizedBox(height: 4.h),
                           Text(
                             'Current Method: ${controller.current2FAMethodDisplay}',
                             style: AppTextStyles.bodySmall.copyWith(
                               color: AppColors.neutralInk700,
                             ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           Text(
                             controller.getMaskedContact(),
                             style: AppTextStyles.caption.copyWith(
                               color: AppColors.neutralInk500,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
@@ -198,9 +230,8 @@ class SecurityCard extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              SizedBox(height: 24.h),
 
-              // Change Method Button
               OutlinedButton(
                 onPressed: () {
                   Get.back(); // Close management dialog
@@ -215,17 +246,19 @@ class SecurityCard extends StatelessWidget {
                   _showActivationDialog(context, controller);
                 },
                 style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 48),
+                  minimumSize: Size(double.infinity, 48.h),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(12.r),
                   ),
                 ),
-                child: Text('change_2fa_method'.tr),
+                child: Text('change_2fa_method'.tr,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
 
-              const SizedBox(height: 12),
+              SizedBox(height: 12.h),
 
-              // Deactivate Button
               ElevatedButton(
                 onPressed: () {
                   Get.back(); // Close management dialog
@@ -240,15 +273,19 @@ class SecurityCard extends StatelessWidget {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.danger,
-                  minimumSize: const Size(double.infinity, 48),
+                  minimumSize: Size(double.infinity, 48.h),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(12.r),
                   ),
                 ),
-                child: Text('deactivate_2fa'.tr),
+                child: Text('deactivate_2fa'.tr,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),
+        ),
         ),
       ),
     );
@@ -266,15 +303,16 @@ class SecurityCard extends StatelessWidget {
 
     Get.dialog(
       Dialog(
-        insetPadding: EdgeInsets.all(5),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        insetPadding: _dialogInsetPadding(context),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+        child: ConstrainedBox(
+          constraints: _dialogConstraints(context),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(24.w),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
               // Header
               Row(
                 children: [
@@ -282,10 +320,12 @@ class SecurityCard extends StatelessWidget {
                     child: Text(
                       'select_2fa_method'.tr,
                       style: AppTextStyles.h4,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close),
+                    icon: Icon(Icons.close, size: 24.sp),
                     onPressed: () {
                       controller.cancelActivation();
                       Get.back();
@@ -293,24 +333,26 @@ class SecurityCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8.h),
               Text(
                 'Choose how you want to receive verification codes',
                 style: AppTextStyles.bodySmall.copyWith(
                   color: AppColors.neutralInk500,
                 ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24.h),
 
-              // Method Options
               ...controller.twoFactorMethods.map((method) {
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
+                  padding: EdgeInsets.only(bottom: 12.h),
                   child: _buildMethodTile(method, controller),
                 );
               }),
             ],
           ),
+        ),
         ),
       ),
     );
@@ -324,29 +366,29 @@ class SecurityCard extends StatelessWidget {
         // Show verification bottom sheet
         TwoFAManagementWidgets.showActivationVerification(controller);
       },
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(12.r),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
           color: AppColors.surfaceWhite,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.neutralInk300, width: 1),
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(color: AppColors.neutralInk300, width: 1.w),
         ),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
                 color: AppColors.brandSage100,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(8.r),
               ),
               child: Icon(
                 _getMethodIcon(method.type.toString()),
                 color: AppColors.brandSage600,
-                size: 24,
+                size: 24.sp,
               ),
             ),
-            const SizedBox(width: 16),
+            SizedBox(width: 16.w),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -356,18 +398,22 @@ class SecurityCard extends StatelessWidget {
                     style: AppTextStyles.bodyLarge.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4.h),
                   Text(
                     method.description,
                     style: AppTextStyles.bodySmall.copyWith(
                       color: AppColors.neutralInk500,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppColors.neutralInk400),
+            Icon(Icons.chevron_right, color: AppColors.neutralInk400, size: 20.sp),
           ],
         ),
       ),
@@ -397,40 +443,44 @@ class SecurityCard extends StatelessWidget {
   ) {
     Get.dialog(
       Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        insetPadding: _dialogInsetPadding(context),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+        child: ConstrainedBox(
+          constraints: _dialogConstraints(context),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(24.w),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
               // Warning Icon and Title
               Row(
                 children: [
                   Icon(
                     Icons.warning_amber_rounded,
                     color: AppColors.warning,
-                    size: 32,
+                    size: 32.sp,
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12.w),
                   Expanded(
                     child: Text(
                       'deactivate_2fa'.tr,
                       style: AppTextStyles.h4.copyWith(
                         color: AppColors.neutralInk900,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
 
-              // Warning Message
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16.w),
                 decoration: BoxDecoration(
                   color: AppColors.warning.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12.r),
                   border: Border.all(color: AppColors.warning.withOpacity(0.3)),
                 ),
                 child: Column(
@@ -442,8 +492,10 @@ class SecurityCard extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                         color: AppColors.neutralInk900,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8.h),
                     _buildConsequenceItem('Your account will be less secure'),
                     _buildConsequenceItem(
                       'Only password will be required to login',
@@ -458,18 +510,17 @@ class SecurityCard extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              SizedBox(height: 24.h),
 
-              // Buttons
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Get.back(),
                       style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 48),
+                        minimumSize: Size(double.infinity, 48.h),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(12.r),
                         ),
                         side: BorderSide(color: AppColors.neutralInk300),
                       ),
@@ -478,26 +529,26 @@ class SecurityCard extends StatelessWidget {
                         style: AppTextStyles.bodyMedium.copyWith(
                           color: AppColors.neutralInk700,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12.w),
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () async {
-                        Get.back(); // Close warning dialog
+                        Get.back();
 
-                        // Start deactivation process
                         await controller.startDeactivation();
 
-                        // Navigate to verification screen
                         Get.toNamed(AppRoutes.TWO_FA_DEACTIVATION_VERIFICATION);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.danger,
-                        minimumSize: const Size(double.infinity, 48),
+                        minimumSize: Size(double.infinity, 48.h),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(12.r),
                         ),
                       ),
                       child: Text(
@@ -505,6 +556,8 @@ class SecurityCard extends StatelessWidget {
                         style: AppTextStyles.bodyMedium.copyWith(
                           color: Colors.white,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ),
@@ -513,13 +566,14 @@ class SecurityCard extends StatelessWidget {
             ],
           ),
         ),
+        ),
       ),
     );
   }
 
   Widget _buildConsequenceItem(String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+      padding: EdgeInsets.only(bottom: 4.h),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -536,6 +590,8 @@ class SecurityCard extends StatelessWidget {
               style: AppTextStyles.bodySmall.copyWith(
                 color: AppColors.neutralInk700,
               ),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -555,21 +611,21 @@ class SecurityCard extends StatelessWidget {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(12.r),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: EdgeInsets.symmetric(vertical: 12.h),
         child: Row(
           children: [
             SvgPicture.asset(
               iconPath,
-              width: 20,
-              height: 20,
+              width: 20.w,
+              height: 20.w,
               colorFilter: const ColorFilter.mode(
                 AppColors.neutralInk500,
                 BlendMode.srcIn,
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12.w),
 
             Expanded(
               child: Text(
@@ -577,14 +633,16 @@ class SecurityCard extends StatelessWidget {
                 style: AppTextStyles.cardText.copyWith(
                   color: AppColors.neutralInk900,
                 ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
 
             if (suffix != null) suffix,
 
-            const Icon(
+            Icon(
               Icons.chevron_right,
-              size: 20,
+              size: 20.sp,
               color: AppColors.neutralInk400,
             ),
           ],
@@ -600,12 +658,12 @@ class SecurityCard extends StatelessWidget {
     final bool active = currentUser.is2FAEnabled;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
       decoration: BoxDecoration(
         color: active
             ? AppColors.success.withOpacity(.12)
             : AppColors.neutralInk300.withOpacity(.15),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(20.r),
       ),
       child: Text(
         active ? "active".tr : "inactive".tr,

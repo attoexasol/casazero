@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../app/theme/app_colors.dart';
 import 'building_selector_capsule.dart';
 import 'cz_notification_bell.dart';
+import '../utils/accessibility.dart';
 
 class CZAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
@@ -38,16 +39,15 @@ class CZAppBar extends StatelessWidget implements PreferredSizeWidget {
   });
 
   @override
-  Size get preferredSize => Size.fromHeight(70.h);
+  Size get preferredSize => Size.fromHeight(56.h);
 
   @override
   Widget build(BuildContext context) {
-    final double statusBar = MediaQuery.of(context).padding.top;
-    final double topPadding = (statusBar * 0.00).h;
+    final toolbarHeight = 56.h;
 
     return Container(
-      height: 70.h + topPadding,
-      padding: EdgeInsets.only(left: 14.w, right: 14.w, top: topPadding),
+      height: toolbarHeight,
+      padding: EdgeInsets.symmetric(horizontal: 14.w),
       decoration: BoxDecoration(
         color: transparent ? Colors.transparent : AppColors.surfaceWhite,
         boxShadow: transparent
@@ -72,16 +72,15 @@ class CZAppBar extends StatelessWidget implements PreferredSizeWidget {
     return [
       /// BACK BUTTON
       if (showBackButton)
-        GestureDetector(
-          onTap: onBackPressed ?? () => debugPrint("Back pressed"),
-          child: Container(
-            padding: EdgeInsets.all(8.w),
-            child: Icon(
-              Icons.arrow_back_ios_new,
-              size: 20.sp,
-              color: AppColors.neutralInk700,
-            ),
+        IconButton(
+          onPressed: onBackPressed ?? () => debugPrint("Back pressed"),
+          icon: Icon(
+            Icons.arrow_back_ios_new,
+            size: 20.sp,
+            color: AppColors.neutralInk700,
           ),
+          constraints: Accessibility.iconButtonConstraints,
+          padding: EdgeInsets.all(8.w),
         ).animate().fadeIn().scaleXY(begin: 0.8),
 
       if (showBackButton) SizedBox(width: 8.w),
@@ -108,6 +107,8 @@ class CZAppBar extends StatelessWidget implements PreferredSizeWidget {
                   title ?? "",
                   key: const ValueKey("title"),
                   textAlign: TextAlign.left,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 15.sp,
                     fontWeight: FontWeight.w600,
@@ -136,16 +137,15 @@ class CZAppBar extends StatelessWidget implements PreferredSizeWidget {
     return [
       /// If back button is needed
       if (showBackButton)
-        GestureDetector(
-          onTap: onBackPressed ?? () => debugPrint("Back pressed"),
-          child: Container(
-            padding: EdgeInsets.all(8.w),
-            child: Icon(
-              Icons.arrow_back_ios_new,
-              size: 20.sp,
-              color: AppColors.neutralInk700,
-            ),
+        IconButton(
+          onPressed: onBackPressed ?? () => debugPrint("Back pressed"),
+          icon: Icon(
+            Icons.arrow_back_ios_new,
+            size: 20.sp,
+            color: AppColors.neutralInk700,
           ),
+          constraints: Accessibility.iconButtonConstraints,
+          padding: EdgeInsets.all(8.w),
         ).animate().fadeIn().scaleXY(begin: 0.8),
 
       if (showBackButton) SizedBox(width: 12.w),

@@ -1,8 +1,10 @@
 // presentation/trusted_devices/controllers/trusted_devices_controller.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../core/controllers/message_popup_controller.dart';
+import '../../../core/widgets/responsive_alert_dialog.dart';
 import '../../../data/repositories/profile_repository.dart';
 import '../../../data/models/trusted_device_model.dart';
 import '../../../core/services/geocoding_service.dart';
@@ -79,25 +81,42 @@ class TrustedDevicesController extends GetxController {
   Future<void> revokeDevice(TrustedDeviceModel device) async {
     // Show confirmation dialog
     final confirmed = await Get.dialog<bool>(
-      AlertDialog(
-        title: const Text('Remove Device'),
-        content: Text(
-          'Are you sure you want to remove "${device.deviceName}"?\n\n'
-              'This device will need to verify again on next login.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(result: false),
-            child: const Text('Cancel'),
+      Builder(
+        builder: (dialogContext) => ResponsiveAlertDialog(
+          title: const Text(
+            'Remove Device',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
-          TextButton(
-            onPressed: () => Get.back(result: true),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
+          content: Text(
+            'Are you sure you want to remove "${device.deviceName}"?\n\n'
+            'This device will need to verify again on next login.',
+            maxLines: 6,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 14.sp),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(result: false),
+              child: const Text(
+                'Cancel',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-            child: const Text('Remove'),
-          ),
-        ],
+            TextButton(
+              onPressed: () => Get.back(result: true),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text(
+                'Remove',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
       ),
     );
 
