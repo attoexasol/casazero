@@ -14,7 +14,6 @@ import '../../data/models/feed_item_model.dart';
 import '../../core/localization/locale_controller.dart';
 import '../../core/services/download_service.dart';
 import '../../presentation/main/main_scaffold.dart';
-import '../utils/accessibility.dart';
 
 /// Modal Bottom Sheet for displaying all notifications
 /// Converted from React NotificationsScreen.tsx
@@ -115,11 +114,12 @@ class _NotificationsModalContentState
                     padding: EdgeInsets.only(
                       left: 24.w,
                       right: 24.w,
-                      top: 12.h,
-                      bottom: 16.h,
+                      top: 8.h,
+                      bottom: 10.h,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         // Top row: Mark all as read button (right-aligned)
                         if (unreadCount > 0)
@@ -147,40 +147,44 @@ class _NotificationsModalContentState
                                 ),
                                 style: TextButton.styleFrom(
                                   padding: EdgeInsets.symmetric(
-                                    horizontal: 12.w,
-                                    vertical: 6.h,
+                                    horizontal: 8.w,
+                                    vertical: 4.h,
                                   ),
-                                  minimumSize: Size(48.w, Accessibility.minTouchTarget),
-                                  tapTargetSize: MaterialTapTargetSize.padded,
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  visualDensity: VisualDensity.compact,
                                 ),
                               ),
                             ],
                           ),
 
-                        // Bottom row: Filter tabs
-                        if (unreadCount > 0) SizedBox(height: 8.h),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: [
-                              _buildFilterTab(
-                                'all',
-                                'all'.tr.isEmpty ? 'All' : 'all'.tr,
-                              ),
-                              SizedBox(width: 8.w),
-                              _buildFilterTab('document', 'documents'.tr),
-                              SizedBox(width: 8.w),
-                              _buildFilterTab('maintenance', 'maintenance'.tr),
-                              SizedBox(width: 8.w),
-                              _buildFilterTab('chat', 'chat'.tr),
-                              SizedBox(width: 8.w),
-                              _buildFilterTab(
-                                'ticket',
-                                'supportTickets'.tr.isEmpty
-                                    ? 'Tickets'
-                                    : 'supportTickets'.tr,
-                              ),
-                            ],
+                        // Filter tabs
+                        if (unreadCount > 0) SizedBox(height: 4.h),
+                        SizedBox(
+                          height: 36.h,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                _buildFilterTab(
+                                  'all',
+                                  'all'.tr.isEmpty ? 'All' : 'all'.tr,
+                                ),
+                                SizedBox(width: 8.w),
+                                _buildFilterTab('document', 'documents'.tr),
+                                SizedBox(width: 8.w),
+                                _buildFilterTab('maintenance', 'maintenance'.tr),
+                                SizedBox(width: 8.w),
+                                _buildFilterTab('chat', 'chat'.tr),
+                                SizedBox(width: 8.w),
+                                _buildFilterTab(
+                                  'ticket',
+                                  'supportTickets'.tr.isEmpty
+                                      ? 'Tickets'
+                                      : 'supportTickets'.tr,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
@@ -231,36 +235,37 @@ class _NotificationsModalContentState
   Widget _buildFilterTab(String filter, String label) {
     final isSelected = _filter == filter;
 
-    return GestureDetector(
-      onTap: () => setState(() => _filter = filter),
-      behavior: HitTestBehavior.opaque,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(minHeight: Accessibility.minTouchTarget),
+    return Align(
+      alignment: Alignment.center,
+      child: GestureDetector(
+        onTap: () => setState(() => _filter = filter),
+        behavior: HitTestBehavior.opaque,
         child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.brandSage600 : AppColors.surfaceWhite,
-          borderRadius: BorderRadius.circular(20.r), // rounded-full
-          border: Border.all(
-            color: isSelected
-                ? AppColors.brandSage600
-                : AppColors.neutralLine200,
-            width: 1,
+          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.brandSage600 : AppColors.surfaceWhite,
+            borderRadius: BorderRadius.circular(20.r),
+            border: Border.all(
+              color: isSelected
+                  ? AppColors.brandSage600
+                  : AppColors.neutralLine200,
+              width: 1,
+            ),
+          ),
+          child: Text(
+            label,
+            style: AppTextStyles.caption.copyWith(
+              fontSize: 12.sp,
+              height: 1.2,
+              color: isSelected
+                  ? AppColors.surfaceWhite
+                  : AppColors.neutralInk700,
+              fontWeight: FontWeight.w500,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
-        child: Text(
-          label,
-          style: AppTextStyles.caption.copyWith(
-            fontSize: 12.sp,
-            color: isSelected
-                ? AppColors.surfaceWhite
-                : AppColors.neutralInk700,
-            fontWeight: FontWeight.w500,
-          ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ),
       ),
     );
   }
@@ -335,7 +340,7 @@ class _NotificationsModalContentState
 
   Widget _buildNotificationList(List<FeedItemModel> notifications) {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 16.h),
       child: Column(
         children: notifications.asMap().entries.map((entry) {
           final index = entry.key;
@@ -349,7 +354,7 @@ class _NotificationsModalContentState
               )
               .animate(delay: (index * 50).ms)
               .fadeIn(duration: 300.ms)
-              .slideY(begin: 0.2, end: 0, duration: 300.ms);
+              .slideY(begin: 0.15, end: 0, duration: 300.ms);
         }).toList(),
       ),
     );
@@ -586,47 +591,38 @@ class _NotificationCard extends StatelessWidget {
     }
 
     return Container(
-      margin: EdgeInsets.only(bottom: 12.h),
+      margin: EdgeInsets.only(bottom: 8.h),
       decoration: BoxDecoration(
         color: isRead
             ? AppColors.surfaceWhite
-            : AppColors.brandSage50.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12.r),
+            : AppColors.brandSage50.withOpacity(0.35),
+        borderRadius: BorderRadius.circular(10.r),
         border: Border.all(
-          color: isRead ? AppColors.neutralLine200 : AppColors.brandSage300,
+          color: isRead ? AppColors.neutralLine200 : AppColors.brandSage100,
           width: 1,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Padding(
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Icon
             Container(
-              width: 40.w,
-              height: 40.h,
+              width: 32.w,
+              height: 32.w,
               decoration: BoxDecoration(
-                color: AppColors.surfaceWarm50,
+                color: iconColor.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(8.r),
               ),
-              child: Icon(iconData, size: 20.sp, color: iconColor),
+              child: Icon(iconData, size: 17.sp, color: iconColor),
             ),
 
-            SizedBox(width: 12.w),
+            SizedBox(width: 10.w),
 
-            // Content
             Expanded(
               child: Obx(() {
                 final localeController = Get.find<LocaleController>();
-                final _ = localeController.locale; // Trigger reactivity
+                final _ = localeController.locale;
 
                 final displayTitle = notification.modalTitle;
                 final displaySubtitle = notification.modalSubtitle;
@@ -634,7 +630,6 @@ class _NotificationCard extends StatelessWidget {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Title row
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -642,164 +637,108 @@ class _NotificationCard extends StatelessWidget {
                           child: Text(
                             displayTitle,
                             style: AppTextStyles.bodyMedium.copyWith(
-                              fontSize: 14.sp,
+                              fontSize: 13.sp,
+                              height: 1.25,
                               fontWeight: FontWeight.w600,
                               color: AppColors.neutralInk800,
                             ),
-                            maxLines: 2,
+                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         if (!isRead) ...[
-                          SizedBox(width: 8.w),
-                          Container(
-                            width: 8.w,
-                            height: 8.h,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.brandSage600,
+                          SizedBox(width: 6.w),
+                          Padding(
+                            padding: EdgeInsets.only(top: 4.h),
+                            child: Container(
+                              width: 6.w,
+                              height: 6.w,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: AppColors.brandSage600,
+                              ),
                             ),
                           ),
                         ],
+                        SizedBox(width: 4.w),
+                        _NotificationIconButton(
+                          onPressed: onDelete,
+                          icon: SvgPicture.asset(
+                            'assets/images/delete.svg',
+                            width: 16.sp,
+                            height: 16.sp,
+                            fit: BoxFit.contain,
+                          ),
+                          tooltip: 'Delete',
+                        ),
                       ],
                     ),
 
-                    SizedBox(height: 4.h),
-
-                    // Subtitle (API title)
                     if (displaySubtitle.isNotEmpty) ...[
+                      SizedBox(height: 2.h),
                       Text(
                         displaySubtitle,
                         style: AppTextStyles.bodySmall.copyWith(
-                          fontSize: 14.sp,
+                          fontSize: 12.sp,
+                          height: 1.3,
                           color: AppColors.neutralInk500,
                         ),
-                        maxLines: 2,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      SizedBox(height: 8.h),
                     ],
 
-                    // Timestamp
-                    Text(
-                      notification.timeAgo,
-                      style: AppTextStyles.caption.copyWith(
-                        fontSize: 12.sp,
-                        color: AppColors.neutralInk400,
-                      ),
-                    ),
+                    SizedBox(height: 6.h),
 
-                    SizedBox(height: 12.h),
-
-                    // Action buttons - Fixed size and aligned
                     Row(
                       children: [
-                        // Left side: Primary and secondary actions (Expanded to avoid overflow)
-                        Expanded(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              // View button (Primary action)
-                              if (actionLabel != null)
-                                Flexible(
-                                  child: Builder(
-                                    builder: (context) {
-                                      final label = actionLabel!;
-                                      return SizedBox(
-                                        height: 32.h,
-                                        child: OutlinedButton(
-                                          onPressed: onAction,
-                                          style: OutlinedButton.styleFrom(
-                                            foregroundColor: AppColors.brandSage600,
-                                            side: BorderSide(
-                                              color: AppColors.brandSage300,
-                                              width: 1,
-                                            ),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(
-                                                8.r,
-                                              ),
-                                            ),
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: 12.w,
-                                              vertical: 0,
-                                            ),
-                                            minimumSize: Size(0, Accessibility.minTouchTarget),
-                                            tapTargetSize:
-                                                MaterialTapTargetSize.padded,
-                                          ),
-                                          child: Text(
-                                            label,
-                                            style: AppTextStyles.caption.copyWith(
-                                              fontSize: 12.sp,
-                                              fontWeight: FontWeight.w500,
-                                              color: AppColors.brandSage600,
-                                            ),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      );
-                                    },
+                        Text(
+                          notification.timeAgo,
+                          style: AppTextStyles.caption.copyWith(
+                            fontSize: 11.sp,
+                            color: AppColors.neutralInk400,
+                          ),
+                        ),
+                        if (actionLabel != null || !isRead) ...[
+                          Text(
+                            ' · ',
+                            style: TextStyle(
+                              fontSize: 11.sp,
+                              color: AppColors.neutralInk300,
+                            ),
+                          ),
+                          Flexible(
+                            child: Wrap(
+                              spacing: 2.w,
+                              runSpacing: 0,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                if (actionLabel != null)
+                                  _NotificationTextAction(
+                                    label: actionLabel,
+                                    onPressed: onAction,
+                                    isPrimary: true,
                                   ),
-                                ),
-
-                              // Mark as Read button (Secondary action)
-                              if (!isRead) ...[
-                                if (actionLabel != null) SizedBox(width: 8.w),
-                                Flexible(
-                                  child: SizedBox(
-                                    height: Accessibility.minTouchTarget,
-                                    child: TextButton(
-                                      onPressed: onMarkAsRead,
-                                      style: TextButton.styleFrom(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 12.w,
-                                          vertical: 0,
-                                        ),
-                                        minimumSize: Size(0, Accessibility.minTouchTarget),
-                                        tapTargetSize:
-                                            MaterialTapTargetSize.padded,
-                                      ),
-                                      child: Text(
-                                        'markAsRead'.tr.isEmpty
-                                            ? 'Mark as read'
-                                            : 'notification_mark_as_read'.tr,
-                                        style: AppTextStyles.caption.copyWith(
-                                          fontSize: 12.sp,
-                                          color: AppColors.neutralInk700,
-                                        ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
+                                if (!isRead) ...[
+                                  if (actionLabel != null)
+                                    Text(
+                                      '·',
+                                      style: TextStyle(
+                                        fontSize: 11.sp,
+                                        color: AppColors.neutralInk300,
                                       ),
                                     ),
+                                  _NotificationTextAction(
+                                    label: 'markAsRead'.tr.isEmpty
+                                        ? 'Mark as read'
+                                        : 'notification_mark_as_read'.tr,
+                                    onPressed: onMarkAsRead,
                                   ),
-                                ),
+                                ],
                               ],
-                            ],
-                          ),
-                        ),
-
-                        // Delete button (Destructive action) - Fixed at far right
-                        SizedBox(
-                          width: 32.w,
-                          height: 32.h,
-                          child: IconButton(
-                            onPressed: onDelete,
-                            icon: SvgPicture.asset(
-                              'assets/images/delete.svg',
-                              width: 18.sp,
-                              height: 18.sp,
-                              fit: BoxFit.contain,
                             ),
-                            padding: EdgeInsets.zero,
-                            constraints: BoxConstraints(
-                              minWidth: 32.w,
-                              minHeight: 32.h,
-                            ),
-                            tooltip: 'Delete',
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ],
@@ -808,6 +747,72 @@ class _NotificationCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _NotificationTextAction extends StatelessWidget {
+  const _NotificationTextAction({
+    required this.label,
+    required this.onPressed,
+    this.isPrimary = false,
+  });
+
+  final String label;
+  final VoidCallback onPressed;
+  final bool isPrimary;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      onPressed: onPressed,
+      style: TextButton.styleFrom(
+        padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0),
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
+      ),
+      child: Text(
+        label,
+        style: AppTextStyles.caption.copyWith(
+          fontSize: 11.sp,
+          fontWeight: isPrimary ? FontWeight.w600 : FontWeight.w500,
+          color: isPrimary ? AppColors.brandSage600 : AppColors.neutralInk700,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+}
+
+class _NotificationIconButton extends StatelessWidget {
+  const _NotificationIconButton({
+    required this.onPressed,
+    required this.icon,
+    required this.tooltip,
+  });
+
+  final VoidCallback onPressed;
+  final Widget icon;
+  final String tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 28.w,
+      height: 28.w,
+      child: IconButton(
+        onPressed: onPressed,
+        icon: icon,
+        padding: EdgeInsets.zero,
+        constraints: BoxConstraints(
+          minWidth: 28.w,
+          minHeight: 28.w,
+        ),
+        tooltip: tooltip,
+        splashRadius: 16.r,
       ),
     );
   }
