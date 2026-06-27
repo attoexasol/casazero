@@ -107,7 +107,7 @@ class MainScaffold extends GetView<HomeController> {
             isNavVisible: _isBottomNavVisible(),
             screenKey: controller.currentScreen.value,
             body: _buildBody(),
-            navBar: _buildFloatingNavBar(),
+            navBarBuilder: _buildFloatingNavBar,
           ),
         ),
       ),
@@ -1058,7 +1058,7 @@ extension _MainScaffoldNotification on MainScaffold {
     return !hideBottomNavScreens.contains(controller.currentScreen.value);
   }
 
-  Widget _buildFloatingNavBar() {
+  Widget _buildFloatingNavBar(double collapseProgress) {
     final tabs = controller.bottomNavTabs;
     final selectedIndex = tabs.indexWhere(
       (tab) => tab.screen == controller.currentScreen.value,
@@ -1067,6 +1067,7 @@ extension _MainScaffoldNotification on MainScaffold {
     return FloatingBottomNavBar(
       itemCount: tabs.length,
       selectedIndex: selectedIndex,
+      collapseProgress: collapseProgress,
       onItemSelected: (index) =>
           controller.navigateToScreen(tabs[index].screen),
       iconBuilder: (index, isActive) => _buildIcon(tabs[index], isActive),
@@ -1112,20 +1113,20 @@ extension _MainScaffoldNotification on MainScaffold {
   }
 }
 
-/// Hides the floating nav bar when scrolling down (Instagram-style) and
-/// reveals it when scrolling up or returning to the top.
+/// Shrinks the floating nav bar progressively while scrolling down (Instagram-style)
+/// and expands it when scrolling up or returning to the top.
 /// Uses [NotificationListener] so no child screen needs modification.
 class _ScrollAwareBody extends StatefulWidget {
   final bool isNavVisible;
   final AppScreen screenKey;
   final Widget body;
-  final Widget navBar;
+  final Widget Function(double collapseProgress) navBarBuilder;
 
   const _ScrollAwareBody({
     required this.isNavVisible,
     required this.screenKey,
     required this.body,
-    required this.navBar,
+    required this.navBarBuilder,
   });
 
   @override
@@ -1133,14 +1134,20 @@ class _ScrollAwareBody extends StatefulWidget {
 }
 
 class _ScrollAwareBodyState extends State<_ScrollAwareBody> {
-  bool _navHidden = false;
+  /// 0 = fully expanded, 1 = fully collapsed.
+  double _collapseProgress = 0;
+
+  /// Scroll distance (px) required to reach full collapse — higher = subtler, slower shrink.
+  static const double _collapseScrollDistance = 220;
+
+  /// Cap so the bar never fully reaches the collapsed end-state (Instagram stays slightly expanded).
+  static const double _maxCollapseProgress = 0.65;
 
   @override
   void didUpdateWidget(_ScrollAwareBody oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Always reveal the nav bar when the user switches screens.
-    if (oldWidget.screenKey != widget.screenKey && _navHidden) {
-      setState(() => _navHidden = false);
+    if (oldWidget.screenKey != widget.screenKey && _collapseProgress > 0) {
+      setState(() => _collapseProgress = 0);
     }
   }
 
@@ -1149,17 +1156,18 @@ class _ScrollAwareBodyState extends State<_ScrollAwareBody> {
 
     if (notification is ScrollUpdateNotification) {
       final delta = notification.scrollDelta ?? 0;
-      if (delta > 1.0 && !_navHidden) {
-        setState(() => _navHidden = true);
-      } else if (delta < -1.0 && _navHidden) {
-        setState(() => _navHidden = false);
+      if (delta != 0) {
+        final next = (_collapseProgress + delta / _collapseScrollDistance)
+            .clamp(0.0, _maxCollapseProgress);
+        if (next != _collapseProgress) {
+          setState(() => _collapseProgress = next);
+        }
       }
     }
 
-    // Always show when snapped back to the very top.
     if (notification is ScrollEndNotification) {
-      if (notification.metrics.pixels <= 0 && _navHidden) {
-        setState(() => _navHidden = false);
+      if (notification.metrics.pixels <= 0 && _collapseProgress > 0) {
+        setState(() => _collapseProgress = 0);
       }
     }
 
@@ -1168,8 +1176,6 @@ class _ScrollAwareBodyState extends State<_ScrollAwareBody> {
 
   @override
   Widget build(BuildContext context) {
-    final show = widget.isNavVisible && !_navHidden;
-
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -1189,17 +1195,7 @@ class _ScrollAwareBodyState extends State<_ScrollAwareBody> {
               data: MediaQuery.of(context).copyWith(
                 viewInsets: EdgeInsets.zero,
               ),
-              child: AnimatedSlide(
-                offset: show ? Offset.zero : const Offset(0, 1.5),
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-                child: AnimatedOpacity(
-                  opacity: show ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 250),
-                  curve: Curves.easeInOut,
-                  child: widget.navBar,
-                ),
-              ),
+              child: widget.navBarBuilder(_collapseProgress),
             ),
           ),
       ],

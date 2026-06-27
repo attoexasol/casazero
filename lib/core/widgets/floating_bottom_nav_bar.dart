@@ -13,12 +13,16 @@ class FloatingBottomNavBar extends StatelessWidget {
   final ValueChanged<int> onItemSelected;
   final FloatingNavIconBuilder iconBuilder;
 
+  /// 0 = fully expanded, 1 = fully collapsed (Instagram-style shrink on scroll).
+  final double collapseProgress;
+
   const FloatingBottomNavBar({
     super.key,
     required this.itemCount,
     required this.selectedIndex,
     required this.onItemSelected,
     required this.iconBuilder,
+    this.collapseProgress = 0,
   });
 
   static const Duration animationDuration = Duration(milliseconds: 280);
@@ -29,7 +33,18 @@ class FloatingBottomNavBar extends StatelessWidget {
 
   static double get barHeight => 72.h;
 
+  static double get collapsedBarHeight => 64.h;
+
   static double get bottomMargin => 16.h;
+
+  static double get collapsedBottomMargin => 12.h;
+
+  /// Bar width when fully collapsed, as a fraction of the expanded width.
+  static const double collapsedWidthScale = 0.92;
+
+  static double _lerp(double expanded, double collapsed, double t) {
+    return expanded + (collapsed - expanded) * t.clamp(0.0, 1.0);
+  }
 
   /// Gap between scrollable content and the floating nav bar.
   static double get contentGap => 24.h;
@@ -86,30 +101,48 @@ class FloatingBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = collapseProgress.clamp(0.0, 1.0);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     final screenWidth = MediaQuery.sizeOf(context).width;
-    final horizontalPadding = _horizontalPadding(screenWidth);
-    final maxBarWidth = _maxBarWidth(screenWidth);
-    final borderRadius = BorderRadius.circular(38.r);
+    final baseHorizontalPadding = _horizontalPadding(screenWidth);
+    final baseMaxBarWidth = _maxBarWidth(screenWidth);
+    final currentHorizontalPadding = _lerp(
+      baseHorizontalPadding,
+      baseHorizontalPadding + 10.w,
+      t,
+    );
+    final expandedBarWidth = baseMaxBarWidth == double.infinity
+        ? screenWidth - (baseHorizontalPadding * 2)
+        : baseMaxBarWidth;
+    final collapsedBarWidth = expandedBarWidth * collapsedWidthScale;
+    final currentBarWidth = _lerp(expandedBarWidth, collapsedBarWidth, t);
+    final currentBarHeight = _lerp(barHeight, collapsedBarHeight, t);
+    final currentBottomMargin = _lerp(bottomMargin, collapsedBottomMargin, t);
+    final borderRadiusValue = _lerp(38.r, 34.r, t);
+    final borderRadius = BorderRadius.circular(borderRadiusValue);
+    final borderWidth = _lerp(1.5.w, 1.4.w, t);
+    final iconScale = _lerp(1.0, 0.94, t);
+    final activeIconBoost = _lerp(1.1, 1.06, t);
+    final blurSigma = _lerp(8.0, 7.0, t);
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
-        horizontalPadding,
+        currentHorizontalPadding,
         0,
-        horizontalPadding,
-        bottomMargin + bottomInset,
+        currentHorizontalPadding,
+        currentBottomMargin + bottomInset,
       ),
       child: Align(
         alignment: Alignment.bottomCenter,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: maxBarWidth),
+        child: SizedBox(
+          width: currentBarWidth,
           child: Container(
             foregroundDecoration: BoxDecoration(
               borderRadius: borderRadius,
               border: Border.all(
                 color: Colors.white.withOpacity(0.85),
-                width: 1.5.w,
+                width: borderWidth,
               ),
             ),
             decoration: BoxDecoration(
@@ -117,20 +150,20 @@ class FloatingBottomNavBar extends StatelessWidget {
               boxShadow: [
                 BoxShadow(
                   color: AppColors.brandSage500.withOpacity(isDark ? 0.14 : 0.10),
-                  blurRadius: 36.r,
-                  spreadRadius: -6.r,
-                  offset: Offset(0, 14.h),
+                  blurRadius: _lerp(36.r, 32.r, t),
+                  spreadRadius: _lerp(-6.r, -5.r, t),
+                  offset: Offset(0, _lerp(14.h, 12.h, t)),
                 ),
                 BoxShadow(
                   color: Colors.black.withOpacity(isDark ? 0.20 : 0.10),
-                  blurRadius: 28.r,
-                  spreadRadius: -4.r,
-                  offset: Offset(0, 10.h),
+                  blurRadius: _lerp(28.r, 24.r, t),
+                  spreadRadius: _lerp(-4.r, -3.r, t),
+                  offset: Offset(0, _lerp(10.h, 8.h, t)),
                 ),
                 BoxShadow(
                   color: Colors.black.withOpacity(isDark ? 0.10 : 0.04),
-                  blurRadius: 8.r,
-                  offset: Offset(0, 2.h),
+                  blurRadius: _lerp(8.r, 7.r, t),
+                  offset: Offset(0, _lerp(2.h, 2.h, t)),
                 ),
               ],
             ),
@@ -139,46 +172,45 @@ class FloatingBottomNavBar extends StatelessWidget {
               child: Stack(
                 children: [
                   BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                    filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
                     child: Container(
-                      height: barHeight,
+                      height: currentBarHeight,
                       color: isDark
                           ? Colors.white.withOpacity(0.06)
                           : Colors.white.withOpacity(0.18),
                     ),
                   ),
                   SizedBox(
-                    height: barHeight,
+                    height: currentBarHeight,
                     child: LayoutBuilder(
                       builder: (context, constraints) {
                         final tabWidth = constraints.maxWidth / itemCount;
-                        final pillWidth = 52.w;
-                        final pillHeight = 40.h;
                         final showIndicator =
                             selectedIndex >= 0 && selectedIndex < itemCount;
+                        // Pill size is proportional to the bar/tab so it shrinks in sync
+                        // with the nav during scroll (not fixed .w/.h units).
+                        final pillHeight = currentBarHeight * 0.56;
+                        final pillWidth = tabWidth * _lerp(0.74, 0.70, t);
                         final pillLeft = showIndicator
                             ? (selectedIndex * tabWidth) +
                                 ((tabWidth - pillWidth) / 2)
                             : 0.0;
+                        final pillRadius = pillHeight / 2;
 
                         return Stack(
                           clipBehavior: Clip.none,
                           alignment: Alignment.center,
                           children: [
-                            AnimatedPositioned(
-                              duration: animationDuration,
-                              curve: animationCurve,
-                              left: pillLeft,
-                              top: (constraints.maxHeight - pillHeight) / 2,
-                              width: pillWidth,
-                              height: pillHeight,
-                              child: AnimatedOpacity(
-                                duration: const Duration(milliseconds: 200),
-                                opacity: showIndicator ? 1 : 0,
-                                curve: Curves.easeInOut,
+                            if (showIndicator)
+                              Positioned(
+                                left: pillLeft,
+                                top: (constraints.maxHeight - pillHeight) / 2,
+                                width: pillWidth,
+                                height: pillHeight,
                                 child: DecoratedBox(
                                   decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20.r),
+                                    borderRadius:
+                                        BorderRadius.circular(pillRadius),
                                     color: isDark
                                         ? Colors.white.withOpacity(0.28)
                                         : const Color(0xFFC8C8C8)
@@ -188,21 +220,22 @@ class FloatingBottomNavBar extends StatelessWidget {
                                         color: Colors.black.withOpacity(
                                           isDark ? 0.15 : 0.08,
                                         ),
-                                        blurRadius: 6.r,
-                                        offset: Offset(0, 2.h),
+                                        blurRadius: _lerp(6.r, 5.r, t),
+                                        offset: Offset(0, _lerp(2.h, 2.h, t)),
                                       ),
                                     ],
                                   ),
                                 ),
                               ),
-                            ),
                             Row(
                               children: List.generate(itemCount, (index) {
                                 final isActive =
                                     selectedIndex >= 0 && selectedIndex == index;
                                 return Expanded(
                                   child: _FloatingNavItem(
+                                    height: currentBarHeight,
                                     isActive: isActive,
+                                    iconScale: isActive ? activeIconBoost : iconScale,
                                     onTap: () => onItemSelected(index),
                                     icon: iconBuilder(index, isActive),
                                   ),
@@ -225,12 +258,16 @@ class FloatingBottomNavBar extends StatelessWidget {
 }
 
 class _FloatingNavItem extends StatelessWidget {
+  final double height;
   final bool isActive;
+  final double iconScale;
   final VoidCallback onTap;
   final Widget icon;
 
   const _FloatingNavItem({
+    required this.height,
     required this.isActive,
+    required this.iconScale,
     required this.onTap,
     required this.icon,
   });
@@ -241,18 +278,11 @@ class _FloatingNavItem extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: SizedBox(
-        height: FloatingBottomNavBar.barHeight,
+        height: height,
         child: Center(
-          child: AnimatedScale(
-            scale: isActive ? 1.1 : 1.0,
-            duration: FloatingBottomNavBar.animationDuration,
-            curve: Curves.easeInOut,
-            child: AnimatedOpacity(
-              opacity: 1.0,
-              duration: FloatingBottomNavBar.animationDuration,
-              curve: Curves.easeInOut,
-              child: icon,
-            ),
+          child: Transform.scale(
+            scale: iconScale,
+            child: icon,
           ),
         ),
       ),
