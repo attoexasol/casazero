@@ -65,47 +65,49 @@ class _CZNotificationBellState extends State<CZNotificationBell>
             minWidth: Accessibility.minTouchTarget,
             minHeight: Accessibility.minTouchTarget,
           ),
-          child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Container(
-              padding: EdgeInsets.all(12.r),
-              decoration: BoxDecoration(
-                color: AppColors.brandSage50,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.notifications_outlined,
-                size: 24.sp,
-                color: AppColors.brandSage600,
-              ),
-            ),
-
-            if (widget.count > 0)
-              Positioned(
-                right: -2.w,
-                top: -2.h,
-                child: Container(
-                  width: 22.w,
-                  height: 22.w,
+          child: Center(
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(12.r),
                   decoration: BoxDecoration(
-                    color: Colors.redAccent,
+                    color: AppColors.brandSage50,
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2.w),
                   ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    widget.count > 9 ? "9+" : widget.count.toString(),
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 11.sp,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: Icon(
+                    Icons.notifications_outlined,
+                    size: 24.sp,
+                    color: AppColors.brandSage600,
                   ),
                 ),
-              ),
-          ],
-        ),
+
+                if (widget.count > 0)
+                  Positioned(
+                    right: -2.w,
+                    top: -2.h,
+                    child: Container(
+                      width: 22.w,
+                      height: 22.w,
+                      decoration: BoxDecoration(
+                        color: Colors.redAccent,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2.w),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        widget.count > 9 ? "9+" : widget.count.toString(),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );

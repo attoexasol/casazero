@@ -681,102 +681,106 @@ class _AnimatedNotificationButtonState extends State<_AnimatedNotificationButton
           behavior: HitTestBehavior.opaque,
           child: ConstrainedBox(
             constraints: Accessibility.iconButtonConstraints,
-            child: ScaleTransition(
-            scale: _scaleAnimation,
-            alignment: Alignment.center,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Icon(
-                  Icons.notifications_outlined,
-                  size: 30.sp,
-                  color: AppColors.brandSage600,
-                ),
-                if (widget.count > 0)
-                  Positioned(
-                    right: -4.w,
-                    top: -4.h,
-                    child: Container(
-                      constraints: BoxConstraints(
-                        minWidth: 20.w,
-                        minHeight: 20.h,
-                      ),
-                      padding: EdgeInsets.symmetric(horizontal: 6.w),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            AppColors.danger,
-                            AppColors.danger.withOpacity(0.9),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(10.r),
-                        border: Border.all(
-                          color: AppColors.surfaceWhite,
-                          width: 2.w,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 8.r,
-                            offset: Offset(0, 2.h),
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Text(
-                          widget.count > 9 ? '9+' : widget.count.toString(),
-                          style: TextStyle(
-                            color: AppColors.surfaceWhite,
-                            fontSize: 11.sp,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
+            child: Center(
+              child: ScaleTransition(
+                scale: _scaleAnimation,
+                alignment: Alignment.center,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Icon(
+                      Icons.notifications_outlined,
+                      size: 30.sp,
+                      color: AppColors.brandSage600,
                     ),
-                  ),
-                if (widget.count > 0)
-                  Positioned(
-                    right: -4.w,
-                    top: -4.h,
-                    child: Container(
-                      width: 20.w,
-                      height: 20.h,
-                      decoration: BoxDecoration(
-                        color: AppColors.danger,
-                        shape: BoxShape.circle,
-                      ),
-                    )
-                        .animate(onPlay: (c) => c.repeat())
-                        .scale(
-                          begin: const Offset(1, 1),
-                          end: const Offset(1.3, 1.3),
-                          duration: 2000.ms,
-                          curve: Curves.easeInOut,
-                        )
-                        .then()
-                        .scale(
-                          begin: const Offset(1.3, 1.3),
-                          end: const Offset(1, 1),
-                          duration: 2000.ms,
-                          curve: Curves.easeInOut,
-                        )
-                        .fade(
-                          begin: 0.5,
-                          end: 0,
-                          duration: 2000.ms,
-                          curve: Curves.easeInOut,
-                        )
-                        .then(delay: 0.ms)
-                        .fade(
-                          begin: 0,
-                          end: 0.5,
-                          duration: 2000.ms,
-                          curve: Curves.easeInOut,
+                    if (widget.count > 0)
+                      Positioned(
+                        right: -4.w,
+                        top: -4.h,
+                        child: Container(
+                          constraints: BoxConstraints(
+                            minWidth: 20.w,
+                            minHeight: 20.h,
+                          ),
+                          padding: EdgeInsets.symmetric(horizontal: 6.w),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                AppColors.danger,
+                                AppColors.danger.withOpacity(0.9),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(10.r),
+                            border: Border.all(
+                              color: AppColors.surfaceWhite,
+                              width: 2.w,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 8.r,
+                                offset: Offset(0, 2.h),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Text(
+                              widget.count > 9
+                                  ? '9+'
+                                  : widget.count.toString(),
+                              style: TextStyle(
+                                color: AppColors.surfaceWhite,
+                                fontSize: 11.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                         ),
-                  ),
-              ],
+                      ),
+                    if (widget.count > 0)
+                      Positioned(
+                        right: -4.w,
+                        top: -4.h,
+                        child: Container(
+                          width: 20.w,
+                          height: 20.h,
+                          decoration: BoxDecoration(
+                            color: AppColors.danger,
+                            shape: BoxShape.circle,
+                          ),
+                        )
+                            .animate(onPlay: (c) => c.repeat())
+                            .scale(
+                              begin: const Offset(1, 1),
+                              end: const Offset(1.3, 1.3),
+                              duration: 2000.ms,
+                              curve: Curves.easeInOut,
+                            )
+                            .then()
+                            .scale(
+                              begin: const Offset(1.3, 1.3),
+                              end: const Offset(1, 1),
+                              duration: 2000.ms,
+                              curve: Curves.easeInOut,
+                            )
+                            .fade(
+                              begin: 0.5,
+                              end: 0,
+                              duration: 2000.ms,
+                              curve: Curves.easeInOut,
+                            )
+                            .then(delay: 0.ms)
+                            .fade(
+                              begin: 0,
+                              end: 0.5,
+                              duration: 2000.ms,
+                              curve: Curves.easeInOut,
+                            ),
+                      ),
+                  ],
+                ),
+              ),
             ),
-          ),
           ),
         ),
       ),
