@@ -628,6 +628,66 @@ class HomeController extends GetxController {
     }
   }
 
+  /// Delete notification (with API sync)
+  Future<void> deleteNotification(String notificationId) async {
+    if (apiToken.value.isEmpty) {
+      print(
+        '⚠️ [HomeController] deleteNotification: API token not ready, skipping',
+      );
+      return;
+    }
+
+    final index = feedItems.indexWhere((item) => item.id == notificationId);
+    if (index == -1) {
+      print('⚠️ [HomeController] Notification not found: $notificationId');
+      return;
+    }
+
+    final notification = feedItems[index];
+    final wasUnread = !notification.isRead;
+
+    try {
+      final notificationIdInt = int.tryParse(notificationId);
+      if (notificationIdInt == null) {
+        print(
+          '❌ [HomeController] Invalid notification ID format: $notificationId',
+        );
+        return;
+      }
+
+      print('🗑️ [HomeController] Deleting notification: $notificationId');
+
+      final result = await _homeRepository.deleteNotification(
+        notificationIdInt,
+      );
+
+      if (result['success'] == true) {
+        feedItems.removeAt(index);
+        feedItems.refresh();
+
+        if (wasUnread) {
+          await fetchUnreadCount();
+        }
+
+        print('✅ [HomeController] Notification deleted successfully');
+      } else {
+        print(
+          '❌ [HomeController] Failed to delete notification: ${result['error']}',
+        );
+        MessagePopupController.showError(
+          messageKey: 'failed_to_delete_notification',
+          titleKey: 'notifications',
+        );
+      }
+    } catch (e) {
+      print('❌ [HomeController] Error deleting notification: $e');
+      MessagePopupController.showError(
+        messageKey: 'failed_to_delete_notification',
+        titleKey: 'notifications',
+      );
+    }
+  }
+
   /// Handle Chat action for notification (API-ready)
   void onNotificationChat(FeedItemModel notification) {
     // TODO: Integrate chat API

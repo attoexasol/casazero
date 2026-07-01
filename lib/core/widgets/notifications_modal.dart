@@ -530,11 +530,8 @@ class _NotificationsModalContentState
     }
   }
 
-  void _deleteNotification(FeedItemModel notification) {
-    MessagePopupController.showInfo(
-      messageKey: 'delete_functionality_coming_soon',
-      titleKey: 'notifications',
-    );
+  Future<void> _deleteNotification(FeedItemModel notification) async {
+    await widget.controller.deleteNotification(notification.id);
   }
 }
 

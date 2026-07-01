@@ -254,6 +254,18 @@ class ApiConstants {
   /// }
   static const String GET_UNREAD_NOTIFICATION_COUNT = '/get_user/unread_count';
 
+  /// Delete Notification
+  /// POST /notification/delete
+  /// Request: {
+  ///   "api_token": "<CURRENT_USER_API_TOKEN>",
+  ///   "notification_id": <NOTIFICATION_ID>
+  /// }
+  /// Response: {
+  ///   "status": true,
+  ///   "message": "Notification deleted successfully"
+  /// }
+  static const String DELETE_NOTIFICATION = '/notification/delete';
+
   /// Notify Laravel after a chat message is written to Firestore.
   /// POST /send-chat-notification
   /// Request: {

@@ -251,6 +251,7 @@ class AppTranslations extends Translations {
     'device_removed_successfully': 'Device removed successfully',
     'failed_to_remove_device': 'Failed to remove device',
     'delete_functionality_coming_soon': 'Delete functionality coming soon',
+    'failed_to_delete_notification': 'Failed to delete notification. Please try again.',
     'viewDocument': 'View Document',
     'connection_timeout':
         'Connection timeout. Please check your internet connection.',
@@ -1356,6 +1357,8 @@ class AppTranslations extends Translations {
     'failed_to_remove_device': 'Impossibile rimuovere il dispositivo',
     'delete_functionality_coming_soon':
         'Funzionalità di eliminazione in arrivo',
+    'failed_to_delete_notification':
+        'Impossibile eliminare la notifica. Riprova.',
     'viewDocument': 'Visualizza Documento',
     'connection_timeout':
         'Timeout di connessione. Controlla la tua connessione internet.',

@@ -319,6 +319,83 @@ class HomeRepository {
     }
   }
 
+  /// Delete Notification
+  /// POST /notification/delete
+  /// Request: {
+  ///   "api_token": "<CURRENT_USER_API_TOKEN>",
+  ///   "notification_id": <NOTIFICATION_ID>
+  /// }
+  /// Response: {
+  ///   "status": true,
+  ///   "message": "Notification deleted successfully"
+  /// }
+  Future<Map<String, dynamic>> deleteNotification(int notificationId) async {
+    try {
+      print('🗑️ [HomeRepository] Deleting notification: $notificationId');
+
+      final apiToken = _storageService.getAccessToken();
+      if (apiToken == null || apiToken.isEmpty) {
+        print('❌ [HomeRepository] API token is null or empty');
+        return {
+          'success': false,
+          'error': 'User API token not found in local storage',
+        };
+      }
+
+      final endpoint = ApiConstants.DELETE_NOTIFICATION;
+      print('📡 [HomeRepository] Making POST request to: $endpoint');
+
+      final response = await _apiService.post(
+        endpoint,
+        data: {
+          'api_token': apiToken,
+          'notification_id': notificationId,
+        },
+      );
+
+      print('✅ [HomeRepository] Delete notification response received');
+      print('📊 [HomeRepository] Status Code: ${response.statusCode}');
+
+      if (response.statusCode == 200 && response.data['status'] == true) {
+        print('✅ [HomeRepository] Notification deleted successfully');
+        return {
+          'success': true,
+          'message':
+              response.data['message'] ?? 'Notification deleted successfully',
+        };
+      } else {
+        final errorMessage =
+            response.data['message'] ??
+            response.data['error'] ??
+            'Failed to delete notification';
+        print('❌ [HomeRepository] API returned error: $errorMessage');
+        return {'success': false, 'error': errorMessage};
+      }
+    } on DioException catch (e, stackTrace) {
+      print('❌ [HomeRepository] DioException in deleteNotification: $e');
+      print('📚 [HomeRepository] Stack trace: $stackTrace');
+
+      String errorMessage = 'Failed to delete notification. Please try again.';
+      if (e.response != null && e.response!.data != null) {
+        final responseData = e.response!.data;
+        if (responseData is Map) {
+          errorMessage =
+              responseData['message'] ?? responseData['error'] ?? errorMessage;
+        }
+        print('📊 [HomeRepository] Error response data: $responseData');
+      }
+
+      return {'success': false, 'error': errorMessage};
+    } catch (e, stackTrace) {
+      print('❌ [HomeRepository] Exception in deleteNotification: $e');
+      print('📚 [HomeRepository] Stack trace: $stackTrace');
+      return {
+        'success': false,
+        'error': 'Failed to delete notification. Please try again.',
+      };
+    }
+  }
+
   /// Get Unread Notification Count
   /// POST /get_user/unread_count
   /// Request: {
