@@ -1,14 +1,209 @@
 // lib/presentation/splash/views/splash_screen.dart
 // Premium splash screen matching React design with constellation effects
 
+import 'dart:async';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:math' as math;
-import '../../../app/theme/app_colors.dart';
 import '../controllers/splash_controller.dart';
 
+// Legacy splash UI imports (restore when uncommenting the original implementation):
+// import 'package:flutter_animate/flutter_animate.dart';
+// import '../../../app/theme/app_colors.dart';
+
+class SplashScreen extends GetView<SplashController> {
+  const SplashScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFFFFFFF),
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 48.w),
+            child: const _CasaZeroCubeLogo(),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Minimal centered cube logo for the redesigned splash screen.
+class _CasaZeroCubeLogo extends StatefulWidget {
+  const _CasaZeroCubeLogo();
+
+  @override
+  State<_CasaZeroCubeLogo> createState() => _CasaZeroCubeLogoState();
+}
+
+class _CasaZeroCubeLogoState extends State<_CasaZeroCubeLogo> {
+  static const _assetPath = 'assets/images/casa_zero_ai.ico';
+
+  ui.Image? _image;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLogo();
+  }
+
+  @override
+  void dispose() {
+    _image?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadLogo() async {
+    final data = await rootBundle.load(_assetPath);
+    final frame = _largestIcoFrameAsRgba(data.buffer.asUint8List());
+    if (!mounted || frame == null) return;
+
+    final completer = Completer<ui.Image>();
+    ui.decodeImageFromPixels(
+      frame.rgba,
+      frame.width,
+      frame.height,
+      ui.PixelFormat.rgba8888,
+      completer.complete,
+    );
+    final image = await completer.future;
+    if (!mounted) {
+      image.dispose();
+      return;
+    }
+
+    setState(() => _image = image);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final image = _image;
+    if (image == null) {
+      return const SizedBox.shrink();
+    }
+
+    final screenSize = MediaQuery.sizeOf(context);
+    final maxLogoSide = math.min(screenSize.width, screenSize.height) * 0.45;
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: maxLogoSide,
+        maxHeight: maxLogoSide,
+      ),
+      child: RawImage(
+        image: image,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.high,
+      ),
+    );
+  }
+
+  ({Uint8List rgba, int width, int height})? _largestIcoFrameAsRgba(
+    Uint8List icoBytes,
+  ) {
+    if (icoBytes.length < 6) return null;
+
+    final header = ByteData.sublistView(icoBytes);
+    if (header.getUint16(0, Endian.little) != 0 ||
+        header.getUint16(2, Endian.little) != 1) {
+      return null;
+    }
+
+    final imageCount = header.getUint16(4, Endian.little);
+    var bestArea = 0;
+    var bestOffset = 0;
+    var bestSize = 0;
+
+    for (var i = 0; i < imageCount; i++) {
+      final entryOffset = 6 + (i * 16);
+      if (entryOffset + 16 > icoBytes.length) return null;
+
+      final width = icoBytes[entryOffset] == 0 ? 256 : icoBytes[entryOffset];
+      final height =
+          icoBytes[entryOffset + 1] == 0 ? 256 : icoBytes[entryOffset + 1];
+      final dataSize = header.getUint32(entryOffset + 8, Endian.little);
+      final dataOffset = header.getUint32(entryOffset + 12, Endian.little);
+      final area = width * height;
+
+      if (area > bestArea) {
+        bestArea = area;
+        bestOffset = dataOffset;
+        bestSize = dataSize;
+      }
+    }
+
+    if (bestSize == 0 || bestOffset + bestSize > icoBytes.length) {
+      return null;
+    }
+
+    return _icoDibToRgba(icoBytes.sublist(bestOffset, bestOffset + bestSize));
+  }
+
+  ({Uint8List rgba, int width, int height})? _icoDibToRgba(Uint8List dib) {
+    if (dib.length < 40) return null;
+
+    final dibHeader = ByteData.sublistView(dib);
+    final headerSize = dibHeader.getUint32(0, Endian.little);
+    if (headerSize < 40 || dib.length < headerSize) return null;
+
+    final width = dibHeader.getInt32(4, Endian.little);
+    final storedHeight = dibHeader.getInt32(8, Endian.little);
+    if (width <= 0 || storedHeight <= 0) return null;
+
+    final height = storedHeight ~/ 2;
+    final bitCount = dibHeader.getUint16(14, Endian.little);
+    if (bitCount != 32) return null;
+
+    final rowSize = width * 4;
+    final xorSize = rowSize * height;
+    if (headerSize + xorSize > dib.length) return null;
+
+    final andRowSize = ((width + 31) ~/ 32) * 4;
+    final andOffset = headerSize + xorSize;
+    final hasAndMask = andOffset + (andRowSize * height) <= dib.length;
+
+    final rgba = Uint8List(width * height * 4);
+
+    for (var y = 0; y < height; y++) {
+      final srcRow = height - 1 - y;
+      final srcRowOffset = headerSize + (srcRow * rowSize);
+      final andRowOffset = andOffset + (srcRow * andRowSize);
+
+      for (var x = 0; x < width; x++) {
+        final srcPixel = srcRowOffset + (x * 4);
+        final blue = dib[srcPixel];
+        final green = dib[srcPixel + 1];
+        final red = dib[srcPixel + 2];
+        var alpha = dib[srcPixel + 3];
+
+        if (hasAndMask) {
+          final andByte = dib[andRowOffset + (x ~/ 8)];
+          final andBit = (andByte >> (7 - (x % 8))) & 1;
+          if (andBit == 1) {
+            alpha = 0;
+          }
+        }
+
+        final dst = (y * width + x) * 4;
+        rgba[dst] = red;
+        rgba[dst + 1] = green;
+        rgba[dst + 2] = blue;
+        rgba[dst + 3] = alpha;
+      }
+    }
+
+    return (rgba: rgba, width: width, height: height);
+  }
+}
+
+/*
 /// Design-proportional layout values (reference: 390×844 via ScreenUtil).
 class _SplashMetrics {
   final double screenWidth;
@@ -552,3 +747,4 @@ class _LoadingDotState extends State<_LoadingDot>
     );
   }
 }
+*/
