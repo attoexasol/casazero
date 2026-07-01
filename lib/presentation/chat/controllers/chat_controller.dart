@@ -13,6 +13,7 @@ import '../../../core/services/firebase_auth_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../core/utils/firebase_config_audit.dart';
 import '../../../data/repositories/auth_repository.dart';
+import '../../../data/repositories/notification_repository.dart';
 import '../../../core/utils/permissions.dart';
 import '../../../data/models/user_model.dart';
 import '../../home/controllers/home_controller.dart';
@@ -486,6 +487,37 @@ class ChatController extends GetxController {
     return 'You';
   }
 
+  int? _currentUserId() {
+    if (Get.isRegistered<HomeController>()) {
+      final id = Get.find<HomeController>().currentUser.value?.id;
+      if (id != null && id > 0) return id;
+    }
+    final raw = _storageService.getUserData()?['id'];
+    if (raw is int) return raw;
+    return int.tryParse(raw?.toString() ?? '');
+  }
+
+  Future<void> _notifyGroupChatMessage({required String body}) async {
+    final senderId = _currentUserId();
+    if (senderId == null) return;
+
+    try {
+      if (!Get.isRegistered<NotificationRepository>()) return;
+      await Get.find<NotificationRepository>().sendChatNotification(
+        receiverId: 0,
+        senderId: senderId,
+        title: 'New Message',
+        body: body,
+        data: {
+          'type': 'group_chat',
+          'group_id': groupId,
+        },
+      );
+    } catch (e) {
+      debugPrint('[ChatController] Chat notification failed: $e');
+    }
+  }
+
   Future<void> sendTextMessage() async {
     final text = messageController.text.trim();
     if (text.isEmpty) return;
@@ -541,6 +573,7 @@ class ChatController extends GetxController {
         'senderRole=${messageData['senderRole']} senderName=${messageData['senderName']} '
         'appRole=${_currentUserRole()?.name ?? "unknown"} chars=${text.length}',
       );
+      await _notifyGroupChatMessage(body: text);
       _scrollToBottom();
     } on FirebaseException catch (e) {
       debugPrint(

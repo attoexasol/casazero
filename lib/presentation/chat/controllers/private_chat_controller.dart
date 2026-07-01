@@ -10,6 +10,7 @@ import '../../../core/utils/firebase_error_handler.dart';
 import '../../../data/models/private_chat_conversation.dart';
 import '../../../data/models/private_chat_message.dart';
 import '../../../data/repositories/auth_repository.dart';
+import '../../../data/repositories/notification_repository.dart';
 import '../../../data/repositories/private_chat_repository.dart';
 import '../../home/controllers/home_controller.dart';
 import '../providers/message_provider.dart';
@@ -247,6 +248,11 @@ class PrivateChatController extends GetxController {
         residentId: residentId,
         text: text,
       );
+      await _notifyPrivateChatMessage(
+        senderId: residentId,
+        body: text,
+        chatId: conv.id,
+      );
       _scrollToBottom();
     } on FirebaseException catch (e) {
       FirebaseErrorHandler.log(
@@ -269,6 +275,31 @@ class PrivateChatController extends GetxController {
     } finally {
       isSending.value = false;
       update(['input']);
+    }
+  }
+
+  Future<void> _notifyPrivateChatMessage({
+    required int senderId,
+    required String body,
+    required String chatId,
+  }) async {
+    final adminId = _provider.adminId;
+    if (adminId == null || adminId <= 0) return;
+
+    try {
+      if (!Get.isRegistered<NotificationRepository>()) return;
+      await Get.find<NotificationRepository>().sendChatNotification(
+        receiverId: adminId,
+        senderId: senderId,
+        title: 'New Message',
+        body: body,
+        data: {
+          'type': 'private_chat',
+          'chat_id': chatId,
+        },
+      );
+    } catch (e) {
+      debugPrint('[PrivateChatController] Chat notification failed: $e');
     }
   }
 

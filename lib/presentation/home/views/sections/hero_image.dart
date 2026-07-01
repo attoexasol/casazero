@@ -49,7 +49,7 @@ class _HeroImageState extends State<HeroImage>
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     // Image hover scale effect (1.0 → 1.05, 700ms, smooth easing)
-    _imageScaleAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
+    _imageScaleAnimation = Tween<double>(begin: 1.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
         curve: const Interval(0.2, 1.0, curve: Curves.easeInOut),
@@ -95,9 +95,11 @@ class _HeroImageState extends State<HeroImage>
         builder: (context, child) {
           return FadeTransition(
             opacity: _fadeAnimation,
-            child: ScaleTransition(
-              scale: _scaleAnimation,
-              child: _buildImageStack(imageUrl, heroHeight),
+            child: ClipRect(
+              child: ScaleTransition(
+                scale: _scaleAnimation,
+                child: _buildImageStack(imageUrl, heroHeight),
+              ),
             ),
           );
         },
@@ -112,8 +114,7 @@ class _HeroImageState extends State<HeroImage>
       width: double.infinity,
       height: heroHeight,
       child: ClipRect(
-        clipBehavior: Clip
-            .antiAlias, // Smooth anti-aliased edges for better gradient blending
+        clipBehavior: Clip.hardEdge,
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -140,12 +141,12 @@ class _HeroImageState extends State<HeroImage>
                     ), // Higher up to reach top better
                     radius: 0.9, // Larger radius to cover top area
                     colors: [
-                      Colors.transparent,
-                      Colors.transparent,
+                      Colors.white.withOpacity(0.0),
+                      Colors.white.withOpacity(0.0),
                       Colors.white.withOpacity(0.05),
                       Colors.white.withOpacity(0.10),
                       Colors.white.withOpacity(0.08),
-                      Colors.transparent,
+                      Colors.white.withOpacity(0.0),
                     ],
                     stops: const [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
                   ),
@@ -156,7 +157,8 @@ class _HeroImageState extends State<HeroImage>
             // ============================================================================
             // LAYER 4: ENHANCED VIGNETTE (Stronger Edge Darkening)
             // ============================================================================
-            // More dramatic vignette for eye-catching depth and focus
+            // Corner-focused vignette: outer stops stay transparent so top/bottom
+            // edges do not show dark bands where the edge-fade overlays end.
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
@@ -164,14 +166,15 @@ class _HeroImageState extends State<HeroImage>
                     center: Alignment.center,
                     radius: 1.1,
                     colors: [
-                      Colors.transparent,
-                      Colors.transparent,
                       Colors.black.withOpacity(0.0),
-                      Colors.black.withOpacity(0.12),
-                      Colors.black.withOpacity(0.20),
-                      Colors.black.withOpacity(0.25),
+                      Colors.black.withOpacity(0.0),
+                      Colors.black.withOpacity(0.0),
+                      Colors.black.withOpacity(0.0),
+                      Colors.black.withOpacity(0.15),
+                      Colors.black.withOpacity(0.0),
+                      Colors.black.withOpacity(0.0),
                     ],
-                    stops: const [0.0, 0.4, 0.65, 0.82, 0.92, 1.0],
+                    stops: const [0.0, 0.4, 0.65, 0.72, 0.82, 0.92, 1.0],
                   ),
                 ),
               ),
@@ -260,7 +263,7 @@ class _HeroImageState extends State<HeroImage>
                         AppColors.surfaceWhite.withOpacity(0.85),
                         AppColors.surfaceWhite.withOpacity(0.50),
                         AppColors.surfaceWhite.withOpacity(0.15),
-                        Colors.transparent,
+                        AppColors.surfaceWhite.withOpacity(0.0),
                       ],
                       stops: const [0.0, 0.20, 0.45, 0.75, 1.0],
                     ),
@@ -276,10 +279,10 @@ class _HeroImageState extends State<HeroImage>
             // Long, natural gradient to eliminate visible edge - placed LAST for visibility
             // This creates an unbroken, continuous feel with the app header/background
             Positioned(
-              top: 0,
+              top: -1,
               left: 0,
               right: 0,
-              height: 60,
+              height: 61,
               child: IgnorePointer(
                 child: Container(
                   decoration: BoxDecoration(
@@ -291,7 +294,7 @@ class _HeroImageState extends State<HeroImage>
                         AppColors.surfaceWhite.withOpacity(0.85),
                         AppColors.surfaceWhite.withOpacity(0.50),
                         AppColors.surfaceWhite.withOpacity(0.15),
-                        Colors.transparent,
+                        AppColors.surfaceWhite.withOpacity(0.0),
                       ],
                       stops: const [0.0, 0.20, 0.45, 0.75, 1.0],
                     ),
@@ -307,30 +310,77 @@ class _HeroImageState extends State<HeroImage>
 
   /// Build the main image widget (API or fallback)
   Widget _buildImage(String imageUrl, double heroHeight) {
+    // Slight top bleed prevents a sub-pixel gap between cover-fit image and clip edge.
+    const topBleed = 2.0;
+    final imageHeight = heroHeight + topBleed;
+
     if (imageUrl.isNotEmpty) {
-      // Use API image if available
-      return CachedNetworkImage(
-        imageUrl: imageUrl,
-        width: double.infinity,
+      return SizedBox(
         height: heroHeight,
-        fit: BoxFit.cover,
-        placeholder: (context, url) => Container(
-          width: double.infinity,
-          height: heroHeight,
-          color: Colors.grey[200],
-          child: const Center(child: CircularProgressIndicator()),
+        width: double.infinity,
+        child: ClipRect(
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: CachedNetworkImage(
+              imageUrl: imageUrl,
+              width: double.infinity,
+              height: imageHeight,
+              fit: BoxFit.cover,
+              alignment: Alignment.topCenter,
+              placeholder: (context, url) => Container(
+                width: double.infinity,
+                height: imageHeight,
+                color: Colors.grey[200],
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+              errorWidget: (context, url, error) =>
+                  _buildFallbackImage(heroHeight, topBleed: topBleed),
+            ),
+          ),
         ),
-        errorWidget: (context, url, error) =>
-            _buildFallbackImage(heroHeight),
       );
     } else {
-      // Fallback to asset image
-      return _buildFallbackImage(heroHeight);
+      return _buildFallbackImage(heroHeight, topBleed: topBleed);
     }
   }
 
   /// Build fallback asset image
-  Widget _buildFallbackImage(double heroHeight) {
+  Widget _buildFallbackImage(double heroHeight, {double topBleed = 0}) {
+    final imageHeight = heroHeight + topBleed;
+
+    if (topBleed > 0) {
+      return SizedBox(
+        height: heroHeight,
+        width: double.infinity,
+        child: ClipRect(
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: Image.asset(
+              'assets/images/residence_hero.jpeg',
+              width: double.infinity,
+              height: imageHeight,
+              fit: BoxFit.cover,
+              alignment: Alignment.topCenter,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: double.infinity,
+                  height: imageHeight,
+                  color: Colors.grey[200],
+                  child: const Center(
+                    child: Icon(
+                      Icons.image_not_supported_outlined,
+                      size: 48,
+                      color: Colors.grey,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+    }
+
     return Image.asset(
       'assets/images/residence_hero.jpeg',
       width: double.infinity,

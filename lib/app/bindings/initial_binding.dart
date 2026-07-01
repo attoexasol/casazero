@@ -9,10 +9,12 @@ import '../../core/services/notification_manager.dart';
 import '../../core/localization/locale_controller.dart';
 import '../../core/services/storage_service.dart';
 import '../../core/services/firebase_auth_service.dart';
+import '../../core/services/app_status_service.dart';
 import '../../core/services/private_chat_service.dart';
 import '../../core/services/presence_service.dart';
 import '../../core/services/private_chat_notification_service.dart';
 import '../../data/repositories/auth_repository.dart';
+import '../../data/repositories/notification_repository.dart';
 import '../../data/repositories/private_chat_repository.dart';
 import '../../presentation/chat/providers/message_provider.dart';
 import '../../presentation/chat/providers/private_chat_provider.dart';
@@ -38,6 +40,11 @@ class InitialBinding extends Bindings {
 
     Get.put<PrivateChatService>(PrivateChatService(), permanent: true);
     Get.put<PresenceService>(PresenceService(), permanent: true);
+    Get.lazyPut<NotificationRepository>(
+      () => NotificationRepository(),
+      fenix: true,
+    );
+    Get.put<AppStatusService>(AppStatusService(), permanent: true);
     Get.put<PrivateChatNotificationService>(
       PrivateChatNotificationService(),
       permanent: true,

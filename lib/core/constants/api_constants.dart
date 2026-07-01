@@ -254,6 +254,22 @@ class ApiConstants {
   /// }
   static const String GET_UNREAD_NOTIFICATION_COUNT = '/get_user/unread_count';
 
+  /// Notify Laravel after a chat message is written to Firestore.
+  /// POST /send-chat-notification
+  /// Request: {
+  ///   "receiver_id": int,
+  ///   "sender_id": int,
+  ///   "title": "New Message",
+  ///   "body": "Message text",
+  ///   "data": { ... }
+  /// }
+  static const String SEND_CHAT_NOTIFICATION = '/send-chat-notification';
+
+  /// Report whether the app is in foreground or background.
+  /// POST /update-app-status
+  /// Request: { "api_token": "<TOKEN>", "app_status": "foreground" | "background" }
+  static const String UPDATE_APP_STATUS = '/update-app-status';
+
   // Buildings Endpoints
   static const String GET_BUILDINGS = '/buildings';
   static const String GET_BUILDING_DETAILS = '/buildings/{buildingId}';
