@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../app/theme/app_colors.dart';
+import 'platform_safe_area.dart';
 
 typedef FloatingNavIconBuilder = Widget Function(int index, bool isActive);
 
@@ -31,13 +32,15 @@ class FloatingBottomNavBar extends StatelessWidget {
   static const double _tabletBreakpoint = 600;
   static const double _tabletMaxBarWidth = 600;
 
-  static double get barHeight => 72.h;
+  /// Android uses a taller pill; iOS uses a compact bar closer to the home indicator.
+  static double get barHeight => isIOS ? 56.h : 72.h;
 
-  static double get collapsedBarHeight => 64.h;
+  static double get collapsedBarHeight => isIOS ? 48.h : 64.h;
 
-  static double get bottomMargin => 16.h;
+  /// iOS already has a large home-indicator inset — keep only a small visual gap.
+  static double get bottomMargin => isIOS ? 6.h : 16.h;
 
-  static double get collapsedBottomMargin => 12.h;
+  static double get collapsedBottomMargin => isIOS ? 4.h : 12.h;
 
   /// Bar width when fully collapsed, as a fraction of the expanded width.
   static const double collapsedWidthScale = 0.92;
@@ -59,9 +62,25 @@ class FloatingBottomNavBar extends StatelessWidget {
     return double.infinity;
   }
 
+  /// Bottom padding below the bar (home indicator + optional margin).
+  static double navBottomPadding(
+    BuildContext context, {
+    double margin = 0,
+  }) {
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
+    final effectiveMargin = margin > 0 ? margin : bottomMargin;
+
+    if (isIOS && bottomInset > 0) {
+      // Instagram-style: sit low in the safe area instead of stacking full inset + margin.
+      return effectiveMargin + (bottomInset * 0.38);
+    }
+
+    return effectiveMargin + bottomInset;
+  }
+
   /// Total vertical space the floating nav occupies from the screen bottom.
   static double occupiedHeight(BuildContext context) {
-    return barHeight + bottomMargin + MediaQuery.paddingOf(context).bottom;
+    return barHeight + navBottomPadding(context);
   }
 
   /// Bottom inset for screen content when the floating nav is visible.
@@ -103,7 +122,6 @@ class FloatingBottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = collapseProgress.clamp(0.0, 1.0);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bottomInset = MediaQuery.paddingOf(context).bottom;
     final screenWidth = MediaQuery.sizeOf(context).width;
     final baseHorizontalPadding = _horizontalPadding(screenWidth);
     final baseMaxBarWidth = _maxBarWidth(screenWidth);
@@ -119,7 +137,9 @@ class FloatingBottomNavBar extends StatelessWidget {
     final currentBarWidth = _lerp(expandedBarWidth, collapsedBarWidth, t);
     final currentBarHeight = _lerp(barHeight, collapsedBarHeight, t);
     final currentBottomMargin = _lerp(bottomMargin, collapsedBottomMargin, t);
-    final borderRadiusValue = _lerp(38.r, 34.r, t);
+    final expandedRadius = isIOS ? 32.r : 38.r;
+    final collapsedRadius = isIOS ? 28.r : 34.r;
+    final borderRadiusValue = _lerp(expandedRadius, collapsedRadius, t);
     final borderRadius = BorderRadius.circular(borderRadiusValue);
     final borderWidth = _lerp(1.5.w, 1.4.w, t);
     final iconScale = _lerp(1.0, 0.94, t);
@@ -131,7 +151,7 @@ class FloatingBottomNavBar extends StatelessWidget {
         currentHorizontalPadding,
         0,
         currentHorizontalPadding,
-        currentBottomMargin + bottomInset,
+        navBottomPadding(context, margin: currentBottomMargin),
       ),
       child: Align(
         alignment: Alignment.bottomCenter,

@@ -1,177 +1,310 @@
-# Push notifications — engineering analysis (CasaZero)
+# Push Notification Analysis — CasaZero
 
-**Scope:** Flutter client (`firebase_messaging`, `flutter_local_notifications`), `FcmService`, `NotificationManager`, notifications modal (`NotificationsModal`), and native configuration (Android / iOS).
+**Scope:** Full Flutter client review — FCM (`firebase_messaging`), local notifications (`flutter_local_notifications`), `FcmService`, `NotificationManager`, notifications modal, auth/token flow, and native Android/iOS configuration.
 
-**Date:** 2026-04-09
+**Date:** 2026-07-01
 
 ---
 
 ## Executive summary
 
-Push delivery and the **in-app notifications modal** are **two different systems** in this codebase:
+CasaZero has a **solid baseline** push-notification stack: Firebase is initialized correctly, FCM listeners are wired, Android 13+ permission is requested, a high-importance notification channel exists, and foreground/data-only messages can show tray notifications.
 
-| Path | What it does |
-|------|----------------|
-| **FCM** | Receives Firebase messages; in foreground shows a **local** notification via `LocalNotificationService`; calls `NotificationManager.handlePushPayload` → `HomeController.fetchNotifications()`. |
-| **Notifications modal** | Renders `HomeController.feedItems`, which come **only** from **`POST /get_user/notifications`** (`HomeRepository.getUserNotifications`). |
+However, **tray delivery** and **in-app notification list** are still separate concerns. The bell/modal only shows what the **REST API** returns (`POST /get_user/notifications`), not the raw FCM payload.
 
-If pushes arrive but the modal stays empty, the most common explanations are: **(1)** the backend never wrote the row that the REST API returns, **(2)** the FCM payload is **data-only** so the tray notification has no title/body and looks “broken,” **(3)** **background/terminated** handling does not show a notification for data-only messages, or **(4)** the user/session has **no API token** when refresh runs.
+**Xiaomi / Redmi (MIUI):** Push is **not guaranteed** without user-side device settings. The app uses standard FCM (no MIUI-specific code). On many Redmi/Xiaomi phones pushes work **only after** the user enables Autostart, disables battery restrictions, and grants notification permission. Stale FCM tokens on the backend (token sent only at login) make MIUI problems worse.
+
+| Area | Status |
+|------|--------|
+| FCM init & listeners | ✅ Works |
+| Foreground tray notification | ✅ Works (with correct payload) |
+| Data-only background tray (Android) | ✅ Mostly works |
+| In-app notifications modal | ⚠️ Depends on backend API |
+| FCM token sync after login | ✅ Works |
+| FCM token sync after refresh / session restore | ❌ Not implemented |
+| Deep link on notification tap | ❌ Not implemented |
+| Xiaomi/Redmi without manual setup | ⚠️ Unreliable |
 
 ---
 
-## Architecture (actual flow)
+## Architecture
 
 ```mermaid
 sequenceDiagram
   participant FCM as Firebase Cloud Messaging
+  participant Main as main.dart (background isolate)
   participant Fcm as FcmService
   participant Local as LocalNotificationService
   participant NM as NotificationManager
   participant Home as HomeController
   participant API as Backend REST
 
-  FCM->>Fcm: onMessage (foreground)
+  Note over FCM,API: App in FOREGROUND
+  FCM->>Fcm: onMessage
   Fcm->>Local: showNotification(message)
   Fcm->>NM: handlePushPayload(data, messageId)
   NM->>Home: fetchNotifications() + fetchUnreadCount()
   Home->>API: POST /get_user/notifications
-  API-->>Home: feedItems
 
-  Note over Fcm,API: Modal reads feedItems only — not FCM payload directly
+  Note over FCM,Main: App in BACKGROUND — data-only payload
+  FCM->>Main: onBackgroundMessage
+  Main->>Local: showNotification (if no notification block)
+  Note over Main,Home: GetX/controllers unavailable in background isolate
+
+  Note over FCM,Fcm: User taps notification
+  FCM->>Fcm: onMessageOpenedApp / getInitialMessage
+  Fcm->>NM: handlePushPayload + handleNotificationNavigation (stub)
 ```
 
----
-
-## Critical findings (why things “don’t work”)
-
-### 1. Notifications modal does not show “the push” — it shows API data
-
-**Symptom:** User receives or expects a push, opens the bell/modal, sees nothing new (or empty list).
-
-**Cause:** `NotificationsModal.show` calls `controller.fetchNotifications()`, which loads **`feedItems` from the backend** (`lib/presentation/home/controllers/home_controller.dart`, `lib/data/repositories/home_repository.dart`). There is **no** code path that appends the FCM payload into `feedItems` locally.
-
-**Implication:** Backend must **create/update the notification record** that `GET_USER_NOTIFICATIONS` returns **before or when** sending FCM. If the server only sends FCM without persisting a notification, the modal will never reflect that event.
-
-**Verification:** After a push, call the notifications API (or log `fetchNotifications` result). If `data` is empty while FCM fired, this is a **backend / contract** issue, not a Flutter UI bug.
-
----
-
-### 2. Foreground local notification uses only `message.notification` (breaks data-only payloads)
-
-**Code:** `lib/helpers/local_notification_service.dart` passes `message.notification?.title` and `message.notification?.body` into `_plugin.show(...)`.
-
-**FCM behavior:** If the server sends a **data-only** message (no `notification` block in the FCM JSON), then `message.notification` is **`null`** on the client. You still get `onMessage` in foreground, but the local notification may show **empty title/body** or behave poorly depending on OS/version.
-
-**Fix direction:** For data-only pushes, derive title/body from `message.data` (e.g. `title`, `body`, `message`, agreed keys with backend) and fall back to defaults.
-
----
-
-### 3. Background handler does not display anything (data-only background = silent)
-
-**Code:** `lib/main.dart` — `_firebaseMessagingBackgroundHandler` only initializes Firebase (if needed) and **`print`s**. It does **not** call `LocalNotificationService.showNotification`.
-
-**FCM behavior (Android):**
-
-- Messages with a **`notification` payload** are often shown by the system when the app is in background/terminated.
-- **Data-only** messages are delivered to the background isolate; **you** must post a local notification (or do silent work). With the current handler, **nothing appears** in the tray for that case.
-
-This alone explains “push doesn’t show” for many server payloads when the app is not in foreground.
-
----
-
-### 4. iOS: missing `UIBackgroundModes` / `remote-notification`
-
-**Observation:** `ios/Runner/Info.plist` has **no** `UIBackgroundModes` array with `remote-notification`.
-
-**Impact:** Background delivery of **data** messages and some FCM behaviors are limited or unreliable without the proper capability. Apple’s docs and FlutterFire guidance recommend this for data/background handling.
-
-**Fix direction:** Enable **Push Notifications** + **Background Modes → Remote notifications** in Xcode (or add the plist entries) and ensure APNs is configured for the Firebase iOS app.
-
----
-
-### 5. Android: no default FCM notification channel meta-data
-
-**Observation:** `android/app/src/main/AndroidManifest.xml` does not set:
-
-`com.google.firebase.messaging.default_notification_channel_id`
-
-**Impact:** System-displayed FCM notifications (notification payload in background) may use a **default channel** with lower importance, or channel behavior may not match your `default_channel` used by `flutter_local_notifications`. This can contribute to “I didn’t see/hear it” reports.
-
-**Fix direction:** Align manifest meta-data with the channel created in `LocalNotificationService` (`default_channel`).
-
----
-
-### 6. `NotificationManager` drops duplicate `messageId` entirely
-
-**Code:** `lib/core/services/notification_manager.dart` — if `messageId` repeats `_lastProcessedMessageId`, it **returns immediately** and does **not** call `_refreshNotificationsAndUnread()`.
-
-**Impact:** If Firebase or your pipeline ever **reuses** the same `messageId` for a new logical event, the app will **skip** refreshing the list and unread count. Unlikely for normal FCM IDs, but worth knowing for debugging “second push didn’t update UI.”
-
----
-
-### 7. FCM token not registered with backend until authenticated
-
-**Code:** `FcmService.sendTokenToBackend()` returns early if there is **no** `accessToken` in `StorageService`.
-
-**Impact:** Expected for guest users. If testing pushes **before login**, or if token registration fails silently, the **wrong device** or **no device** may be targeted server-side.
-
----
-
-### 8. Firebase initialization failures are swallowed; FCM never starts
-
-**Code:** `lib/main.dart` — `Firebase.initializeApp()` is in try/catch; on failure the app continues and `FcmService.init()` exits early when `Firebase.apps.isEmpty`.
-
-**Impact:** Any misconfiguration (`google-services.json`, bundle ID, etc.) results in **no listeners, no token**, with only console logs. Worth checking device logs for `Firebase initialization failed`.
-
----
-
-### 9. Minor / secondary issues
-
-| Item | Note |
-|------|------|
-| **No `firebase_options.dart`** | Project uses `Firebase.initializeApp()` without `DefaultFirebaseOptions`. Often OK when native config is correct; FlutterFire CLI file is still the recommended approach for consistency. |
-| **`FcmService.init()` fire-and-forget** | `InitialBinding` calls `fcmService.init()` without `await`. Rare race if a message arrives before listeners attach. |
-| **Local notification tap** | `LocalNotificationService.initialize(settings)` has no `onDidReceiveNotificationResponse` wiring in the snippet reviewed; tapping a local notification may not deep-link unless handled elsewhere. |
-| **Notification `type` in data** | `NotificationManager` reads `data['type']` for logging/switch. Backend should send `type` matching `PushTypes` when you rely on document refresh; **default branch still refreshes notifications**, so wrong `type` does not block list refresh. |
-
----
-
-## Code references (key touchpoints)
+### Key files
 
 | Responsibility | File |
 |----------------|------|
-| Firebase init, background handler registration | `lib/main.dart` |
-| Permissions, token, `onMessage`, dispatch | `lib/core/services/fcm_service.dart` |
-| Refresh list/unread from API on push | `lib/core/services/notification_manager.dart` |
-| Show foreground local notification | `lib/helpers/local_notification_service.dart` |
-| Modal + `fetchNotifications()` | `lib/core/widgets/notifications_modal.dart` |
-| API: notification list | `lib/data/repositories/home_repository.dart` (`getUserNotifications`) |
-| Service registration order | `lib/app/bindings/initial_binding.dart` |
+| Firebase init, background handler | `lib/main.dart` |
+| FCM permissions, token, listeners | `lib/core/services/fcm_service.dart` |
+| Refresh list/unread on push | `lib/core/services/notification_manager.dart` |
+| Tray notifications (foreground + data-only background) | `lib/helpers/local_notification_service.dart` |
+| Notifications modal UI | `lib/core/widgets/notifications_modal.dart` |
+| API: list, unread, mark read | `lib/data/repositories/home_repository.dart` |
+| Login sends `fcm_token` | `lib/data/repositories/auth_repository.dart` |
+| Service registration | `lib/app/bindings/initial_binding.dart` |
+| Android manifest & channel | `android/app/src/main/AndroidManifest.xml` |
+| iOS background mode & APNs | `ios/Runner/Info.plist`, `ios/Runner/AppDelegate.swift` |
+| Firebase project config | `lib/firebase_options.dart`, `android/app/google-services.json` |
 
 ---
 
-## Recommended fix order (pragmatic)
+## What works well
 
-1. **Confirm payload shape** from backend (notification vs data-only) and **confirm** notifications are **persisted** before FCM for events that must appear in the modal.
-2. **Background handler:** for data-only messages, call the same local notification helper (with title/body from `data`), respecting isolate constraints (no GetX in top-level isolate without proper setup).
-3. **`LocalNotificationService.showNotification`:** support **data-only** title/body fallbacks.
-4. **iOS:** add **remote-notification** background mode + verify APNs in Firebase.
-5. **Android manifest:** set **default_notification_channel_id** to match `default_channel`.
-6. **Optional:** generate and use **`firebase_options.dart`** via FlutterFire CLI for clearer init.
+### 1. Firebase & FCM bootstrap
+
+- `Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)` with timeout and error handling (`lib/main.dart`).
+- `firebase_options.dart` exists and matches Android `google-services.json` project `casazero-a39ba`.
+- Background handler registered via `FirebaseMessaging.onBackgroundMessage`.
+- `LocalNotificationService.initialize()` runs before `runApp`.
+
+### 2. Android configuration
+
+- `POST_NOTIFICATIONS` declared in manifest (Android 13+).
+- Runtime permission requested via `permission_handler` + `FirebaseMessaging.requestPermission` in `FcmService`.
+- Default FCM channel aligned with app channel:
+  - Manifest: `com.google.firebase.messaging.default_notification_channel_id` → `casazero_alerts`
+  - Code: `LocalNotificationService.channelId` → `casazero_alerts`
+- Notification channel uses `Importance.max`, sound, vibration, lights.
+- `google-services` Gradle plugin applied (`android/app/build.gradle.kts`).
+
+### 3. iOS configuration
+
+- `UIBackgroundModes` includes `remote-notification` in `Info.plist`.
+- `AppDelegate.swift` configures Firebase, registers for remote notifications, sets APNs token on `Messaging`, and implements `MessagingDelegate`.
+- Foreground presentation options set (`alert`, `badge`, `sound`).
+
+### 4. Foreground push handling
+
+- `FirebaseMessaging.onMessage` → `handlePushMessage` → local tray notification + `NotificationManager`.
+- `LocalNotificationService.resolveContent()` reads title/body from:
+  - FCM `notification` block, or
+  - Data keys: `title`, `body`, `message`, `content`, etc., with sensible fallbacks.
+
+### 5. Background data-only messages (Android)
+
+- `_firebaseMessagingBackgroundHandler` posts a local notification when `message.notification == null`.
+- Avoids duplicate tray entries when FCM already shows a system notification (notification payload).
+
+### 6. Open-from-notification flows
+
+- `onMessageOpenedApp` and `getInitialMessage` dispatch to `NotificationManager` to refresh notifications/unread when the user opens the app from a push.
+
+### 7. Auth integration
+
+- Login payload includes `fcm_token` from `FcmService.getDeviceToken()` (with one retry).
+- Token deleted on logout via `FcmService.deleteToken()`.
+- `registerAfterAuth()` called after login, OTP, and splash session restore (refreshes **local** token).
+
+### 8. In-app notification features (when API has data)
+
+- Fetch list: `POST /get_user/notifications`
+- Unread badge: `POST /get_user/unread_count`
+- Mark read / mark all read wired through `HomeController` and `NotificationsModal`
+- Push type constants in `lib/core/constants/push_types.dart` (`document_uploaded`, `sync_notifications`, `private_chat_message`)
+
+---
+
+## What does not work perfectly (gaps & risks)
+
+### 1. Modal list ≠ FCM payload (backend dependency)
+
+**Symptom:** Push appears in tray but bell/modal is empty or missing the new item.
+
+**Cause:** `NotificationsModal` and `HomeController.feedItems` load **only** from `POST /get_user/notifications`. FCM data is never merged into the local list.
+
+**Requirement:** Backend must **persist** each notification and return it via the REST API when FCM is sent. Sending FCM alone is insufficient for the in-app feed.
+
+---
+
+### 2. FCM token sent to backend only at login
+
+**Code:** `FcmService` comment and `onTokenRefresh` listener only update `_currentToken` locally. `registerAfterAuth()` does **not** call the backend. The only server registration path is `fcm_token` on `POST /user/login`.
+
+**Impact:**
+
+- After FCM token rotation (common on Android, especially MIUI reinstalls / clears data / OS updates), backend may target a **stale token** → no delivery until next login.
+- Splash session restore refreshes local token but **does not** update the server.
+
+**Severity:** High for long-lived sessions and Xiaomi devices.
+
+---
+
+### 3. Background handler cannot refresh in-app state
+
+The background isolate correctly shows tray notifications for data-only messages but **cannot** call `NotificationManager` / `HomeController` (GetX not available).
+
+**Impact:** Unread badge and modal stay stale until the user opens the app or a foreground/`onMessageOpenedApp` path runs.
+
+---
+
+### 4. No notification tap / deep-link handling
+
+- `LocalNotificationService.initialize()` has **no** `onDidReceiveNotificationResponse`.
+- `NotificationManager.handleNotificationNavigation()` only logs; no route navigation.
+
+**Impact:** Tapping a **locally shown** foreground notification may not open the relevant screen. Tapping FCM system notifications may open the app without navigating to document/chat.
+
+---
+
+### 5. Possible duplicate notifications on iOS (foreground)
+
+`FcmService` sets iOS foreground presentation (system banner) **and** calls `LocalNotificationService.showNotification()` for every foreground message.
+
+**Impact:** User may see **two** notifications for the same push while the app is open on iOS.
+
+---
+
+### 6. Private chat push is incomplete
+
+`PrivateChatNotificationService` is registered but `handleIncomingPayload` is **not** hooked into `FcmService`. Chat push type `private_chat_message` has no dedicated FCM routing; navigation is marked “Future”.
+
+---
+
+### 7. `NotificationManager` duplicate `messageId` skip
+
+If the same `messageId` is delivered twice, the second delivery is skipped entirely (no refresh). Rare with normal FCM IDs but can confuse debugging.
+
+---
+
+### 8. `FcmService.init()` is fire-and-forget
+
+`InitialBinding` calls `fcmService.init()` without `await`. A push arriving in the first moments after cold start might miss listeners (low probability).
+
+---
+
+### 9. Firebase init failure is non-fatal
+
+If Firebase fails to initialize, the app continues with **no** FCM. Only console logs indicate the problem. Check logs for `Firebase initialization failed`.
+
+---
+
+### 10. Release signing still uses debug keys
+
+`android/app/build.gradle.kts` release build uses debug signing. Not a push bug directly, but production Play builds need proper signing for reliable distribution.
+
+---
+
+### 11. Package name is still `com.example.casazero`
+
+Ensure Firebase console, backend, and store listing all use the same application ID consistently.
+
+---
+
+## Xiaomi / Redmi (MIUI) — detailed assessment
+
+### Is there Xiaomi-specific code?
+
+**No.** Grep across the repo finds zero references to Xiaomi, Redmi, MIUI, battery optimization, or autostart.
+
+The app relies on **standard Google FCM** + Android notification APIs, which MIUI allows but often restricts by default.
+
+### When push **can** work on Xiaomi/Redmi
+
+| Condition | App support | User / device action |
+|-----------|-------------|----------------------|
+| Notification permission (Android 13+) | ✅ Requested in code | User must tap Allow |
+| FCM token on server | ✅ At login only | User must log in after token changes |
+| App not killed by battery saver | ❌ Not handled in app | Disable battery restrictions for CasaZero |
+| Autostart (MIUI) | ❌ Not handled in app | Enable Autostart in MIUI Security app |
+| Notification channel enabled | ✅ `casazero_alerts` channel | User must not mute channel in MIUI settings |
+| Correct FCM payload | Depends on backend | Use `notification` block and/or agreed `data` keys |
+
+### Typical MIUI failure modes (not fixed by current code)
+
+1. **Autostart disabled** — App process killed; FCM may not wake the app; data-only background handler never runs.
+2. **Battery optimization** — Delayed or dropped pushes when screen is off.
+3. **MIUI notification permissions** — Separate toggles per app/channel; “floating notifications” / “lock screen” may be off.
+4. **Stale FCM token on backend** — Very common after MIUI “clear app data” without re-login.
+5. **Aggressive task killer** — User swipes app from recents; delivery less reliable until reopened.
+
+### Verdict for Xiaomi/Redmi
+
+| Scenario | Expected behavior |
+|----------|-------------------|
+| App in **foreground**, permission granted, valid token | ✅ **Should work** — local notification + API refresh |
+| App in **background**, notification payload, MIUI allows FCM | ✅ **Usually works** — system tray |
+| App in **background**, data-only, MIUI allows background work | ⚠️ **May work** — depends on `onBackgroundMessage` running |
+| App **force-stopped** or Autostart off | ❌ **Often fails** — no code mitigation |
+| User logged in weeks ago, token rotated | ❌ **Often fails** — token not re-sent to backend |
+
+**Bottom line:** Push on Xiaomi/Redmi is **partially supported** by standard FCM setup but **not production-hardened** for MIUI. Expect support tickets unless you add token re-registration, optional MIUI setup guidance, and backend persistence for the modal.
+
+---
+
+## Backend contract checklist
+
+For reliable end-to-end behavior, the server should:
+
+1. **Persist** notification rows before or when sending FCM.
+2. Send FCM with either:
+   - A `notification` block (title + body) for system tray on background, **or**
+   - `data` keys matching `LocalNotificationService.resolveContent()` (`title`, `body`, `message`, etc.).
+3. Include `type` in `data` when using `PushTypes` (`document_uploaded`, `sync_notifications`, `private_chat_message`).
+4. Store and update `fcm_token` on every login; ideally expose an endpoint to **update token** without full re-login.
+5. Target the correct Firebase project (`casazero-a39ba`) and the device token last seen at login.
+
+---
+
+## Recommended fix priority
+
+| Priority | Item | Why |
+|----------|------|-----|
+| P0 | API to update `fcm_token` + call on `onTokenRefresh` and session restore | Fixes silent failures on MIUI and long sessions |
+| P0 | Confirm backend persists notifications for modal | Fixes “push but empty bell” |
+| P1 | MIUI setup screen or in-app guide (Autostart, battery, notifications) | Reduces Xiaomi support burden |
+| P1 | `onDidReceiveNotificationResponse` + real navigation | Completes tap-to-open |
+| P2 | iOS: skip local notification when system foreground presentation is used | Avoid duplicate banners |
+| P2 | Wire `PrivateChatNotificationService` into `FcmService` | Chat push end-to-end |
+| P3 | `await fcmService.init()` or readiness flag | Cold-start race |
 
 ---
 
 ## Debugging checklist
 
-- [ ] Log `Firebase.apps.isEmpty` after startup on a real device.
-- [ ] Log `FcmService` token and verify backend stores it for the logged-in user.
-- [ ] Log `onMessage` / background handler with **full** `message.data` and `message.notification`.
-- [ ] After push, verify **`POST /get_user/notifications`** returns the new item (e.g. via Postman or app logs).
-- [ ] iOS: physical device, correct **GoogleService-Info.plist**, push capability enabled.
-- [ ] Android 13+: `POST_NOTIFICATIONS` is present; confirm runtime permission granted (you use `permission_handler` + FCM `requestPermission`).
+- [ ] Log `Firebase.apps.isEmpty` after startup on a **physical** device (not emulator-only for iOS push).
+- [ ] Log `FcmService` token at login; verify backend DB stores the same token.
+- [ ] Send test FCM with both `notification` and `data-only` payloads; log foreground and background.
+- [ ] After push, call `POST /get_user/notifications` — confirm new row exists.
+- [ ] On Redmi/Xiaomi: enable Autostart, disable battery restriction, re-login, retest.
+- [ ] Android 13+: confirm notification permission granted in system settings.
+- [ ] iOS: physical device, valid APNs key in Firebase, check `AppDelegate` APNs logs.
+
+### Useful log tags
+
+- `[FcmService]`, `[FCM Background]`, `[NotificationManager]`, `[HomeRepository]`, `[FirebaseAudit]`
 
 ---
 
 ## Conclusion
 
-The client wiring is **partially complete**: foreground `onMessage` shows a **local** notification **only when** `RemoteMessage.notification` is populated, and the modal updates **only when** the **REST API** returns new rows. The strongest code-level gaps for “no tray notification” are **data-only payloads** and an **empty background handler**; the strongest explanation for “modal empty after push” is **backend not exposing that event** via `/get_user/notifications`, or **refresh skipped** (no auth token / duplicate `messageId`). Aligning payload shape, persistence, and native configuration with these flows should resolve most production reports.
+**Works well:** Core FCM plumbing, Android channel/permissions, iOS APNs setup, foreground notifications with data fallbacks, background tray for data-only Android messages, login-time token registration, and API-driven notification list/mark-read when the backend cooperates.
+
+**Does not work perfectly:** Token sync after refresh or session restore, in-app list without backend persistence, no deep links, incomplete chat push, no MIUI-specific mitigations, and possible iOS duplicate foreground notifications.
+
+**Xiaomi/Redmi:** Standard FCM — **works for some users** with correct device settings and fresh login, but **not reliably out of the box** without Autostart/battery configuration and backend token management. Treat MIUI as a **high-risk platform** until P0 fixes land.
