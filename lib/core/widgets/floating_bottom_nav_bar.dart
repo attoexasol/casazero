@@ -29,6 +29,24 @@ class FloatingBottomNavBar extends StatelessWidget {
   static const Duration animationDuration = Duration(milliseconds: 280);
   static const Curve animationCurve = Curves.easeInOut;
 
+  /// Horizontal pill slide when switching tabs — tuned per platform.
+  static Duration get pillSlideDuration =>
+      isIOS ? const Duration(milliseconds: 300) : const Duration(milliseconds: 280);
+
+  static Curve get pillSlideCurve => Curves.easeInOutCubic;
+
+  /// Active pill width as a fraction of each tab slot.
+  static double _pillWidthFactor(double collapseProgress) {
+    final t = collapseProgress.clamp(0.0, 1.0);
+    // iOS bar is narrower — use a slightly wider pill so it stays visually balanced.
+    final expanded = isIOS ? 0.76 : 0.74;
+    final collapsed = isIOS ? 0.72 : 0.70;
+    return _lerp(expanded, collapsed, t);
+  }
+
+  /// Active pill height as a fraction of bar height.
+  static double get _pillHeightFactor => isIOS ? 0.58 : 0.56;
+
   static const double _tabletBreakpoint = 600;
   static const double _tabletMaxBarWidth = 600;
 
@@ -202,69 +220,16 @@ class FloatingBottomNavBar extends StatelessWidget {
                   ),
                   SizedBox(
                     height: currentBarHeight,
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final tabWidth = constraints.maxWidth / itemCount;
-                        final showIndicator =
-                            selectedIndex >= 0 && selectedIndex < itemCount;
-                        // Pill size is proportional to the bar/tab so it shrinks in sync
-                        // with the nav during scroll (not fixed .w/.h units).
-                        final pillHeight = currentBarHeight * 0.56;
-                        final pillWidth = tabWidth * _lerp(0.74, 0.70, t);
-                        final pillLeft = showIndicator
-                            ? (selectedIndex * tabWidth) +
-                                ((tabWidth - pillWidth) / 2)
-                            : 0.0;
-                        final pillRadius = pillHeight / 2;
-
-                        return Stack(
-                          clipBehavior: Clip.none,
-                          alignment: Alignment.center,
-                          children: [
-                            if (showIndicator)
-                              Positioned(
-                                left: pillLeft,
-                                top: (constraints.maxHeight - pillHeight) / 2,
-                                width: pillWidth,
-                                height: pillHeight,
-                                child: DecoratedBox(
-                                  decoration: BoxDecoration(
-                                    borderRadius:
-                                        BorderRadius.circular(pillRadius),
-                                    color: isDark
-                                        ? Colors.white.withOpacity(0.28)
-                                        : const Color(0xFFC8C8C8)
-                                            .withOpacity(0.95),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(
-                                          isDark ? 0.15 : 0.08,
-                                        ),
-                                        blurRadius: _lerp(6.r, 5.r, t),
-                                        offset: Offset(0, _lerp(2.h, 2.h, t)),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            Row(
-                              children: List.generate(itemCount, (index) {
-                                final isActive =
-                                    selectedIndex >= 0 && selectedIndex == index;
-                                return Expanded(
-                                  child: _FloatingNavItem(
-                                    height: currentBarHeight,
-                                    isActive: isActive,
-                                    iconScale: isActive ? activeIconBoost : iconScale,
-                                    onTap: () => onItemSelected(index),
-                                    icon: iconBuilder(index, isActive),
-                                  ),
-                                );
-                              }),
-                            ),
-                          ],
-                        );
-                      },
+                    child: _FloatingNavTrack(
+                      itemCount: itemCount,
+                      selectedIndex: selectedIndex,
+                      collapseProgress: t,
+                      currentBarHeight: currentBarHeight,
+                      isDark: isDark,
+                      iconScale: iconScale,
+                      activeIconBoost: activeIconBoost,
+                      onItemSelected: onItemSelected,
+                      iconBuilder: iconBuilder,
                     ),
                   ),
                 ],
@@ -273,6 +238,226 @@ class FloatingBottomNavBar extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Tab row + sliding active pill. Animates horizontally on tab change;
+/// updates instantly on scroll collapse so the pill stays aligned with the bar.
+class _FloatingNavTrack extends StatefulWidget {
+  final int itemCount;
+  final int selectedIndex;
+  final double collapseProgress;
+  final double currentBarHeight;
+  final bool isDark;
+  final double iconScale;
+  final double activeIconBoost;
+  final ValueChanged<int> onItemSelected;
+  final FloatingNavIconBuilder iconBuilder;
+
+  const _FloatingNavTrack({
+    required this.itemCount,
+    required this.selectedIndex,
+    required this.collapseProgress,
+    required this.currentBarHeight,
+    required this.isDark,
+    required this.iconScale,
+    required this.activeIconBoost,
+    required this.onItemSelected,
+    required this.iconBuilder,
+  });
+
+  @override
+  State<_FloatingNavTrack> createState() => _FloatingNavTrackState();
+}
+
+class _FloatingNavTrackState extends State<_FloatingNavTrack>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _slideController;
+  Animation<double>? _activeLeftAnimation;
+
+  double _pillLeft = 0;
+  int _committedIndex = -1;
+  bool _animateTabSwitch = false;
+  bool _pillUpdateScheduled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _slideController = AnimationController(
+      vsync: this,
+      duration: FloatingBottomNavBar.pillSlideDuration,
+    )..addListener(_onSlideTick);
+  }
+
+  @override
+  void dispose() {
+    _slideController.removeListener(_onSlideTick);
+    _slideController.dispose();
+    super.dispose();
+  }
+
+  void _onSlideTick() {
+    final animation = _activeLeftAnimation;
+    if (animation != null && mounted) {
+      setState(() => _pillLeft = animation.value);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _FloatingNavTrack oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedIndex != widget.selectedIndex) {
+      _animateTabSwitch = true;
+    } else if (oldWidget.collapseProgress != widget.collapseProgress ||
+        oldWidget.currentBarHeight != widget.currentBarHeight) {
+      _animateTabSwitch = false;
+      _slideController.stop();
+      _activeLeftAnimation = null;
+    }
+  }
+
+  void _snapPillTo(double left) {
+    _slideController.stop();
+    _activeLeftAnimation = null;
+    _pillLeft = left;
+  }
+
+  void _slidePillTo(double from, double to) {
+    _slideController.stop();
+    _activeLeftAnimation = Tween<double>(
+      begin: from,
+      end: to,
+    ).animate(CurvedAnimation(
+      parent: _slideController,
+      curve: FloatingBottomNavBar.pillSlideCurve,
+    ));
+    _slideController.forward(from: 0);
+  }
+
+  void _schedulePillUpdate({
+    required double targetLeft,
+    required int selectedIndex,
+    required bool showIndicator,
+  }) {
+    if (!showIndicator) return;
+
+    if (_committedIndex < 0) {
+      _snapPillTo(targetLeft);
+      _committedIndex = selectedIndex;
+      return;
+    }
+
+    if (selectedIndex == _committedIndex) {
+      if (!_slideController.isAnimating) {
+        _snapPillTo(targetLeft);
+      }
+      return;
+    }
+
+    if (_pillUpdateScheduled) return;
+
+    final shouldAnimate = _animateTabSwitch;
+    _animateTabSwitch = false;
+    final from = _pillLeft;
+    final to = targetLeft;
+    final toIndex = selectedIndex;
+    _pillUpdateScheduled = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _pillUpdateScheduled = false;
+      if (!mounted) return;
+      if (widget.selectedIndex != toIndex) return;
+
+      if (shouldAnimate) {
+        _slidePillTo(from, to);
+      } else {
+        _snapPillTo(to);
+      }
+      _committedIndex = toIndex;
+      setState(() {});
+    });
+  }
+
+  double _pillLeftForIndex(int index, double tabWidth, double pillWidth) {
+    return (index * tabWidth) + ((tabWidth - pillWidth) / 2);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = widget.collapseProgress.clamp(0.0, 1.0);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final tabWidth = constraints.maxWidth / widget.itemCount;
+        final showIndicator = widget.selectedIndex >= 0 &&
+            widget.selectedIndex < widget.itemCount;
+        final pillHeight = widget.currentBarHeight *
+            FloatingBottomNavBar._pillHeightFactor;
+        final pillWidth =
+            tabWidth * FloatingBottomNavBar._pillWidthFactor(t);
+        final targetLeft = showIndicator
+            ? _pillLeftForIndex(widget.selectedIndex, tabWidth, pillWidth)
+            : 0.0;
+        final pillRadius = pillHeight / 2;
+        final pillTop = (constraints.maxHeight - pillHeight) / 2;
+
+        _schedulePillUpdate(
+          targetLeft: targetLeft,
+          selectedIndex: widget.selectedIndex,
+          showIndicator: showIndicator,
+        );
+
+        return Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            if (showIndicator)
+              Positioned(
+                left: _pillLeft,
+                top: pillTop,
+                width: pillWidth,
+                height: pillHeight,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(pillRadius),
+                    color: widget.isDark
+                        ? Colors.white.withOpacity(0.28)
+                        : const Color(0xFFC8C8C8).withOpacity(0.95),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(
+                          widget.isDark ? 0.15 : 0.08,
+                        ),
+                        blurRadius: FloatingBottomNavBar._lerp(6.r, 5.r, t),
+                        offset: Offset(
+                          0,
+                          FloatingBottomNavBar._lerp(2.h, 2.h, t),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            Row(
+              children: List.generate(widget.itemCount, (index) {
+                final isActive =
+                    widget.selectedIndex >= 0 && widget.selectedIndex == index;
+                return Expanded(
+                  child: _FloatingNavItem(
+                    height: widget.currentBarHeight,
+                    isActive: isActive,
+                    iconScale:
+                        isActive ? widget.activeIconBoost : widget.iconScale,
+                    onTap: () => widget.onItemSelected(index),
+                    icon: widget.iconBuilder(index, isActive),
+                  ),
+                );
+              }),
+            ),
+          ],
+        );
+      },
     );
   }
 }

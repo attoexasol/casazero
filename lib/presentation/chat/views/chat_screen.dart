@@ -1,8 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../app/theme/app_colors.dart';
+import '../../../core/utils/image_url_builder.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/utils/permissions.dart';
 import '../../../core/widgets/tablet_centered_layout.dart';
@@ -228,7 +230,11 @@ class ChatScreen extends GetView<ChatController> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   if (!isOwnMessage && showAvatar)
-                    _buildAvatar(msg.senderName, msg.senderId),
+                    _buildAvatar(
+                      msg.senderName,
+                      msg.senderId,
+                      msg.senderProfileImage,
+                    ),
                   if (!isOwnMessage && !showAvatar) SizedBox(width: 32.w),
                   if (!isOwnMessage) SizedBox(width: 8.w),
                   Flexible(
@@ -344,11 +350,34 @@ class ChatScreen extends GetView<ChatController> {
     return _avatarColors[index];
   }
 
-  /// Avatar: fixed color per user (by senderId) + initial for identification. No profile image.
-  Widget _buildAvatar(String senderName, String senderId) {
+  /// Avatar: profile image when available, otherwise colored initial per user.
+  Widget _buildAvatar(
+    String senderName,
+    String senderId,
+    String? senderProfileImage,
+  ) {
     final initial =
         senderName.isNotEmpty ? senderName[0].toUpperCase() : '?';
-    return _initialAvatar(initial, _avatarColorFor(senderId));
+    final fallbackColor = _avatarColorFor(senderId);
+    final url = ImageUrlBuilder.buildResidenceImageUrl(senderProfileImage);
+
+    if (url.isEmpty) {
+      return _initialAvatar(initial, fallbackColor);
+    }
+
+    final size = 32.r;
+    return ClipOval(
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: CachedNetworkImage(
+          imageUrl: url,
+          fit: BoxFit.cover,
+          placeholder: (_, __) => _initialAvatar(initial, fallbackColor),
+          errorWidget: (_, __, ___) => _initialAvatar(initial, fallbackColor),
+        ),
+      ),
+    );
   }
 
   Widget _initialAvatar(String initial, Color backgroundColor) {

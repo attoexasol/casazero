@@ -1302,7 +1302,7 @@ class AppTranslations extends Translations {
         'È stato pubblicato un nuovo annuncio.',
     'notification_generic_description': 'Tocca per visualizzare i dettagli.',
     'notification_mark_as_read': 'contrassegnare come letto',
-    'notification_mark_all_read': 'contrassegnaTuttoLeggi',
+    'notification_mark_all_read': 'Contrassegna',
 
     // Notification type labels (Italian)
     'notification_type_maintenance': 'Notifica manutenzione',

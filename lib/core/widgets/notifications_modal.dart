@@ -622,7 +622,6 @@ class _NotificationCard extends StatelessWidget {
                 final _ = localeController.locale;
 
                 final displayTitle = notification.modalTitle;
-                final displaySubtitle = notification.modalSubtitle;
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -670,20 +669,6 @@ class _NotificationCard extends StatelessWidget {
                         ),
                       ],
                     ),
-
-                    if (displaySubtitle.isNotEmpty) ...[
-                      SizedBox(height: 2.h),
-                      Text(
-                        displaySubtitle,
-                        style: AppTextStyles.bodySmall.copyWith(
-                          fontSize: 12.sp,
-                          height: 1.3,
-                          color: AppColors.neutralInk500,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
 
                     SizedBox(height: 6.h),
 
