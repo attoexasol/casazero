@@ -234,8 +234,16 @@ class DocumentRepository {
   ///       "file_type": "pdf",
   ///       "file_size": "1.20 MB",
   ///       "uploaded_date": "01-10-2025",
-  ///       "category": { "id": 1, "category_name": "Invoice" },
-  ///       "type": { "id": 2, "type_name": "PDF" }
+  ///       "category": {
+  ///         "id": 1,
+  ///         "category_name": "Invoice",
+  ///         "category_name_it": "Fattura"
+  ///       },
+  ///       "type": {
+  ///         "id": 2,
+  ///         "type_name": "PDF",
+  ///         "type_name_it": "PDF"
+  ///       }
   ///     }
   ///   ]
   /// }

@@ -1,8 +1,18 @@
+import 'package:get/get.dart';
+import '../../core/localization/locale_controller.dart';
+
 class DocumentModel {
   final String id;
   final String title;
   final String type;
+  /// English category name (used for filter matching / colors).
   final String category;
+  /// Italian category name from API (`category_name_it`).
+  final String categoryIt;
+  /// English type name from API (`type_name`).
+  final String typeName;
+  /// Italian type name from API (`type_name_it`).
+  final String typeNameIt;
   final String date;
   final String size;
   final List<String> tags;
@@ -17,6 +27,9 @@ class DocumentModel {
     required this.title,
     required this.type,
     required this.category,
+    this.categoryIt = '',
+    this.typeName = '',
+    this.typeNameIt = '',
     required this.date,
     required this.size,
     required this.tags,
@@ -27,46 +40,210 @@ class DocumentModel {
     this.typeId,
   });
 
+  /// Localized category name: Italian when locale is IT, else English.
+  String getCategory() {
+    try {
+      final localeController = Get.find<LocaleController>();
+      if (localeController.isItalian) {
+        return categoryIt.isNotEmpty ? categoryIt : category;
+      }
+    } catch (_) {}
+    return category;
+  }
+
+  /// Localized document type name: Italian when locale is IT, else English.
+  String getTypeName() {
+    try {
+      final localeController = Get.find<LocaleController>();
+      if (localeController.isItalian) {
+        return typeNameIt.isNotEmpty ? typeNameIt : typeName;
+      }
+    } catch (_) {}
+    return typeName;
+  }
+
+  /// Localized uploaded date (e.g. "15 Jan 2025" / "15 Gen 2025").
+  String getLocalizedDate() {
+    if (date.trim().isEmpty) return '';
+
+    final parsed = _parseUploadedDate(date);
+    if (parsed == null) return date;
+
+    bool isItalian = false;
+    try {
+      isItalian = Get.find<LocaleController>().isItalian;
+    } catch (_) {
+      isItalian = Get.locale?.languageCode == 'it';
+    }
+
+    final months = isItalian ? _monthAbbrIt : _monthAbbrEn;
+    final day = parsed.day.toString().padLeft(2, '0');
+    return '$day ${months[parsed.month - 1]} ${parsed.year}';
+  }
+
+  /// Parses common API / display date strings.
+  static DateTime? _parseUploadedDate(String raw) {
+    final value = raw.trim();
+    if (value.isEmpty) return null;
+
+    // "yyyy-MM-dd" or "yyyy-MM-dd HH:mm:ss"
+    if (value.contains('-') && value.length >= 10 && value[4] == '-') {
+      try {
+        return DateTime.parse(value.contains(' ') ? value.split(' ')[0] : value);
+      } catch (_) {}
+    }
+
+    // "dd-MM-yyyy" / "dd/MM/yyyy"
+    final numeric = RegExp(r'^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$');
+    final numericMatch = numeric.firstMatch(value);
+    if (numericMatch != null) {
+      final day = int.tryParse(numericMatch.group(1)!);
+      final month = int.tryParse(numericMatch.group(2)!);
+      final year = int.tryParse(numericMatch.group(3)!);
+      if (day != null && month != null && year != null) {
+        return DateTime(year, month, day);
+      }
+    }
+
+    // "15 Jan 2025", "Jan 15, 2025", "15 Gen 2025", etc.
+    final monthNames = <String, int>{};
+    for (var i = 0; i < _monthAbbrEn.length; i++) {
+      monthNames[_monthAbbrEn[i].toLowerCase()] = i + 1;
+      monthNames[_monthAbbrIt[i].toLowerCase()] = i + 1;
+    }
+    // Full English month names sometimes used in mocks
+    const fullEn = [
+      'january', 'february', 'march', 'april', 'may', 'june',
+      'july', 'august', 'september', 'october', 'november', 'december',
+    ];
+    for (var i = 0; i < fullEn.length; i++) {
+      monthNames[fullEn[i]] = i + 1;
+    }
+
+    final tokenMatch = RegExp(
+      r'^(\d{1,2})[,\s]+([A-Za-zÀ-ÿ]+)[,\s]+(\d{4})$|'
+      r'^([A-Za-zÀ-ÿ]+)[,\s]+(\d{1,2})[,\s]+(\d{4})$',
+    ).firstMatch(value);
+    if (tokenMatch != null) {
+      late final int day;
+      late final String monthToken;
+      late final int year;
+      if (tokenMatch.group(1) != null) {
+        day = int.parse(tokenMatch.group(1)!);
+        monthToken = tokenMatch.group(2)!.toLowerCase();
+        year = int.parse(tokenMatch.group(3)!);
+      } else {
+        monthToken = tokenMatch.group(4)!.toLowerCase();
+        day = int.parse(tokenMatch.group(5)!);
+        year = int.parse(tokenMatch.group(6)!);
+      }
+      final month = monthNames[monthToken] ??
+          monthNames[monthToken.substring(0, monthToken.length.clamp(0, 3))];
+      if (month != null) {
+        return DateTime(year, month, day);
+      }
+    }
+
+    try {
+      return DateTime.parse(value);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static const List<String> _monthAbbrEn = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+  static const List<String> _monthAbbrIt = [
+    'Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu',
+    'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic',
+  ];
+
+  /// Tags for UI, with category/type switched by current language.
+  /// Order: category, type name, file type (same as English tags).
+  List<String> getLocalizedTags() {
+    final localized = <String>[];
+    final localizedCategory = getCategory();
+    if (localizedCategory.isNotEmpty) {
+      localized.add(localizedCategory);
+    }
+    final localizedType = getTypeName();
+    if (localizedType.isNotEmpty) {
+      localized.add(localizedType);
+    }
+    // Keep file-type tag (PDF, JPG, …) from stored tags when present.
+    for (final tag in tags) {
+      final lower = tag.toLowerCase().trim();
+      if (lower == category.toLowerCase().trim() ||
+          lower == categoryIt.toLowerCase().trim() ||
+          lower == typeName.toLowerCase().trim() ||
+          lower == typeNameIt.toLowerCase().trim()) {
+        continue;
+      }
+      if (tag.isNotEmpty) {
+        localized.add(tag);
+      }
+    }
+    return localized;
+  }
+
   /// Create DocumentModel from API response
-  /// Supports both old format (with category_id, type_id) and new format (with nested category, type, unit objects)
+  /// Supports both old format (with category_id, type_id) and new format
+  /// with nested category/type objects including `*_it` fields.
   factory DocumentModel.fromJson(Map<String, dynamic> json) {
-    // Handle new API format with nested objects
     String categoryName;
+    String categoryNameIt = '';
     int? categoryId;
     int? typeId;
-    String typeName = '';
+    String typeNameEn = '';
+    String typeNameIt = '';
 
     if (json['category'] != null && json['category'] is Map) {
-      // New format: nested category object
-      categoryName = json['category']['category_name'] ?? '';
-      categoryId = json['category']['id'];
+      final categoryMap = json['category'] as Map;
+      categoryName = categoryMap['category_name']?.toString() ?? '';
+      categoryNameIt = categoryMap['category_name_it']?.toString() ?? '';
+      categoryId = categoryMap['id'] is int
+          ? categoryMap['id'] as int
+          : int.tryParse(categoryMap['id']?.toString() ?? '');
     } else {
-      // Old format: category_id
-      categoryId = json['category_id'];
+      categoryId = json['category_id'] is int
+          ? json['category_id'] as int
+          : int.tryParse(json['category_id']?.toString() ?? '');
       categoryName = _getCategoryName(categoryId);
+      categoryNameIt = json['category_name_it']?.toString() ?? '';
     }
 
     if (json['type'] != null && json['type'] is Map) {
-      // New format: nested type object
-      typeName = json['type']['type_name'] ?? '';
-      typeId = json['type']['id'];
+      final typeMap = json['type'] as Map;
+      typeNameEn = typeMap['type_name']?.toString() ?? '';
+      typeNameIt = typeMap['type_name_it']?.toString() ?? '';
+      typeId = typeMap['id'] is int
+          ? typeMap['id'] as int
+          : int.tryParse(typeMap['id']?.toString() ?? '');
     } else {
-      // Old format: type_id
-      typeId = json['type_id'];
+      typeId = json['type_id'] is int
+          ? json['type_id'] as int
+          : int.tryParse(json['type_id']?.toString() ?? '');
+      typeNameEn = json['type_name']?.toString() ?? '';
+      typeNameIt = json['type_name_it']?.toString() ?? '';
     }
 
-    // Generate tags including type name if available
-    List<String> tags = _generateTags(json, categoryName, typeName);
+    // Store English tags for stable matching/colors; UI uses getLocalizedTags().
+    final tags = _generateTags(json, categoryName, typeNameEn);
 
     return DocumentModel(
       id: json['id']?.toString() ?? '',
       title: json['document_name'] ?? 'Untitled Document',
       type: (json['file_type'] ?? 'file').toString().toUpperCase(),
       category: categoryName,
+      categoryIt: categoryNameIt,
+      typeName: typeNameEn,
+      typeNameIt: typeNameIt,
       date: json['uploaded_date'] ?? '',
       size: json['file_size'] ?? '',
       tags: tags,
-      status: null, // Can be extended later if needed
+      status: null,
       fileUrl: json['file_url'],
       description: json['document_description'],
       categoryId: categoryId,
@@ -86,13 +263,21 @@ class DocumentModel {
       'file_url': fileUrl,
       'document_description': description,
       'type_id': typeId,
+      'category': {
+        'id': categoryId,
+        'category_name': category,
+        'category_name_it': categoryIt,
+      },
+      'type': {
+        'id': typeId,
+        'type_name': typeName,
+        'type_name_it': typeNameIt,
+      },
     };
   }
 
   /// Helper method to get category name from category_id
   static String _getCategoryName(int? categoryId) {
-    // Default categories based on common IDs
-    // This can be extended based on actual category data
     switch (categoryId) {
       case 1:
         return 'Ownership & Legal';
@@ -117,22 +302,21 @@ class DocumentModel {
   ]) {
     List<String> tags = [];
 
-    // Add category-based tag
     if (categoryName != null && categoryName.isNotEmpty) {
       tags.add(categoryName);
     } else {
       final categoryId = json['category_id'];
       if (categoryId != null) {
-        tags.add(_getCategoryName(categoryId));
+        tags.add(_getCategoryName(
+          categoryId is int ? categoryId : int.tryParse(categoryId.toString()),
+        ));
       }
     }
 
-    // Add type name tag if available
     if (typeName != null && typeName.isNotEmpty) {
       tags.add(typeName);
     }
 
-    // Add file type tag
     if (json['file_type'] != null) {
       tags.add(json['file_type'].toString().toUpperCase());
     }
@@ -146,6 +330,9 @@ class DocumentModel {
     String? title,
     String? type,
     String? category,
+    String? categoryIt,
+    String? typeName,
+    String? typeNameIt,
     String? date,
     String? size,
     List<String>? tags,
@@ -160,6 +347,9 @@ class DocumentModel {
       title: title ?? this.title,
       type: type ?? this.type,
       category: category ?? this.category,
+      categoryIt: categoryIt ?? this.categoryIt,
+      typeName: typeName ?? this.typeName,
+      typeNameIt: typeNameIt ?? this.typeNameIt,
       date: date ?? this.date,
       size: size ?? this.size,
       tags: tags ?? this.tags,

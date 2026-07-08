@@ -338,7 +338,23 @@ class ApiConstants {
   /// Response: {
   ///   "status": true,
   ///   "message": "Documents retrieved successfully",
-  ///   "data": [ ... ]
+  ///   "unit_id": 12,
+  ///   "documents": [
+  ///     {
+  ///       "id": 10,
+  ///       "document_name": "...",
+  ///       "category": {
+  ///         "id": 1,
+  ///         "category_name": "Invoice",
+  ///         "category_name_it": "Fattura"
+  ///       },
+  ///       "type": {
+  ///         "id": 2,
+  ///         "type_name": "PDF",
+  ///         "type_name_it": "PDF"
+  ///       }
+  ///     }
+  ///   ]
   /// }
   static const String GET_DOCUMENTS_BY_UNIT = '/documents/by_unit';
 

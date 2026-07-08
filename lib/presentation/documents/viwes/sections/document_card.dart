@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
+import '../../../../core/localization/locale_controller.dart';
 import '../../../../data/models/document_model.dart';
 import 'document_colors.dart';
 
@@ -161,45 +163,66 @@ class _DocumentCardState extends State<DocumentCard> {
 
                             SizedBox(height: 4.h),
 
-                            /// DATE & SIZE
-                            Text(
-                              "${widget.document.date} • ${widget.document.size}",
-                              style: TextStyle(
-                                color: Colors.grey.shade600,
-                                fontSize: 13.sp,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                            /// DATE & SIZE (date switches EN/IT with locale)
+                            Obx(() {
+                              try {
+                                final localeController =
+                                    Get.find<LocaleController>();
+                                final _ = localeController.locale;
+                              } catch (_) {}
+
+                              final localizedDate =
+                                  widget.document.getLocalizedDate();
+                              return Text(
+                                "$localizedDate • ${widget.document.size}",
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 13.sp,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              );
+                            }),
 
                             SizedBox(height: 6.h),
 
-                            /// TAGS
-                            Wrap(
-                              spacing: 6.w,
-                              runSpacing: 4.h,
-                              children: widget.document.tags.map((tag) {
-                                return Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 8.w,
-                                    vertical: 3.h,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade100,
-                                    borderRadius: BorderRadius.circular(20.r),
-                                  ),
-                                  child: Text(
-                                    tag,
-                                    style: TextStyle(
-                                      fontSize: 11.sp,
-                                      color: Colors.grey.shade700,
+                            /// TAGS (category / type names switch with EN/IT)
+                            Obx(() {
+                              try {
+                                final localeController =
+                                    Get.find<LocaleController>();
+                                // Access locale so tags rebuild on language change
+                                final _ = localeController.locale;
+                              } catch (_) {}
+
+                              final displayTags =
+                                  widget.document.getLocalizedTags();
+                              return Wrap(
+                                spacing: 6.w,
+                                runSpacing: 4.h,
+                                children: displayTags.map((tag) {
+                                  return Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 8.w,
+                                      vertical: 3.h,
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                );
-                              }).toList(),
-                            ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade100,
+                                      borderRadius: BorderRadius.circular(20.r),
+                                    ),
+                                    child: Text(
+                                      tag,
+                                      style: TextStyle(
+                                        fontSize: 11.sp,
+                                        color: Colors.grey.shade700,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  );
+                                }).toList(),
+                              );
+                            }),
 
                             SizedBox(height: 10.h),
 
