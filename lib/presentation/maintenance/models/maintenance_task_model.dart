@@ -16,7 +16,11 @@ class MaintenanceTask {
   final String category; // category.name (from nested object)
   final String? description; // maintenance_note (optional)
   final MaintenancePriority priority; // Derived from category or default
-  final String? priorityRaw; // Raw priority value from API (N1, N2, N3)
+  final String? priorityRaw; // Raw priority value from API (usually Italian `name`)
+  /// English priority label from API (`priority.priority_type` / `priority_info.type`)
+  final String? priorityNameEn;
+  /// Italian priority label from API (`priority.name` / `priority_info.name`)
+  final String? priorityNameIt;
   final MaintenanceStatus status; // maintenance_status
   final String frequency; // maintenance_frequency (deprecated - use getFrequency() for reactive updates)
   final Map<String, dynamic>? frequencyObj; // Raw frequency object from API (for reactive language updates)
@@ -46,6 +50,8 @@ class MaintenanceTask {
     this.description,
     required this.priority,
     this.priorityRaw,
+    this.priorityNameEn,
+    this.priorityNameIt,
     required this.status,
     required this.frequency,
     this.frequencyObj,
@@ -159,6 +165,28 @@ class MaintenanceTask {
     }
     // If no itemObj, return null
     return null;
+  }
+
+  /// Priority badge label from API, bilingual and reactive:
+  /// EN → `priority.priority_type` / `priority_info.type` (Optional, Mandatory, Administrative)
+  /// IT → `priority.name` / `priority_info.name` (Facoltativa, Obbligatoria, Condominiale)
+  String getPriorityLabel() {
+    try {
+      final localeController = Get.find<LocaleController>();
+      if (localeController.isEnglish) {
+        final en = priorityNameEn?.trim();
+        if (en != null && en.isNotEmpty) return en;
+        final it = priorityNameIt?.trim();
+        if (it != null && it.isNotEmpty) return it;
+      } else {
+        final it = priorityNameIt?.trim();
+        if (it != null && it.isNotEmpty) return it;
+        final en = priorityNameEn?.trim();
+        if (en != null && en.isNotEmpty) return en;
+      }
+    } catch (_) {}
+
+    return priorityRaw?.trim() ?? '';
   }
 
   /// Get title based on current language settings (reactive)
@@ -287,77 +315,85 @@ class MaintenanceTask {
         status = MaintenanceStatus.pending;
     }
 
-    // Parse priority from API (can be N1, N2, N3 or other values)
+    // Parse priority from API.
+    // Live API shape:
+    //   priority: { id, name: "Facoltativa", priority_type: "Optional" }
+    //   priority_info: { name: "Facoltativa", type: "Optional" }
+    // IT label = name, EN label = priority_type / type
     MaintenancePriority priority = MaintenancePriority.personal; // Default fallback
     String? priorityRawValue; // Store raw value from API for direct display
+    String? priorityNameEnValue;
+    String? priorityNameItValue;
     
-    // Try multiple possible field names for priority
-    // Check new API structure first (maintenance_priority object)
-    dynamic priorityValue;
-    
-    // Check for maintenance_priority nested object (new API structure) FIRST
-    if (json['maintenance_priority'] != null && json['maintenance_priority'] is Map) {
-      final priorityObj = json['maintenance_priority'] as Map<String, dynamic>;
-      // New API structure: { "name": "N2", "priority_type": "Mandatory" }
-      final priorityName = priorityObj['name']?.toString() ?? '';
-      final priorityType = priorityObj['priority_type']?.toString() ?? '';
-      // Combine as "N2-Mandatory" format
-      if (priorityName.isNotEmpty && priorityType.isNotEmpty) {
-        priorityRawValue = '$priorityName-$priorityType';
-        print('✅ [MaintenanceTask] Combined priority: $priorityRawValue');
-        priorityValue = priorityName; // Use name for enum mapping
-      } else if (priorityName.isNotEmpty) {
-        priorityRawValue = priorityName;
-        priorityValue = priorityName;
-      } else {
-        priorityValue = priorityObj['id'] ?? 
-                        priorityObj['value'] ??
-                        priorityObj['name_en'] ??
-                        priorityObj['priority'];
-      }
-    } else {
-      // Fallback to old structure or direct fields
-      priorityValue = json['priority'] ?? 
-                     json['priority_id'] ?? 
-                     json['maintenance_priority_id'] ??
-                     json['priorityId'] ??
-                     json['maintenancePriority'] ??
-                     json['maintenancePriorityId'] ??
-                     json['priority_name'] ??
-                     json['priorityName'] ??
-                     json['priority_level'] ??
-                     json['priorityLevel'];
-      
-      // If not found, check for nested priority object
-      if (priorityValue == null && json['priority'] is Map) {
-        final priorityObj = json['priority'] as Map<String, dynamic>;
-        priorityValue = priorityObj['id'] ?? 
-                       priorityObj['name'] ?? 
-                       priorityObj['value'] ??
-                       priorityObj['name_en'] ??
-                       priorityObj['priority'];
+    // Prefer nested objects that carry bilingual labels.
+    Map<String, dynamic>? priorityMap;
+    if (json['priority'] is Map) {
+      priorityMap = Map<String, dynamic>.from(json['priority'] as Map);
+    } else if (json['maintenance_priority'] is Map) {
+      priorityMap = Map<String, dynamic>.from(json['maintenance_priority'] as Map);
+    } else if (json['priority_info'] is Map) {
+      priorityMap = Map<String, dynamic>.from(json['priority_info'] as Map);
+    }
+
+    if (priorityMap != null) {
+      priorityNameItValue = priorityMap['name']?.toString().trim();
+      priorityNameEnValue = (priorityMap['priority_type'] ??
+              priorityMap['type'] ??
+              priorityMap['name_en'])
+          ?.toString()
+          .trim();
+
+      // Keep Italian name as raw fallback for older UI paths / colors.
+      if (priorityNameItValue != null && priorityNameItValue.isNotEmpty) {
+        priorityRawValue = priorityNameItValue;
+      } else if (priorityNameEnValue != null && priorityNameEnValue.isNotEmpty) {
+        priorityRawValue = priorityNameEnValue;
       }
     }
+
+    dynamic priorityValue = priorityMap ??
+        json['maintenance_priority'] ??
+        json['priority'] ??
+        json['priority_info'] ??
+        json['priority_id'] ??
+        json['maintenance_priority_id'] ??
+        json['priorityId'] ??
+        json['maintenancePriority'] ??
+        json['maintenancePriorityId'] ??
+        json['priority_name'] ??
+        json['priorityName'] ??
+        json['priority_level'] ??
+        json['priorityLevel'];
     
     // DEBUG: Log priority data from API
     print('🔍 [MaintenanceTask] Priority field check for task ID: ${json['id']}');
     print('🔍 [MaintenanceTask] priorityValue found: $priorityValue (type: ${priorityValue != null ? priorityValue.runtimeType : 'null'})');
+    print('🔍 [MaintenanceTask] priority IT="$priorityNameItValue" EN="$priorityNameEnValue"');
     
     if (priorityValue != null) {
       String priorityStr = '';
       
       // Handle different data types
       if (priorityValue is Map) {
-        // Nested object: try common keys
-        final priorityObj = priorityValue as Map<String, dynamic>;
-        final extractedValue = priorityObj['name'] ?? 
-                              priorityObj['priority'] ?? 
-                              priorityObj['value'] ?? 
-                              priorityObj['name_en'] ?? 
-                              '';
+        // Nested object: prefer Italian name for enum, English type already captured above
+        final priorityObj = Map<String, dynamic>.from(priorityValue);
+        priorityNameItValue ??= priorityObj['name']?.toString().trim();
+        priorityNameEnValue ??= (priorityObj['priority_type'] ??
+                priorityObj['type'] ??
+                priorityObj['name_en'])
+            ?.toString()
+            .trim();
+
+        final extractedValue = priorityObj['name'] ??
+            priorityObj['priority_type'] ??
+            priorityObj['type'] ??
+            priorityObj['priority'] ??
+            priorityObj['value'] ??
+            priorityObj['name_en'] ??
+            '';
         priorityStr = extractedValue.toString().toUpperCase().trim();
         // Store original extracted value (preserve full string for display)
-        priorityRawValue = extractedValue.toString().trim();
+        priorityRawValue ??= extractedValue.toString().trim();
       } else if (priorityValue is num) {
         // Numeric ID: map 1=N1, 2=N2, 3=N3
         final priorityNum = priorityValue.toInt();
@@ -387,65 +423,57 @@ class MaintenanceTask {
         }
       }
       
-      // Map priority string to enum
-      switch (priorityStr) {
-        case 'N1':
-        case '1':
-          priority = MaintenancePriority.n1;
-          if (priorityRawValue == null) priorityRawValue = 'N1';
-          break;
-        case 'N2':
-        case '2':
-          priority = MaintenancePriority.n2;
-          if (priorityRawValue == null) priorityRawValue = 'N2';
-          break;
-        case 'N3':
-        case '3':
-          priority = MaintenancePriority.n3;
-          if (priorityRawValue == null) priorityRawValue = 'N3';
-          break;
-        case 'FACOLTATIVE':
-        case 'FACOLTATIVA':
-          priority = MaintenancePriority.facoltative;
-          break;
-        case 'OBBLIGATORIE':
-        case 'OBBLIGATORIA':
-          priority = MaintenancePriority.obbligatorie;
-          break;
-        case 'CONDOMINIALI':
-        case 'CONDOMINIALE':
-          priority = MaintenancePriority.condominiali;
-          break;
-        case 'PERSONAL':
-        case 'PERSONALE':
-          priority = MaintenancePriority.personal;
-          break;
-        default:
-          // If not recognized, try to use the raw value if it looks like N1/N2/N3
-          if (priorityRawValue != null && 
-              (priorityRawValue.toUpperCase().contains('N1') || 
-               priorityRawValue.toUpperCase().contains('N2') || 
-               priorityRawValue.toUpperCase().contains('N3'))) {
-            // Map to enum based on which priority is found, but preserve original value for display
-            if (priorityRawValue.toUpperCase().contains('N1')) {
-              priority = MaintenancePriority.n1;
-              // Keep original priorityRawValue (don't overwrite)
-            } else if (priorityRawValue.toUpperCase().contains('N2')) {
-              priority = MaintenancePriority.n2;
-              // Keep original priorityRawValue (don't overwrite)
-            } else if (priorityRawValue.toUpperCase().contains('N3')) {
-              priority = MaintenancePriority.n3;
-              // Keep original priorityRawValue (don't overwrite)
-            } else {
-              priority = MaintenancePriority.personal;
-            }
-          } else {
+      // Map priority string to enum — also check English type + Italian name
+      final enumSource = [
+        priorityStr,
+        priorityNameItValue?.toUpperCase() ?? '',
+        priorityNameEnValue?.toUpperCase() ?? '',
+        priorityRawValue?.toUpperCase() ?? '',
+      ].join(' ');
+
+      if (enumSource.contains('FACOLTATIV') ||
+          enumSource.contains('OPTIONAL') ||
+          enumSource.contains('N1')) {
+        priority = MaintenancePriority.facoltative;
+        if (priorityRawValue == null) priorityRawValue = 'Facoltativa';
+      } else if (enumSource.contains('OBBLIGATOR') ||
+          enumSource.contains('MANDATORY') ||
+          enumSource.contains('N2')) {
+        priority = MaintenancePriority.obbligatorie;
+        if (priorityRawValue == null) priorityRawValue = 'Obbligatoria';
+      } else if (enumSource.contains('CONDOMINIAL') ||
+          enumSource.contains('ADMINISTRATIVE') ||
+          enumSource.contains('N3')) {
+        priority = MaintenancePriority.condominiali;
+        if (priorityRawValue == null) priorityRawValue = 'Condominiale';
+      } else if (enumSource.contains('PERSONAL') ||
+          enumSource.contains('PERSONALE')) {
+        priority = MaintenancePriority.personal;
+      } else {
+        // Fall back to exact switch for legacy N1/N2/N3 values
+        switch (priorityStr) {
+          case 'N1':
+          case '1':
+            priority = MaintenancePriority.n1;
+            if (priorityRawValue == null) priorityRawValue = 'N1';
+            break;
+          case 'N2':
+          case '2':
+            priority = MaintenancePriority.n2;
+            if (priorityRawValue == null) priorityRawValue = 'N2';
+            break;
+          case 'N3':
+          case '3':
+            priority = MaintenancePriority.n3;
+            if (priorityRawValue == null) priorityRawValue = 'N3';
+            break;
+          default:
             priority = MaintenancePriority.personal;
-          }
+        }
       }
       
       // DEBUG: Log parsed priority
-      print('🔍 [MaintenanceTask] Parsed priority: enum=$priority, raw=$priorityRawValue');
+      print('🔍 [MaintenanceTask] Parsed priority: enum=$priority, raw=$priorityRawValue, en=$priorityNameEnValue, it=$priorityNameItValue');
     } else {
       print('⚠️ [MaintenanceTask] No priority value found in API response, using default: personal');
     }
@@ -561,6 +589,8 @@ class MaintenanceTask {
       description: json['maintenance_note']?.toString(),
       priority: priority,
       priorityRaw: priorityRawValue,
+      priorityNameEn: priorityNameEnValue,
+      priorityNameIt: priorityNameItValue,
       status: status,
       frequency: frequencyStr,
       frequencyObj: frequencyObj, // Store raw object for reactive language updates

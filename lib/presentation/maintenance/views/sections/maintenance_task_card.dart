@@ -197,31 +197,19 @@ class MaintenanceTaskCard extends StatelessWidget {
     return frequency;
   }
 
-  /// Get priority border color based on priority type from API
-  /// Maps priority type to color following Document card pattern
+  /// Get priority border color from bilingual API labels (IT name or EN type).
   Color _getPriorityBorderColor() {
-    // Extract priority name from priorityRaw if it contains a dash (format: "name-type")
-    String? priorityName;
-    if (task.priorityRaw != null && task.priorityRaw!.contains('-')) {
-      final parts = task.priorityRaw!.split('-');
-      if (parts.isNotEmpty) {
-        priorityName = parts[0].trim();
-      }
-    } else if (task.priorityRaw != null) {
-      priorityName = task.priorityRaw!.trim();
+    final label = task.getPriorityLabel().toLowerCase();
+    if (label.contains('facoltativ') || label.contains('optional')) {
+      return Colors.yellow.shade600;
     }
-
-    // Map priority name to color (case-sensitive matching as per requirements)
-    switch (priorityName) {
-      case 'Facoltativa':
-        return Colors.yellow.shade600;
-      case 'Obbligatoria':
-        return Colors.red.shade600;
-      case 'Condominiale':
-        return Colors.blue.shade600;
-      default:
-        return Colors.transparent;
+    if (label.contains('obbligator') || label.contains('mandatory')) {
+      return Colors.red.shade600;
     }
+    if (label.contains('condominial') || label.contains('administrative')) {
+      return Colors.blue.shade600;
+    }
+    return Colors.transparent;
   }
 
   /// Get priority badge background color to match left border color
@@ -295,50 +283,9 @@ class MaintenanceTaskCard extends StatelessWidget {
     }
   }
 
-  /// Get localized priority label from API response
-  /// For Italian: shows API value as-is (Obbligatoria, Facoltativa)
-  /// For English: translates Facoltativa → Optional, Obbligatoria → Mandatory
-  String _getLocalizedPriorityLabel() {
-    // Extract priority name from priorityRaw
-    String? priorityName;
-    if (task.priorityRaw != null && task.priorityRaw!.contains('-')) {
-      final parts = task.priorityRaw!.split('-');
-      if (parts.isNotEmpty) {
-        priorityName = parts[0].trim();
-      }
-    } else if (task.priorityRaw != null) {
-      priorityName = task.priorityRaw!.trim();
-    }
-
-    if (priorityName == null || priorityName.isEmpty) {
-      return '';
-    }
-
-    try {
-      final localeController = Get.find<LocaleController>();
-      final isEnglish = localeController.isEnglish;
-
-      if (isEnglish) {
-        // English: translate Italian terms to English
-        if (priorityName.toLowerCase() == 'facoltativa' ||
-            priorityName.toLowerCase() == 'facoltative') {
-          return 'Optional';
-        } else if (priorityName.toLowerCase() == 'obbligatoria' ||
-            priorityName.toLowerCase() == 'obbligatorie') {
-          return 'Mandatory';
-        } else {
-          // For other values, return as-is
-          return priorityName;
-        }
-      } else {
-        // Italian: return API value as-is
-        return priorityName;
-      }
-    } catch (e) {
-      // Fallback: return as-is if LocaleController not available
-      return priorityName;
-    }
-  }
+  /// Priority badge text from API, bilingual:
+  /// EN = priority_type / type, IT = name
+  String _getLocalizedPriorityLabel() => task.getPriorityLabel();
 
   @override
   Widget build(BuildContext context) {
@@ -346,7 +293,9 @@ class MaintenanceTaskCard extends StatelessWidget {
     final isOverdue = task.status == MaintenanceStatus.overdue;
 
     // DEBUG: Log priority display data
-    print('PRIORITY => ${task.priorityRaw}');
+    print(
+      'PRIORITY => it=${task.priorityNameIt} en=${task.priorityNameEn} shown=${task.getPriorityLabel()}',
+    );
 
     return Obx(() {
       final isExpanded =
@@ -425,6 +374,9 @@ class MaintenanceTaskCard extends StatelessWidget {
 
                                           final priorityLabel =
                                               _getLocalizedPriorityLabel();
+                                          if (priorityLabel.isEmpty) {
+                                            return const SizedBox.shrink();
+                                          }
                                           return Container(
                                             padding: EdgeInsets.symmetric(
                                               horizontal: 10.w,
