@@ -7,10 +7,39 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:intl/intl.dart';
 import '../../../../core/localization/locale_controller.dart';
 import '../../models/maintenance_task_model.dart';
 import '../../controllers/maintenance_controller.dart';
+
+const List<String> _monthAbbrEn = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+
+const List<String> _monthAbbrIt = [
+  'Gen',
+  'Feb',
+  'Mar',
+  'Apr',
+  'Mag',
+  'Giu',
+  'Lug',
+  'Ago',
+  'Set',
+  'Ott',
+  'Nov',
+  'Dic',
+];
 
 class MaintenanceTaskCard extends StatelessWidget {
   final MaintenanceTask task;
@@ -236,7 +265,7 @@ class MaintenanceTaskCard extends StatelessWidget {
     return Colors.black;
   }
 
-  /// Format date to DD MMM YYYY format (e.g., "15 Jan 2025")
+  /// Format date to DD MMM YYYY format (e.g., "15 Jan 2025" / "15 Gen 2025")
   String _formatDate(String? dateStr) {
     if (dateStr == null || dateStr.isEmpty) {
       return '';
@@ -254,8 +283,11 @@ class MaintenanceTaskCard extends StatelessWidget {
         date = DateTime.parse(dateStr);
       }
 
-      // Format to DD MMM YYYY (e.g., "15 Jan 2025")
-      return DateFormat('dd MMM yyyy').format(date);
+      // Format to DD MMM YYYY using current locale (EN / IT)
+      final isIt = Get.locale?.languageCode == 'it';
+      final months = isIt ? _monthAbbrIt : _monthAbbrEn;
+      final day = date.day.toString().padLeft(2, '0');
+      return '$day ${months[date.month - 1]} ${date.year}';
     } catch (e) {
       // If parsing fails, return original string
       print('⚠️ [MaintenanceTaskCard] Error parsing date: $dateStr - $e');
@@ -647,20 +679,28 @@ class MaintenanceTaskCard extends StatelessWidget {
                                         ),
                                         SizedBox(width: 4.w),
                                         Expanded(
-                                          child: Text(
-                                            '${'startDate'.tr}: ${_formatDate(task.nextDue)}',
-                                            style: AppTextStyles.bodySmall
-                                                .copyWith(
-                                                  color: isOverdue
-                                                      ? Colors.red.shade600
-                                                      : AppColors.neutralInk700,
-                                                  fontWeight: isOverdue
-                                                      ? FontWeight.w600
-                                                      : FontWeight.normal,
-                                                ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
+                                          child: Obx(() {
+                                            final localeController =
+                                                Get.find<LocaleController>();
+                                            // Access locale to trigger reactivity
+                                            final _ = localeController.locale;
+
+                                            return Text(
+                                              '${'startDate'.tr}: ${_formatDate(task.nextDue)}',
+                                              style: AppTextStyles.bodySmall
+                                                  .copyWith(
+                                                    color: isOverdue
+                                                        ? Colors.red.shade600
+                                                        : AppColors
+                                                            .neutralInk700,
+                                                    fontWeight: isOverdue
+                                                        ? FontWeight.w600
+                                                        : FontWeight.normal,
+                                                  ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            );
+                                          }),
                                         ),
                                       ],
                                     ),
