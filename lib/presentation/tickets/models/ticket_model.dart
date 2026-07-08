@@ -1,5 +1,3 @@
-import 'package:intl/intl.dart';
-
 /// Ticket model matching the API response from /my-support-tickets.
 class TicketModel {
   final String id;
@@ -8,8 +6,8 @@ class TicketModel {
   final String description;
   final String status;
   final String? priority;
-  final String created;
-  final String updated;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
   final int? attachments;
   final int? updates;
   final String? assignedTo;
@@ -24,8 +22,8 @@ class TicketModel {
     required this.description,
     required this.status,
     this.priority,
-    required this.created,
-    required this.updated,
+    this.createdAt,
+    this.updatedAt,
     this.attachments,
     this.updates,
     this.assignedTo,
@@ -41,14 +39,14 @@ class TicketModel {
     final rawStatus = (json['status']?.toString() ?? 'open').toLowerCase();
     final status = _normalizeStatus(rawStatus);
 
-    String createdStr = '';
+    DateTime? createdAt;
     if (json['created_at'] != null) {
-      createdStr = _formatDate(json['created_at'].toString());
+      createdAt = _parseDate(json['created_at'].toString());
     }
 
-    String updatedStr = '';
+    DateTime? updatedAt;
     if (json['updated_at'] != null) {
-      updatedStr = _formatDate(json['updated_at'].toString());
+      updatedAt = _parseDate(json['updated_at'].toString());
     }
 
     final image = json['image']?.toString();
@@ -69,8 +67,8 @@ class TicketModel {
       description: json['description']?.toString() ?? '',
       status: status,
       priority: json['priority']?.toString(),
-      created: createdStr,
-      updated: updatedStr,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
       attachments: hasImage ? 1 : 0,
       updates: null,
       assignedTo: null,
@@ -96,12 +94,11 @@ class TicketModel {
     }
   }
 
-  static String _formatDate(String iso) {
+  static DateTime? _parseDate(String iso) {
     try {
-      final dt = DateTime.parse(iso);
-      return DateFormat('MMM d, yyyy').format(dt);
+      return DateTime.parse(iso);
     } catch (_) {
-      return iso;
+      return null;
     }
   }
 }

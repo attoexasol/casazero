@@ -29,13 +29,8 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
 
   late final TextEditingController _titleController;
   late final TextEditingController _descriptionController;
-  late final TextEditingController _issueTypeEnController;
-  late final TextEditingController _issueTypeItController;
   late TicketsController _ctrl;
 
-  bool _isAddingNewType = false;
-  bool _isSubmittingNewType = false;
-  final _addTypeFormKey = GlobalKey<FormState>();
   final ImagePicker _imagePicker = ImagePicker();
   double? _dialogMaxHeight;
 
@@ -56,8 +51,6 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
     _descriptionController = TextEditingController(
       text: nt['description'] ?? '',
     );
-    _issueTypeEnController = TextEditingController();
-    _issueTypeItController = TextEditingController();
     _ctrl.selectedCategoryId.value = null;
     _ctrl.clearPhotos();
     _ctrl.fetchIssueTypes();
@@ -67,8 +60,6 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
-    _issueTypeEnController.dispose();
-    _issueTypeItController.dispose();
     super.dispose();
   }
 
@@ -407,8 +398,6 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
     );
   }
 
-  static const int _addOthersSentinel = -9999;
-
   Widget _buildCategoryDropdown() {
     final isLoading = _ctrl.isLoadingIssueTypes.value;
     final items = _ctrl.issueTypes;
@@ -450,10 +439,6 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
       );
     }
 
-    if (_isAddingNewType) {
-      return _buildInlineAddIssueTypeFields();
-    }
-
     final langCode = Get.locale?.languageCode ?? 'en';
     final dropdownItems = items.map((IssueTypeModel issue) {
       final isSelected = issue.id == selectedId;
@@ -477,37 +462,6 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
         ),
       );
     }).toList();
-
-    dropdownItems.add(
-      DropdownMenuItem<int>(
-        value: _addOthersSentinel,
-        child: Container(
-          width: double.infinity,
-          padding: EdgeInsets.symmetric(
-            horizontal: 16.w,
-            vertical: 10.h,
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.add_circle_outline, size: 18.sp, color: _greenActive),
-              SizedBox(width: 8.w),
-              Flexible(
-                child: Text(
-                  'addOthers'.tr,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: _greenActive,
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -565,7 +519,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
                     fontSize: 14.sp,
                   ),
                   selectedItemBuilder: (context) {
-                    final selectedBuilders = items.map((issue) {
+                    return items.map((issue) {
                       return Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
@@ -578,30 +532,9 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
                         ),
                       );
                     }).toList();
-
-                    selectedBuilders.add(
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'addOthers'.tr,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: _greenActive,
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    );
-
-                    return selectedBuilders;
                   },
                   items: dropdownItems,
                   onChanged: (int? value) {
-                    if (value == _addOthersSentinel) {
-                      setState(() => _isAddingNewType = true);
-                      return;
-                    }
                     _ctrl.selectedCategoryId.value = value;
                     final match = items.firstWhereOrNull((e) => e.id == value);
                     _ctrl.updateNewTicket(
@@ -616,118 +549,6 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
         ),
       ],
     );
-  }
-
-  Widget _buildInlineAddIssueTypeFields() {
-    return Form(
-      key: _addTypeFormKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          CustomTextField(
-            label: 'issueTypeEnglish'.tr,
-            hint: 'enterIssueTypeEnglish'.tr,
-            controller: _issueTypeEnController,
-            labelColor: AppColors.neutralInk700,
-            backgroundColor: AppColors.neutralLine100,
-            borderColor: AppColors.neutralLine200,
-            textColor: AppColors.neutralInk900,
-            validator: (v) =>
-                (v == null || v.trim().isEmpty) ? 'fieldRequired'.tr : null,
-          ),
-          SizedBox(height: 16.h),
-          CustomTextField(
-            label: 'issueTypeItalian'.tr,
-            hint: 'enterIssueTypeItalian'.tr,
-            controller: _issueTypeItController,
-            labelColor: AppColors.neutralInk700,
-            backgroundColor: AppColors.neutralLine100,
-            borderColor: AppColors.neutralLine200,
-            textColor: AppColors.neutralInk900,
-            validator: (v) =>
-                (v == null || v.trim().isEmpty) ? 'fieldRequired'.tr : null,
-          ),
-          SizedBox(height: 12.h),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedCustomButton(
-                  text: 'cancel'.tr,
-                  onPressed: () {
-                    _issueTypeEnController.clear();
-                    _issueTypeItController.clear();
-                    setState(() => _isAddingNewType = false);
-                  },
-                  borderColor: AppColors.neutralLine200,
-                  textColor: AppColors.neutralInk700,
-                  height: 48.h,
-                  borderRadius: 12.r,
-                ),
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: CustomButton(
-                  text: 'add'.tr,
-                  onPressed: _isSubmittingNewType ? null : _handleAddIssueType,
-                  isLoading: _isSubmittingNewType,
-                  backgroundColor: AppColors.brandSage500,
-                  textColor: AppColors.surfaceWhite,
-                  height: 48.h,
-                  borderRadius: 12.r,
-                  showShadow: false,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _handleAddIssueType() async {
-    if (!_addTypeFormKey.currentState!.validate()) return;
-    if (_isSubmittingNewType) return;
-
-    setState(() => _isSubmittingNewType = true);
-
-    try {
-      final result = await _ctrl.createIssueType(
-        issueType: _issueTypeEnController.text.trim(),
-        issueTypeIt: _issueTypeItController.text.trim(),
-      );
-
-      if (result != null) {
-        _ctrl.selectedCategoryId.value = result.id;
-        final langCode = Get.locale?.languageCode ?? 'en';
-        _ctrl.updateNewTicket('category', result.localizedName(langCode));
-        _issueTypeEnController.clear();
-        _issueTypeItController.clear();
-        setState(() {
-          _isAddingNewType = false;
-          _isSubmittingNewType = false;
-        });
-      } else {
-        setState(() => _isSubmittingNewType = false);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('failedToCreateIssueType'.tr),
-              backgroundColor: Colors.red.shade600,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      setState(() => _isSubmittingNewType = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('failedToCreateIssueType'.tr),
-            backgroundColor: Colors.red.shade600,
-          ),
-        );
-      }
-    }
   }
 
   void _showPhotoPickerSheet() {

@@ -28,7 +28,6 @@ class TicketsScreen extends GetView<TicketsController> {
       return TabletCenteredLayout(
         child: Column(
         children: [
-          _buildFilterTabs(),
           Expanded(
             child: isLoading
                 ? const Center(
@@ -47,8 +46,8 @@ class TicketsScreen extends GetView<TicketsController> {
                         children: [
                           if (permissions.canCreateTickets) _buildCreateTicketButton(context),
                           if (permissions.canCreateTickets) SizedBox(height: 16.h),
-                          if (controller.filteredTickets.isEmpty) _buildEmptyState(),
-                          ...controller.filteredTickets.map((t) => TicketCard(
+                          if (controller.allTickets.isEmpty) _buildEmptyState(),
+                          ...controller.allTickets.map((t) => TicketCard(
                                 ticket: t,
                                 categoryDisplayName: controller.localizedIssueTypeName(
                                   t.issueTypeId,
@@ -72,62 +71,6 @@ class TicketsScreen extends GetView<TicketsController> {
         ),
       );
     });
-  }
-
-  /// Filter tabs: All / Open / In Progress / Resolved — pill style, active green.
-  Widget _buildFilterTabs() {
-    final tabs = controller.availableFilters;
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceWhite,
-        border: Border(bottom: BorderSide(color: AppColors.neutralLine100)),
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: tabs.map((f) {
-            final isActive = controller.filter.value == f;
-            return Padding(
-              padding: EdgeInsets.only(right: 8.w),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => controller.setFilter(f),
-                  borderRadius: BorderRadius.circular(999),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                    decoration: BoxDecoration(
-                      color: isActive
-                          ? AppColors.brandSage600
-                          : AppColors.surfaceWhite,
-                      border: Border.all(
-                        color: isActive
-                            ? AppColors.brandSage600
-                            : AppColors.neutralLine200,
-                      ),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      controller.tabLabel(f),
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w500,
-                        color: isActive
-                            ? AppColors.surfaceWhite
-                            : AppColors.neutralInk700,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ),
-    );
   }
 
   /// Full-width green "+ Create Ticket" button.

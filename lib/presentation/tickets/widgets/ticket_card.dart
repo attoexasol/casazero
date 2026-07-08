@@ -7,6 +7,36 @@ import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../models/ticket_model.dart';
 
+const List<String> _monthAbbrEn = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+
+const List<String> _monthAbbrIt = [
+  'Gen',
+  'Feb',
+  'Mar',
+  'Apr',
+  'Mag',
+  'Giu',
+  'Lug',
+  'Ago',
+  'Set',
+  'Ott',
+  'Nov',
+  'Dic',
+];
+
 class TicketCard extends StatelessWidget {
   final TicketModel ticket;
   final String categoryDisplayName;
@@ -330,7 +360,10 @@ class TicketCard extends StatelessWidget {
               ),
               SizedBox(width: 4.w),
               Text(
-                'ticketCreated'.tr.replaceAll('{date}', ticket.created),
+                'ticketCreated'.tr.replaceAll(
+                  '{date}',
+                  _formatLocalizedDate(ticket.createdAt),
+                ),
                 style: AppTextStyles.caption.copyWith(
                   fontSize: 12.sp,
                   color: AppColors.neutralInk500,
@@ -420,7 +453,10 @@ class TicketCard extends StatelessWidget {
           SizedBox(width: 8.w),
           Expanded(
             child: Text(
-              'resolvedIssueFixed'.tr.replaceAll('{date}', ticket.updated),
+              'resolvedIssueFixed'.tr.replaceAll(
+                '{date}',
+                _formatLocalizedDate(ticket.updatedAt),
+              ),
               style: AppTextStyles.caption.copyWith(
                 fontSize: 12.sp,
                 color: AppColors.success,
@@ -431,5 +467,18 @@ class TicketCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _formatLocalizedDate(DateTime? date) {
+    if (date == null) return '';
+
+    final isIt = Get.locale?.languageCode == 'it';
+    final months = isIt ? _monthAbbrIt : _monthAbbrEn;
+    final month = months[date.month - 1];
+
+    if (isIt) {
+      return '${date.day} $month ${date.year}';
+    }
+    return '$month ${date.day}, ${date.year}';
   }
 }

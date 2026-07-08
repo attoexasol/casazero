@@ -71,7 +71,7 @@ class TicketsController extends GetxController {
       for (final t in result) {
         print('   - id=${t.id}, en="${t.issueTypeEn}", it="${t.issueTypeIt}"');
       }
-      issueTypes.assignAll(result);
+      issueTypes.assignAll(result.reversed.toList());
     } catch (e) {
       print('❌ [TicketsController] Error loading issue types: $e');
     } finally {
