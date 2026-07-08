@@ -59,6 +59,8 @@ class AppTranslations extends Translations {
     'check_email': 'Check your email for reset instructions',
     'login_failed': 'Login Failed',
     'invalid_credentials': 'Invalid credentials',
+    'session_expired_sign_in_again':
+        'Your session has expired. Please sign in again.',
     'firebase_token_missing':
         'Chat unavailable: Firebase token missing from server. Please contact support.',
     'enter_email_password': 'Please enter email and password',
@@ -929,6 +931,8 @@ class AppTranslations extends Translations {
     'check_email': 'Controlla la tua email per le istruzioni di reset',
     'login_failed': 'Accesso Fallito',
     'invalid_credentials': 'Credenziali non valide',
+    'session_expired_sign_in_again':
+        'La tua sessione è scaduta. Accedi di nuovo.',
     'firebase_token_missing':
         'Chat non disponibile: token Firebase mancante dal server. Contattare l\'assistenza.',
     'enter_email_password': 'Inserisci email e password',

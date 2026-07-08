@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:get/get.dart' as getx;
 import '../constants/api_constants.dart';
 import '../constants/app_constants.dart';
+import 'session_expiry_service.dart';
 import 'storage_service.dart';
 
 class ApiService extends getx.GetxService {
@@ -45,15 +46,22 @@ class ApiService extends getx.GetxService {
           return handler.next(options);
         },
         onError: (error, handler) async {
-          // Handle token refresh on 401
-          if (error.response?.statusCode == 401) {
+          if (error.response?.statusCode == 401 &&
+              _shouldHandleSessionExpiry(error.requestOptions)) {
             if (await _refreshToken()) {
-              // Retry the request
               return handler.resolve(await _retry(error.requestOptions));
             }
-            // Refresh failed - clear stale tokens
-            await _storageService.clearAccessToken();
-            await _storageService.clearRefreshToken();
+
+            await SessionExpiryService.handleSessionExpired();
+
+            return handler.reject(
+              DioException(
+                requestOptions: error.requestOptions,
+                response: error.response,
+                type: DioExceptionType.cancel,
+                message: 'SESSION_EXPIRED',
+              ),
+            );
           }
           return handler.next(error);
         },
@@ -80,6 +88,32 @@ class ApiService extends getx.GetxService {
     } catch (e) {
       return false;
     }
+  }
+
+  bool _shouldHandleSessionExpiry(RequestOptions options) {
+    if (_isAuthEndpoint(options.path)) return false;
+
+    final authHeader = options.headers['Authorization']?.toString();
+    if (authHeader == null || authHeader.isEmpty) return false;
+
+    return _storageService.getAccessToken() != null;
+  }
+
+  bool _isAuthEndpoint(String path) {
+    const authEndpoints = {
+      ApiConstants.LOGIN,
+      ApiConstants.LOGOUT,
+      ApiConstants.REFRESH_TOKEN,
+      ApiConstants.FORGOT_PASSWORD,
+      ApiConstants.RESET_PASSWORD,
+    };
+
+    for (final endpoint in authEndpoints) {
+      if (path == endpoint || path.endsWith(endpoint)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   Future<Response<dynamic>> _retry(RequestOptions requestOptions) async {
@@ -208,7 +242,12 @@ class ApiService extends getx.GetxService {
         errorMessage = 'Server error occurred';
       }
     } else if (error.type == DioExceptionType.cancel) {
-      errorMessage = 'Request cancelled';
+      if (error.message == 'SESSION_EXPIRED' ||
+          SessionExpiryService.isHandling) {
+        errorMessage = 'Your session has expired. Please sign in again.';
+      } else {
+        errorMessage = 'Request cancelled';
+      }
     } else {
       errorMessage = 'Network error. Please try again.';
     }

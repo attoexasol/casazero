@@ -15,6 +15,7 @@ import '../../../data/repositories/document_repository.dart';
 import '../../../data/models/document_model.dart';
 import '../../../core/services/firebase_auth_service.dart';
 import '../../../core/services/fcm_service.dart';
+import '../../../core/services/session_expiry_service.dart';
 
 class AuthController extends GetxController {
   final AuthRepository _authRepository = Get.find();
@@ -75,6 +76,8 @@ class AuthController extends GetxController {
     isLoading.value = false;
 
     if (result['success']) {
+      SessionExpiryService.reset();
+
       final UserModel user = result['user'];
       final bool isTrusted = result['is_trusted'] ?? false;
 
