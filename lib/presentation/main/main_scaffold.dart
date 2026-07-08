@@ -259,6 +259,115 @@ class MainScaffold extends GetView<HomeController> {
     final trailingInset = showNotification ? 48.w : 8.w;
     final titleSideInset =
         leadingInset > trailingInset ? leadingInset : trailingInset;
+    // Solid opaque app bar (no blur/shadow) — frosted glass lets green UI
+    // under the bar bleed through as a green bottom edge on these screens.
+    final useOpaqueAppBar = currentScreen == AppScreen.tickets ||
+        currentScreen == AppScreen.maintenance;
+
+    final appBarContent = Center(
+      child: Container(
+        constraints: BoxConstraints(maxWidth: 448.w),
+        margin: EdgeInsets.symmetric(horizontal: 24.w),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Left section - positioned on the left
+            Positioned(
+              left: 0,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (showBackButton)
+                    IconButton(
+                      onPressed: () => controller.goBack(),
+                      icon: Icon(
+                        CupertinoIcons.back,
+                        size: 24.sp,
+                        color: AppColors.neutralInk900,
+                      ),
+                      padding: EdgeInsets.zero,
+                      constraints: Accessibility.iconButtonConstraints,
+                    ),
+                  if (showBackButton) SizedBox(width: 4.w),
+
+                  // Logo/Title Section (only for non-title cases like logo/residence switcher)
+                  if (variant == 'branded' && !showNavigationControls ||
+                      (showResidenceSwitcher && title != null))
+                    _buildTitleSection(
+                      title: title,
+                      showNavigationControls: showNavigationControls,
+                      variant: variant,
+                      showResidenceSwitcher: showResidenceSwitcher,
+                      currentResidence: showResidenceSwitcher
+                          ? (controller.selectedResidence.value?.residenceName ??
+                                'Select Residence')
+                          : null,
+                      onResidenceSwitch: showResidenceSwitcher
+                          ? () => _showResidenceSelectorDialog()
+                          : null,
+                    ),
+                ],
+              ),
+            ),
+
+            // Center section - Title positioned absolutely in center
+            if (title != null &&
+                !(variant == 'branded' && !showNavigationControls) &&
+                !(showResidenceSwitcher && title != null))
+              Positioned.fill(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: titleSideInset,
+                  ),
+                  child: Center(
+                    child: _buildTitleSection(
+                      title: title,
+                      showNavigationControls: showNavigationControls,
+                      variant: variant,
+                      showResidenceSwitcher: showResidenceSwitcher,
+                      currentResidence: showResidenceSwitcher
+                          ? (controller.selectedResidence.value?.residenceName ??
+                                'Select Residence')
+                          : null,
+                      onResidenceSwitch: showResidenceSwitcher
+                          ? () => _showResidenceSelectorDialog()
+                          : null,
+                    ),
+                  ),
+                ),
+              ),
+
+            // Right section - positioned on the right
+            Positioned(
+              right: 0,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Notification button - shown on ALL screens
+                  if (showNotification)
+                    Obx(() {
+                      // Use unread count from API (single source of truth)
+                      final count = controller.unreadCount.value;
+                      return _buildNotificationButton(
+                        count: count,
+                        onTap: () {
+                          // Show notifications modal bottom sheet
+                          // Use Get.context! here as it's safe in onTap callback
+                          if (Get.context != null) {
+                            NotificationsModal.show(
+                              Get.context!,
+                            );
+                          }
+                        },
+                      );
+                    }),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
 
     return PreferredSize(
       preferredSize: Size.fromHeight(toolbarHeight + statusBarHeight),
@@ -267,144 +376,33 @@ class MainScaffold extends GetView<HomeController> {
                 height: toolbarHeight + statusBarHeight,
                 padding: EdgeInsets.only(top: statusBarHeight),
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceWhite.withOpacity(0.95),
+                  color: useOpaqueAppBar
+                      ? AppColors.surfaceWhite
+                      : AppColors.surfaceWhite.withOpacity(0.95),
                   border: Border(
                     bottom: BorderSide(
                       color: AppColors.neutralLine200.withOpacity(0.5),
                       width: 1,
                     ),
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 15.r,
-                      offset: Offset(0, 4.h),
-                    ),
-                  ],
+                  boxShadow: useOpaqueAppBar
+                      ? null
+                      : [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 15.r,
+                            offset: Offset(0, 4.h),
+                          ),
+                        ],
                 ),
-                child: ClipRect(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-                    child: Center(
-                      child: Container(
-                        constraints: BoxConstraints(maxWidth: 448.w),
-                        margin: EdgeInsets.symmetric(horizontal: 24.w),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            // Left section - positioned on the left
-                            Positioned(
-                              left: 0,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (showBackButton)
-                                    IconButton(
-                                      onPressed: () => controller.goBack(),
-                                      icon: Icon(
-                                        CupertinoIcons.back,
-                                        size: 24.sp,
-                                        color: AppColors.neutralInk900,
-                                      ),
-                                      padding: EdgeInsets.zero,
-                                      constraints: Accessibility.iconButtonConstraints,
-                                    ),
-                                  if (showBackButton) SizedBox(width: 4.w),
-
-                                  // Logo/Title Section (only for non-title cases like logo/residence switcher)
-                                  if (variant == 'branded' &&
-                                          !showNavigationControls ||
-                                      (showResidenceSwitcher && title != null))
-                                    _buildTitleSection(
-                                      title: title,
-                                      showNavigationControls:
-                                          showNavigationControls,
-                                      variant: variant,
-                                      showResidenceSwitcher:
-                                          showResidenceSwitcher,
-                                      currentResidence: showResidenceSwitcher
-                                          ? (controller
-                                                    .selectedResidence
-                                                    .value
-                                                    ?.residenceName ??
-                                                'Select Residence')
-                                          : null,
-                                      onResidenceSwitch: showResidenceSwitcher
-                                          ? () => _showResidenceSelectorDialog()
-                                          : null,
-                                    ),
-                                ],
-                              ),
-                            ),
-
-                            // Center section - Title positioned absolutely in center
-                            if (title != null &&
-                                !(variant == 'branded' &&
-                                    !showNavigationControls) &&
-                                !(showResidenceSwitcher && title != null))
-                              Positioned.fill(
-                                child: Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: titleSideInset,
-                                  ),
-                                  child: Center(
-                                    child: _buildTitleSection(
-                                      title: title,
-                                      showNavigationControls:
-                                          showNavigationControls,
-                                      variant: variant,
-                                      showResidenceSwitcher:
-                                          showResidenceSwitcher,
-                                      currentResidence: showResidenceSwitcher
-                                          ? (controller
-                                                    .selectedResidence
-                                                    .value
-                                                    ?.residenceName ??
-                                                'Select Residence')
-                                          : null,
-                                      onResidenceSwitch: showResidenceSwitcher
-                                          ? () =>
-                                              _showResidenceSelectorDialog()
-                                          : null,
-                                    ),
-                                  ),
-                                ),
-                              ),
-
-                            // Right section - positioned on the right
-                            Positioned(
-                              right: 0,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  // Notification button - shown on ALL screens
-                                  if (showNotification)
-                                    Obx(() {
-                                      // Use unread count from API (single source of truth)
-                                      final count =
-                                          controller.unreadCount.value;
-                                      return _buildNotificationButton(
-                                        count: count,
-                                        onTap: () {
-                                          // Show notifications modal bottom sheet
-                                          // Use Get.context! here as it's safe in onTap callback
-                                          if (Get.context != null) {
-                                            NotificationsModal.show(
-                                              Get.context!,
-                                            );
-                                          }
-                                        },
-                                      );
-                                    }),
-                                ],
-                              ),
-                            ),
-                          ],
+                child: useOpaqueAppBar
+                    ? appBarContent
+                    : ClipRect(
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+                          child: appBarContent,
                         ),
                       ),
-                    ),
-                  ),
-                ),
               )
               .animate()
               .slideY(
