@@ -1,8 +1,8 @@
 import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 
-import '../../app/routes/app_routes.dart';
 import '../controllers/message_popup_controller.dart';
+import '../navigation/auth_navigation.dart';
 import 'fcm_service.dart';
 import 'firebase_auth_service.dart';
 import 'storage_service.dart';
@@ -54,7 +54,7 @@ class SessionExpiryService {
 
       await storage.clearAll();
 
-      Get.offAllNamed(AppRoutes.AUTH);
+      AuthNavigation.replaceStackWithAuth();
 
       SchedulerBinding.instance.addPostFrameCallback((_) {
         MessagePopupController.showError(
@@ -68,7 +68,7 @@ class SessionExpiryService {
         if (Get.isRegistered<StorageService>()) {
           await Get.find<StorageService>().clearAll();
         }
-        Get.offAllNamed(AppRoutes.AUTH);
+        AuthNavigation.replaceStackWithAuth();
       } catch (_) {}
     }
   }

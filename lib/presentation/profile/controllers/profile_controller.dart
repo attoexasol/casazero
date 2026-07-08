@@ -8,7 +8,7 @@ import '../../../data/models/user_model.dart';
 import '../../../data/repositories/profile_repository.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../app/theme/app_colors.dart';
-import '../../../app/routes/app_routes.dart';
+import '../../../core/navigation/auth_navigation.dart';
 import '../../home/controllers/home_controller.dart';
 import 'package:flutter/material.dart';
 
@@ -471,14 +471,14 @@ class ProfileController extends GetxController {
       print('✅ All storage cleared');
 
       // Navigate to auth screen
-      Get.offAllNamed(AppRoutes.AUTH);
+      AuthNavigation.replaceStackWithAuth();
       print('✅ Navigated to auth screen');
     } catch (e) {
       print('❌ Error during logout: $e');
       // Even if there's an error, try to clear storage and navigate
       try {
         await _storage.clearAll();
-        Get.offAllNamed(AppRoutes.AUTH);
+        AuthNavigation.replaceStackWithAuth();
       } catch (clearError) {
         print('❌ Error clearing storage: $clearError');
         _showError('failed_to_logout_please_try_again');

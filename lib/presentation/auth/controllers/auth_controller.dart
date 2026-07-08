@@ -24,19 +24,33 @@ class AuthController extends GetxController {
   final LocaleController _localeController = Get.find();
 
   // For development - remove in production
-  final emailController = TextEditingController(text: 'ahmdsajid2200@gmail.com');
-  final passwordController = TextEditingController(text: 'CasaZero@024017');
-  final phoneController = TextEditingController(); // Add phone controller
+  late final TextEditingController emailController;
+  late final TextEditingController passwordController;
+  late final TextEditingController phoneController;
 
   // For production - uncomment these
-  // final emailController = TextEditingController();
-  // final passwordController = TextEditingController();
-  // final phoneController = TextEditingController();
+  // late final TextEditingController emailController;
+  // late final TextEditingController passwordController;
+  // late final TextEditingController phoneController;
 
   final RxBool isLoading = false.obs;
   final RxBool obscurePassword = true.obs;
 
   String get selectedLanguage => _localeController.currentLanguageCode;
+
+  @override
+  void onInit() {
+    super.onInit();
+    // For development - remove in production
+    emailController = TextEditingController(text: 'ahmdsajid2200@gmail.com');
+    passwordController = TextEditingController(text: 'CasaZero@024017');
+    phoneController = TextEditingController();
+
+    // For production - uncomment these
+    // emailController = TextEditingController();
+    // passwordController = TextEditingController();
+    // phoneController = TextEditingController();
+  }
 
   @override
   void onClose() {

@@ -18,7 +18,7 @@ import '../../../data/models/residence_model.dart';
 import '../../../data/models/residence_status_phase_model.dart';
 import '../../../data/models/document_model.dart';
 import '../../../core/utils/permissions.dart';
-import '../../../app/routes/app_routes.dart';
+import '../../../core/navigation/auth_navigation.dart';
 import '../../chat/controllers/private_chat_controller.dart';
 import '../../main/main_scaffold.dart'; // Import for AppScreen enum
 
@@ -1007,14 +1007,14 @@ class HomeController extends GetxController {
       print('✅ All storage cleared');
 
       // Navigate to auth screen
-      Get.offAllNamed(AppRoutes.AUTH);
+      AuthNavigation.replaceStackWithAuth();
       print('✅ Navigated to auth screen');
     } catch (e) {
       print('❌ Error during logout: $e');
       // Even if there's an error, try to clear storage and navigate
       try {
         await _storageService.clearAll();
-        Get.offAllNamed(AppRoutes.AUTH);
+        AuthNavigation.replaceStackWithAuth();
       } catch (clearError) {
         print('❌ Error clearing storage: $clearError');
         MessagePopupController.showError(
