@@ -238,7 +238,7 @@ class _TimelineIndicator extends StatelessWidget {
   }
 }
 
-/// Circle: completed = filled aqua + white icon; in-progress = aqua border + light aqua bg; pending = grey.
+/// Circle: completed = filled aqua + Casa Zero asset; in-progress = aqua border + light aqua bg; pending = grey.
 class _TimelineCircle extends StatelessWidget {
   const _TimelineCircle({required this.status});
 
@@ -252,27 +252,37 @@ class _TimelineCircle extends StatelessWidget {
 
     Color bgColor;
     Color borderColor;
-    Color iconColor;
-    IconData iconData;
+    Widget statusIcon;
     double elevation;
 
     if (isCompleted) {
       bgColor = _circleAquaFill;
       borderColor = _circleAquaFill;
-      iconColor = AppColors.surfaceWhite;
-      iconData = Icons.check;
+      statusIcon = Image.asset(
+        'assets/images/casa_zero_ai.ico',
+        width: 19.sp,
+        height: 19.sp,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.high,
+      );
       elevation = 1;
     } else if (isActive) {
       bgColor = _inProgressBrandLightBg;
       borderColor = _inProgressBrandDark;
-      iconColor = _inProgressBrandDark;
-      iconData = Icons.construction;
+      statusIcon = Icon(
+        Icons.construction,
+        color: _inProgressBrandDark,
+        size: 19.sp,
+      );
       elevation = 2;
     } else {
       bgColor = _circleGrey;
       borderColor = _circleGrey;
-      iconColor = AppColors.neutralInk400;
-      iconData = Icons.schedule;
+      statusIcon = Icon(
+        Icons.schedule,
+        color: AppColors.neutralInk400,
+        size: 19.sp,
+      );
       elevation = 0;
     }
 
@@ -298,7 +308,7 @@ class _TimelineCircle extends StatelessWidget {
             ),
         ],
       ),
-      child: Icon(iconData, color: iconColor, size: 19.sp),
+      child: Center(child: statusIcon),
     );
 
     if (isFuture) {

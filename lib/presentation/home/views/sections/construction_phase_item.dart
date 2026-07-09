@@ -20,18 +20,27 @@ class ConstructionPhaseItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool isLast = index == total - 1;
 
-    Color iconColor;
-    IconData iconData;
+    final bool isCompleted = phase.status == 'completed';
+    final bool isInProgress = phase.status == 'in-progress';
 
-    if (phase.status == 'completed') {
+    Color iconColor;
+    Widget statusIcon;
+
+    if (isCompleted) {
       iconColor = AppColors.aquaGreen500;
-      iconData = Icons.check;
-    } else if (phase.status == 'in-progress') {
+      statusIcon = Image.asset(
+        'assets/images/casa_zero_ai.ico',
+        width: 18,
+        height: 18,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.high,
+      );
+    } else if (isInProgress) {
       iconColor = AppColors.info;
-      iconData = Icons.build;
+      statusIcon = const Icon(Icons.build, color: Colors.white, size: 18);
     } else {
       iconColor = AppColors.neutralInk300;
-      iconData = Icons.schedule;
+      statusIcon = const Icon(Icons.schedule, color: Colors.white, size: 18);
     }
 
     return Padding(
@@ -47,7 +56,7 @@ class ConstructionPhaseItem extends StatelessWidget {
                   color: iconColor,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(iconData, color: Colors.white, size: 18),
+                child: Center(child: statusIcon),
               ),
               if (!isLast)
                 Container(
