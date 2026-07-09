@@ -84,7 +84,7 @@ class Permissions {
           canManageBuildings: false,
           canAccessDocuments: true,
           canManageMaintenance: false,
-          canDeleteDocuments: false,
+          canDeleteDocuments: true,
           canSharedDocuments: true, // Enable share and chat for all users
             canUploadDocuments:true
         );

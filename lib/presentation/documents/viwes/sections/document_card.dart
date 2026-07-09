@@ -248,9 +248,10 @@ class _DocumentCardState extends State<DocumentCard> {
                                   if (widget.onDelete != null)
                                     Padding(
                                       padding: EdgeInsets.only(left: 15.w),
-                                      child: _actionBtn(
-                                        "assets/images/delete.svg",
+                                      child: _actionIconBtn(
+                                        Icons.delete_outline,
                                         widget.onDelete!,
+                                        color: const Color(0xFFDC2626),
                                       ),
                                     ),
                                 ],
@@ -317,26 +318,12 @@ class _DocumentCardState extends State<DocumentCard> {
     );
   }
 
-  /// Action Button with SVG
-  Widget _actionBtn(String asset, VoidCallback onTap) {
-    return Padding(
-      padding: EdgeInsets.only(right: 8.w),
-      child: GestureDetector(
-        onTap: () {
-          print('🔘 [DocumentCard] Action button tapped: $asset');
-          onTap();
-        },
-        onTapDown: (_) {
-          print('🔘 [DocumentCard] Action button tap down: $asset');
-        },
-        behavior: HitTestBehavior.opaque,
-        child: SvgPicture.asset(asset, width: 20.w, height: 20.w),
-      ),
-    );
-  }
-
-  /// Action Button with Material Icon (for Share button)
-  Widget _actionIconBtn(IconData icon, VoidCallback onTap) {
+  /// Action Button with Material Icon (for Share / Delete buttons)
+  Widget _actionIconBtn(
+    IconData icon,
+    VoidCallback onTap, {
+    Color? color,
+  }) {
     return Padding(
       padding: EdgeInsets.only(right: 8.w),
       child: Listener(
@@ -344,7 +331,11 @@ class _DocumentCardState extends State<DocumentCard> {
         child: GestureDetector(
           onTap: onTap,
           behavior: HitTestBehavior.opaque,
-          child: Icon(icon, size: 20.sp, color: Colors.grey.shade700),
+          child: Icon(
+            icon,
+            size: 20.sp,
+            color: color ?? Colors.grey.shade700,
+          ),
         ),
       ),
     );
