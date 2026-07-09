@@ -103,15 +103,6 @@ String _formatPhaseDate(DateTime date) {
   return '${date.day} $month';
 }
 
-/// Sparkles: very subtle rotation, smooth and slow.
-double _sparkleDegrees(double t) {
-  if (t <= 0.0) return 0;
-  if (t <= 0.25) return 10 * t * 4;
-  if (t <= 0.5) return 10 - 20 * (t - 0.25) * 4;
-  if (t <= 0.75) return -10 + 10 * (t - 0.5) * 4;
-  return 0;
-}
-
 // Timeline line + completed nodes: aqua (unchanged). In-progress uses brand sage below.
 const Color _timelineLineColor = AppColors.aquaGreen200;
 const Color _circleAquaFill = AppColors.aquaGreen700;
@@ -534,25 +525,7 @@ class ConstructionProgressSection extends StatefulWidget {
 }
 
 class _ConstructionProgressSectionState
-    extends State<ConstructionProgressSection>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _sparkleController;
-
-  @override
-  void initState() {
-    super.initState();
-    _sparkleController = AnimationController(
-      duration: const Duration(seconds: 5),
-      vsync: this,
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _sparkleController.dispose();
-    super.dispose();
-  }
-
+    extends State<ConstructionProgressSection> {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<HomeController>();
@@ -621,25 +594,6 @@ class _ConstructionProgressSectionState
                                 ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            SizedBox(width: 8.w),
-                            AnimatedBuilder(
-                              animation: _sparkleController,
-                              builder: (context, child) {
-                                final t = _sparkleController.value;
-                                final deg = t <= 0.4
-                                    ? _sparkleDegrees(t / 0.4)
-                                    : 0.0;
-                                return Transform.rotate(
-                                  angle: deg * 3.1415926535 / 180,
-                                  child: child,
-                                );
-                              },
-                              child: Icon(
-                                Icons.auto_awesome,
-                                color: AppColors.aquaGreen700,
-                                size: 20.sp,
                               ),
                             ),
                           ],
