@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../core/controllers/message_popup_controller.dart';
 import '../../../core/widgets/responsive_alert_dialog.dart';
 import '../../../data/repositories/auth_repository.dart';
+import '../../../core/navigation/auth_navigation.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../documents/controllers/documents_controller.dart';
@@ -428,10 +429,8 @@ class OtpVerificationController extends GetxController {
   }
 
   Future<void> _logout() async {
-    // Clear storage
     await _storageService.clearAll();
 
-    // Navigate back to auth screen
-    Get.offAllNamed(AppRoutes.AUTH);
+    AuthNavigation.replaceStackWithAuth();
   }
 }

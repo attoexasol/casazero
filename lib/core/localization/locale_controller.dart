@@ -24,7 +24,7 @@ class LocaleController extends GetxController {
     Get.updateLocale(_locale.value);
   }
 
-  /// Re-applies the persisted language (e.g. after logout clears storage).
+  /// Re-applies the persisted language from storage.
   void reloadFromStorage() {
     _loadLocale();
   }

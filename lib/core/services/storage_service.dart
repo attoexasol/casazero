@@ -125,7 +125,14 @@ class StorageService extends GetxService {
   }
 
   // Clear All Data
-  Future<void> clearAll() async {
+  /// Clears session/auth data. [preserveLanguage] keeps the user's UI language
+  /// choice so logout or session expiry does not reset it to the app default.
+  Future<void> clearAll({bool preserveLanguage = true}) async {
+    final savedLanguage =
+        preserveLanguage ? _box.read<String>(StorageKeys.LANGUAGE) : null;
     await _box.erase();
+    if (savedLanguage != null && savedLanguage.isNotEmpty) {
+      await _box.write(StorageKeys.LANGUAGE, savedLanguage);
+    }
   }
 }
