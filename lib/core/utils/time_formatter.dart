@@ -33,15 +33,15 @@ class TimeFormatter {
     'Dic',
   ];
 
-  /// Locale-aware date (e.g. "28 Nov 2025" / "28 Nov 2025" with IT month abbr).
+  /// Locale-aware date in DD-MMM-YYYY format (e.g. "28-Nov-2025" / "28-Gen-2025").
   static String formatDate(DateTime dateTime) {
     final isIt = Get.locale?.languageCode == 'it';
     final months = isIt ? _monthAbbrIt : _monthAbbrEn;
     final day = dateTime.day.toString().padLeft(2, '0');
-    return '$day ${months[dateTime.month - 1]} ${dateTime.year}';
+    return '$day-${months[dateTime.month - 1]}-${dateTime.year}';
   }
 
-  /// Locale-aware date and time (e.g. "28 Nov 2025 15:30").
+  /// Locale-aware date and time (e.g. "28-Nov-2025 15:30").
   static String formatDateTime(DateTime dateTime) {
     final hour = dateTime.hour.toString().padLeft(2, '0');
     final minute = dateTime.minute.toString().padLeft(2, '0');
@@ -55,7 +55,7 @@ class TimeFormatter {
   /// - < 60 minutes: "X minutes ago"
   /// - < 24 hours: "X hours ago"
   /// - < 7 days: "X days ago"
-  /// - >= 7 days: localized "DD MMM YYYY"
+  /// - >= 7 days: localized "DD-MMM-YYYY"
   static String formatTimeAgo(DateTime dateTime) {
     final now = DateTime.now();
     final difference = now.difference(dateTime);
