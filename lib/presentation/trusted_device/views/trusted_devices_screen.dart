@@ -388,7 +388,7 @@ class TrustedDevicesScreen extends GetView<TrustedDevicesController> {
                       SizedBox(height: 12.h),
                       // Activity Items (mock data for now)
                       _buildActivityItem(
-                        action: 'Logged in',
+                        action: 'logged_in'.tr,
                         timestamp: controller.getLastLoginTime(device),
                         location: controller.getDeviceLocation(device),
                         index: 0,
@@ -396,9 +396,10 @@ class TrustedDevicesScreen extends GetView<TrustedDevicesController> {
                       if (device.lastIp != null) ...[
                         SizedBox(height: 12.h),
                         _buildActivityItem(
-                          action: 'IP: ${device.lastIp}',
+                          action: '${'ip_label'.tr}: ${device.lastIp}',
                           timestamp: controller.getTrustedUntilStatus(device),
-                          location: 'Platform: ${device.platformName}',
+                          location:
+                              '${'platform_label'.tr}: ${device.platformName}',
                           index: 1,
                         ),
                       ],

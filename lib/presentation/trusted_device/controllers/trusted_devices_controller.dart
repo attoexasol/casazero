@@ -154,17 +154,17 @@ class TrustedDevicesController extends GetxController {
 /// Get location for a device
   String getDeviceLocation(TrustedDeviceModel device) {
     if (!device.hasLocation) {
-      return 'Location not available';
+      return 'location_not_available'.tr;
     }
 
     final cacheKey = GeocodingService.getCacheKey(device.lat!, device.lng!);
-    return locationCache[cacheKey] ?? 'Loading location...';
+    return locationCache[cacheKey] ?? 'loading_location'.tr;
   }
 
   /// Get formatted last login time
   String getLastLoginTime(TrustedDeviceModel device) {
     if (device.lastLoginAt == null) {
-      return 'Never';
+      return 'never'.tr;
     }
 
     return TimeFormatter.formatTimeAgo(device.lastLoginAt!);
@@ -173,13 +173,13 @@ class TrustedDevicesController extends GetxController {
   /// Get trusted until status
   String getTrustedUntilStatus(TrustedDeviceModel device) {
     if (device.trustedUntil == null) {
-      return 'Trusted indefinitely';
+      return 'trusted_indefinitely'.tr;
     }
 
     if (device.isTrustedValid) {
       return TimeFormatter.formatTrustedUntil(device.trustedUntil!);
     } else {
-      return 'Expired';
+      return 'expired'.tr;
     }
   }
 

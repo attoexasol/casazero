@@ -1,52 +1,84 @@
 // core/utils/time_formatter.dart
 
-import 'package:intl/intl.dart';
+import 'package:get/get.dart';
 
 class TimeFormatter {
-  /// Format time as "2 minutes ago", "3 days ago", or "28-Nov-2025"
+  static const List<String> _monthAbbrEn = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+
+  static const List<String> _monthAbbrIt = [
+    'Gen',
+    'Feb',
+    'Mar',
+    'Apr',
+    'Mag',
+    'Giu',
+    'Lug',
+    'Ago',
+    'Set',
+    'Ott',
+    'Nov',
+    'Dic',
+  ];
+
+  /// Locale-aware date (e.g. "28 Nov 2025" / "28 Nov 2025" with IT month abbr).
+  static String formatDate(DateTime dateTime) {
+    final isIt = Get.locale?.languageCode == 'it';
+    final months = isIt ? _monthAbbrIt : _monthAbbrEn;
+    final day = dateTime.day.toString().padLeft(2, '0');
+    return '$day ${months[dateTime.month - 1]} ${dateTime.year}';
+  }
+
+  /// Locale-aware date and time (e.g. "28 Nov 2025 15:30").
+  static String formatDateTime(DateTime dateTime) {
+    final hour = dateTime.hour.toString().padLeft(2, '0');
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    return '${formatDate(dateTime)} $hour:$minute';
+  }
+
+  /// Format time as "2 minutes ago", "3 days ago", or localized date.
   ///
   /// Rules:
   /// - < 1 minute: "Just now"
   /// - < 60 minutes: "X minutes ago"
   /// - < 24 hours: "X hours ago"
   /// - < 7 days: "X days ago"
-  /// - >= 7 days: "DD-MMM-YYYY"
+  /// - >= 7 days: localized "DD MMM YYYY"
   static String formatTimeAgo(DateTime dateTime) {
     final now = DateTime.now();
     final difference = now.difference(dateTime);
 
     if (difference.inSeconds < 60) {
-      return 'Just now';
+      return 'just_now'.tr;
     } else if (difference.inMinutes < 60) {
       final minutes = difference.inMinutes;
-      return '$minutes ${minutes == 1 ? 'minute' : 'minutes'} ago';
+      return '$minutes ${minutes == 1 ? 'minute_ago'.tr : 'minutes_ago'.tr}';
     } else if (difference.inHours < 24) {
       final hours = difference.inHours;
-      return '$hours ${hours == 1 ? 'hour' : 'hours'} ago';
+      return '$hours ${hours == 1 ? 'hour_ago'.tr : 'hours_ago'.tr}';
     } else if (difference.inDays < 7) {
       final days = difference.inDays;
-      return '$days ${days == 1 ? 'day' : 'days'} ago';
+      return '$days ${days == 1 ? 'day_ago'.tr : 'days_ago'.tr}';
     } else {
-      // Format as DD-MMM-YYYY (e.g., "28-Nov-2025")
-      return DateFormat('dd-MMM-yyyy').format(dateTime);
+      return formatDate(dateTime);
     }
   }
 
-  /// Format date as "DD-MMM-YYYY" (e.g., "28-Nov-2025")
-  static String formatDate(DateTime dateTime) {
-    return DateFormat('dd-MMM-yyyy').format(dateTime);
-  }
-
-  /// Format date and time as "DD-MMM-YYYY HH:mm" (e.g., "28-Nov-2025 15:30")
-  static String formatDateTime(DateTime dateTime) {
-    return DateFormat('dd-MMM-yyyy HH:mm').format(dateTime);
-  }
-
-  /// Format trusted until date
-  /// Shows "Valid until DD-MMM-YYYY"
+  /// Format trusted until date with localized label and date.
   static String formatTrustedUntil(DateTime dateTime) {
-    final formatted = DateFormat('dd-MMM-yyyy').format(dateTime);
-    return 'Valid until $formatted';
+    return '${'valid_until'.tr} ${formatDate(dateTime)}';
   }
 
   /// Check if date is in the past
@@ -65,26 +97,28 @@ class TimeFormatter {
     final difference = now.difference(dateTime);
 
     if (difference.inSeconds < 60) {
-      return 'Just now';
+      return 'just_now'.tr;
     } else if (difference.inMinutes < 60) {
       final minutes = difference.inMinutes;
-      return '$minutes ${minutes == 1 ? 'minute' : 'minutes'} ago';
+      return '$minutes ${minutes == 1 ? 'minute_ago'.tr : 'minutes_ago'.tr}';
     } else if (difference.inHours < 24) {
       final hours = difference.inHours;
       final minutes = difference.inMinutes % 60;
       if (minutes > 0) {
-        return '$hours ${hours == 1 ? 'hour' : 'hours'} $minutes ${minutes == 1 ? 'minute' : 'minutes'} ago';
+        return '$hours ${hours == 1 ? 'hour_ago'.tr : 'hours_ago'.tr} '
+            '$minutes ${minutes == 1 ? 'minute_ago'.tr : 'minutes_ago'.tr}';
       }
-      return '$hours ${hours == 1 ? 'hour' : 'hours'} ago';
+      return '$hours ${hours == 1 ? 'hour_ago'.tr : 'hours_ago'.tr}';
     } else if (difference.inDays < 7) {
       final days = difference.inDays;
       final hours = difference.inHours % 24;
       if (hours > 0) {
-        return '$days ${days == 1 ? 'day' : 'days'} $hours ${hours == 1 ? 'hour' : 'hours'} ago';
+        return '$days ${days == 1 ? 'day_ago'.tr : 'days_ago'.tr} '
+            '$hours ${hours == 1 ? 'hour_ago'.tr : 'hours_ago'.tr}';
       }
-      return '$days ${days == 1 ? 'day' : 'days'} ago';
+      return '$days ${days == 1 ? 'day_ago'.tr : 'days_ago'.tr}';
     } else {
-      return DateFormat('dd-MMM-yyyy').format(dateTime);
+      return formatDate(dateTime);
     }
   }
 }

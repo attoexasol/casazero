@@ -18,6 +18,15 @@ class AppTranslations extends Translations {
   static const String remove = 'remove';
   static const String noTrustedDevices = 'no_trusted_devices';
   static const String noTrustedDevicesDesc = 'no_trusted_devices_desc';
+  static const String never = 'never';
+  static const String trustedIndefinitely = 'trusted_indefinitely';
+  static const String expired = 'expired';
+  static const String validUntil = 'valid_until';
+  static const String loggedIn = 'logged_in';
+  static const String locationNotAvailable = 'location_not_available';
+  static const String loadingLocation = 'loading_location';
+  static const String ipLabel = 'ip_label';
+  static const String platformLabel = 'platform_label';
 
   // English Translations
   static const Map<String, String> enUS = {
@@ -187,6 +196,15 @@ class AppTranslations extends Translations {
     'minute_ago': 'minute ago',
     'minutes_ago': 'minutes ago',
     'just_now': 'Just now',
+    'never': 'Never',
+    'valid_until': 'Valid until',
+    'trusted_indefinitely': 'Trusted indefinitely',
+    'expired': 'Expired',
+    'logged_in': 'Logged in',
+    'location_not_available': 'Location not available',
+    'loading_location': 'Loading location...',
+    'ip_label': 'IP',
+    'platform_label': 'Platform',
 
     // Notification types (for cards when API has no bilingual)
     'notification_document_uploaded': 'New Document Uploaded',
@@ -1293,6 +1311,15 @@ class AppTranslations extends Translations {
     'minute_ago': 'minuto fa',
     'minutes_ago': 'minuti fa',
     'just_now': 'Proprio ora',
+    'never': 'Mai',
+    'valid_until': 'Valido fino al',
+    'trusted_indefinitely': 'Fidato a tempo indeterminato',
+    'expired': 'Scaduto',
+    'logged_in': 'Accesso effettuato',
+    'location_not_available': 'Posizione non disponibile',
+    'loading_location': 'Caricamento posizione...',
+    'ip_label': 'IP',
+    'platform_label': 'Piattaforma',
 
     // Notification types (Italian)
     'notification_document_uploaded': 'Nuovo documento caricato',
