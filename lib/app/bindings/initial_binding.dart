@@ -30,16 +30,12 @@ class InitialBinding extends Bindings {
   @override
   void dependencies() {
     // -----------------------------
-    // CORE SERVICES
+    // CORE SERVICES (splash-safe)
     // -----------------------------
     Get.put<ApiService>(ApiService(), permanent: true);
 
     Get.put<DeviceInfoService>(DeviceInfoService(), permanent: true);
 
-    Get.put<FirebaseAuthService>(FirebaseAuthService(), permanent: true);
-
-    Get.put<PrivateChatService>(PrivateChatService(), permanent: true);
-    Get.put<PresenceService>(PresenceService(), permanent: true);
     Get.lazyPut<NotificationRepository>(
       () => NotificationRepository(),
       fenix: true,
@@ -49,12 +45,6 @@ class InitialBinding extends Bindings {
       PrivateChatNotificationService(),
       permanent: true,
     );
-    Get.lazyPut<PrivateChatRepository>(
-      () => PrivateChatRepository(),
-      fenix: true,
-    );
-    Get.put<MessageProvider>(MessageProvider(), permanent: true);
-    Get.put<PrivateChatProvider>(PrivateChatProvider(), permanent: true);
 
     // Reuse StorageService from main.dart — never register a second instance.
     if (!Get.isRegistered<StorageService>()) {
@@ -62,7 +52,9 @@ class InitialBinding extends Bindings {
     }
 
     // LocaleController depends on StorageService, so register it after
-    Get.put<LocaleController>(LocaleController(), permanent: true);
+    if (!Get.isRegistered<LocaleController>()) {
+      Get.put<LocaleController>(LocaleController(), permanent: true);
+    }
 
     // DownloadService for document downloads
     Get.put<DownloadService>(DownloadService(), permanent: true);
@@ -73,15 +65,9 @@ class InitialBinding extends Bindings {
     // NotificationManager: processes push payloads (must be registered before FcmService)
     Get.put<NotificationManager>(NotificationManager(), permanent: true);
 
-    // FCM Service: singleton; init after ApiService + StorageService are registered.
-    // Runs async (non-blocking); splash/login/OTP call registerAfterAuth when session exists.
+    // FCM Service: singleton; init after Firebase is ready.
     final fcmService = FcmService();
     Get.put<FcmService>(fcmService, permanent: true);
-    if (Firebase.apps.isNotEmpty) {
-      fcmService.init();
-    } else {
-      print('⚠️ [InitialBinding] Skipping FcmService.init — Firebase not initialized');
-    }
 
     Get.find<PrivateChatNotificationService>().registerHandlers();
 
@@ -100,5 +86,46 @@ class InitialBinding extends Bindings {
     Get.lazyPut<ProfileController>(() => ProfileController(), fenix: true);
     Get.lazyPut<TwoFAManagementController>(() => TwoFAManagementController());
     Get.lazyPut<TrustedDevicesController>(() => TrustedDevicesController());
+  }
+
+  /// Registers services that touch Firebase APIs. Call after [Firebase.initializeApp].
+  static void registerFirebaseDependentServices() {
+    if (Firebase.apps.isEmpty) {
+      print(
+        '⚠️ [InitialBinding] Skipping Firebase-dependent services — Firebase not initialized',
+      );
+      return;
+    }
+
+    if (!Get.isRegistered<PrivateChatService>()) {
+      Get.put<PrivateChatService>(PrivateChatService(), permanent: true);
+    }
+
+    if (!Get.isRegistered<PresenceService>()) {
+      Get.put<PresenceService>(PresenceService(), permanent: true);
+    }
+
+    if (!Get.isRegistered<FirebaseAuthService>()) {
+      Get.put<FirebaseAuthService>(FirebaseAuthService(), permanent: true);
+    }
+
+    if (!Get.isRegistered<PrivateChatRepository>()) {
+      Get.lazyPut<PrivateChatRepository>(
+        () => PrivateChatRepository(),
+        fenix: true,
+      );
+    }
+
+    if (!Get.isRegistered<MessageProvider>()) {
+      Get.put<MessageProvider>(MessageProvider(), permanent: true);
+    }
+
+    if (!Get.isRegistered<PrivateChatProvider>()) {
+      Get.put<PrivateChatProvider>(PrivateChatProvider(), permanent: true);
+    }
+
+    if (Get.isRegistered<FcmService>()) {
+      Get.find<FcmService>().init();
+    }
   }
 }

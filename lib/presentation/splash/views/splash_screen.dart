@@ -16,6 +16,10 @@ class SplashScreen extends GetView<SplashController> {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.sizeOf(context);
+    final logoWidth = (180.w).clamp(130.w, screenSize.width * 0.44);
+    final dividerWidth = (150.w).clamp(120.w, screenSize.width * 0.42);
+
     return Scaffold(
       backgroundColor: _backgroundColor,
       body: Stack(
@@ -26,70 +30,86 @@ class SplashScreen extends GetView<SplashController> {
           ),
           SafeArea(
             child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Image.asset(
-                    'assets/images/casa_zero_ai.ico',
-                    width: 180.w,
-                    fit: BoxFit.contain,
-                  ),
-                  SizedBox(height: 24.h),
-                  RichText(
-                    textAlign: TextAlign.center,
-                    text: TextSpan(
-                      style: TextStyle(
-                        fontSize: 38.sp,
-                        color: _textColor,
-                        fontFamily: 'Inter',
-                        height: 1.0,
-                      ),
-                      children: [
-                        TextSpan(
-                          text: 'CASA',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w300,
-                            letterSpacing: 8.sp,
-                          ),
-                        ),
-                        TextSpan(
-                          text: 'ZERO',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.sp,
-                          ),
-                        ),
-                      ],
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 32.w),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset(
+                      'assets/images/casa_zero_ai.ico',
+                      width: logoWidth,
+                      fit: BoxFit.contain,
+                      filterQuality: FilterQuality.high,
+                      alignment: Alignment.center,
                     ),
-                  ),
-                  SizedBox(height: 18.h),
-                  Container(
-                    width: 150.w,
-                    height: 3.h,
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Color(0xFFE53935),
-                          Color(0xFFFFB300),
-                          Color(0xFF43A047),
-                          Color(0xFF8E24AA),
+                    SizedBox(height: 22.h),
+                    Text.rich(
+                      TextSpan(
+                        style: TextStyle(
+                          fontSize: 38.sp,
+                          color: _textColor,
+                          fontFamily: 'Inter',
+                          height: 1.05,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: 'CASA',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w300,
+                              letterSpacing: 9.sp,
+                            ),
+                          ),
+                          TextSpan(
+                            text: 'ZERO',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.5.sp,
+                            ),
+                          ),
                         ],
                       ),
+                      textAlign: TextAlign.center,
+                      textHeightBehavior: const TextHeightBehavior(
+                        applyHeightToFirstAscent: false,
+                        applyHeightToLastDescent: false,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 22.h),
-                  Text(
-                    'La tua casa, sempre con te.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: _textColor,
-                      fontSize: 19.sp,
-                      fontWeight: FontWeight.w400,
-                      letterSpacing: 1.2,
-                      fontFamily: 'Inter',
+                    SizedBox(height: 16.h),
+                    Container(
+                      width: dividerWidth,
+                      height: 3.h,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(1.5.r),
+                        gradient: const LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            Color(0xFFE53935),
+                            Color(0xFFFFB300),
+                            Color(0xFF43A047),
+                            Color(0xFF8E24AA),
+                          ],
+                          stops: [0.0, 0.33, 0.66, 1.0],
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                    SizedBox(height: 20.h),
+                    Text(
+                      'La tua casa, sempre con te.',
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: _textColor,
+                        fontSize: 19.sp,
+                        fontWeight: FontWeight.w400,
+                        letterSpacing: 1.2.sp,
+                        height: 1.35,
+                        fontFamily: 'Inter',
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -112,30 +132,31 @@ class _SplashBackgroundPainter extends CustomPainter {
       Paint()..color = _backgroundColor,
     );
 
+    final base = math.min(size.width, size.height);
+    final strokeWidth = (base / 390).clamp(0.85, 1.1);
+
     final strokePaint = Paint()
-      ..color = _strokeColor.withValues(alpha: 0.34)
+      ..color = _strokeColor.withValues(alpha: 0.28)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0
+      ..strokeWidth = strokeWidth
       ..strokeJoin = StrokeJoin.round
       ..strokeCap = StrokeCap.round;
 
-    final base = math.min(size.width, size.height);
-
     const cubes = <_CubePlacement>[
       // Large partial cube — top-left
-      _CubePlacement(x: -0.06, y: 0.09, sizeFactor: 0.54),
+      _CubePlacement(x: -0.07, y: 0.08, sizeFactor: 0.52),
       // Large partial cube — top-right
-      _CubePlacement(x: 1.04, y: 0.07, sizeFactor: 0.50),
-      // Small cube — upper-left
-      _CubePlacement(x: 0.15, y: 0.19, sizeFactor: 0.14),
+      _CubePlacement(x: 1.05, y: 0.06, sizeFactor: 0.48),
+      // Small cube — upper-left (kept away from center)
+      _CubePlacement(x: 0.12, y: 0.16, sizeFactor: 0.13),
       // Small cube — lower-left
-      _CubePlacement(x: 0.11, y: 0.67, sizeFactor: 0.13),
+      _CubePlacement(x: 0.09, y: 0.69, sizeFactor: 0.12),
       // Large partial cube — bottom-left
-      _CubePlacement(x: -0.10, y: 0.90, sizeFactor: 0.47),
+      _CubePlacement(x: -0.11, y: 0.91, sizeFactor: 0.45),
       // Tall partial cube — bottom-right
-      _CubePlacement(x: 1.06, y: 0.60, sizeFactor: 0.37, heightScale: 1.4),
+      _CubePlacement(x: 1.07, y: 0.61, sizeFactor: 0.36, heightScale: 1.4),
       // Small cube — bottom-right
-      _CubePlacement(x: 0.89, y: 0.83, sizeFactor: 0.14),
+      _CubePlacement(x: 0.91, y: 0.85, sizeFactor: 0.13),
     ];
 
     for (final cube in cubes) {
