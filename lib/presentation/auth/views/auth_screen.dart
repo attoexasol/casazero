@@ -48,13 +48,6 @@ class AuthScreen extends GetView<AuthController> {
             ),
           ),
 
-          // Language Selector
-          Positioned(
-            top: MediaQuery.paddingOf(context).top + 8.h,
-            right: 24.w,
-            child: Obx(() => _buildLanguageSelector(localeController)),
-          ),
-
           // Main Content
           SafeArea(
             child: Center(
@@ -63,23 +56,33 @@ class AuthScreen extends GetView<AuthController> {
                   padding: EdgeInsets.symmetric(horizontal: 24.w),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(maxWidth: 448.w),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CasaZeroLogo(
-                          assetPath: 'assets/images/white_logo.png',
-                          maxLogoWidthFactor: 0.4,
-                        ),
-                        SizedBox(height: 40.h),
-                        _buildLoginCard(),
-                        SizedBox(height: 32.h),
-                        _buildCopyright(),
-                      ],
-                    ),
+                    child: Obx(() {
+                      final _ = localeController.locale;
+                      return Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CasaZeroLogo(
+                            assetPath: 'assets/images/white_logo.png',
+                            maxLogoWidthFactor: 0.4,
+                          ),
+                          SizedBox(height: 40.h),
+                          _buildLoginCard(),
+                          SizedBox(height: 32.h),
+                          _buildCopyright(),
+                        ],
+                      );
+                    }),
                   ),
                 ),
               ),
             ),
+          ),
+
+          // Language selector on top so SafeArea does not block taps
+          Positioned(
+            top: MediaQuery.paddingOf(context).top + 8.h,
+            right: 24.w,
+            child: _buildLanguageSelector(localeController),
           ),
         ],
       ),
@@ -87,60 +90,126 @@ class AuthScreen extends GetView<AuthController> {
   }
 
   Widget _buildLanguageSelector(LocaleController localeController) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24.r),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(24.r),
-            border: Border.all(color: Colors.white.withOpacity(0.3)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 20.r,
-                offset: Offset(0, 4.h),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.language, color: Colors.white, size: 16.sp),
-              SizedBox(width: 4.w),
-              _buildLangButton('IT', 'it', localeController),
-              _buildLangButton('EN', 'en', localeController),
-            ],
+    const switchDuration = Duration(milliseconds: 280);
+    const switchCurve = Curves.easeInOutCubic;
+    final segmentWidth = 42.w;
+    final segmentHeight = 30.h;
+
+    return Obx(() {
+      final isItalian = localeController.isItalian;
+
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(24.r),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(24.r),
+              border: Border.all(color: Colors.white.withOpacity(0.3)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 20.r,
+                  offset: Offset(0, 4.h),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.language, color: Colors.white, size: 16.sp),
+                SizedBox(width: 6.w),
+                SizedBox(
+                  width: segmentWidth * 2,
+                  height: segmentHeight,
+                  child: Stack(
+                    children: [
+                      AnimatedPositioned(
+                        duration: switchDuration,
+                        curve: switchCurve,
+                        left: isItalian ? 0 : segmentWidth,
+                        top: 0,
+                        bottom: 0,
+                        width: segmentWidth,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.92),
+                            borderRadius: BorderRadius.circular(20.r),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.08),
+                                blurRadius: 8.r,
+                                offset: Offset(0, 2.h),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          _buildLangSegment(
+                            label: 'IT',
+                            lang: 'it',
+                            isActive: isItalian,
+                            width: segmentWidth,
+                            height: segmentHeight,
+                            duration: switchDuration,
+                            curve: switchCurve,
+                          ),
+                          _buildLangSegment(
+                            label: 'EN',
+                            lang: 'en',
+                            isActive: !isItalian,
+                            width: segmentWidth,
+                            height: segmentHeight,
+                            duration: switchDuration,
+                            curve: switchCurve,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 
-  Widget _buildLangButton(
-    String label,
-    String lang,
-    LocaleController localeController,
-  ) {
-    final isActive = localeController.currentLanguageCode == lang;
-    return GestureDetector(
-      onTap: () => controller.changeLanguage(lang),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
-        margin: EdgeInsets.symmetric(horizontal: 2.w),
-        decoration: BoxDecoration(
-          color: isActive ? Colors.white.withOpacity(0.9) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20.r),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12.sp,
-            fontWeight: FontWeight.w500,
-            color: isActive ? AppColors.brandSage500 : Colors.white,
+  Widget _buildLangSegment({
+    required String label,
+    required String lang,
+    required bool isActive,
+    required double width,
+    required double height,
+    required Duration duration,
+    required Curve curve,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => controller.changeLanguage(lang),
+        borderRadius: BorderRadius.circular(20.r),
+        splashColor: Colors.white.withOpacity(0.12),
+        highlightColor: Colors.white.withOpacity(0.06),
+        child: SizedBox(
+          width: width,
+          height: height,
+          child: Center(
+            child: AnimatedDefaultTextStyle(
+              duration: duration,
+              curve: curve,
+              style: TextStyle(
+                fontSize: 12.sp,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                color: isActive ? AppColors.brandSage500 : Colors.white,
+              ),
+              child: Text(label),
+            ),
           ),
         ),
       ),

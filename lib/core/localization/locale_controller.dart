@@ -5,7 +5,7 @@ import '../services/storage_service.dart';
 class LocaleController extends GetxController {
   final StorageService _storageService = Get.find();
 
-  final Rx<Locale> _locale = const Locale('en', 'US').obs;
+  final Rx<Locale> _locale = const Locale('it', 'IT').obs;
   Locale get locale => _locale.value;
 
   @override
@@ -24,7 +24,14 @@ class LocaleController extends GetxController {
     Get.updateLocale(_locale.value);
   }
 
+  /// Re-applies the persisted language (e.g. after logout clears storage).
+  void reloadFromStorage() {
+    _loadLocale();
+  }
+
   Future<void> changeLocale(String languageCode) async {
+    if (languageCode == currentLanguageCode) return;
+
     Locale newLocale;
     if (languageCode == 'it') {
       newLocale = const Locale('it', 'IT');

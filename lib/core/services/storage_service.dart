@@ -112,7 +112,7 @@ class StorageService extends GetxService {
   }
 
   String getLanguage() {
-    return _box.read(StorageKeys.LANGUAGE) ?? 'en';
+    return _box.read(StorageKeys.LANGUAGE) ?? 'it';
   }
 
   // First Login Flag

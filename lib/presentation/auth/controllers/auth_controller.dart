@@ -65,6 +65,7 @@ class AuthController extends GetxController {
   }
 
   void changeLanguage(String lang) {
+    if (lang == _localeController.currentLanguageCode) return;
     _localeController.changeLocale(lang);
   }
 
@@ -104,8 +105,13 @@ class AuthController extends GetxController {
       final storedToken = _storageService.getAccessToken();
       print('💾 Stored Access Token: $storedToken');
 
-      await _storageService.saveUserData(user.toJson());
+      // Keep the language the user chose on the login screen (do not override
+      // with API profile language, which may still be Italian).
+      final selectedLanguage = _localeController.currentLanguageCode;
+      final userWithSelectedLanguage = user.copyWith(language: selectedLanguage);
+      await _storageService.saveUserData(userWithSelectedLanguage.toJson());
       await _storageService.setFirstLogin(user.isFirstLogin);
+      await _localeController.changeLocale(selectedLanguage);
 
       debugPrint('[AuthController] Laravel login success user.id=${user.id}');
 
@@ -127,9 +133,6 @@ class AuthController extends GetxController {
           'Laravel login is not sending it for this user/request (Flutter cannot fix without the field).',
         );
       }
-
-      // Set user's preferred language from API
-      await _localeController.changeLocale(user.language);
 
       // Refresh local FCM token; backend receives it via login payload (fcm_token)
       try {
