@@ -284,7 +284,7 @@ class _NotificationsModalContentState
         case 'maintenance':
           return type == 'maintenance';
         case 'chat':
-          return type == 'chat' || type == 'message' || type == 'messages';
+          return notif.isChatNotification;
         case 'ticket':
           return type == 'ticket' || type == 'tickets';
         default:
@@ -348,9 +348,7 @@ class _NotificationsModalContentState
           final notification = entry.value;
           return _NotificationCard(
                 notification: notification,
-                onMarkAsRead: () =>
-                    widget.controller.markNotificationAsRead(notification.id),
-                onAction: () => _handleAction(notification),
+                onTap: () => _handleAction(notification),
                 onDelete: () => _deleteNotification(notification),
               )
               .animate(delay: (index * 50).ms)
@@ -362,27 +360,19 @@ class _NotificationsModalContentState
   }
 
   void _handleAction(FeedItemModel notification) {
-    // Mark as read first
     widget.controller.markNotificationAsRead(notification.id);
 
-    // Navigate to appropriate screen based on type
     final type = notification.type.toLowerCase();
+    final isDocument = type == 'document' || type == 'documents';
 
-    // Close modal first
+    // Only document notifications close the modal and open the file.
+    if (!isDocument) return;
+
     Navigator.of(context).pop();
 
-    // Handle document notifications - download and open with native chooser
-    if (type == 'document' || type == 'documents') {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       _handleDocumentNotification(notification);
-    } else if (type == 'maintenance') {
-      widget.controller.navigateToScreen(AppScreen.maintenance);
-    } else if (type == 'chat' || type == 'message' || type == 'messages') {
-      // Chat screen not implemented yet, use existing handler
-      widget.controller.onNotificationChat(notification);
-    } else if (type == 'ticket' || type == 'tickets') {
-      // Tickets screen not implemented yet, use existing handler
-      widget.controller.onNotificationAssistance(notification);
-    }
+    });
   }
 
   /// Handle document notification - download and open with native "Open with" chooser
@@ -408,7 +398,7 @@ class _NotificationsModalContentState
 
       MessagePopupController.showDownloading(
         messageKey:
-            'downloading'.tr + ': ' + notification.localizedDisplayTitle,
+            '${'downloading'.tr}: ${notification.localizedCenterTitle}',
         titleKey: 'downloading',
       );
 
@@ -535,17 +525,15 @@ class _NotificationsModalContentState
   }
 }
 
-/// Individual notification card matching React design
+/// Individual notification card — tap opens the relevant section and marks as read.
 class _NotificationCard extends StatelessWidget {
   final FeedItemModel notification;
-  final VoidCallback onMarkAsRead;
-  final VoidCallback onAction;
+  final VoidCallback onTap;
   final VoidCallback onDelete;
 
   const _NotificationCard({
     required this.notification,
-    required this.onMarkAsRead,
-    required this.onAction,
+    required this.onTap,
     required this.onDelete,
   });
 
@@ -554,7 +542,6 @@ class _NotificationCard extends StatelessWidget {
     final isRead = notification.isRead;
     final type = notification.type.toLowerCase();
 
-    // Get icon and colors based on type
     IconData iconData;
     Color iconColor;
 
@@ -564,7 +551,7 @@ class _NotificationCard extends StatelessWidget {
     } else if (type == 'maintenance') {
       iconData = Icons.build_outlined;
       iconColor = AppColors.warning;
-    } else if (type == 'chat' || type == 'message' || type == 'messages') {
+    } else if (type == 'chat' || type == 'message' || type == 'messages' || notification.isChatNotification) {
       iconData = Icons.chat_bubble_outline;
       iconColor = AppColors.info;
     } else if (type == 'ticket' || type == 'tickets') {
@@ -575,157 +562,59 @@ class _NotificationCard extends StatelessWidget {
       iconColor = AppColors.neutralInk500;
     }
 
-    // Get action label based on type (localized)
-    String? actionLabel;
-    if (type == 'maintenance') {
-      actionLabel = 'viewTask'.tr;
-    } else if (type == 'document' || type == 'documents') {
-      actionLabel = 'viewDocument'.tr;
-    } else if (type == 'chat' || type == 'message' || type == 'messages') {
-      actionLabel = 'openChat'.tr;
-    } else if (type == 'ticket' || type == 'tickets') {
-      actionLabel = 'viewTicket'.tr;
-    }
-
     return Container(
       margin: EdgeInsets.only(bottom: 8.h),
       decoration: BoxDecoration(
-        color: isRead
-            ? AppColors.surfaceWhite
-            : AppColors.brandSage50.withOpacity(0.35),
+        color: AppColors.surfaceWhite,
         borderRadius: BorderRadius.circular(10.r),
         border: Border.all(
-          color: isRead ? AppColors.neutralLine200 : AppColors.brandSage100,
-          width: 1,
+          color: isRead ? AppColors.surfaceWhite : AppColors.brandSage600,
+          width: isRead ? 1 : 1.5,
         ),
       ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+      child: Material(
+        color: AppColors.surfaceWhite,
+        borderRadius: BorderRadius.circular(10.r),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 32.w,
-              height: 32.w,
-              decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(8.r),
-              ),
-              child: Icon(iconData, size: 17.sp, color: iconColor),
-            ),
-
-            SizedBox(width: 10.w),
-
             Expanded(
-              child: Obx(() {
-                final localeController = Get.find<LocaleController>();
-                final _ = localeController.locale;
-
-                final displayTitle = notification.modalTitle;
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            displayTitle,
-                            style: AppTextStyles.bodyMedium.copyWith(
-                              fontSize: 13.sp,
-                              height: 1.25,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.neutralInk800,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+              child: InkWell(
+                onTap: onTap,
+                borderRadius: BorderRadius.circular(10.r),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(12.w, 10.h, 0, 10.h),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 32.w,
+                        height: 32.w,
+                        decoration: BoxDecoration(
+                          color: iconColor.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(8.r),
                         ),
-                        if (!isRead) ...[
-                          SizedBox(width: 6.w),
-                          Padding(
-                            padding: EdgeInsets.only(top: 4.h),
-                            child: Container(
-                              width: 6.w,
-                              height: 6.w,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: AppColors.brandSage600,
-                              ),
-                            ),
-                          ),
-                        ],
-                        SizedBox(width: 4.w),
-                        _NotificationIconButton(
-                          onPressed: onDelete,
-                          icon: SvgPicture.asset(
-                            'assets/images/delete.svg',
-                            width: 16.sp,
-                            height: 16.sp,
-                            fit: BoxFit.contain,
-                          ),
-                          tooltip: 'Delete',
-                        ),
-                      ],
-                    ),
-
-                    SizedBox(height: 6.h),
-
-                    Row(
-                      children: [
-                        Text(
-                          notification.timeAgo,
-                          style: AppTextStyles.caption.copyWith(
-                            fontSize: 11.sp,
-                            color: AppColors.neutralInk400,
-                          ),
-                        ),
-                        if (actionLabel != null || !isRead) ...[
-                          Text(
-                            ' · ',
-                            style: TextStyle(
-                              fontSize: 11.sp,
-                              color: AppColors.neutralInk300,
-                            ),
-                          ),
-                          Flexible(
-                            child: Wrap(
-                              spacing: 2.w,
-                              runSpacing: 0,
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              children: [
-                                if (actionLabel != null)
-                                  _NotificationTextAction(
-                                    label: actionLabel,
-                                    onPressed: onAction,
-                                    isPrimary: true,
-                                  ),
-                                if (!isRead) ...[
-                                  if (actionLabel != null)
-                                    Text(
-                                      '·',
-                                      style: TextStyle(
-                                        fontSize: 11.sp,
-                                        color: AppColors.neutralInk300,
-                                      ),
-                                    ),
-                                  _NotificationTextAction(
-                                    label: 'markAsRead'.tr.isEmpty
-                                        ? 'Mark as read'
-                                        : 'notification_mark_as_read'.tr,
-                                    onPressed: onMarkAsRead,
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ],
-                );
-              }),
+                        child: Icon(iconData, size: 17.sp, color: iconColor),
+                      ),
+                      SizedBox(width: 10.w),
+                      Expanded(child: _NotificationCardBody(notification: notification)),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.only(top: 6.h, right: 4.w),
+              child: _NotificationIconButton(
+                onPressed: onDelete,
+                icon: SvgPicture.asset(
+                  'assets/images/delete.svg',
+                  width: 16.sp,
+                  height: 16.sp,
+                  fit: BoxFit.contain,
+                ),
+                tooltip: 'delete'.tr,
+              ),
             ),
           ],
         ),
@@ -734,38 +623,82 @@ class _NotificationCard extends StatelessWidget {
   }
 }
 
-class _NotificationTextAction extends StatelessWidget {
-  const _NotificationTextAction({
-    required this.label,
-    required this.onPressed,
-    this.isPrimary = false,
-  });
+class _NotificationCardBody extends StatelessWidget {
+  const _NotificationCardBody({required this.notification});
 
-  final String label;
-  final VoidCallback onPressed;
-  final bool isPrimary;
+  final FeedItemModel notification;
 
   @override
   Widget build(BuildContext context) {
-    return TextButton(
-      onPressed: onPressed,
-      style: TextButton.styleFrom(
-        padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0),
-        minimumSize: Size.zero,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        visualDensity: VisualDensity.compact,
-      ),
-      child: Text(
-        label,
-        style: AppTextStyles.caption.copyWith(
-          fontSize: 11.sp,
-          fontWeight: isPrimary ? FontWeight.w600 : FontWeight.w500,
-          color: isPrimary ? AppColors.brandSage600 : AppColors.neutralInk700,
-        ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-    );
+    final isRead = notification.isRead;
+
+    return Obx(() {
+      final localeController = Get.find<LocaleController>();
+      final _ = localeController.locale;
+
+      final displayTitle = notification.localizedCenterTitle;
+      final displayContent = notification.localizedCenterSubtitle;
+      final showContent = displayContent.isNotEmpty;
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  displayTitle,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    fontSize: 13.sp,
+                    height: 1.25,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.neutralInk800,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (!isRead) ...[
+                SizedBox(width: 6.w),
+                Padding(
+                  padding: EdgeInsets.only(top: 4.h),
+                  child: Container(
+                    width: 6.w,
+                    height: 6.w,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.brandSage600,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          if (showContent) ...[
+            SizedBox(height: 4.h),
+            Text(
+              displayContent,
+              style: AppTextStyles.bodySmall.copyWith(
+                fontSize: 12.sp,
+                height: 1.3,
+                color: AppColors.neutralInk500,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+          SizedBox(height: 6.h),
+          Text(
+            notification.timeAgo,
+            style: AppTextStyles.caption.copyWith(
+              fontSize: 11.sp,
+              color: AppColors.neutralInk400,
+            ),
+          ),
+        ],
+      );
+    });
   }
 }
 

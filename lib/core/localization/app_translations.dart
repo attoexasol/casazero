@@ -209,11 +209,13 @@ class AppTranslations extends Translations {
     // Notification types (for cards when API has no bilingual)
     'notification_document_uploaded': 'New Document Uploaded',
     'notification_maintenance_updated': 'Maintenance status updated',
+    'notification_new_message': 'New Message',
     'notification_announcement': 'Community Announcement',
     'notification_generic': 'Notification',
     'notification_document_description': 'A new document has been uploaded.',
     'notification_maintenance_description':
         'Maintenance status has been updated.',
+    'notification_new_message_description': 'You have received a new message.',
     'notification_announcement_description':
         'A new announcement has been posted.',
     'notification_generic_description': 'Tap to view details.',
@@ -229,6 +231,11 @@ class AppTranslations extends Translations {
     'notification_type_generic': 'Notification',
     'notification_mark_as_read': 'markAsRead',
     'notification_mark_all_read': 'markAllRead',
+
+    // Notification Center prefixed titles
+    'notification_center_prefix_document': 'Document:',
+    'notification_center_prefix_maintenance': 'Maintenance:',
+    'notification_center_title_chat': 'Condominium chat: New message',
 
     // Notification action labels (viewDocument already exists above)
     'viewTask': 'View Task',
@@ -1327,16 +1334,23 @@ class AppTranslations extends Translations {
     // Notification types (Italian)
     'notification_document_uploaded': 'Nuovo documento caricato',
     'notification_maintenance_updated': 'Stato manutenzione aggiornato',
+    'notification_new_message': 'Nuovo messaggio',
     'notification_announcement': 'Annuncio della comunità',
     'notification_generic': 'Notifica',
     'notification_document_description': 'È stato caricato un nuovo documento.',
     'notification_maintenance_description':
         'Lo stato della manutenzione è stato aggiornato.',
+    'notification_new_message_description': 'Hai ricevuto un nuovo messaggio.',
     'notification_announcement_description':
         'È stato pubblicato un nuovo annuncio.',
     'notification_generic_description': 'Tocca per visualizzare i dettagli.',
     'notification_mark_as_read': 'contrassegnare come letto',
     'notification_mark_all_read': 'Contrassegna',
+
+    // Notification Center prefixed titles (Italian)
+    'notification_center_prefix_document': 'Documento:',
+    'notification_center_prefix_maintenance': 'Manutenzione:',
+    'notification_center_title_chat': 'Chat di condominio: Nuovo messaggio',
 
     // Notification type labels (Italian)
     'notification_type_maintenance': 'Notifica manutenzione',

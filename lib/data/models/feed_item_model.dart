@@ -144,6 +144,9 @@ class FeedItemModel {
       'task_name',
       'maintenance_title',
       'ticket_subject',
+      'sender_name',
+      'sender',
+      'from_name',
       'subject',
       'name',
     ];
@@ -205,6 +208,51 @@ class FeedItemModel {
     return normalized == 'document' || normalized == 'documents';
   }
 
+  /// Whether this notification belongs to chat/messaging (API type or inferred).
+  bool get isChatNotification {
+    if (_isDocumentType || type.toLowerCase() == 'maintenance') {
+      return false;
+    }
+
+    final normalized = type.toLowerCase().trim();
+    const chatTypes = {
+      'chat',
+      'message',
+      'messages',
+      'private_chat',
+      'admin_chat',
+      'adminchat',
+      'chat_message',
+      'messaggio',
+      'messaggi',
+    };
+    if (chatTypes.contains(normalized)) return true;
+    if (normalized.contains('chat') || normalized.contains('messag')) {
+      return true;
+    }
+
+    // Some backends store chat pushes under generic types — infer from title.
+    final titleLower = title.toLowerCase();
+    const titleHints = [
+      'new message',
+      'nuovo messaggio',
+      'chat di condominio',
+      'condominium chat',
+      'messaggio chat',
+    ];
+    return titleHints.any((hint) => titleLower.contains(hint));
+  }
+
+  /// Admin / private DM chat (vs condominium group chat).
+  bool get isAdminChatNotification {
+    final normalized = type.toLowerCase().trim();
+    return normalized == 'private_chat' ||
+        normalized == 'admin_chat' ||
+        normalized == 'adminchat';
+  }
+
+  bool get _isMessageType => isChatNotification;
+
   /// File name extracted from [url] when present (e.g. documents/foo.pdf).
   String? get fileNameFromUrl {
     if (url == null || url!.isEmpty) return null;
@@ -229,6 +277,10 @@ class FeedItemModel {
       'documento caricato',
       'maintenance status updated',
       'stato manutenzione aggiornato',
+      'new message',
+      'nuovo messaggio',
+      'new chat message',
+      'nuovo messaggio chat',
       'community announcement',
       'annuncio della comunità',
       'notification',
@@ -236,6 +288,90 @@ class FeedItemModel {
     ];
 
     return genericPatterns.any((pattern) => lower.contains(pattern));
+  }
+
+  bool _isGenericApiContent(String text) {
+    final lower = text.toLowerCase().trim();
+    if (lower.isEmpty) return true;
+
+    const genericPatterns = [
+      'a new document has been uploaded',
+      'è stato caricato un nuovo documento',
+      'maintenance status has been updated',
+      'lo stato della manutenzione è stato aggiornato',
+      'you have received a new message',
+      'hai ricevuto un nuovo messaggio',
+      'tap to view details',
+      'tocca per visualizzare i dettagli',
+      'your document has been uploaded',
+      'il tuo documento è stato caricato',
+    ];
+
+    return genericPatterns.any((pattern) => lower.contains(pattern));
+  }
+
+  static String _stripFileExtension(String name) {
+    final dot = name.lastIndexOf('.');
+    if (dot <= 0) return name;
+    return name.substring(0, dot);
+  }
+
+  /// Entity-specific detail used after the category prefix in Notification Center.
+  String get _centerTitleDetail {
+    if (relatedEntityName != null && relatedEntityName!.isNotEmpty) {
+      return relatedEntityName!;
+    }
+
+    if (_isDocumentType) {
+      final fileName = fileNameFromUrl;
+      if (fileName != null) return _stripFileExtension(fileName);
+      if (title.isNotEmpty && !_isGenericApiTitle) return displayTitle;
+    }
+
+    if (type.toLowerCase() == 'maintenance') {
+      final content = displayContent;
+      if (content.isNotEmpty && !_isGenericApiContent(content)) return content;
+      if (title.isNotEmpty && !_isGenericApiTitle) return displayTitle;
+    }
+
+    final fallback = localizedDisplayTitle;
+    if (fallback != notificationTitleKey.tr) return fallback;
+
+    return notificationTitleKey.tr;
+  }
+
+  /// Prefixed title for Notification Center (Documento:/Manutenzione:/Chat…).
+  String get localizedCenterTitle {
+    if (_isMessageType) return 'notification_center_title_chat'.tr;
+
+    if (_isDocumentType) {
+      return '${'notification_center_prefix_document'.tr} $_centerTitleDetail';
+    }
+
+    if (type.toLowerCase() == 'maintenance') {
+      return '${'notification_center_prefix_maintenance'.tr} $_centerTitleDetail';
+    }
+
+    return localizedDisplayTitle;
+  }
+
+  /// Subtitle for Notification Center — message preview for chat, otherwise
+  /// supplementary content when it adds context beyond the prefixed title.
+  String get localizedCenterSubtitle {
+    if (_isMessageType) {
+      final content = localizedDisplayContent;
+      if (content.isEmpty || content == localizedCenterTitle) return '';
+      return content;
+    }
+
+    final content = localizedDisplayContent;
+    if (content.isEmpty) return '';
+
+    final detail = _centerTitleDetail;
+    if (content == detail || content == localizedCenterTitle) return '';
+    if (_isGenericApiContent(content)) return '';
+
+    return content;
   }
 
   /// Get display title based on current language (reactive)
@@ -323,6 +459,10 @@ class FeedItemModel {
         return 'notification_document_uploaded';
       case 'maintenance':
         return 'notification_maintenance_updated';
+      case 'chat':
+      case 'message':
+      case 'messages':
+        return 'notification_new_message';
       case 'announcement':
         return 'notification_announcement';
       default:
@@ -337,6 +477,10 @@ class FeedItemModel {
         return 'notification_document_description';
       case 'maintenance':
         return 'notification_maintenance_description';
+      case 'chat':
+      case 'message':
+      case 'messages':
+        return 'notification_new_message_description';
       case 'announcement':
         return 'notification_announcement_description';
       default:
@@ -350,7 +494,9 @@ class FeedItemModel {
     if (titleIt != null && titleIt!.isNotEmpty) return displayTitle;
 
     if (relatedEntityName != null && relatedEntityName!.isNotEmpty) {
-      if (_isGenericApiTitle || _isDocumentType) return relatedEntityName!;
+      if (_isGenericApiTitle || _isDocumentType || _isMessageType) {
+        return relatedEntityName!;
+      }
     }
 
     if (_isDocumentType) {
@@ -363,8 +509,6 @@ class FeedItemModel {
     if (relatedEntityName != null && relatedEntityName!.isNotEmpty) {
       return relatedEntityName!;
     }
-
-    if (title.isNotEmpty) return title;
 
     return notificationTitleKey.tr;
   }
@@ -400,19 +544,11 @@ class FeedItemModel {
     return notificationDescriptionKey.tr;
   }
 
-  /// Notification modal main heading: API subtitle/content (detailed line).
-  String get modalTitle {
-    if (subtitle != null && subtitle!.isNotEmpty) return subtitle!;
-    return localizedDisplayContent;
-  }
+  /// Notification modal main heading — matches home screen title logic.
+  String get modalTitle => localizedDisplayTitle;
 
-  /// Notification modal subheading: API title (generic/summary line).
-  String get modalSubtitle {
-    if (titleEn != null && titleEn!.isNotEmpty) return displayTitle;
-    if (titleIt != null && titleIt!.isNotEmpty) return displayTitle;
-    if (title.isNotEmpty) return title;
-    return notificationTitleKey.tr;
-  }
+  /// Notification modal subheading — matches home screen description logic.
+  String get modalSubtitle => localizedDisplayContent;
 
   FeedItemModel copyWith({
     String? id,

@@ -20,6 +20,7 @@ import '../../../data/models/document_model.dart';
 import '../../../core/utils/permissions.dart';
 import '../../../core/navigation/auth_navigation.dart';
 import '../../chat/controllers/private_chat_controller.dart';
+import '../../chat/controllers/chat_controller.dart';
 import '../../main/main_scaffold.dart'; // Import for AppScreen enum
 
 class HomeController extends GetxController {
@@ -688,12 +689,23 @@ class HomeController extends GetxController {
     }
   }
 
-  /// Handle Chat action for notification (API-ready)
+  /// Handle Chat action for notification — opens condominium group chat or admin DM.
   void onNotificationChat(FeedItemModel notification) {
-    // TODO: Integrate chat API
-    // Example: Navigate to chat screen with notification context
-    // Get.toNamed('/chat', arguments: {'notificationId': notification.id});
-    print('📱 Chat pressed for notification: ${notification.id}');
+    if (notification.isAdminChatNotification) {
+      if (Get.isRegistered<PrivateChatController>()) {
+        Get.delete<PrivateChatController>();
+      }
+      if (!Get.isRegistered<PrivateChatController>()) {
+        Get.put(PrivateChatController());
+      }
+      navigateToScreen(AppScreen.adminChat);
+      return;
+    }
+
+    if (!Get.isRegistered<ChatController>()) {
+      Get.put(ChatController());
+    }
+    navigateToScreen(AppScreen.chat);
   }
 
   /// Handle Assistance action for notification (API-ready)
@@ -858,10 +870,15 @@ class HomeController extends GetxController {
 
   /// Navigate to a screen and add to history
   void navigateToScreen(AppScreen screen, {bool addToHistory = true}) {
-    if (addToHistory && currentScreen.value != screen) {
-      screenHistory.add(currentScreen.value);
+    final previous = currentScreen.value;
+    if (addToHistory && previous != screen) {
+      screenHistory.add(previous);
       // Clear forward history when navigating to a new screen
       forwardHistory.clear();
+    }
+    if (previous == screen) {
+      currentScreen.refresh();
+      return;
     }
     currentScreen.value = screen;
   }
