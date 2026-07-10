@@ -796,42 +796,31 @@ class DocumentsController extends GetxController {
         documents.removeWhere((d) => d.id == document.id);
         _syncCountsFromDocuments();
 
-        final apiMessage = result['message']?.toString();
-        final successMessage = (apiMessage != null && apiMessage.isNotEmpty)
-            ? apiMessage
-            : 'documentDeletedSuccessfully'.tr.replaceAll(
-                '{title}',
-                document.title,
-              );
-
         MessagePopupController.showSuccess(
-          messageKey: successMessage,
+          messageKey: 'documentDeletedSuccessfully'.tr.replaceAll(
+            '{title}',
+            document.title,
+          ),
           titleKey: 'documentDeleted',
         );
 
         return true;
       } else {
-        final errorMessage = result['error']?.toString();
         final isAdminDocument = result['isAdminDocument'] == true;
-        final popupMessage = (errorMessage != null && errorMessage.isNotEmpty)
-            ? errorMessage
-            : (isAdminDocument
-                  ? 'cannotDeleteAdminDocument'.tr
-                  : 'failedToDeleteDocument'.tr);
 
         if (isAdminDocument) {
           MessagePopupController.showWarning(
-            messageKey: popupMessage,
+            messageKey: 'cannotDeleteAdminDocument',
             titleKey: 'deleteNotAllowed',
           );
         } else {
           MessagePopupController.showError(
-            messageKey: popupMessage,
+            messageKey: 'failedToDeleteDocument',
             titleKey: 'deleteFailed',
           );
         }
 
-        print('❌ [DocumentsController] Delete failed: $errorMessage');
+        print('❌ [DocumentsController] Delete failed: ${result['error']}');
         return false;
       }
     } catch (e) {
