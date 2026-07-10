@@ -238,7 +238,7 @@ class _TimelineIndicator extends StatelessWidget {
   }
 }
 
-/// Circle: completed = filled aqua + Casa Zero asset; in-progress = aqua border + light aqua bg; pending = grey.
+/// Timeline node: completed = Casa Zero cube icon only; in-progress = aqua border + light aqua bg; pending = grey.
 class _TimelineCircle extends StatelessWidget {
   const _TimelineCircle({required this.status});
 
@@ -250,23 +250,28 @@ class _TimelineCircle extends StatelessWidget {
     final isActive = status == 'in-progress';
     final isFuture = status == 'pending';
 
+    if (isCompleted) {
+      return SizedBox(
+        width: _circleDiameter,
+        height: _circleDiameter,
+        child: Center(
+          child: Image.asset(
+            'assets/images/casa_zero_ai.ico',
+            width: _circleDiameter,
+            height: _circleDiameter,
+            fit: BoxFit.contain,
+            filterQuality: FilterQuality.high,
+          ),
+        ),
+      );
+    }
+
     Color bgColor;
     Color borderColor;
     Widget statusIcon;
     double elevation;
 
-    if (isCompleted) {
-      bgColor = _circleAquaFill;
-      borderColor = _circleAquaFill;
-      statusIcon = Image.asset(
-        'assets/images/casa_zero_ai.ico',
-        width: 19.sp,
-        height: 19.sp,
-        fit: BoxFit.contain,
-        filterQuality: FilterQuality.high,
-      );
-      elevation = 1;
-    } else if (isActive) {
+    if (isActive) {
       bgColor = _inProgressBrandLightBg;
       borderColor = _inProgressBrandDark;
       statusIcon = Icon(
@@ -294,12 +299,6 @@ class _TimelineCircle extends StatelessWidget {
         color: bgColor,
         border: Border.all(color: borderColor, width: isActive ? 2 : 1),
         boxShadow: [
-          if (elevation == 1)
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
           if (elevation == 2)
             BoxShadow(
               color: Colors.black.withOpacity(0.08),
