@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:open_filex/open_filex.dart';
 import 'dart:io';
 import '../../app/theme/app_colors.dart';
+import '../../core/services/file_opener_service.dart';
 import '../../app/theme/app_text_styles.dart';
 import '../../app/theme/app_shadows.dart';
 import '../../core/controllers/message_popup_controller.dart';
@@ -497,12 +498,11 @@ class _NotificationsModalContentState
         return;
       }
 
-      // Use open_filex to show native "Open with" chooser
-      // This will show all available apps that can open the file type
+      // Use FileOpenerService to show native "Open with" chooser (same as documents flow)
       print(
         '📂 [Notification] Opening native "Open with" chooser for file: $fileName',
       );
-      final result = await OpenFilex.open(filePath);
+      final result = await FileOpenerService.openWithChooser(filePath);
 
       print(
         '📂 [Notification] Open file result: ${result.type} - ${result.message}',

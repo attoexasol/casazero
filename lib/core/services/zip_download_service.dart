@@ -10,7 +10,7 @@ import 'package:dio/dio.dart';
 import 'package:get/get.dart' as getx;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:open_filex/open_filex.dart';
+import 'file_opener_service.dart';
 import 'storage_service.dart';
 
 /// Downloads ZIP, extracts it (prompts for password if protected), then opens
@@ -159,10 +159,10 @@ class ZipDownloadService extends getx.GetxService {
       // --- 5) Open first extracted file with native "open with". ---
       final firstFile = extractResult['firstFilePath'] as String?;
       if (firstFile != null && await File(firstFile).exists()) {
-        await OpenFilex.open(firstFile);
+        await FileOpenerService.openWithChooser(firstFile);
       } else {
         // No file to open (empty zip or only directories); open extracted folder if possible
-        await OpenFilex.open(outputDirPath);
+        await FileOpenerService.openWithChooser(outputDirPath);
       }
 
       return {

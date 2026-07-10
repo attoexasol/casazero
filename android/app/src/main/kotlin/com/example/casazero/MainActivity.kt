@@ -1,13 +1,10 @@
 package com.example.casazero
 
 import android.app.AlertDialog
-import android.content.ContentValues
 import android.content.DialogInterface
 import android.content.Intent
+import android.media.MediaScannerConnection
 import android.net.Uri
-import android.os.Build
-import android.os.Environment
-import android.provider.MediaStore
 import androidx.core.content.FileProvider
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -118,35 +115,21 @@ class MainActivity : FlutterActivity() {
 
     private fun indexFileInMediaStore(filePath: String, fileName: String, result: MethodChannel.Result) {
         try {
-            // MediaStore.Downloads is available from API 29 (Android 10)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val file = File(filePath)
-                if (!file.exists()) {
-                    result.success(false)
-                    return
-                }
+            val file = File(filePath)
+            if (!file.exists()) {
+                result.success(false)
+                return
+            }
 
-                // Get MIME type from file extension
-                val mimeType = getMimeType(fileName)
+            val mimeType = getMimeType(fileName)
 
-                val contentValues = ContentValues().apply {
-                    put(MediaStore.Downloads.DISPLAY_NAME, fileName)
-                    put(MediaStore.Downloads.MIME_TYPE, mimeType)
-                    put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
-                    put(MediaStore.Downloads.IS_PENDING, 0) // Mark as completed
-                }
-
-                val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
-                
-                if (uri != null) {
-                    // Copy file to the MediaStore location if needed
-                    // Note: For files already in Downloads folder, MediaStore should index them
-                    result.success(true)
-                } else {
-                    result.success(false)
-                }
-            } else {
-                // For Android 9 and below, files in Downloads are automatically visible
+            // Scan the existing file on disk so it appears in Downloads / file managers
+            // without creating an empty MediaStore entry.
+            MediaScannerConnection.scanFile(
+                applicationContext,
+                arrayOf(filePath),
+                arrayOf(mimeType)
+            ) { _, _ ->
                 result.success(true)
             }
         } catch (e: Exception) {

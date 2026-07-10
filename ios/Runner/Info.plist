@@ -5,12 +5,14 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app needs access to your photo library so you can upload profile photos and other images.</string>
 
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs access to your camera so you can take photos for support tickets.</string>
+
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app uses your location to provide location-based services.</string>
 
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>This app may use your location in the background to improve location-based features.</string>
-	</key>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

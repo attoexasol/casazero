@@ -18,11 +18,11 @@ class DocumentPassword2FAVerificationScreen extends GetView<OtpVerificationContr
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        // If user presses back button, cancel the flow
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (didPop) return;
         _handleBackButton();
-        return false; // Prevent default back navigation
       },
       child: Scaffold(
         backgroundColor: AppColors.surfaceWhite,

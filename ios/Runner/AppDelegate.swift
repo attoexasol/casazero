@@ -5,7 +5,8 @@ import FirebaseMessaging
 import UserNotifications
 
 @main
-@objc class AppDelegate: FlutterAppDelegate {
+@objc class AppDelegate: FlutterAppDelegate, UIDocumentInteractionControllerDelegate {
+  private var documentInteractionController: UIDocumentInteractionController?
 
   override func application(
     _ application: UIApplication,
@@ -36,7 +37,8 @@ import UserNotifications
     )
 
     channel.setMethodCallHandler { [weak self] (call, result) in
-      if call.method == "showOpenCancelConfirmation" {
+      switch call.method {
+      case "showOpenCancelConfirmation":
         let args = call.arguments as? [String: Any]
         let title = args?["title"] as? String ?? "Open"
         let message = args?["message"] as? String ?? "Open this file?"
@@ -45,7 +47,18 @@ import UserNotifications
           message: message,
           result: result
         )
-      } else {
+      case "openWithChooser":
+        guard let args = call.arguments as? [String: Any],
+              let filePath = args["filePath"] as? String else {
+          result(FlutterError(
+            code: "INVALID_ARGUMENT",
+            message: "File path is null",
+            details: nil
+          ))
+          return
+        }
+        self?.openFileWithChooser(filePath: filePath, result: result)
+      default:
         result(FlutterMethodNotImplemented)
       }
     }
@@ -99,6 +112,68 @@ import UserNotifications
     })
 
     root.present(alert, animated: true)
+  }
+
+  private func openFileWithChooser(filePath: String, result: @escaping FlutterResult) {
+    let fileURL = URL(fileURLWithPath: filePath)
+    guard FileManager.default.fileExists(atPath: filePath) else {
+      result(["type": "fileNotFound", "message": "File not found"])
+      return
+    }
+
+    DispatchQueue.main.async { [weak self] in
+      guard let self = self,
+            let rootVC = self.window?.rootViewController else {
+        result(["type": "error", "message": "No root view controller"])
+        return
+      }
+
+      let docController = UIDocumentInteractionController(url: fileURL)
+      docController.delegate = self
+      self.documentInteractionController = docController
+
+      let rect = CGRect(
+        x: rootVC.view.bounds.midX,
+        y: rootVC.view.bounds.midY,
+        width: 1,
+        height: 1
+      )
+
+      if docController.presentOpenInMenu(from: rect, in: rootVC.view, animated: true) {
+        result(["type": "done", "message": "Chooser shown successfully"])
+        return
+      }
+
+      if docController.presentOptionsMenu(from: rect, in: rootVC.view, animated: true) {
+        result(["type": "done", "message": "Chooser shown successfully"])
+        return
+      }
+
+      let activityVC = UIActivityViewController(
+        activityItems: [fileURL],
+        applicationActivities: nil
+      )
+      if let popover = activityVC.popoverPresentationController {
+        popover.sourceView = rootVC.view
+        popover.sourceRect = rect
+        popover.permittedArrowDirections = []
+      }
+      rootVC.present(activityVC, animated: true) {
+        result(["type": "done", "message": "Chooser shown successfully"])
+      }
+    }
+  }
+
+  func documentInteractionControllerDidDismissOpenInMenu(
+    _ controller: UIDocumentInteractionController
+  ) {
+    documentInteractionController = nil
+  }
+
+  func documentInteractionControllerDidDismissOptionsMenu(
+    _ controller: UIDocumentInteractionController
+  ) {
+    documentInteractionController = nil
   }
 }
 
