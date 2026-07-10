@@ -21,6 +21,8 @@ class DocumentModel {
   final String? description;
   final int? categoryId;
   final int? typeId;
+  /// Set when the resident uploaded the file via `user_document_upload`.
+  final int? uploadedByUserId;
 
   DocumentModel({
     required this.id,
@@ -38,7 +40,17 @@ class DocumentModel {
     this.description,
     this.categoryId,
     this.typeId,
+    this.uploadedByUserId,
   });
+
+  /// True when uploaded by a resident (not building admin).
+  bool get isUserUploaded => uploadedByUserId != null;
+
+  /// Only the resident who uploaded the document may delete it.
+  bool isDeletableByUser(int? currentUserId) {
+    if (uploadedByUserId == null || currentUserId == null) return false;
+    return uploadedByUserId == currentUserId;
+  }
 
   /// Localized category name: Italian when locale is IT, else English.
   String getCategory() {
@@ -248,7 +260,37 @@ class DocumentModel {
       description: json['document_description'],
       categoryId: categoryId,
       typeId: typeId,
+      uploadedByUserId: _parseUploadedByUserId(json),
     );
+  }
+
+  /// Resident uploads are tagged in API metadata or via `_<userId>` in [file_url].
+  static int? _parseUploadedByUserId(Map<String, dynamic> json) {
+    final isAdminUpload = json['is_admin_upload'] ?? json['is_admin_uploaded'];
+    if (isAdminUpload == true ||
+        isAdminUpload == 1 ||
+        isAdminUpload == '1' ||
+        isAdminUpload == 'true') {
+      return null;
+    }
+
+    for (final key in ['uploaded_by', 'uploaded_by_user_id', 'user_id']) {
+      final value = json[key];
+      if (value == null) continue;
+      final id = value is int ? value : int.tryParse(value.toString());
+      if (id != null && id > 0) return id;
+    }
+
+    final fileUrl = json['file_url']?.toString();
+    if (fileUrl == null || fileUrl.isEmpty) return null;
+
+    final fileName = fileUrl.split('/').last;
+    final match = RegExp(r'_(\d+)\.[a-zA-Z0-9]+$').firstMatch(fileName);
+    if (match != null) {
+      return int.tryParse(match.group(1)!);
+    }
+
+    return null;
   }
 
   /// Convert DocumentModel to JSON
@@ -273,6 +315,7 @@ class DocumentModel {
         'type_name': typeName,
         'type_name_it': typeNameIt,
       },
+      if (uploadedByUserId != null) 'uploaded_by': uploadedByUserId,
     };
   }
 
@@ -341,6 +384,7 @@ class DocumentModel {
     String? description,
     int? categoryId,
     int? typeId,
+    int? uploadedByUserId,
   }) {
     return DocumentModel(
       id: id ?? this.id,
@@ -358,6 +402,7 @@ class DocumentModel {
       description: description ?? this.description,
       categoryId: categoryId ?? this.categoryId,
       typeId: typeId ?? this.typeId,
+      uploadedByUserId: uploadedByUserId ?? this.uploadedByUserId,
     );
   }
 

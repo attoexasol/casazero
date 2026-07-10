@@ -9,6 +9,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../core/controllers/message_popup_controller.dart';
+import '../../../core/services/storage_service.dart';
 import '../../../core/utils/permissions.dart';
 import '../../../core/widgets/floating_bottom_nav_bar.dart';
 import '../../../core/widgets/tablet_centered_layout.dart';
@@ -56,9 +57,16 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
     );
   }
 
+  int? _currentUserId() {
+    final rawId = Get.find<StorageService>().getUserData()?['id'];
+    if (rawId is int) return rawId;
+    return int.tryParse(rawId?.toString() ?? '');
+  }
+
   @override
   Widget build(BuildContext context) {
     final permissions = Permissions.fromRole(widget.role);
+    final currentUserId = _currentUserId();
     final navScrollPadding = FloatingBottomNavBar.contentBottomPadding(context);
     const fabMargin = 20.0;
 
@@ -196,7 +204,8 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                           onView: () {
                             print('View document: ${doc.title}');
                           },
-                          onDelete: permissions.canDeleteDocuments
+                          onDelete: permissions.canDeleteDocuments &&
+                                  doc.isDeletableByUser(currentUserId)
                               ? () async {
                                   // Show localized confirmation (en/it from language settings)
                                   final confirmed =
