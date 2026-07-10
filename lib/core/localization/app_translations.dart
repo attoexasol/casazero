@@ -585,6 +585,9 @@ class AppTranslations extends Translations {
     'failedToDeleteDocument': 'Failed to delete document',
     'errorDeletingDocument': 'An error occurred while deleting the document',
     'documentDeletedSuccessfully': '{title} has been deleted successfully',
+    'cannotDeleteAdminDocument':
+        'This document was uploaded by your admin and cannot be deleted.',
+    'deleteNotAllowed': 'Delete Not Allowed',
     'failedToFetchCategories': 'Failed to fetch categories',
     'errorFetchingCategories': 'An error occurred while fetching categories',
     'failedToFetchDocuments': 'Failed to fetch documents',
@@ -1448,6 +1451,9 @@ class AppTranslations extends Translations {
     'errorDeletingDocument':
         'Si è verificato un errore durante l\'eliminazione del documento',
     'documentDeletedSuccessfully': '{title} è stato eliminato con successo',
+    'cannotDeleteAdminDocument':
+        'Questo documento è stato caricato dal tuo amministratore e non può essere eliminato.',
+    'deleteNotAllowed': 'Eliminazione Non Consentita',
     'failedToFetchCategories': 'Impossibile recuperare le categorie',
     'errorFetchingCategories':
         'Si è verificato un errore durante il recupero delle categorie',

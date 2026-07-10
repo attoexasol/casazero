@@ -383,6 +383,15 @@ class ApiConstants {
   /// Response: File bytes (binary data)
   static const String DOWNLOAD_DOCUMENT = '/download_document';
 
+  /// Delete Document
+  /// DELETE /documents/delete/{id}
+  /// Request: { "api_token": "<CURRENT_USER_API_TOKEN>" }
+  /// Response: {
+  ///   "status": true,
+  ///   "message": "Document deleted successfully."
+  /// }
+  static const String DELETE_DOCUMENT = '/documents/delete';
+
   // Ticket / Issue Type Endpoints
   /// Get Issue Types (ticket categories)
   /// POST /issue-type/list

@@ -174,9 +174,9 @@ class ApiService extends getx.GetxService {
   }
 
   // Generic DELETE request
-  Future<Response> delete(String endpoint) async {
+  Future<Response> delete(String endpoint, {dynamic data}) async {
     try {
-      final response = await _dio.delete(endpoint);
+      final response = await _dio.delete(endpoint, data: data);
       return response;
     } on DioException catch (e) {
       throw _handleError(e);

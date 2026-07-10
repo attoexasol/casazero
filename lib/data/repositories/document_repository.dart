@@ -763,16 +763,28 @@ class DocumentRepository {
 
   /// Delete Document
   /// DELETE /documents/delete/{document_id}
+  /// Request: { "api_token": "<CURRENT_USER_API_TOKEN>" }
   /// Response: {
   ///   "status": true,
-  ///   "message": "Document deleted successfully"
+  ///   "message": "Document deleted successfully."
   /// }
   Future<Map<String, dynamic>> deleteDocument(int documentId) async {
     try {
       print('🗑️ [DocumentRepository] Deleting document with ID: $documentId');
 
+      final storageService = Get.find<StorageService>();
+      final apiToken = storageService.getAccessToken();
+
+      if (apiToken == null || apiToken.isEmpty) {
+        return {
+          'success': false,
+          'error': 'User token is missing. Please login again.',
+        };
+      }
+
       final response = await _apiService.delete(
-        '/documents/delete/$documentId',
+        '${ApiConstants.DELETE_DOCUMENT}/$documentId',
+        data: {'api_token': apiToken},
       );
 
       if (response.statusCode == 200 && response.data['status'] == true) {
@@ -780,24 +792,43 @@ class DocumentRepository {
         return {
           'success': true,
           'message':
-              response.data['message'] ?? 'Document deleted successfully',
+              response.data['message'] ?? 'Document deleted successfully.',
         };
       } else {
-        print(
-          '⚠️ [DocumentRepository] Delete failed: ${response.data['message']}',
-        );
+        final errorMessage =
+            response.data['message'] ??
+            response.data['error'] ??
+            'Failed to delete document';
+        print('⚠️ [DocumentRepository] Delete failed: $errorMessage');
         return {
           'success': false,
-          'error': response.data['message'] ?? 'Failed to delete document',
+          'error': errorMessage,
+          'isAdminDocument': _isAdminUploadedDocumentError(errorMessage),
         };
       }
     } catch (e) {
       print('❌ [DocumentRepository] Error deleting document: $e');
+
+      final errorMessage = e.toString().isNotEmpty
+          ? e.toString()
+          : 'Failed to delete document. Please try again.';
+
       return {
         'success': false,
-        'error': 'Failed to delete document. Please try again.',
+        'error': errorMessage,
+        'isAdminDocument': _isAdminUploadedDocumentError(errorMessage),
       };
     }
+  }
+
+  bool _isAdminUploadedDocumentError(String message) {
+    final lower = message.toLowerCase();
+    return lower.contains('admin') &&
+        (lower.contains('delete') ||
+            lower.contains('cannot') ||
+            lower.contains("can't") ||
+            lower.contains('not allowed') ||
+            lower.contains('uploaded'));
   }
 
   /// Download Document
