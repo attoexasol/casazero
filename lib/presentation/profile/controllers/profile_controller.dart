@@ -9,6 +9,7 @@ import '../../../data/repositories/profile_repository.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/navigation/auth_navigation.dart';
+import '../../../core/services/session_expiry_service.dart';
 import '../../home/controllers/home_controller.dart';
 import 'package:flutter/material.dart';
 
@@ -448,6 +449,7 @@ class ProfileController extends GetxController {
   /// Logout action
   /// Calls logout API, then clears all storage and navigates to auth screen
   Future<void> logout() async {
+    SessionExpiryService.beginForcedSignOut();
     try {
       print('🚪 Starting logout process...');
 

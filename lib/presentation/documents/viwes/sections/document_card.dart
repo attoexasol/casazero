@@ -10,11 +10,14 @@ import 'document_colors.dart';
 /// Used so the card can show a button-level loader and clear it when the future completes.
 typedef DownloadCallback = Future<void> Function();
 
+/// [shareOrigin] anchors the iOS share sheet to the tapped button.
+typedef ShareCallback = void Function(Rect shareOrigin);
+
 class DocumentCard extends StatefulWidget {
   final DocumentModel document;
   final VoidCallback? onView;
   final DownloadCallback? onDownload;
-  final VoidCallback? onShare;
+  final ShareCallback? onShare;
   final VoidCallback? onDelete;
   final VoidCallback onAskAI;
 
@@ -237,10 +240,7 @@ class _DocumentCardState extends State<DocumentCard> {
                                   if (widget.onShare != null)
                                     Padding(
                                       padding: EdgeInsets.only(left: 15.w),
-                                      child: _actionIconBtn(
-                                        Icons.share_outlined,
-                                        widget.onShare!,
-                                      ),
+                                      child: _shareActionBtn(),
                                     ),
 
                                   const Spacer(),
@@ -314,6 +314,21 @@ class _DocumentCardState extends State<DocumentCard> {
                   height: size,
                 ),
         ),
+      ),
+    );
+  }
+
+  Widget _shareActionBtn() {
+    return Builder(
+      builder: (btnContext) => _actionIconBtn(
+        Icons.share_outlined,
+        () {
+          final box = btnContext.findRenderObject() as RenderBox?;
+          final origin = box != null && box.hasSize
+              ? box.localToGlobal(Offset.zero) & box.size
+              : Rect.zero;
+          widget.onShare?.call(origin);
+        },
       ),
     );
   }

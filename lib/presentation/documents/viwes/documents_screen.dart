@@ -228,8 +228,11 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                             skipOpenCancelConfirmation: true,
                           ),
                           onShare: permissions.canSharedDocuments
-                              ? () {
-                                  _controller.shareDocument(doc);
+                              ? (shareOrigin) {
+                                  _controller.shareDocument(
+                                    doc,
+                                    shareOrigin: shareOrigin,
+                                  );
                                 }
                               : null,
                         ).animate().fadeIn().slideY(begin: 0.1);

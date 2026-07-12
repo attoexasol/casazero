@@ -3,23 +3,23 @@ import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 
 import '../../app/routes/app_routes.dart';
-import '../../core/localization/locale_controller.dart';
 
 /// Navigates to the login screen with a fresh [AuthController] instance.
 class AuthNavigation {
   AuthNavigation._();
 
+  static bool _navigatingToAuth = false;
+
   static void replaceStackWithAuth() {
+    if (_navigatingToAuth || Get.currentRoute == AppRoutes.AUTH) {
+      return;
+    }
+
+    _navigatingToAuth = true;
     FocusManager.instance.primaryFocus?.unfocus();
-    // Navigate first so the AUTH route binding can replace the controller
-    // before any widgets bind to it. Deleting the controller here (before
-    // navigation) disposes TextEditingControllers while locale reloads can
-    // still trigger rebuilds that reference them.
     Get.offAllNamed(AppRoutes.AUTH);
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      if (Get.isRegistered<LocaleController>()) {
-        Get.find<LocaleController>().reloadFromStorage();
-      }
+      _navigatingToAuth = false;
     });
   }
 }

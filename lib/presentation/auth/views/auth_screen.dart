@@ -243,7 +243,9 @@ class AuthScreen extends GetView<AuthController> {
   }
 
   Widget _buildLoginCard() {
-    return ClipRRect(
+    return KeyedSubtree(
+      key: ValueKey(controller.hashCode),
+      child: ClipRRect(
       borderRadius: BorderRadius.circular(24.r),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
@@ -326,6 +328,7 @@ class AuthScreen extends GetView<AuthController> {
           ),
         ),
       ),
+    ),
     );
   }
 

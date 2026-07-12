@@ -17,13 +17,23 @@ class SessionExpiryService {
       'session_expired_sign_in_again';
 
   static bool _isHandling = false;
+  static bool _isSigningOut = false;
+
+  /// Call at the start of an explicit logout so in-flight 401s do not trigger
+  /// a second forced sign-out while navigation to the auth screen is underway.
+  static void beginForcedSignOut() {
+    _isHandling = true;
+    _isSigningOut = true;
+  }
 
   /// Resets the guard after a successful login so future expirations are handled.
   static void reset() {
     _isHandling = false;
+    _isSigningOut = false;
   }
 
   static bool get isHandling => _isHandling;
+  static bool get isSigningOut => _isSigningOut;
 
   /// Clears local session, navigates to login, and shows the expiry message once.
   static Future<void> handleSessionExpired() async {

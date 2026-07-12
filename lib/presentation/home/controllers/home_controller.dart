@@ -19,6 +19,7 @@ import '../../../data/models/residence_status_phase_model.dart';
 import '../../../data/models/document_model.dart';
 import '../../../core/utils/permissions.dart';
 import '../../../core/navigation/auth_navigation.dart';
+import '../../../core/services/session_expiry_service.dart';
 import '../../chat/controllers/private_chat_controller.dart';
 import '../../chat/controllers/chat_controller.dart';
 import '../../main/main_scaffold.dart'; // Import for AppScreen enum
@@ -998,6 +999,7 @@ class HomeController extends GetxController {
 
   // LOGOUT
   Future<void> logout() async {
+    SessionExpiryService.beginForcedSignOut();
     try {
       print('🚪 Starting logout process from HomeController...');
 

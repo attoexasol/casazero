@@ -54,16 +54,9 @@ class AuthController extends GetxController {
 
   @override
   void onClose() {
-    // Defer disposal so route transitions cannot rebuild TextFormFields against
-    // controllers that were just disposed during forced sign-out.
-    final email = emailController;
-    final password = passwordController;
-    final phone = phoneController;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      email.dispose();
-      password.dispose();
-      phone.dispose();
-    });
+    emailController.dispose();
+    passwordController.dispose();
+    phoneController.dispose();
     super.onClose();
   }
 

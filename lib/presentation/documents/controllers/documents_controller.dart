@@ -445,7 +445,10 @@ class DocumentsController extends GetxController {
 
   /// Share a document
   /// Downloads the file first via API, then shares it using native share
-  Future<void> shareDocument(DocumentModel document) async {
+  Future<void> shareDocument(
+    DocumentModel document, {
+    Rect? shareOrigin,
+  }) async {
     try {
       final documentId = int.tryParse(document.id);
       if (documentId == null) {
@@ -506,11 +509,20 @@ class DocumentsController extends GetxController {
           print('✅ File ready for sharing: $filePath');
 
           if (Get.isDialogOpen ?? false) Get.back();
-          final xFile = XFile(filePath);
+          // iOS needs the preparing dialog fully dismissed before presenting
+          // UIActivityViewController, and a non-zero sharePositionOrigin.
+          if (Platform.isIOS) {
+            await WidgetsBinding.instance.endOfFrame;
+          }
+
+          final xFile = XFile(filePath, name: fileName);
           await Share.shareXFiles(
             [xFile],
             text: document.title,
             subject: 'sharingDocument'.tr,
+            sharePositionOrigin: Platform.isIOS
+                ? _resolveShareOrigin(shareOrigin)
+                : null,
           );
 
           print('✅ Share dialog opened successfully');
@@ -533,6 +545,27 @@ class DocumentsController extends GetxController {
         titleKey: 'shareFailed',
       );
     }
+  }
+
+  /// iOS requires a non-zero rect to anchor the share sheet popover.
+  Rect _resolveShareOrigin(Rect? shareOrigin) {
+    if (shareOrigin != null &&
+        shareOrigin.width > 0 &&
+        shareOrigin.height > 0) {
+      return shareOrigin;
+    }
+
+    final context = Get.context;
+    if (context != null) {
+      final size = MediaQuery.sizeOf(context);
+      return Rect.fromCenter(
+        center: Offset(size.width / 2, size.height / 2),
+        width: 2,
+        height: 2,
+      );
+    }
+
+    return const Rect.fromLTWH(0, 0, 1, 1);
   }
 
   /// Generate a clean filename from document data

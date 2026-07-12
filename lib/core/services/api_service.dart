@@ -91,6 +91,9 @@ class ApiService extends getx.GetxService {
   }
 
   bool _shouldHandleSessionExpiry(RequestOptions options) {
+    if (SessionExpiryService.isHandling || SessionExpiryService.isSigningOut) {
+      return false;
+    }
     if (_isAuthEndpoint(options.path)) return false;
 
     final authHeader = options.headers['Authorization']?.toString();
