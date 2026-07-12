@@ -25,6 +25,7 @@ class UserModel {
   // Additional fields for app logic
   final String? residenceId;
   final ResidenceStatus? residenceStatus;
+  final String? unitName;
 
   UserModel({
     required this.id,
@@ -44,6 +45,7 @@ class UserModel {
     required this.isPasswordSetByAdmin,
     this.residenceId,
     this.residenceStatus,
+    this.unitName,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -67,6 +69,7 @@ class UserModel {
       isPasswordSetByAdmin: _parseBool(json['is_password_set_by_admin']),
       residenceId: json['residence_id']?.toString(),
       residenceStatus: _parseResidenceStatus(json['residence_status']),
+      unitName: _optionalNonEmptyString(json['unit_name']),
     );
   }
 
@@ -89,6 +92,7 @@ class UserModel {
       'is_password_set_by_admin': isPasswordSetByAdmin.toString(),
       'residence_id': residenceId,
       'residence_status': residenceStatus?.name,
+      'unit_name': unitName,
     };
   }
 
@@ -118,6 +122,12 @@ class UserModel {
   }
 
   static Role _parseRole(dynamic raw) => parseRoleFromApi(raw);
+
+  static String? _optionalNonEmptyString(dynamic value) {
+    final text = value?.toString().trim();
+    if (text == null || text.isEmpty) return null;
+    return text;
+  }
 
   // Helper method to parse boolean from string
   static bool _parseBool(dynamic value) {
@@ -183,6 +193,7 @@ class UserModel {
     bool? isPasswordSetByAdmin,
     String? residenceId,
     ResidenceStatus? residenceStatus,
+    String? unitName,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -202,6 +213,7 @@ class UserModel {
       isPasswordSetByAdmin: isPasswordSetByAdmin ?? this.isPasswordSetByAdmin,
       residenceId: residenceId ?? this.residenceId,
       residenceStatus: residenceStatus ?? this.residenceStatus,
+      unitName: unitName ?? this.unitName,
     );
   }
 }

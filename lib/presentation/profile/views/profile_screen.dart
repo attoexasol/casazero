@@ -47,7 +47,11 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   ProfileHeaderCard(user: user),
                   SizedBox(height: 24.h),
-                  ResidenceInfoCard(user: user),
+                  Obx(
+                    () => ResidenceInfoCard(
+                      user: profileController.user.value ?? user,
+                    ),
+                  ),
                   SizedBox(height: 16.h),
                   SecurityCard(user: user, onNavigate: onNavigate),
                   SizedBox(height: 16.h),

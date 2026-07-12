@@ -152,6 +152,8 @@ class ResidenceInfoCard extends StatelessWidget {
   // RESIDENCE ROW - Display residence name and address
   // ---------------------------------------------------------------------------
   Widget _buildResidenceRow(ResidenceModel residence) {
+    final unitName = _resolveUnitName(residence);
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -177,17 +179,36 @@ class ResidenceInfoCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 6),
-              // Second line: Residence Address
+              // Second line: Residence Address / description
               Text(
                 residence.residenceAddress ?? "address".tr,
                 style: AppTextStyles.bodySmall.copyWith(
                   color: AppColors.neutralInk500,
                 ),
               ),
+              if (unitName != null) ...[
+                SizedBox(height: 4.h),
+                Text(
+                  '${'unit'.tr}: $unitName',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.neutralInk700,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
       ],
     );
+  }
+
+  String? _resolveUnitName(ResidenceModel residence) {
+    if (residence.unitName != null && residence.unitName!.isNotEmpty) {
+      return residence.unitName;
+    }
+    if (user.unitName != null && user.unitName!.isNotEmpty) {
+      return user.unitName;
+    }
+    return null;
   }
 }

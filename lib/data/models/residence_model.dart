@@ -4,6 +4,7 @@ class ResidenceModel {
   final int id;
   final String residenceName;
   final String? residenceAddress;
+  final String? unitName;
   final String residenceType;
   final int residenceAdmin;
   final DateTime createdAt;
@@ -15,6 +16,7 @@ class ResidenceModel {
     required this.id,
     required this.residenceName,
     this.residenceAddress,
+    this.unitName,
     required this.residenceType,
     required this.residenceAdmin,
     required this.createdAt,
@@ -28,6 +30,7 @@ class ResidenceModel {
       id: json['id'] ?? 0,
       residenceName: json['residence_name'] ?? '',
       residenceAddress: json['residence_address'],
+      unitName: _parseUnitName(json),
       residenceType: json['residence_type'] ?? '',
       residenceAdmin: json['residence_admin'] ?? 0,
       createdAt: json['created_at'] != null
@@ -46,6 +49,7 @@ class ResidenceModel {
       'id': id,
       'residence_name': residenceName,
       'residence_address': residenceAddress,
+      'unit_name': unitName,
       'residence_type': residenceType,
       'residence_admin': residenceAdmin,
       'created_at': createdAt.toIso8601String(),
@@ -53,6 +57,18 @@ class ResidenceModel {
       'residence_photo': residencePhoto,
       'residence_status': residenceStatus,
     };
+  }
+
+  static String? _parseUnitName(Map<String, dynamic> json) {
+    final direct = json['unit_name']?.toString().trim();
+    if (direct != null && direct.isNotEmpty) return direct;
+
+    final unit = json['unit'];
+    if (unit is Map) {
+      final nested = unit['unit_name']?.toString().trim();
+      if (nested != null && nested.isNotEmpty) return nested;
+    }
+    return null;
   }
 
   // Display name with address if available
@@ -68,6 +84,7 @@ class ResidenceModel {
     int? id,
     String? residenceName,
     String? residenceAddress,
+    String? unitName,
     String? residenceType,
     int? residenceAdmin,
     DateTime? createdAt,
@@ -79,6 +96,7 @@ class ResidenceModel {
       id: id ?? this.id,
       residenceName: residenceName ?? this.residenceName,
       residenceAddress: residenceAddress ?? this.residenceAddress,
+      unitName: unitName ?? this.unitName,
       residenceType: residenceType ?? this.residenceType,
       residenceAdmin: residenceAdmin ?? this.residenceAdmin,
       createdAt: createdAt ?? this.createdAt,
