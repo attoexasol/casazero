@@ -1,12 +1,8 @@
 // lib/presentation/splash/views/splash_screen.dart
 
-import 'dart:async';
 import 'dart:math' as math;
-import 'dart:typed_data';
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
@@ -117,189 +113,24 @@ class SplashScreen extends GetView<SplashController> {
   }
 }
 
-/// Loads the highest-resolution frame from the ICO for crisp rendering.
-class _SplashCubeLogo extends StatefulWidget {
+/// Pixel-art cube logo. Uses nearest-neighbor scaling to avoid bilinear halos
+/// at sharp color/outline edges on high-DPI iOS displays.
+class _SplashCubeLogo extends StatelessWidget {
   final double width;
 
   const _SplashCubeLogo({required this.width});
 
-  @override
-  State<_SplashCubeLogo> createState() => _SplashCubeLogoState();
-}
-
-class _SplashCubeLogoState extends State<_SplashCubeLogo> {
-  static const _icoPath = 'assets/images/casa_zero_ai.ico';
-  static const _pngFallbackPath = 'assets/images/thumb_cubo.png';
-
-  ui.Image? _image;
-  bool _usePngFallback = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadLogo();
-  }
-
-  @override
-  void dispose() {
-    _image?.dispose();
-    super.dispose();
-  }
-
-  Future<void> _loadLogo() async {
-    try {
-      final data = await rootBundle.load(_icoPath);
-      final frame = _largestIcoFrameAsRgba(data.buffer.asUint8List());
-      if (!mounted || frame == null) {
-        if (mounted) setState(() => _usePngFallback = true);
-        return;
-      }
-
-      final completer = Completer<ui.Image>();
-      ui.decodeImageFromPixels(
-        frame.rgba,
-        frame.width,
-        frame.height,
-        ui.PixelFormat.rgba8888,
-        completer.complete,
-      );
-      final image = await completer.future;
-      if (!mounted) {
-        image.dispose();
-        return;
-      }
-      setState(() => _image = image);
-    } catch (_) {
-      if (mounted) setState(() => _usePngFallback = true);
-    }
-  }
+  static const _logoPath = 'assets/images/thumb_cubo.png';
 
   @override
   Widget build(BuildContext context) {
-    if (_usePngFallback) {
-      final dpr = MediaQuery.devicePixelRatioOf(context);
-      final cacheWidth = (widget.width * dpr).round();
-      return Image.asset(
-        _pngFallbackPath,
-        width: widget.width,
-        fit: BoxFit.contain,
-        filterQuality: FilterQuality.high,
-        cacheWidth: cacheWidth,
-        alignment: Alignment.center,
-      );
-    }
-
-    final image = _image;
-    if (image == null) {
-      return SizedBox(width: widget.width, height: widget.width);
-    }
-
-    final aspectRatio = image.height / image.width;
-    return SizedBox(
-      width: widget.width,
-      height: widget.width * aspectRatio,
-      child: RawImage(
-        image: image,
-        fit: BoxFit.contain,
-        filterQuality: FilterQuality.high,
-        alignment: Alignment.center,
-      ),
+    return Image.asset(
+      _logoPath,
+      width: width,
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.none,
+      alignment: Alignment.center,
     );
-  }
-
-  ({Uint8List rgba, int width, int height})? _largestIcoFrameAsRgba(
-    Uint8List icoBytes,
-  ) {
-    if (icoBytes.length < 6) return null;
-
-    final header = ByteData.sublistView(icoBytes);
-    if (header.getUint16(0, Endian.little) != 0 ||
-        header.getUint16(2, Endian.little) != 1) {
-      return null;
-    }
-
-    final imageCount = header.getUint16(4, Endian.little);
-    var bestArea = 0;
-    var bestOffset = 0;
-    var bestSize = 0;
-
-    for (var i = 0; i < imageCount; i++) {
-      final entryOffset = 6 + (i * 16);
-      if (entryOffset + 16 > icoBytes.length) return null;
-
-      final width = icoBytes[entryOffset] == 0 ? 256 : icoBytes[entryOffset];
-      final height =
-          icoBytes[entryOffset + 1] == 0 ? 256 : icoBytes[entryOffset + 1];
-      final dataSize = header.getUint32(entryOffset + 8, Endian.little);
-      final dataOffset = header.getUint32(entryOffset + 12, Endian.little);
-      final area = width * height;
-
-      if (area > bestArea) {
-        bestArea = area;
-        bestOffset = dataOffset;
-        bestSize = dataSize;
-      }
-    }
-
-    if (bestSize == 0 || bestOffset + bestSize > icoBytes.length) {
-      return null;
-    }
-
-    return _icoDibToRgba(icoBytes.sublist(bestOffset, bestOffset + bestSize));
-  }
-
-  ({Uint8List rgba, int width, int height})? _icoDibToRgba(Uint8List dib) {
-    if (dib.length < 40) return null;
-
-    final dibHeader = ByteData.sublistView(dib);
-    final headerSize = dibHeader.getUint32(0, Endian.little);
-    if (headerSize < 40 || dib.length < headerSize) return null;
-
-    final width = dibHeader.getInt32(4, Endian.little);
-    final storedHeight = dibHeader.getInt32(8, Endian.little);
-    if (width <= 0 || storedHeight <= 0) return null;
-
-    final height = storedHeight ~/ 2;
-    final bitCount = dibHeader.getUint16(14, Endian.little);
-    if (bitCount != 32) return null;
-
-    final rowSize = width * 4;
-    final xorSize = rowSize * height;
-    if (headerSize + xorSize > dib.length) return null;
-
-    final andRowSize = ((width + 31) ~/ 32) * 4;
-    final andOffset = headerSize + xorSize;
-    final hasAndMask = andOffset + (andRowSize * height) <= dib.length;
-
-    final rgba = Uint8List(width * height * 4);
-
-    for (var y = 0; y < height; y++) {
-      final srcRow = height - 1 - y;
-      final srcRowOffset = headerSize + (srcRow * rowSize);
-      final andRowOffset = andOffset + (srcRow * andRowSize);
-
-      for (var x = 0; x < width; x++) {
-        final srcPixel = srcRowOffset + (x * 4);
-        final blue = dib[srcPixel];
-        final green = dib[srcPixel + 1];
-        final red = dib[srcPixel + 2];
-        var alpha = dib[srcPixel + 3];
-
-        if (hasAndMask) {
-          final andByte = dib[andRowOffset + (x ~/ 8)];
-          final andBit = (andByte >> (7 - (x % 8))) & 1;
-          if (andBit == 1) alpha = 0;
-        }
-
-        final dst = (y * width + x) * 4;
-        rgba[dst] = red;
-        rgba[dst + 1] = green;
-        rgba[dst + 2] = blue;
-        rgba[dst + 3] = alpha;
-      }
-    }
-
-    return (rgba: rgba, width: width, height: height);
   }
 }
 

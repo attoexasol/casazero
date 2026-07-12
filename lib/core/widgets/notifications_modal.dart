@@ -178,12 +178,7 @@ class _NotificationsModalContentState
                                 SizedBox(width: 8.w),
                                 _buildFilterTab('chat', 'chat'.tr),
                                 SizedBox(width: 8.w),
-                                _buildFilterTab(
-                                  'ticket',
-                                  'supportTickets'.tr.isEmpty
-                                      ? 'Tickets'
-                                      : 'supportTickets'.tr,
-                                ),
+                                _buildFilterTab('ticket', 'ticket'.tr),
                               ],
                             ),
                           ),
@@ -322,16 +317,6 @@ class _NotificationsModalContentState
                 color: AppColors.neutralInk500,
                 fontWeight: FontWeight.w500,
               ),
-            ),
-            SizedBox(height: 8.h),
-            Text(
-              'no_notifications_desc'.tr.isEmpty
-                  ? 'You\'re all caught up!'
-                  : 'no_notifications_desc'.tr,
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.neutralInk400,
-              ),
-              textAlign: TextAlign.center,
             ),
           ],
         ),

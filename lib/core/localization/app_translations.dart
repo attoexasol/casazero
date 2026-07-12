@@ -170,6 +170,7 @@ class AppTranslations extends Translations {
     'manage_community_desc': 'Manage community',
     'manage_buildings_desc': 'Manage properties',
     'no_notifications': 'No notifications',
+    'ticket': 'Ticket',
     'whats_new': "What's new:",
     'ai_document_analysis': 'CasaZero AI now supports document analysis!',
 
@@ -1294,6 +1295,7 @@ class AppTranslations extends Translations {
     'manage_community_desc': 'Gestisci la comunità',
     'manage_buildings_desc': 'Gestisci le proprietà',
     'no_notifications': 'Nessuna notifica',
+    'ticket': 'Ticket',
     'whats_new': "Novità:",
     'ai_document_analysis':
         'CasaZero AI ora supporta l\'analisi dei documenti!',
