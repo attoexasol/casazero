@@ -58,7 +58,10 @@ class AppRoutes {
       name: AUTH,
       page: () => const AuthScreen(),
       binding: BindingsBuilder(() {
-        Get.lazyPut(() => AuthController());
+        if (Get.isRegistered<AuthController>()) {
+          Get.delete<AuthController>(force: true);
+        }
+        Get.put(AuthController());
       }),
     ),
     GetPage(
