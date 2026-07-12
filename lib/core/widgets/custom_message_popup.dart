@@ -142,6 +142,8 @@ class CustomMessagePopup extends StatelessWidget {
         break;
     }
 
+    final showIcon = messageType != MessageType.confirmation;
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
       decoration: BoxDecoration(
@@ -154,8 +156,10 @@ class CustomMessagePopup extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: iconColor, size: 22.sp),
-          SizedBox(width: 10.w),
+          if (showIcon) ...[
+            Icon(icon, color: iconColor, size: 22.sp),
+            SizedBox(width: 10.w),
+          ],
           Flexible(
             child: Text(
               title,

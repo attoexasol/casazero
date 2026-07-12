@@ -1,6 +1,6 @@
 // lib/presentation/home/views/sections/construction_progress_section.dart
 // Construction Progress from API (status-with-phases). UI matches design: card radius 24,
-// vertical aqua timeline, 42px circles, step cards with status; plus document view section.
+// vertical timeline icons (cube + circles), step cards with status; plus document view section.
 
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -62,7 +62,7 @@ List<ConstructionPhaseModel> _apiPhasesToDisplayModels(
       description: p.status?.statusDescription,
       imageUrl: p.status?.image,
     );
-  }).toList();
+  }).where((m) => m.status != 'pending').toList();
 }
 
 /// Month abbreviations (no intl locale data required).
@@ -103,14 +103,11 @@ String _formatPhaseDate(DateTime date) {
   return '${date.day} $month';
 }
 
-// Timeline line + completed nodes: aqua (unchanged). In-progress uses brand sage below.
-const Color _timelineLineColor = AppColors.aquaGreen200;
-const Color _circleAquaFill = AppColors.aquaGreen700;
+// Timeline nodes: in-progress uses brand sage below.
 const Color _inProgressBrandDark = AppColors.brandSage800;
 const Color _inProgressBrandLightBg = AppColors.brandSage100;
 const Color _circleGrey = AppColors.neutralLine200;
 double get _circleDiameter => 44.r;
-double get _lineWidth => 2.w;
 double get _stepSpacing => 24.h;
 double get _indicatorWidth => 44.w;
 double get _timelineRowHeight => 132.h;
@@ -190,49 +187,23 @@ class _LoadingSkeleton extends StatelessWidget {
   }
 }
 
-/// Vertical line + circular node. Line does not extend beyond first/last circle.
-/// [rowHeight] is required so we avoid LayoutBuilder (incompatible with IntrinsicHeight).
+/// Circular timeline node (cube for completed, circle for in-progress).
 class _TimelineIndicator extends StatelessWidget {
   const _TimelineIndicator({
-    required this.isFirst,
-    required this.isLast,
     required this.status,
     required this.rowHeight,
   });
 
-  final bool isFirst;
-  final bool isLast;
   final String status;
   final double rowHeight;
 
   @override
   Widget build(BuildContext context) {
-    final centerY = rowHeight / 2;
-    final radius = _circleDiameter / 2;
-
     return SizedBox(
       width: _indicatorWidth,
       height: rowHeight,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned(
-            left: (_indicatorWidth - _lineWidth) / 2,
-            top: isFirst ? centerY : 0,
-            bottom: isLast ? rowHeight - centerY : 0,
-            width: _lineWidth,
-            child: Container(
-              color: status == 'in-progress'
-                  ? _inProgressBrandDark
-                  : _timelineLineColor,
-            ),
-          ),
-          Positioned(
-            left: (_indicatorWidth - _circleDiameter) / 2,
-            top: centerY - radius,
-            child: _TimelineCircle(status: status),
-          ),
-        ],
+      child: Center(
+        child: _TimelineCircle(status: status),
       ),
     );
   }
@@ -255,12 +226,22 @@ class _TimelineCircle extends StatelessWidget {
         width: _circleDiameter,
         height: _circleDiameter,
         child: Center(
-          child: Image.asset(
-            'assets/images/casa_zero_ai.ico',
+          child: Container(
             width: _circleDiameter,
             height: _circleDiameter,
-            fit: BoxFit.contain,
-            filterQuality: FilterQuality.high,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.surfaceWhite,
+            ),
+            child: Center(
+              child: Image.asset(
+                'assets/images/casa_zero_ai.ico',
+                width: _circleDiameter,
+                height: _circleDiameter,
+                fit: BoxFit.contain,
+                filterQuality: FilterQuality.high,
+              ),
+            ),
           ),
         ),
       );
@@ -488,9 +469,7 @@ class _StepCard extends StatelessWidget {
                     margin: EdgeInsets.only(right: 6.w),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: isCompleted
-                          ? _circleAquaFill
-                          : _inProgressBrandDark,
+                      color: _inProgressBrandDark,
                     ),
                   ),
                 Flexible(
@@ -652,7 +631,6 @@ class _ConstructionProgressSectionState
                           ...displayPhases.asMap().entries.map((entry) {
                             final index = entry.key;
                             final phase = entry.value;
-                            final isFirst = index == 0;
                             final isLast = index == displayPhases.length - 1;
                             final rowHeight = phase.status == 'in-progress'
                                 ? _timelineRowHeight
@@ -668,8 +646,6 @@ class _ConstructionProgressSectionState
                                           CrossAxisAlignment.stretch,
                                       children: [
                                         _TimelineIndicator(
-                                          isFirst: isFirst,
-                                          isLast: isLast,
                                           status: phase.status,
                                           rowHeight: rowHeight,
                                         ),
