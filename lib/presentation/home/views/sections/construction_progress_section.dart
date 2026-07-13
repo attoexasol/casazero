@@ -2,16 +2,21 @@
 // Construction Progress from API (status-with-phases). UI matches design: card radius 24,
 // vertical timeline icons (cube + circles), step cards with status; plus document view section.
 
+import 'dart:io';
 import 'dart:ui';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../app/theme/app_shadows.dart';
+import '../../../../core/controllers/message_popup_controller.dart';
+import '../../../../core/services/file_opener_service.dart';
 import '../../../../data/models/construction_phase_model.dart';
 import '../../../../data/models/residence_status_phase_model.dart';
 import '../../controllers/home_controller.dart';
@@ -696,14 +701,120 @@ class _ConstructionProgressSectionState
   }
 
   Future<void> _openDocument(String url) async {
-    final uri = Uri.tryParse(url);
-    if (uri == null) return;
+    final trimmedUrl = url.trim();
+    if (trimmedUrl.isEmpty) {
+      MessagePopupController.showError(
+        messageKey: 'documentUrlNotAvailable',
+        titleKey: 'downloadFailed',
+      );
+      return;
+    }
+
+    final fileName = _fileNameFromUrl(trimmedUrl);
+
     try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      MessagePopupController.showDownloading(
+        messageKey: '${'downloading'.tr}: $fileName',
+        titleKey: 'downloading',
+      );
+
+      // Public status images must be fetched without the app auth header.
+      // DownloadService attaches Bearer and writes to public Downloads — wrong for this URL.
+      final tempDir = await getTemporaryDirectory();
+      final filePath = '${tempDir.path}/$fileName';
+      final dio = Dio(
+        BaseOptions(
+          connectTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 60),
+          headers: const {
+            'Accept': '*/*',
+          },
+          // Do not send Authorization — these are public media URLs.
+          validateStatus: (status) => status != null && status < 500,
+        ),
+      );
+
+      debugPrint(
+        'ConstructionProgressSection _openDocument downloading: $trimmedUrl',
+      );
+
+      final response = await dio.download(trimmedUrl, filePath);
+
+      MessagePopupController.closePopup();
+
+      if (response.statusCode == 404) {
+        debugPrint(
+          'ConstructionProgressSection _openDocument: image URL returned 404',
+        );
+        MessagePopupController.showError(
+          messageKey: 'documentUrlNotAvailable',
+          titleKey: 'downloadFailed',
+        );
+        return;
       }
+
+      if (response.statusCode == null ||
+          response.statusCode! < 200 ||
+          response.statusCode! >= 300) {
+        MessagePopupController.showError(
+          messageKey: 'downloadError',
+          titleKey: 'downloadFailed',
+        );
+        debugPrint(
+          'ConstructionProgressSection _openDocument bad status: ${response.statusCode}',
+        );
+        return;
+      }
+
+      final file = File(filePath);
+      if (!await file.exists() || await file.length() == 0) {
+        MessagePopupController.showError(
+          messageKey: 'fileNotFound',
+          titleKey: 'openFileFailed',
+        );
+        return;
+      }
+
+      await Future.delayed(const Duration(milliseconds: 300));
+      final openResult = await FileOpenerService.openWithChooser(filePath);
+
+      if (openResult.type == ResultType.noAppToOpen) {
+        MessagePopupController.showWarning(
+          messageKey: 'noAppToOpen',
+          titleKey: 'openFileFailed',
+        );
+      } else if (openResult.type == ResultType.error ||
+          openResult.type == ResultType.fileNotFound) {
+        MessagePopupController.showError(
+          messageKey: 'openFileError',
+          titleKey: 'openFileFailed',
+        );
+      }
+    } on DioException catch (e) {
+      MessagePopupController.closePopup();
+      final isNotFound = e.response?.statusCode == 404;
+      MessagePopupController.showError(
+        messageKey: isNotFound ? 'documentUrlNotAvailable' : 'downloadError',
+        titleKey: 'downloadFailed',
+      );
+      debugPrint('ConstructionProgressSection _openDocument DioException: $e');
     } catch (e) {
+      MessagePopupController.closePopup();
+      MessagePopupController.showError(
+        messageKey: 'downloadError',
+        titleKey: 'downloadFailed',
+      );
       debugPrint('ConstructionProgressSection _openDocument: $e');
     }
+  }
+
+  String _fileNameFromUrl(String url) {
+    final uri = Uri.tryParse(url);
+    final segment = uri?.pathSegments.isNotEmpty == true
+        ? uri!.pathSegments.last
+        : url.split('/').last;
+    final cleaned = segment.split('?').first.trim();
+    if (cleaned.isNotEmpty && cleaned.contains('.')) return cleaned;
+    return 'construction_phase_${DateTime.now().millisecondsSinceEpoch}.jpg';
   }
 }

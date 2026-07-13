@@ -524,7 +524,6 @@ class _NotificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isRead = notification.isRead;
     final type = notification.type.toLowerCase();
 
     IconData iconData;
@@ -553,8 +552,8 @@ class _NotificationCard extends StatelessWidget {
         color: AppColors.surfaceWhite,
         borderRadius: BorderRadius.circular(10.r),
         border: Border.all(
-          color: isRead ? AppColors.surfaceWhite : AppColors.brandSage600,
-          width: isRead ? 1 : 1.5,
+          color: AppColors.surfaceWhite,
+          width: 1,
         ),
       ),
       child: Material(

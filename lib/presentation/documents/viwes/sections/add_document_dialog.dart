@@ -118,7 +118,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
 
   /// Get file type from extension
   String _getFileType(String? fileName) {
-    if (fileName == null) return 'Unknown';
+    if (fileName == null) return 'unknown'.tr;
     final extension = fileName.toLowerCase().split('.').last;
     return extension.toUpperCase();
   }
@@ -288,7 +288,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
                 ),
                 SizedBox(height: 4.h),
                 Text(
-                  'Upload a personal document to your collection',
+                  'addDocumentSubtitle'.tr,
                   style: AppTextStyles.bodySmall.copyWith(
                     color: AppColors.neutralInk500,
                   ),
@@ -555,8 +555,8 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
           spacing: 6.w,
           runSpacing: 6.h,
           children: [
-            _buildInfoChip('Size', _selectedFileSize ?? ''),
-            _buildInfoChip('Type', fileType),
+            _buildInfoChip('fileSize'.tr, _selectedFileSize ?? ''),
+            _buildInfoChip('fileType'.tr, fileType),
           ],
         ),
       ],
@@ -665,7 +665,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Document Categories'.tr,
+              'documentCategories'.tr,
               style: AppTextStyles.label.copyWith(
                 color: AppColors.neutralInk700,
                 fontSize: 14.sp,
@@ -703,7 +703,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Document Categories'.tr,
+              'documentCategories'.tr,
               style: AppTextStyles.label.copyWith(
                 color: AppColors.neutralInk700,
                 fontSize: 14.sp,
@@ -727,7 +727,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
                   SizedBox(width: 8.w),
                   Expanded(
                     child: Text(
-                      'Failed to load categories',
+                      'failedToFetchCategories'.tr,
                       style: AppTextStyles.caption.copyWith(
                         color: AppColors.danger,
                       ),
@@ -736,7 +736,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
                   TextButton(
                     onPressed: () => _controller.fetchDocumentCategories(),
                     child: Text(
-                      'Retry',
+                      'retry'.tr,
                       style: AppTextStyles.caption.copyWith(
                         color: AppColors.danger,
                         fontWeight: FontWeight.w600,
@@ -756,7 +756,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Document Categories'.tr,
+              'documentCategories'.tr,
               style: AppTextStyles.label.copyWith(
                 color: AppColors.neutralInk700,
                 fontSize: 14.sp,
@@ -780,7 +780,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
                   SizedBox(width: 8.w),
                   Expanded(
                     child: Text(
-                      'No categories available',
+                      'noCategoriesAvailable'.tr,
                       style: AppTextStyles.caption.copyWith(
                         color: AppColors.neutralInk500,
                       ),
@@ -798,7 +798,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Document Categories'.tr,
+            'documentCategories'.tr,
             style: AppTextStyles.label.copyWith(
               color: AppColors.neutralInk700,
               fontSize: 14.sp,
