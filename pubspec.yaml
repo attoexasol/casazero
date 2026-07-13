@@ -123,4 +123,6 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/thumb_cubo.png"
+  image_path_android: "assets/images/playstore.png"
+  image_path_ios: "assets/images/appstore.png"
+  remove_alpha_ios: true
