@@ -535,9 +535,11 @@ class MainScaffold extends GetView<HomeController> {
       );
     }
 
-    // Title
+    // Title — ValueKey forces remount so fadeIn re-runs on every screen
+    // change (same behavior Maintenance↔Profile gets from opaque/blur swap).
     if (title != null) {
       return SizedBox(
+        key: ValueKey(title),
         width: double.infinity,
         child: Text(
           title,
