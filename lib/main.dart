@@ -32,12 +32,18 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
   }
+  try {
+    await GetStorage.init();
+  } catch (_) {}
+
   final messageId = message.messageId ?? 'no-id';
   final data = message.data;
   print(
     '📩 [FCM Background] messageId: $messageId, title: ${message.notification?.title}, data keys: ${data.isNotEmpty ? data.keys.join(", ") : "none"}',
   );
 
+  // Data-only pushes: show localized local notification.
+  // Notification-payload pushes are rendered by the OS (backend language).
   if (message.notification == null) {
     try {
       await LocalNotificationService.showNotification(message);

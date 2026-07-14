@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import '../../core/localization/locale_controller.dart';
+import '../../core/utils/notification_content_localizer.dart';
 
 class FeedItemModel {
   final String id;
@@ -208,9 +209,19 @@ class FeedItemModel {
     return normalized == 'document' || normalized == 'documents';
   }
 
+  bool get _isTicketType {
+    final normalized = type.toLowerCase().trim();
+    return normalized == 'ticket' ||
+        normalized == 'tickets' ||
+        normalized == 'support_ticket' ||
+        normalized == 'support_tickets';
+  }
+
   /// Whether this notification belongs to chat/messaging (API type or inferred).
   bool get isChatNotification {
-    if (_isDocumentType || type.toLowerCase() == 'maintenance') {
+    if (_isDocumentType ||
+        _isTicketType ||
+        type.toLowerCase() == 'maintenance') {
       return false;
     }
 
@@ -267,7 +278,9 @@ class FeedItemModel {
   }
 
   bool get _isGenericApiTitle {
-    final lower = title.toLowerCase().trim();
+    final lower = NotificationContentLocalizer.stripEmojis(title)
+        .toLowerCase()
+        .trim();
     if (lower.isEmpty) return true;
 
     const genericPatterns = [
@@ -277,6 +290,14 @@ class FeedItemModel {
       'documento caricato',
       'maintenance status updated',
       'stato manutenzione aggiornato',
+      'ticket updated',
+      'ticket status updated',
+      'support ticket updated',
+      'support ticket',
+      'ticket aggiornato',
+      'stato ticket aggiornato',
+      'ticket di supporto aggiornato',
+      'ticket di supporto',
       'new message',
       'nuovo messaggio',
       'new chat message',
@@ -291,8 +312,13 @@ class FeedItemModel {
   }
 
   bool _isGenericApiContent(String text) {
-    final lower = text.toLowerCase().trim();
+    final lower =
+        NotificationContentLocalizer.stripEmojis(text).toLowerCase().trim();
     if (lower.isEmpty) return true;
+
+    if (NotificationContentLocalizer.isGenericTicketContent(lower)) {
+      return true;
+    }
 
     const genericPatterns = [
       'a new document has been uploaded',
@@ -328,7 +354,7 @@ class FeedItemModel {
       if (title.isNotEmpty && !_isGenericApiTitle) return displayTitle;
     }
 
-    if (type.toLowerCase() == 'maintenance') {
+    if (type.toLowerCase() == 'maintenance' || _isTicketType) {
       final content = displayContent;
       if (content.isNotEmpty && !_isGenericApiContent(content)) return content;
       if (title.isNotEmpty && !_isGenericApiTitle) return displayTitle;
@@ -340,7 +366,7 @@ class FeedItemModel {
     return notificationTitleKey.tr;
   }
 
-  /// Prefixed title for Notification Center (Documento:/Manutenzione:/Chat…).
+  /// Prefixed title for Notification Center (Documento:/Manutenzione:/Ticket:/Chat…).
   String get localizedCenterTitle {
     if (_isMessageType) return 'notification_center_title_chat'.tr;
 
@@ -350,6 +376,10 @@ class FeedItemModel {
 
     if (type.toLowerCase() == 'maintenance') {
       return '${'notification_center_prefix_maintenance'.tr} $_centerTitleDetail';
+    }
+
+    if (_isTicketType) {
+      return NotificationContentLocalizer.localizedTicketTitle();
     }
 
     return localizedDisplayTitle;
@@ -362,6 +392,12 @@ class FeedItemModel {
       final content = localizedDisplayContent;
       if (content.isEmpty || content == localizedCenterTitle) return '';
       return content;
+    }
+
+    if (_isTicketType) {
+      return NotificationContentLocalizer.localizedTicketBody(
+        rawBody: description,
+      );
     }
 
     final content = localizedDisplayContent;
@@ -380,17 +416,18 @@ class FeedItemModel {
       final localeController = Get.find<LocaleController>();
       final isItalian = localeController.isItalian;
 
-      if (isItalian) {
-        return titleIt?.isNotEmpty == true
-            ? titleIt!
-            : (title.isNotEmpty ? title : (titleEn ?? ''));
-      } else {
-        return titleEn?.isNotEmpty == true
-            ? titleEn!
-            : (title.isNotEmpty ? title : (titleIt ?? ''));
-      }
+      final raw = isItalian
+          ? (titleIt?.isNotEmpty == true
+              ? titleIt!
+              : (title.isNotEmpty ? title : (titleEn ?? '')))
+          : (titleEn?.isNotEmpty == true
+              ? titleEn!
+              : (title.isNotEmpty ? title : (titleIt ?? '')));
+      return NotificationContentLocalizer.stripEmojis(raw);
     } catch (e) {
-      return title.isNotEmpty ? title : (titleEn ?? titleIt ?? '');
+      return NotificationContentLocalizer.stripEmojis(
+        title.isNotEmpty ? title : (titleEn ?? titleIt ?? ''),
+      );
     }
   }
 
@@ -400,17 +437,20 @@ class FeedItemModel {
       final localeController = Get.find<LocaleController>();
       final isItalian = localeController.isItalian;
 
-      if (isItalian) {
-        return contentIt?.isNotEmpty == true
-            ? contentIt!
-            : (description.isNotEmpty ? description : (contentEn ?? ''));
-      } else {
-        return contentEn?.isNotEmpty == true
-            ? contentEn!
-            : (description.isNotEmpty ? description : (contentIt ?? ''));
-      }
+      final raw = isItalian
+          ? (contentIt?.isNotEmpty == true
+              ? contentIt!
+              : (description.isNotEmpty ? description : (contentEn ?? '')))
+          : (contentEn?.isNotEmpty == true
+              ? contentEn!
+              : (description.isNotEmpty ? description : (contentIt ?? '')));
+      return NotificationContentLocalizer.stripEmojis(raw);
     } catch (e) {
-      return description.isNotEmpty ? description : (contentEn ?? contentIt ?? '');
+      return NotificationContentLocalizer.stripEmojis(
+        description.isNotEmpty
+            ? description
+            : (contentEn ?? contentIt ?? ''),
+      );
     }
   }
 
@@ -459,6 +499,11 @@ class FeedItemModel {
         return 'notification_document_uploaded';
       case 'maintenance':
         return 'notification_maintenance_updated';
+      case 'ticket':
+      case 'tickets':
+      case 'support_ticket':
+      case 'support_tickets':
+        return 'notification_ticket_updated';
       case 'chat':
       case 'message':
       case 'messages':
@@ -477,6 +522,11 @@ class FeedItemModel {
         return 'notification_document_description';
       case 'maintenance':
         return 'notification_maintenance_description';
+      case 'ticket':
+      case 'tickets':
+      case 'support_ticket':
+      case 'support_tickets':
+        return 'notification_ticket_description';
       case 'chat':
       case 'message':
       case 'messages':
@@ -490,8 +540,9 @@ class FeedItemModel {
 
   /// Title shown in notification modal — prefers API / entity data over generic keys.
   String get localizedDisplayTitle {
-    if (titleEn != null && titleEn!.isNotEmpty) return displayTitle;
-    if (titleIt != null && titleIt!.isNotEmpty) return displayTitle;
+    if (_isTicketType) {
+      return NotificationContentLocalizer.localizedTicketTitle();
+    }
 
     if (relatedEntityName != null && relatedEntityName!.isNotEmpty) {
       if (_isGenericApiTitle || _isDocumentType || _isMessageType) {
@@ -504,7 +555,15 @@ class FeedItemModel {
       if (fileName != null) return fileName;
     }
 
-    if (title.isNotEmpty && !_isGenericApiTitle) return title;
+    final hasBilingual =
+        (titleEn != null && titleEn!.isNotEmpty) ||
+        (titleIt != null && titleIt!.isNotEmpty);
+
+    if (hasBilingual && !_isGenericApiTitle) {
+      return displayTitle;
+    }
+
+    if (title.isNotEmpty && !_isGenericApiTitle) return displayTitle;
 
     if (relatedEntityName != null && relatedEntityName!.isNotEmpty) {
       return relatedEntityName!;
@@ -515,13 +574,25 @@ class FeedItemModel {
 
   /// Description shown in notification modal — prefers API content over generic keys.
   String get localizedDisplayContent {
-    if (contentEn != null && contentEn!.isNotEmpty) return displayContent;
-    if (contentIt != null && contentIt!.isNotEmpty) return displayContent;
+    if (_isTicketType) {
+      return NotificationContentLocalizer.localizedTicketBody(
+        rawBody: description.isNotEmpty ? description : displayContent,
+      );
+    }
+
+    final hasBilingual =
+        (contentEn != null && contentEn!.isNotEmpty) ||
+        (contentIt != null && contentIt!.isNotEmpty);
+
+    if (hasBilingual) {
+      final content = displayContent;
+      if (!_isGenericApiContent(content)) return content;
+    }
 
     final parts = <String>[];
 
-    if (description.isNotEmpty) {
-      parts.add(description);
+    if (description.isNotEmpty && !_isGenericApiContent(description)) {
+      parts.add(NotificationContentLocalizer.stripEmojis(description));
     }
 
     if (categoryName != null &&

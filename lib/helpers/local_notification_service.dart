@@ -1,6 +1,8 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import '../core/utils/notification_content_localizer.dart';
+
 class LocalNotificationService {
   static final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
@@ -49,45 +51,66 @@ class LocalNotificationService {
     _initialized = true;
   }
 
-  /// Resolve title/body from FCM notification block or data payload.
+  /// Resolve title/body from FCM notification block or data payload,
+  /// then localize ticket/support content for the active app language.
   static ({String title, String body}) resolveContent(RemoteMessage message) {
+    final data = message.data;
     final pushNotification = message.notification;
+
+    String rawTitle = '';
+    String rawBody = '';
+
     if (pushNotification?.title != null &&
         pushNotification!.title!.trim().isNotEmpty) {
-      return (
-        title: pushNotification.title!.trim(),
-        body: pushNotification.body?.trim() ?? '',
+      rawTitle = pushNotification.title!.trim();
+      rawBody = pushNotification.body?.trim() ?? '';
+    } else {
+      rawTitle = _firstNonEmpty(data, const [
+            'title',
+            'notification_title',
+            'subject',
+            'headline',
+            'title_en',
+            'title_it',
+          ]) ??
+          '';
+      rawBody = _firstNonEmpty(data, const [
+            'body',
+            'message',
+            'content',
+            'subtitle',
+            'notification_body',
+            'text',
+            'description',
+            'content_en',
+            'content_it',
+          ]) ??
+          '';
+    }
+
+    final type = _firstNonEmpty(data, const [
+      'notification_type',
+      'type',
+      'push_type',
+      'category',
+    ]);
+
+    if (rawTitle.isEmpty && rawBody.isEmpty) {
+      final fallback = NotificationContentLocalizer.localize(
+        type: type,
+        title: 'CasaZero',
+        body: NotificationContentLocalizer.isItalian
+            ? 'Hai una nuova notifica'
+            : 'You have a new notification',
       );
+      return fallback;
     }
 
-    final data = message.data;
-    final title = _firstNonEmpty(data, const [
-      'title',
-      'notification_title',
-      'subject',
-      'headline',
-    ]);
-    final body = _firstNonEmpty(data, const [
-      'body',
-      'message',
-      'content',
-      'subtitle',
-      'notification_body',
-      'text',
-      'description',
-    ]);
-
-    if (title != null && body != null) {
-      return (title: title, body: body);
-    }
-    if (body != null) {
-      return (title: 'CasaZero', body: body);
-    }
-    if (title != null) {
-      return (title: title, body: '');
-    }
-
-    return (title: 'CasaZero', body: 'You have a new notification');
+    return NotificationContentLocalizer.localize(
+      type: type,
+      title: rawTitle.isNotEmpty ? rawTitle : 'CasaZero',
+      body: rawBody,
+    );
   }
 
   static String? _firstNonEmpty(
