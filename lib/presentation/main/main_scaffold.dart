@@ -1077,7 +1077,8 @@ extension _MainScaffoldNotification on MainScaffold {
   }
 
   Widget _buildIcon(BottomNavTab tab, bool isActive) {
-    final double activeSize = 24.w;
+    // Active icon slightly larger than inactive for clear tab affordance.
+    final double activeSize = 28.w;
     final double inactiveSize = 24.w;
 
     // The icon that should NOT change color when active

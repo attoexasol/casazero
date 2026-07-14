@@ -50,10 +50,11 @@ class FloatingBottomNavBar extends StatelessWidget {
   static const double _tabletBreakpoint = 600;
   static const double _tabletMaxBarWidth = 600;
 
-  /// Android uses a taller pill; iOS uses a compact bar closer to the home indicator.
-  static double get barHeight => isIOS ? 56.h : 72.h;
+  /// Android uses a taller pill; iOS sits near the home indicator but matches
+  /// Instagram-like vertical presence (not overly compact).
+  static double get barHeight => isIOS ? 64.h : 72.h;
 
-  static double get collapsedBarHeight => isIOS ? 48.h : 64.h;
+  static double get collapsedBarHeight => isIOS ? 56.h : 64.h;
 
   /// iOS already has a large home-indicator inset — keep only a small visual gap.
   static double get bottomMargin => isIOS ? 6.h : 16.h;
@@ -155,13 +156,14 @@ class FloatingBottomNavBar extends StatelessWidget {
     final currentBarWidth = _lerp(expandedBarWidth, collapsedBarWidth, t);
     final currentBarHeight = _lerp(barHeight, collapsedBarHeight, t);
     final currentBottomMargin = _lerp(bottomMargin, collapsedBottomMargin, t);
-    final expandedRadius = isIOS ? 32.r : 38.r;
-    final collapsedRadius = isIOS ? 28.r : 34.r;
+    final expandedRadius = isIOS ? 34.r : 38.r;
+    final collapsedRadius = isIOS ? 30.r : 34.r;
     final borderRadiusValue = _lerp(expandedRadius, collapsedRadius, t);
     final borderRadius = BorderRadius.circular(borderRadiusValue);
     final borderWidth = _lerp(1.5.w, 1.4.w, t);
     final iconScale = _lerp(1.0, 0.94, t);
-    final activeIconBoost = _lerp(1.1, 1.06, t);
+    // Active tab reads slightly larger than inactive (Instagram-style).
+    final activeIconBoost = _lerp(1.14, 1.08, t);
     final blurSigma = _lerp(8.0, 7.0, t);
 
     return Padding(
