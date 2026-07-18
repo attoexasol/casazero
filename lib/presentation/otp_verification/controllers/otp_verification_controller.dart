@@ -83,9 +83,15 @@ class OtpVerificationController extends GetxController {
       }
     }
 
-    // Auto-send OTP for email and SMS using actual API
+    // Auto-send OTP for email and SMS using actual API.
+    // Forgot password already sent OTP via POST /auth/forgot-password — do not send again.
     if (twoFaMethod.value == 'email' || twoFaMethod.value == 'sms') {
-      sendOTP();
+      if (fromForgotPassword.value) {
+        countdown.value = 60;
+        _startCountdown();
+      } else {
+        sendOTP();
+      }
     }
   }
 
