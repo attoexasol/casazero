@@ -349,6 +349,13 @@ class FeedItemModel {
     }
 
     if (_isDocumentType) {
+      // API stores the human-readable document name in `content` (mapped to
+      // [description]). Prefer that over the hashed storage filename in [url].
+      if (description.isNotEmpty && !_isGenericApiContent(description)) {
+        return _stripFileExtension(
+          NotificationContentLocalizer.stripEmojis(description),
+        );
+      }
       final fileName = fileNameFromUrl;
       if (fileName != null) return _stripFileExtension(fileName);
       if (title.isNotEmpty && !_isGenericApiTitle) return displayTitle;
@@ -385,6 +392,31 @@ class FeedItemModel {
     return localizedDisplayTitle;
   }
 
+  /// File type label for document notifications (e.g. PDF, JPG), from
+  /// the human-readable name or the storage URL.
+  String? get documentFileType {
+    if (!_isDocumentType) return null;
+
+    final fromDescription = _extensionFromName(description);
+    if (fromDescription != null) return fromDescription;
+
+    return _extensionFromName(fileNameFromUrl ?? url ?? '');
+  }
+
+  static String? _extensionFromName(String name) {
+    final cleaned = name.split('?').first.trim();
+    if (cleaned.isEmpty) return null;
+
+    final dot = cleaned.lastIndexOf('.');
+    if (dot <= 0 || dot >= cleaned.length - 1) return null;
+
+    final ext = cleaned.substring(dot + 1).trim();
+    if (ext.isEmpty || ext.length > 5) return null;
+    if (!RegExp(r'^[a-zA-Z0-9]+$').hasMatch(ext)) return null;
+
+    return ext.toUpperCase();
+  }
+
   /// Subtitle for Notification Center — message preview for chat, otherwise
   /// supplementary content when it adds context beyond the prefixed title.
   String get localizedCenterSubtitle {
@@ -398,6 +430,11 @@ class FeedItemModel {
       return NotificationContentLocalizer.localizedTicketBody(
         rawBody: description,
       );
+    }
+
+    // Document cards: file type (PDF, JPG, …) between name and timestamp.
+    if (_isDocumentType) {
+      return documentFileType ?? '';
     }
 
     final content = localizedDisplayContent;
@@ -551,6 +588,10 @@ class FeedItemModel {
     }
 
     if (_isDocumentType) {
+      // Prefer API content (document name) over hashed filename from URL.
+      if (description.isNotEmpty && !_isGenericApiContent(description)) {
+        return NotificationContentLocalizer.stripEmojis(description);
+      }
       final fileName = fileNameFromUrl;
       if (fileName != null) return fileName;
     }
@@ -602,10 +643,11 @@ class FeedItemModel {
     }
 
     if (_isDocumentType) {
+      // Only use the URL filename when we have no better document name already.
       final fileName = fileNameFromUrl;
-      if (fileName != null &&
-          fileName != localizedDisplayTitle &&
-          !parts.any((p) => p.contains(fileName))) {
+      if (parts.isEmpty &&
+          fileName != null &&
+          fileName != localizedDisplayTitle) {
         parts.add(fileName);
       }
     }
