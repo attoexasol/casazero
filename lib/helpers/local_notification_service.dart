@@ -1,18 +1,43 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
+import '../core/constants/storage_keys.dart';
 import '../core/services/notification_manager.dart';
+import '../core/services/push_launch_handler.dart';
+import '../core/services/storage_service.dart';
 import '../core/utils/notification_content_localizer.dart';
+
+/// Runs in a background isolate when a local notification is tapped while the
+/// app process is not in the foreground. Persist payload so main isolate can flush.
+@pragma('vm:entry-point')
+void localNotificationTapBackground(NotificationResponse response) {
+  final raw = response.payload;
+  if (raw == null || raw.trim().isEmpty) return;
+  try {
+    final decoded = jsonDecode(raw);
+    if (decoded is! Map) return;
+    final map = decoded.map((key, value) => MapEntry(key.toString(), value));
+    // Best-effort — GetStorage may need init in this isolate.
+    // ignore: unawaited_futures
+    GetStorage.init().then((_) {
+      GetStorage().write(StorageKeys.PENDING_NOTIFICATION_NAV, map);
+    });
+  } catch (_) {}
+}
 
 class LocalNotificationService {
   static final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
-  static const String channelId = 'casazero_alerts';
+  /// v2: fresh high-importance channel. Android will not raise importance of an
+  /// already-created channel, so popups can stay silent on the old id.
+  static const String channelId = 'casazero_alerts_v2';
   static const String channelName = 'CasaZero Alerts';
 
   static bool _initialized = false;
@@ -23,10 +48,17 @@ class LocalNotificationService {
     const androidSettings = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
     );
+    // FCM owns permission prompts on iOS. On Android 13+ we still request
+    // POST_NOTIFICATIONS via the plugin so banners/popups are allowed.
     const iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
+      defaultPresentAlert: true,
+      defaultPresentBadge: true,
+      defaultPresentSound: true,
+      defaultPresentBanner: true,
+      defaultPresentList: true,
     );
 
     const settings = InitializationSettings(
@@ -37,16 +69,29 @@ class LocalNotificationService {
     await _plugin.initialize(
       settings,
       onDidReceiveNotificationResponse: _onNotificationTapped,
+      onDidReceiveBackgroundNotificationResponse: localNotificationTapBackground,
     );
 
     final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
     if (androidPlugin != null) {
+      // Android 13+: without this, notifications never appear.
+      try {
+        final granted = await androidPlugin.requestNotificationsPermission();
+        print(
+          '📱 [LocalNotificationService] Android notification permission: $granted',
+        );
+      } catch (e) {
+        print(
+          '⚠️ [LocalNotificationService] Permission request skipped: $e',
+        );
+      }
+
       await androidPlugin.createNotificationChannel(
         const AndroidNotificationChannel(
           channelId,
           channelName,
-          description: 'Push and in-app notifications',
+          description: 'Push and in-app alerts (heads-up enabled)',
           importance: Importance.max,
           playSound: true,
           enableVibration: true,
@@ -54,11 +99,13 @@ class LocalNotificationService {
           showBadge: true,
         ),
       );
+      print('✅ [LocalNotificationService] Channel $channelId created (max)');
     }
 
     _initialized = true;
 
     // Terminated → local notification tap launch (same navigation path as FCM).
+    // Must run AFTER PushLaunchHandler.getInitialMessage (see main.dart order).
     await _handleAppLaunchDetails();
   }
 
@@ -107,14 +154,13 @@ class LocalNotificationService {
     ]);
 
     if (rawTitle.isEmpty && rawBody.isEmpty) {
-      final fallback = NotificationContentLocalizer.localize(
+      return NotificationContentLocalizer.localize(
         type: type,
         title: 'CasaZero',
         body: NotificationContentLocalizer.isItalian
             ? 'Hai una nuova notifica'
             : 'You have a new notification',
       );
-      return fallback;
     }
 
     return NotificationContentLocalizer.localize(
@@ -124,10 +170,7 @@ class LocalNotificationService {
     );
   }
 
-  static String? _firstNonEmpty(
-    Map<String, dynamic> data,
-    List<String> keys,
-  ) {
+  static String? _firstNonEmpty(Map<String, dynamic> data, List<String> keys) {
     for (final key in keys) {
       final value = data[key];
       if (value == null) continue;
@@ -189,14 +232,32 @@ class LocalNotificationService {
   }
 
   static void _dispatchNavigation(Map<String, dynamic> payload) {
+    if (payload.isEmpty) {
+      print('⚠️ [LocalNotificationService] Empty tap payload — skipping');
+      return;
+    }
+
     try {
+      // Persist first so login / late HOME can still deep-link.
+      if (Get.isRegistered<StorageService>()) {
+        unawaited(
+          Get.find<StorageService>().savePendingNotificationNav(payload),
+        );
+      }
+
       if (!Get.isRegistered<NotificationManager>()) {
         print(
-          '⚠️ [LocalNotificationService] NotificationManager not registered',
+          '⚠️ [LocalNotificationService] NotificationManager not ready — '
+          'payload persisted for flush',
         );
         return;
       }
       Get.find<NotificationManager>().handleNotificationNavigation(payload);
+      Future<void>.delayed(const Duration(milliseconds: 800), () {
+        if (Get.isRegistered<NotificationManager>()) {
+          Get.find<NotificationManager>().flushPendingNavigation();
+        }
+      });
     } catch (e) {
       print('❌ [LocalNotificationService] Navigation dispatch error: $e');
     }
@@ -212,13 +273,34 @@ class LocalNotificationService {
       if (payload == null || payload.trim().isEmpty) return;
 
       print(
-        '📬 [LocalNotificationService] Launched from local notification',
+        '📬 [LocalNotificationService] Launched from local notification '
+        'payloadLen=${payload.length}',
       );
+
+      final decoded = decodePayload(payload);
+      if (decoded.isNotEmpty) {
+        if (Get.isRegistered<StorageService>()) {
+          unawaited(
+            Get.find<StorageService>().savePendingNotificationNav(decoded),
+          );
+        } else {
+          unawaited(
+            GetStorage().write(StorageKeys.PENDING_NOTIFICATION_NAV, decoded),
+          );
+        }
+      }
 
       // Defer until after the first frame so GetX / routes can settle.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _forwardPayloadToNavigation(payload);
       });
+      for (final ms in [800, 2000, 4000]) {
+        Future<void>.delayed(Duration(milliseconds: ms), () {
+          if (Get.isRegistered<NotificationManager>()) {
+            Get.find<NotificationManager>().flushPendingNavigation();
+          }
+        });
+      }
     } catch (e) {
       print('❌ [LocalNotificationService] Launch details error: $e');
     }
@@ -231,12 +313,13 @@ class LocalNotificationService {
     final content = resolveContent(message);
     final title = content.title;
     final body = content.body.isNotEmpty ? content.body : content.title;
-    final payload = encodePayload(message.data);
+    final data = PushLaunchHandler.dataFromRemoteMessage(message);
+    final payload = encodePayload(data);
 
     final androidDetails = AndroidNotificationDetails(
       channelId,
       channelName,
-      channelDescription: 'Push and in-app notifications',
+      channelDescription: 'Push and in-app alerts (heads-up enabled)',
       importance: Importance.max,
       priority: Priority.max,
       visibility: NotificationVisibility.public,
@@ -245,14 +328,23 @@ class LocalNotificationService {
       playSound: true,
       enableVibration: true,
       enableLights: true,
+      autoCancel: true,
+      onlyAlertOnce: false,
+      channelShowBadge: true,
       icon: '@mipmap/ic_launcher',
-      styleInformation: BigTextStyleInformation(body),
+      styleInformation: BigTextStyleInformation(
+        body,
+        contentTitle: title,
+        summaryText: 'CasaZero',
+      ),
     );
 
     const iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
+      presentBanner: true,
+      presentList: true,
       interruptionLevel: InterruptionLevel.timeSensitive,
     );
 
@@ -261,12 +353,17 @@ class LocalNotificationService {
       iOS: iosDetails,
     );
 
+    final id = _notificationId(message);
     await _plugin.show(
-      _notificationId(message),
+      id,
       title,
       body,
       details,
       payload: payload,
+    );
+    print(
+      '📣 [LocalNotificationService] Shown id=$id title="$title" '
+      'channel=$channelId',
     );
   }
 }

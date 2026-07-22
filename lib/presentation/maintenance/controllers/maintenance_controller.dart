@@ -45,6 +45,9 @@ class MaintenanceController extends GetxController {
   final RxInt pendingCount = 0.obs;
   final RxInt overdueCount = 0.obs;
 
+  /// When set (e.g. from notification deep link), screen can focus this task id.
+  final Rxn<String> pendingFocusTaskId = Rxn<String>();
+
   // Category task counts (dynamically calculated)
   final RxMap<int, int> categoryTaskCounts = <int, int>{}.obs;
 

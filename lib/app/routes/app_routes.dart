@@ -89,9 +89,16 @@ class AppRoutes {
             Get.find<HomeController>().ensureDataForCurrentUser();
           }
           // Phase 3: run queued notification deep-link after HOME is ready.
-          if (Get.isRegistered<NotificationManager>()) {
-            Get.find<NotificationManager>().flushPendingNavigation();
+          void flushNav() {
+            if (Get.isRegistered<NotificationManager>()) {
+              Get.find<NotificationManager>().flushPendingNavigation();
+            }
           }
+
+          flushNav();
+          // Feed may still be loading — enrich+navigate on a short delay.
+          Future<void>.delayed(const Duration(milliseconds: 1500), flushNav);
+          Future<void>.delayed(const Duration(milliseconds: 3500), flushNav);
         });
       }),
     ),

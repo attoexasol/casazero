@@ -127,12 +127,34 @@ class StorageService extends GetxService {
   // Clear All Data
   /// Clears session/auth data. [preserveLanguage] keeps the user's UI language
   /// choice so logout or session expiry does not reset it to the app default.
+  /// Also preserves a pending notification deep-link so login can resume it.
   Future<void> clearAll({bool preserveLanguage = true}) async {
     final savedLanguage =
         preserveLanguage ? _box.read<String>(StorageKeys.LANGUAGE) : null;
+    final pendingNav = _box.read(StorageKeys.PENDING_NOTIFICATION_NAV);
     await _box.erase();
     if (savedLanguage != null && savedLanguage.isNotEmpty) {
       await _box.write(StorageKeys.LANGUAGE, savedLanguage);
     }
+    if (pendingNav != null) {
+      await _box.write(StorageKeys.PENDING_NOTIFICATION_NAV, pendingNav);
+    }
+  }
+
+  Future<void> savePendingNotificationNav(Map<String, dynamic> payload) async {
+    await _box.write(StorageKeys.PENDING_NOTIFICATION_NAV, payload);
+  }
+
+  Map<String, dynamic>? getPendingNotificationNav() {
+    final raw = _box.read(StorageKeys.PENDING_NOTIFICATION_NAV);
+    if (raw is Map<String, dynamic>) return raw;
+    if (raw is Map) {
+      return raw.map((key, value) => MapEntry(key.toString(), value));
+    }
+    return null;
+  }
+
+  Future<void> clearPendingNotificationNav() async {
+    await _box.remove(StorageKeys.PENDING_NOTIFICATION_NAV);
   }
 }

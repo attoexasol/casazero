@@ -27,6 +27,9 @@ class FeedItemModel {
   /// Optional API subtitle field (shown as modal main title).
   final String? subtitle;
 
+  /// Linked entity id from API/FCM (`reference_id`) — document / maintenance / ticket id.
+  final String? referenceId;
+
   FeedItemModel({
     required this.id,
     required this.type,
@@ -43,6 +46,7 @@ class FeedItemModel {
     this.relatedEntityName,
     this.categoryName,
     this.subtitle,
+    this.referenceId,
   });
 
   factory FeedItemModel.fromJson(Map<String, dynamic> json) {
@@ -103,6 +107,9 @@ class FeedItemModel {
         _readString(json['subtitle_en']) ??
         _readString(json['subtitle_it']);
 
+    final referenceId = _readString(json['reference_id']) ??
+        _readString(json['referenceId']);
+
     return FeedItemModel(
       id: id,
       type: type,
@@ -119,6 +126,7 @@ class FeedItemModel {
       relatedEntityName: relatedEntityName,
       categoryName: categoryName,
       subtitle: subtitle,
+      referenceId: referenceId,
     );
   }
 
@@ -503,7 +511,40 @@ class FeedItemModel {
       'url': url,
       'related_entity_name': relatedEntityName,
       'category_name': categoryName,
+      'reference_id': referenceId,
     };
+  }
+
+  /// Payload for [NotificationManager.handleNotificationNavigation].
+  Map<String, dynamic> toNavigationPayload() {
+    var navType = type.toLowerCase().trim();
+    if (isAdminChatNotification) {
+      navType = 'private_chat';
+    } else if (isChatNotification) {
+      navType = 'group_chat';
+    }
+
+    final payload = <String, dynamic>{
+      'type': navType,
+      'notification_type': navType,
+      'id': id,
+    };
+
+    if (referenceId != null && referenceId!.isNotEmpty) {
+      payload['reference_id'] = referenceId;
+    }
+    if (url != null && url!.isNotEmpty) {
+      payload['url'] = url;
+    }
+    if (relatedEntityName != null && relatedEntityName!.isNotEmpty) {
+      payload['related_entity_name'] = relatedEntityName;
+      payload['file_name'] = relatedEntityName;
+    }
+    if (title.isNotEmpty) {
+      payload['title'] = title;
+    }
+
+    return payload;
   }
 
   String get timeAgo {
@@ -679,6 +720,7 @@ class FeedItemModel {
     String? relatedEntityName,
     String? categoryName,
     String? subtitle,
+    String? referenceId,
   }) {
     return FeedItemModel(
       id: id ?? this.id,
@@ -696,6 +738,7 @@ class FeedItemModel {
       relatedEntityName: relatedEntityName ?? this.relatedEntityName,
       categoryName: categoryName ?? this.categoryName,
       subtitle: subtitle ?? this.subtitle,
+      referenceId: referenceId ?? this.referenceId,
     );
   }
 }

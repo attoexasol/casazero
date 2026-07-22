@@ -14,6 +14,12 @@ import java.io.File
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.example.casazero/file_opener"
 
+    // Required for FCM / local-notification taps while activity is singleTop (MIUI/Android).
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+    }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         

@@ -19,6 +19,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
 import 'core/utils/firebase_config_audit.dart';
 import 'helpers/local_notification_service.dart';
+import 'core/services/push_launch_handler.dart';
 import 'dart:async';
 
 const Color _splashBackgroundColor = Color(0xFFFAF7F4);
@@ -42,8 +43,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     '📩 [FCM Background] messageId: $messageId, title: ${message.notification?.title}, data keys: ${data.isNotEmpty ? data.keys.join(", ") : "none"}',
   );
 
-  // Data-only pushes: show localized local notification.
-  // Notification-payload pushes are rendered by the OS (backend language).
+  // Data-only pushes: show localized local notification with tap payload.
+  // Notification-payload pushes are rendered by the OS; taps use PushLaunchHandler.
   if (message.notification == null) {
     try {
       await LocalNotificationService.showNotification(message);
@@ -73,6 +74,8 @@ Future<void> main() async {
 }
 
 /// Fast startup work required before the splash screen can run.
+/// Includes Firebase + PushLaunchHandler so tray/lock-screen cold starts
+/// can capture [getInitialMessage] before the intent is lost.
 Future<void> _initializeCriticalServices() async {
   try {
     await GetStorage.init().timeout(const Duration(seconds: 3));
@@ -103,19 +106,24 @@ Future<void> _initializeCriticalServices() async {
     print('❌ LocaleController initialization failed: $e');
     Get.put(LocaleController());
   }
+
+  // Must run before runApp for reliable notification-open deep links.
+  // Order matters on iOS: FCM getInitialMessage BEFORE local launch details.
+  await _initializeFirebase();
+
+  // Local notification launch details (Android foreground banners / data-only).
+  // iOS system APNs taps use PushLaunchHandler instead.
+  try {
+    await LocalNotificationService.initialize();
+    print('✅ Local notifications initialized (critical path)');
+  } catch (e) {
+    print('❌ Local notifications initialization failed: $e');
+  }
 }
 
 /// Heavy services that must not block the first splash frame.
 Future<void> _initializeDeferredServices() async {
-  await _initializeFirebase();
-
   InitialBinding.registerFirebaseDependentServices();
-
-  try {
-    await LocalNotificationService.initialize();
-  } catch (e) {
-    print('❌ Local notifications initialization failed: $e');
-  }
 
   try {
     await SystemChrome.setPreferredOrientations([
@@ -175,6 +183,14 @@ Future<void> _initializeFirebase() async {
       print('✅ Background message handler registered');
     } catch (e) {
       print('❌ Failed to register background message handler: $e');
+    }
+
+    // Capture tray/lock-screen launch ASAP (before deferred FcmService.init).
+    try {
+      await PushLaunchHandler.install();
+      print('✅ Push launch handler installed');
+    } catch (e) {
+      print('❌ Push launch handler failed: $e');
     }
   }
 }

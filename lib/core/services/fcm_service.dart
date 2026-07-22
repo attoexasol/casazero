@@ -12,6 +12,7 @@ import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'notification_manager.dart';
+import 'push_launch_handler.dart';
 import '../../helpers/local_notification_service.dart';
 
 class FcmService extends GetxService with WidgetsBindingObserver {
@@ -215,26 +216,16 @@ class FcmService extends GetxService with WidgetsBindingObserver {
     if (_listenersSetup || Firebase.apps.isEmpty || messaging == null) return;
     _listenersSetup = true;
 
+    // Foreground only — tray/lock-screen opens are handled by PushLaunchHandler
+    // (installed early in main) so getInitialMessage is not missed.
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       unawaited(handlePushMessage(message));
-    });
-
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('📬 [FcmService] Notification opened app');
-      _onNotificationOpenedApp(message);
-    });
-
-    FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
-      if (message != null) {
-        print('📬 [FcmService] Launched from notification (terminated)');
-        _onNotificationOpenedApp(message);
-      }
     });
   }
 
   /// Handle incoming push (foreground). Show local notification and delegate to NotificationManager.
   /// iOS: skip local banner when FCM already has a `notification` block (system presents it).
-  /// Android: always show local notification (unchanged).
+  /// Android: always show local (OS does not show FCM banners while foreground).
   Future<void> handlePushMessage(RemoteMessage message) async {
     try {
       final skipLocalOnIos =
@@ -251,21 +242,12 @@ class FcmService extends GetxService with WidgetsBindingObserver {
       print('❌ [FcmService] Local notification error: $e');
     }
 
-    final data = message.data;
+    final data = PushLaunchHandler.dataFromRemoteMessage(message);
     final messageId = message.messageId;
     print(
       '📨 [FcmService] Foreground push – data keys: ${data.isNotEmpty ? data.keys.join(", ") : "none"}',
     );
     _dispatchToNotificationManager(data, messageId: messageId);
-  }
-
-  void _onNotificationOpenedApp(RemoteMessage message) {
-    final data = message.data;
-    final messageId = message.messageId;
-    _dispatchToNotificationManager(data, messageId: messageId);
-    if (data.isNotEmpty && Get.isRegistered<NotificationManager>()) {
-      Get.find<NotificationManager>().handleNotificationNavigation(data);
-    }
   }
 
   /// Safely pass payload and optional messageId to NotificationManager (never call controllers from here).

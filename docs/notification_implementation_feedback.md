@@ -286,3 +286,18 @@ Push **delivery and display** across foreground, background, and terminated are 
 - [ ] Permission deny → grant → token sync
 - [ ] iOS: no duplicate foreground banners
 - [ ] Localization preserved
+
+### Android + iOS open-path matrix (verified in code)
+
+| Scenario | Android | iOS |
+|----------|---------|-----|
+| Foreground banner tap | Local payload → `LocalNotificationService` | Notif block → system + FCM open; data-only → local |
+| Background / lock-screen tap | FCM `onMessageOpenedApp` + `MainActivity.onNewIntent` | FCM `onMessageOpenedApp` via `FlutterAppDelegate` |
+| Terminated → tap | FCM `getInitialMessage` **or** local launch details | FCM `getInitialMessage` **first**, then local launch details |
+| In-app modal / latest list | Shared `toNavigationPayload()` | Same |
+| Startup order | Firebase → `PushLaunchHandler` → local init | Same (required to avoid iOS FCM/local conflict) |
+| Permissions | FCM + Android 13 notification permission | FCM only (local plugin does not re-request) |
+
+**Native:** Android `singleTop` + `onNewIntent` + `FLUTTER_NOTIFICATION_CLICK`; iOS `remote-notification` + APNs→FCM in `AppDelegate`.
+
+**Backend:** FCM `data` needs `type`/`notification_type` (+ `reference_id` or notification `id` for feed enrichment).

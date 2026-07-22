@@ -16,54 +16,57 @@ import UserNotifications
     // Initialize Firebase (also attempted from Dart main.dart if not already configured)
     FirebaseApp.configure()
 
-    // APNs + FCM: required for reliable FCM token generation on physical iOS devices
+    // Register plugins before wiring delegates so firebase_messaging /
+    // flutter_local_notifications can share FlutterAppDelegate correctly.
+    GeneratedPluginRegistrant.register(with: self)
+
+    // APNs + FCM: required for reliable FCM token generation on physical iOS devices.
+    // FlutterAppDelegate forwards UNUserNotificationCenter tap events to plugins
+    // (getInitialMessage / onMessageOpenedApp / local notification callbacks).
     if #available(iOS 10.0, *) {
       UNUserNotificationCenter.current().delegate = self
     }
     application.registerForRemoteNotifications()
     Messaging.messaging().delegate = self
 
-    // Existing Flutter plugin registration
-    GeneratedPluginRegistrant.register(with: self)
+    let ok = super.application(application, didFinishLaunchingWithOptions: launchOptions)
 
-    // Existing MethodChannel setup
-    guard let controller = window?.rootViewController as? FlutterViewController else {
-      return super.application(application, didFinishLaunchingWithOptions: launchOptions)
-    }
+    // MethodChannel after Flutter engine / root VC exist.
+    if let controller = window?.rootViewController as? FlutterViewController {
+      let channel = FlutterMethodChannel(
+        name: "com.example.casazero/file_opener",
+        binaryMessenger: controller.binaryMessenger
+      )
 
-    let channel = FlutterMethodChannel(
-      name: "com.example.casazero/file_opener",
-      binaryMessenger: controller.binaryMessenger
-    )
-
-    channel.setMethodCallHandler { [weak self] (call, result) in
-      switch call.method {
-      case "showOpenCancelConfirmation":
-        let args = call.arguments as? [String: Any]
-        let title = args?["title"] as? String ?? "Open"
-        let message = args?["message"] as? String ?? "Open this file?"
-        self?.showNativeOpenCancelConfirmation(
-          title: title,
-          message: message,
-          result: result
-        )
-      case "openWithChooser":
-        guard let args = call.arguments as? [String: Any],
-              let filePath = args["filePath"] as? String else {
-          result(FlutterError(
-            code: "INVALID_ARGUMENT",
-            message: "File path is null",
-            details: nil
-          ))
-          return
+      channel.setMethodCallHandler { [weak self] (call, result) in
+        switch call.method {
+        case "showOpenCancelConfirmation":
+          let args = call.arguments as? [String: Any]
+          let title = args?["title"] as? String ?? "Open"
+          let message = args?["message"] as? String ?? "Open this file?"
+          self?.showNativeOpenCancelConfirmation(
+            title: title,
+            message: message,
+            result: result
+          )
+        case "openWithChooser":
+          guard let args = call.arguments as? [String: Any],
+                let filePath = args["filePath"] as? String else {
+            result(FlutterError(
+              code: "INVALID_ARGUMENT",
+              message: "File path is null",
+              details: nil
+            ))
+            return
+          }
+          self?.openFileWithChooser(filePath: filePath, result: result)
+        default:
+          result(FlutterMethodNotImplemented)
         }
-        self?.openFileWithChooser(filePath: filePath, result: result)
-      default:
-        result(FlutterMethodNotImplemented)
       }
     }
 
-    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    return ok
   }
 
   // Forward APNs device token to Firebase Messaging

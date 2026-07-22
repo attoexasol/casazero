@@ -346,39 +346,9 @@ class _NotificationsModalContentState
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!Get.isRegistered<NotificationManager>()) return;
       Get.find<NotificationManager>().handleNotificationNavigation(
-        _navigationPayloadFromFeedItem(notification),
+        notification.toNavigationPayload(),
       );
     });
-  }
-
-  /// Build the same payload shape used by FCM / local notification taps.
-  Map<String, dynamic> _navigationPayloadFromFeedItem(FeedItemModel notification) {
-    var type = notification.type.toLowerCase().trim();
-    if (notification.isAdminChatNotification) {
-      type = 'private_chat';
-    } else if (notification.isChatNotification) {
-      type = 'group_chat';
-    }
-
-    final payload = <String, dynamic>{
-      'type': type,
-      'notification_type': type,
-      'id': notification.id,
-    };
-
-    if (notification.url != null && notification.url!.isNotEmpty) {
-      payload['url'] = notification.url;
-    }
-    if (notification.relatedEntityName != null &&
-        notification.relatedEntityName!.isNotEmpty) {
-      payload['related_entity_name'] = notification.relatedEntityName;
-      payload['file_name'] = notification.relatedEntityName;
-    }
-    if (notification.title.isNotEmpty) {
-      payload['title'] = notification.title;
-    }
-
-    return payload;
   }
 
   Future<void> _deleteNotification(FeedItemModel notification) async {

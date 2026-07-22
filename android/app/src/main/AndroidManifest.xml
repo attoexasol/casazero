@@ -10,6 +10,9 @@
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <application
         android:label="CasaZero"
         android:name="${applicationName}"
@@ -36,6 +39,11 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- FCM notification click (legacy + some OEM trays). -->
+            <intent-filter>
+                <action android:name="FLUTTER_NOTIFICATION_CLICK" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
         <!-- FileProvider for sharing files -->
         <provider
@@ -52,9 +60,10 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- High-importance channel so FCM system banners can heads-up / popup. -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="casazero_alerts" />
+            android:value="casazero_alerts_v2" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

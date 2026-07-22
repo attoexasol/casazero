@@ -8,6 +8,7 @@ import '../../../../app/theme/app_text_styles.dart';
 import '../../../../data/models/feed_item_model.dart';
 import '../../controllers/home_controller.dart';
 import '../../../../core/localization/locale_controller.dart';
+import '../../../../core/services/notification_manager.dart';
 
 /// Latest Notifications Widget - Converted from React latestnotification.tsx
 /// Displays notification cards with premium styling matching React design
@@ -106,9 +107,17 @@ class LatestNotifications extends StatelessWidget {
                   child:
                       _LatestNotificationCard(
                             notification: notification,
-                            onTap: () => controller.markNotificationAsRead(
-                              notification.id,
-                            ),
+                            onTap: () {
+                              controller.markNotificationAsRead(
+                                notification.id,
+                              );
+                              if (Get.isRegistered<NotificationManager>()) {
+                                Get.find<NotificationManager>()
+                                    .handleNotificationNavigation(
+                                  notification.toNavigationPayload(),
+                                );
+                              }
+                            },
                           )
                           .animate(
                             delay: (600 + index * 100)

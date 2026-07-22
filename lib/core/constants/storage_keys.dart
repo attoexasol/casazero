@@ -12,4 +12,7 @@ class StorageKeys {
 
   /// Laravel login top-level `firebase_project_id`.
   static const String FIREBASE_PROJECT_ID = 'firebase_project_id';
+
+  /// Pending deep-link from notification tap (survives session expiry / login).
+  static const String PENDING_NOTIFICATION_NAV = 'pending_notification_nav';
 }
