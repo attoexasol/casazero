@@ -3,18 +3,13 @@ import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:open_filex/open_filex.dart';
-import 'dart:io';
 import '../../app/theme/app_colors.dart';
-import '../../core/services/file_opener_service.dart';
 import '../../app/theme/app_text_styles.dart';
 import '../../app/theme/app_shadows.dart';
-import '../../core/controllers/message_popup_controller.dart';
 import '../../presentation/home/controllers/home_controller.dart';
 import '../../data/models/feed_item_model.dart';
 import '../../core/localization/locale_controller.dart';
-import '../../core/services/download_service.dart';
-import '../../presentation/main/main_scaffold.dart';
+import '../../core/services/notification_manager.dart';
 
 /// Modal Bottom Sheet for displaying all notifications
 /// Converted from React NotificationsScreen.tsx
@@ -50,7 +45,6 @@ class _NotificationsModalContent extends StatefulWidget {
 class _NotificationsModalContentState
     extends State<_NotificationsModalContent> {
   String _filter = 'all'; // 'all', 'document', 'maintenance', 'chat', 'ticket'
-  final DownloadService _downloadService = Get.find<DownloadService>();
 
   @override
   Widget build(BuildContext context) {
@@ -347,162 +341,44 @@ class _NotificationsModalContentState
   void _handleAction(FeedItemModel notification) {
     widget.controller.markNotificationAsRead(notification.id);
 
-    final type = notification.type.toLowerCase();
-    final isDocument = type == 'document' || type == 'documents';
-
-    // Only document notifications close the modal and open the file.
-    if (!isDocument) return;
-
     Navigator.of(context).pop();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _handleDocumentNotification(notification);
+      if (!Get.isRegistered<NotificationManager>()) return;
+      Get.find<NotificationManager>().handleNotificationNavigation(
+        _navigationPayloadFromFeedItem(notification),
+      );
     });
   }
 
-  /// Handle document notification - download and open with native "Open with" chooser
-  /// Same functionality as document card view button
-  Future<void> _handleDocumentNotification(FeedItemModel notification) async {
-    try {
-      // Check if notification has a URL
-      if (notification.url == null || notification.url!.isEmpty) {
-        widget.controller.navigateToScreen(AppScreen.documents);
-        MessagePopupController.showError(
-          messageKey: 'documentUrlNotAvailable',
-          titleKey: 'downloadFailed',
-        );
-        return;
-      }
-
-      // Generate filename from notification
-      final fileName = _generateFileName(notification);
-      final fileId = notification.id;
-
-      print('📥 [Notification] Starting download: $fileName');
-      print('📥 [Notification] URL: ${notification.url}');
-
-      MessagePopupController.showDownloading(
-        messageKey:
-            '${'downloading'.tr}: ${notification.localizedCenterTitle}',
-        titleKey: 'downloading',
-      );
-
-      final result = await _downloadService.downloadDocument(
-        fileUrl: notification.url!,
-        fileName: fileName,
-        fileId: fileId,
-      );
-
-      if (result['success'] == true) {
-        final filePath = result['filePath'] as String;
-        MessagePopupController.closePopup();
-        print('✅ [Notification] Download successful: $filePath');
-        await Future.delayed(const Duration(milliseconds: 500));
-        await _showOpenFileBottomSheet(filePath, notification.displayTitle);
-      } else {
-        MessagePopupController.closePopup();
-        MessagePopupController.showError(
-          messageKey: 'downloadError',
-          titleKey: 'downloadFailed',
-        );
-        print('❌ [Notification] Download failed: ${result['error']}');
-      }
-    } catch (e) {
-      print('❌ [Notification] Error downloading document: $e');
-      MessagePopupController.closePopup();
-      MessagePopupController.showError(
-        messageKey: 'downloadError',
-        titleKey: 'downloadFailed',
-      );
+  /// Build the same payload shape used by FCM / local notification taps.
+  Map<String, dynamic> _navigationPayloadFromFeedItem(FeedItemModel notification) {
+    var type = notification.type.toLowerCase().trim();
+    if (notification.isAdminChatNotification) {
+      type = 'private_chat';
+    } else if (notification.isChatNotification) {
+      type = 'group_chat';
     }
-  }
 
-  /// Generate filename from notification URL or parsed entity name
-  String _generateFileName(FeedItemModel notification) {
-    final fromUrl = notification.fileNameFromUrl;
-    if (fromUrl != null) return fromUrl;
-
-    final entityName = notification.relatedEntityName;
-    if (entityName != null && entityName.contains('.')) return entityName;
+    final payload = <String, dynamic>{
+      'type': type,
+      'notification_type': type,
+      'id': notification.id,
+    };
 
     if (notification.url != null && notification.url!.isNotEmpty) {
-      final urlParts = notification.url!.split('/');
-      if (urlParts.isNotEmpty) {
-        final lastPart = urlParts.last;
-        if (lastPart.contains('.')) {
-          return lastPart;
-        }
-      }
+      payload['url'] = notification.url;
+    }
+    if (notification.relatedEntityName != null &&
+        notification.relatedEntityName!.isNotEmpty) {
+      payload['related_entity_name'] = notification.relatedEntityName;
+      payload['file_name'] = notification.relatedEntityName;
+    }
+    if (notification.title.isNotEmpty) {
+      payload['title'] = notification.title;
     }
 
-    // Fallback: generate from title
-    final cleanTitle = notification.displayTitle
-        .replaceAll(RegExp(r'[^\w\s-]'), '')
-        .replaceAll(RegExp(r'\s+'), '_');
-
-    // Try to extract extension from URL
-    String extension = 'pdf'; // Default extension
-    if (notification.url != null && notification.url!.isNotEmpty) {
-      final url = notification.url!;
-      final lastDot = url.lastIndexOf('.');
-      if (lastDot != -1 && lastDot < url.length - 1) {
-        final ext = url.substring(lastDot + 1).toLowerCase();
-        if (ext.length <= 5) {
-          // Reasonable extension length
-          extension = ext;
-        }
-      }
-    }
-
-    return '$cleanTitle.$extension';
-  }
-
-  /// Show native "Open with" chooser with available apps to open the file
-  /// Uses open_filex which shows native Android chooser or iOS share sheet
-  Future<void> _showOpenFileBottomSheet(
-    String filePath,
-    String fileName,
-  ) async {
-    try {
-      final file = File(filePath);
-      if (!await file.exists()) {
-        MessagePopupController.showError(
-          messageKey: 'fileNotFound',
-          titleKey: 'openFileFailed',
-        );
-        return;
-      }
-
-      // Use FileOpenerService to show native "Open with" chooser (same as documents flow)
-      print(
-        '📂 [Notification] Opening native "Open with" chooser for file: $fileName',
-      );
-      final result = await FileOpenerService.openWithChooser(filePath);
-
-      print(
-        '📂 [Notification] Open file result: ${result.type} - ${result.message}',
-      );
-
-      // Handle the result
-      if (result.type == ResultType.noAppToOpen) {
-        MessagePopupController.showWarning(
-          messageKey: 'noAppToOpen',
-          titleKey: 'openFileFailed',
-        );
-      } else if (result.type == ResultType.error ||
-          result.type == ResultType.fileNotFound) {
-        MessagePopupController.showError(
-          messageKey: 'openFileError',
-          titleKey: 'openFileFailed',
-        );
-      }
-    } catch (e) {
-      print('❌ [Notification] Error showing file chooser: $e');
-      MessagePopupController.showError(
-        messageKey: 'openFileError',
-        titleKey: 'openFileFailed',
-      );
-    }
+    return payload;
   }
 
   Future<void> _deleteNotification(FeedItemModel notification) async {

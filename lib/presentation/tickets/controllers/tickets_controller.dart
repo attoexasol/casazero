@@ -175,6 +175,9 @@ class TicketsController extends GetxController {
   final RxList<TicketModel> allTickets = <TicketModel>[].obs;
   final RxBool isLoadingTickets = false.obs;
 
+  /// When set (e.g. from notification deep link), TicketsScreen expands this ticket.
+  final Rxn<String> pendingExpandTicketId = Rxn<String>();
+
   @override
   void onInit() {
     super.onInit();

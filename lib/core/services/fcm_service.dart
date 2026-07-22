@@ -140,7 +140,8 @@ class FcmService extends GetxService with WidgetsBindingObserver {
     return false;
   }
 
-  /// iOS: show alert, badge, sound when app is in foreground
+  /// iOS: show system alert/badge/sound in foreground when FCM includes a
+  /// `notification` block. Local banners are skipped in that case (Phase 7).
   Future<void> _setIOSForegroundPresentationOptions() async {
     try {
       if (!Platform.isIOS || messaging == null) return;
@@ -232,9 +233,20 @@ class FcmService extends GetxService with WidgetsBindingObserver {
   }
 
   /// Handle incoming push (foreground). Show local notification and delegate to NotificationManager.
+  /// iOS: skip local banner when FCM already has a `notification` block (system presents it).
+  /// Android: always show local notification (unchanged).
   Future<void> handlePushMessage(RemoteMessage message) async {
     try {
-      await LocalNotificationService.showNotification(message);
+      final skipLocalOnIos =
+          !kIsWeb && Platform.isIOS && message.notification != null;
+      if (skipLocalOnIos) {
+        print(
+          '📨 [FcmService] iOS foreground — using system presentation '
+          '(skipping local duplicate)',
+        );
+      } else {
+        await LocalNotificationService.showNotification(message);
+      }
     } catch (e) {
       print('❌ [FcmService] Local notification error: $e');
     }

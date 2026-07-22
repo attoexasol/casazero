@@ -287,6 +287,32 @@ class MaintenanceTaskCard extends StatelessWidget {
   /// EN = priority_type / type, IT = name
   String _getLocalizedPriorityLabel() => task.getPriorityLabel();
 
+  /// Mark Complete only for Optional / Mandatory from API
+  /// (`priority.priority_type` / `priority_info.type`).
+  /// Hidden for Administrative (and any other type).
+  bool _canShowMarkCompleteButton() {
+    final en = (task.priorityNameEn ?? '').trim().toLowerCase();
+    final it = (task.priorityNameIt ?? '').trim().toLowerCase();
+    final label = task.getPriorityLabel().trim().toLowerCase();
+    final combined = '$en|$it|$label|${task.priority.name}';
+
+    // Explicitly hide Administrative / Condominiale
+    if (combined.contains('administrative') ||
+        combined.contains('condominial')) {
+      return false;
+    }
+
+    // Show only Optional / Mandatory (EN type or IT name)
+    return en == 'optional' ||
+        en == 'mandatory' ||
+        it.contains('facoltativ') ||
+        it.contains('obbligator') ||
+        label.contains('optional') ||
+        label.contains('mandatory') ||
+        label.contains('facoltativ') ||
+        label.contains('obbligator');
+  }
+
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<MaintenanceController>();
@@ -1032,66 +1058,74 @@ class MaintenanceTaskCard extends StatelessWidget {
                                 ],
 
                                 // Action Buttons
+                                // Mark Complete only for Optional / Mandatory
+                                // (API priority_type); hidden for Administrative
                                 SizedBox(height: 16.h),
                                 Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     // Primary Action: Mark Complete / Revert Back
-                                    Expanded(
-                                      child: ElevatedButton(
-                                        onPressed: () {
-                                          controller.markTaskCompleted(task.id);
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor:
-                                              AppColors.brandSage400, // ✅ green
-                                          shape: const StadiumBorder(),
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 16.w,
-                                            vertical: 10.h,
-                                          ),
-                                          minimumSize: Size(0, 48.h),
-                                          elevation: 0,
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              task.status ==
-                                                      MaintenanceStatus
-                                                          .completed
-                                                  ? Icons.undo
-                                                  : Icons.check_circle_outline,
-                                              size: 17.sp,
-                                              color: AppColors.surfaceWhite,
+                                    if (_canShowMarkCompleteButton()) ...[
+                                      Expanded(
+                                        child: ElevatedButton(
+                                          onPressed: () {
+                                            controller.markTaskCompleted(
+                                              task.id,
+                                            );
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                AppColors.brandSage400,
+                                            shape: const StadiumBorder(),
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 16.w,
+                                              vertical: 10.h,
                                             ),
-                                            SizedBox(width: 8.w),
-                                            Flexible(
-                                              child: Text(
+                                            minimumSize: Size(0, 48.h),
+                                            elevation: 0,
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
                                                 task.status ==
                                                         MaintenanceStatus
                                                             .completed
-                                                    ? 'revertBack'.tr
-                                                    : 'markComplete'.tr,
-                                                style: AppTextStyles.bodySmall
-                                                    .copyWith(
-                                                      color: AppColors
-                                                          .surfaceWhite,
-                                                      fontSize: 14.sp,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                    ),
-                                                overflow: TextOverflow.ellipsis,
-                                                maxLines: 1,
+                                                    ? Icons.undo
+                                                    : Icons
+                                                          .check_circle_outline,
+                                                size: 17.sp,
+                                                color: AppColors.surfaceWhite,
                                               ),
-                                            ),
-                                          ],
+                                              SizedBox(width: 8.w),
+                                              Flexible(
+                                                child: Text(
+                                                  task.status ==
+                                                          MaintenanceStatus
+                                                              .completed
+                                                      ? 'revertBack'.tr
+                                                      : 'markComplete'.tr,
+                                                  style: AppTextStyles.bodySmall
+                                                      .copyWith(
+                                                        color: AppColors
+                                                            .surfaceWhite,
+                                                        fontSize: 14.sp,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                      ),
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  maxLines: 1,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    SizedBox(width: 12.w),
+                                      SizedBox(width: 12.w),
+                                    ],
                                     // Secondary Action: Schedule Visit (icon only with text below)
                                     Column(
                                       mainAxisSize: MainAxisSize.min,

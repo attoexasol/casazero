@@ -25,6 +25,15 @@ class TicketsScreen extends GetView<TicketsController> {
     return Obx(() {
       final permissions = controller.permissions;
       final isLoading = controller.isLoadingTickets.value;
+      final pendingExpandId = controller.pendingExpandTicketId.value;
+      if (pendingExpandId != null && pendingExpandId.isNotEmpty) {
+        _expandedTicketId.value = pendingExpandId;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (controller.pendingExpandTicketId.value == pendingExpandId) {
+            controller.pendingExpandTicketId.value = null;
+          }
+        });
+      }
       return TabletCenteredLayout(
         child: Column(
         children: [

@@ -1,6 +1,11 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'dart:convert';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:get/get.dart';
+
+import '../core/services/notification_manager.dart';
 import '../core/utils/notification_content_localizer.dart';
 
 class LocalNotificationService {
@@ -29,7 +34,10 @@ class LocalNotificationService {
       iOS: iosSettings,
     );
 
-    await _plugin.initialize(settings);
+    await _plugin.initialize(
+      settings,
+      onDidReceiveNotificationResponse: _onNotificationTapped,
+    );
 
     final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
@@ -49,6 +57,9 @@ class LocalNotificationService {
     }
 
     _initialized = true;
+
+    // Terminated → local notification tap launch (same navigation path as FCM).
+    await _handleAppLaunchDetails();
   }
 
   /// Resolve title/body from FCM notification block or data payload,
@@ -134,6 +145,85 @@ class LocalNotificationService {
     return message.hashCode;
   }
 
+  /// Encode FCM data map for local-notification payload (tap → navigation).
+  static String encodePayload(Map<String, dynamic> data) {
+    try {
+      final normalized = <String, dynamic>{};
+      data.forEach((key, value) {
+        if (value != null) normalized[key] = value.toString();
+      });
+      return jsonEncode(normalized);
+    } catch (e) {
+      print('❌ [LocalNotificationService] encodePayload error: $e');
+      return '{}';
+    }
+  }
+
+  /// Deserialize local-notification payload into a map for NotificationManager.
+  static Map<String, dynamic> decodePayload(String? payload) {
+    if (payload == null || payload.trim().isEmpty) return {};
+    try {
+      final decoded = jsonDecode(payload);
+      if (decoded is Map<String, dynamic>) return decoded;
+      if (decoded is Map) {
+        return decoded.map((key, value) => MapEntry(key.toString(), value));
+      }
+    } catch (e) {
+      print('❌ [LocalNotificationService] decodePayload error: $e');
+    }
+    return {};
+  }
+
+  static void _onNotificationTapped(NotificationResponse response) {
+    print(
+      '📬 [LocalNotificationService] Notification tapped '
+      '(action=${response.actionId}, id=${response.id})',
+    );
+    _forwardPayloadToNavigation(response.payload);
+  }
+
+  /// Forward deserialized payload into the same navigation handler used by FCM.
+  static void _forwardPayloadToNavigation(String? rawPayload) {
+    final payload = decodePayload(rawPayload);
+    _dispatchNavigation(payload);
+  }
+
+  static void _dispatchNavigation(Map<String, dynamic> payload) {
+    try {
+      if (!Get.isRegistered<NotificationManager>()) {
+        print(
+          '⚠️ [LocalNotificationService] NotificationManager not registered',
+        );
+        return;
+      }
+      Get.find<NotificationManager>().handleNotificationNavigation(payload);
+    } catch (e) {
+      print('❌ [LocalNotificationService] Navigation dispatch error: $e');
+    }
+  }
+
+  /// Cold start from a local notification tap (data-only / foreground-shown).
+  static Future<void> _handleAppLaunchDetails() async {
+    try {
+      final details = await _plugin.getNotificationAppLaunchDetails();
+      if (details == null || !details.didNotificationLaunchApp) return;
+
+      final payload = details.notificationResponse?.payload;
+      if (payload == null || payload.trim().isEmpty) return;
+
+      print(
+        '📬 [LocalNotificationService] Launched from local notification',
+      );
+
+      // Defer until after the first frame so GetX / routes can settle.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _forwardPayloadToNavigation(payload);
+      });
+    } catch (e) {
+      print('❌ [LocalNotificationService] Launch details error: $e');
+    }
+  }
+
   /// Show a heads-up / banner notification (required when app is in foreground).
   static Future<void> showNotification(RemoteMessage message) async {
     await initialize();
@@ -141,6 +231,7 @@ class LocalNotificationService {
     final content = resolveContent(message);
     final title = content.title;
     final body = content.body.isNotEmpty ? content.body : content.title;
+    final payload = encodePayload(message.data);
 
     final androidDetails = AndroidNotificationDetails(
       channelId,
@@ -175,6 +266,7 @@ class LocalNotificationService {
       title,
       body,
       details,
+      payload: payload,
     );
   }
 }

@@ -23,6 +23,7 @@ import '../../presentation/profile/controllers/two_fa_management_controller.dart
 import '../../presentation/profile/views/two_fa_deactivation_verification_screen.dart';
 import '../../presentation/splash/controllers/splash_controller.dart';
 import '../../presentation/splash/views/splash_screen.dart';
+import '../../core/services/notification_manager.dart';
 import '../../presentation/trusted_device/views/trusted_devices_screen.dart';
 import '../../presentation/trusted_device/controllers/trusted_devices_controller.dart';
 import '../../presentation/profile/views/document_password_screen.dart';
@@ -86,6 +87,10 @@ class AppRoutes {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (Get.isRegistered<HomeController>()) {
             Get.find<HomeController>().ensureDataForCurrentUser();
+          }
+          // Phase 3: run queued notification deep-link after HOME is ready.
+          if (Get.isRegistered<NotificationManager>()) {
+            Get.find<NotificationManager>().flushPendingNavigation();
           }
         });
       }),

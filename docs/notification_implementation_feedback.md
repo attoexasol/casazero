@@ -256,3 +256,33 @@ The in-app center (bell, modal, home “latest notifications”) is solid: fetch
 ## 8. Summary
 
 Push **delivery and display** across foreground, background, and terminated are largely in place and correctly structured. The biggest product gaps are **tap → navigation** (stub everywhere), **local-notification tap** (not wired), **token re-registration** (login-only), and **chat push integration** (type mismatch + unused service). Fixing those four areas will take the notification experience from “alerts show up” to “alerts take you to the right place reliably.”
+
+---
+
+## 9. Implementation status (Phases 1–10) — 22 Jul 2026
+
+| Phase | Status | Notes |
+|-------|--------|--------|
+| 1 Deep link navigation | Done | `NotificationManager.handleNotificationNavigation` |
+| 2 Local notification tap | Done | Payload + `onDidReceiveNotificationResponse` |
+| 3 Cold-start queue | Done | One-slot pending payload; flush on HOME ready |
+| 4 FCM token lifecycle | Reverted | No `/update-fcm-token` on backend; login `fcm_token` only |
+| 5 Chat integration | Done | Dispatches to `PrivateChatNotificationService` |
+| 6 Type aliases | Done | `PushTypes.isPrivateChat` / `isGroupChat` / etc. |
+| 7 iOS double banner | Done | Skip local when iOS `notification` block present |
+| 8 Notification Center | Done | Modal taps use same navigation handler |
+| 9 Android icon | Reverted | Restored previous `@mipmap/ic_launcher` cube icon |
+| 10 Verification | Manual | Use checklist in §7 and table below |
+
+### Manual verification checklist
+
+- [ ] Foreground: one banner; tap opens correct screen
+- [ ] Background: tray notification; tap opens correct screen
+- [ ] Terminated: cold start → correct screen after HOME
+- [ ] Documents: refresh + navigation / open
+- [ ] Chat: refresh + conversation opens
+- [ ] Tickets: detail expands when `ticket_id` present
+- [ ] Token: still sent on login via `fcm_token` (no `/update-fcm-token`)
+- [ ] Permission deny → grant → token sync
+- [ ] iOS: no duplicate foreground banners
+- [ ] Localization preserved
