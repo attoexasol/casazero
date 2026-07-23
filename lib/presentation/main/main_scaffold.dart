@@ -695,14 +695,14 @@ class _AnimatedNotificationButtonState extends State<_AnimatedNotificationButton
                     ),
                     if (widget.count > 0)
                       Positioned(
-                        right: -4.w,
-                        top: -4.h,
+                        right: -2.w,
+                        top: -2.h,
                         child: Container(
                           constraints: BoxConstraints(
-                            minWidth: 20.w,
-                            minHeight: 20.h,
+                            minWidth: 14.w,
+                            minHeight: 14.w,
                           ),
-                          padding: EdgeInsets.symmetric(horizontal: 6.w),
+                          padding: EdgeInsets.symmetric(horizontal: 3.w),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
@@ -710,40 +710,41 @@ class _AnimatedNotificationButtonState extends State<_AnimatedNotificationButton
                                 AppColors.danger.withOpacity(0.9),
                               ],
                             ),
-                            borderRadius: BorderRadius.circular(10.r),
+                            borderRadius: BorderRadius.circular(8.r),
                             border: Border.all(
                               color: AppColors.surfaceWhite,
-                              width: 2.w,
+                              width: 1.5.w,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 8.r,
-                                offset: Offset(0, 2.h),
+                                color: Colors.black.withOpacity(0.15),
+                                blurRadius: 4.r,
+                                offset: Offset(0, 1.h),
                               ),
                             ],
                           ),
-                          child: Center(
-                            child: Text(
-                              widget.count > 9
-                                  ? '9+'
-                                  : widget.count.toString(),
-                              style: TextStyle(
-                                color: AppColors.surfaceWhite,
-                                fontSize: 11.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            widget.count > 9
+                                ? '9+'
+                                : widget.count.toString(),
+                            style: TextStyle(
+                              color: AppColors.surfaceWhite,
+                              fontSize: 9.sp,
+                              fontWeight: FontWeight.w700,
+                              height: 1.1,
                             ),
+                            textAlign: TextAlign.center,
                           ),
                         ),
                       ),
                     if (widget.count > 0)
                       Positioned(
-                        right: -4.w,
-                        top: -4.h,
+                        right: -2.w,
+                        top: -2.h,
                         child: Container(
-                          width: 20.w,
-                          height: 20.h,
+                          width: 14.w,
+                          height: 14.w,
                           decoration: BoxDecoration(
                             color: AppColors.danger,
                             shape: BoxShape.circle,

@@ -76,9 +76,15 @@ class TicketCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    _buildCategoryPill(categoryDisplayName),
-                    const Spacer(),
+                    Flexible(
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: _buildCategoryPill(categoryDisplayName),
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
                     _buildStatusPill(ticket.status),
                   ],
                 ),
@@ -279,6 +285,7 @@ class TicketCard extends StatelessWidget {
   }
 
   Widget _buildCategoryPill(String category) {
+    final label = category.replaceAll(RegExp(r'\s+'), ' ').trim();
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
       decoration: BoxDecoration(
@@ -286,10 +293,14 @@ class TicketCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(6.r),
       ),
       child: Text(
-        category,
+        label,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.ellipsis,
         style: AppTextStyles.caption.copyWith(
           fontSize: 12.sp,
           fontWeight: FontWeight.w500,
+          height: 1.2,
           color: AppColors.brandSage600,
         ),
       ),
@@ -334,9 +345,13 @@ class TicketCard extends StatelessWidget {
       ),
       child: Text(
         label,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.ellipsis,
         style: AppTextStyles.caption.copyWith(
           fontSize: 12.sp,
           fontWeight: FontWeight.w500,
+          height: 1.2,
           color: textColor,
         ),
       ),

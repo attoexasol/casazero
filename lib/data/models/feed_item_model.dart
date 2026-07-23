@@ -217,10 +217,12 @@ class FeedItemModel {
     return normalized == 'document' || normalized == 'documents';
   }
 
-  bool get _isTicketType {
+  /// Ticket / support notification (API may send any of these aliases).
+  bool get isTicketType {
     final normalized = type.toLowerCase().trim();
     return normalized == 'ticket' ||
         normalized == 'tickets' ||
+        normalized == 'support' ||
         normalized == 'support_ticket' ||
         normalized == 'support_tickets';
   }
@@ -228,7 +230,7 @@ class FeedItemModel {
   /// Whether this notification belongs to chat/messaging (API type or inferred).
   bool get isChatNotification {
     if (_isDocumentType ||
-        _isTicketType ||
+        isTicketType ||
         type.toLowerCase() == 'maintenance') {
       return false;
     }
@@ -369,7 +371,7 @@ class FeedItemModel {
       if (title.isNotEmpty && !_isGenericApiTitle) return displayTitle;
     }
 
-    if (type.toLowerCase() == 'maintenance' || _isTicketType) {
+    if (type.toLowerCase() == 'maintenance' || isTicketType) {
       final content = displayContent;
       if (content.isNotEmpty && !_isGenericApiContent(content)) return content;
       if (title.isNotEmpty && !_isGenericApiTitle) return displayTitle;
@@ -393,7 +395,7 @@ class FeedItemModel {
       return '${'notification_center_prefix_maintenance'.tr} $_centerTitleDetail';
     }
 
-    if (_isTicketType) {
+    if (isTicketType) {
       return NotificationContentLocalizer.localizedTicketTitle();
     }
 
@@ -434,7 +436,7 @@ class FeedItemModel {
       return content;
     }
 
-    if (_isTicketType) {
+    if (isTicketType) {
       return NotificationContentLocalizer.localizedTicketBody(
         rawBody: description,
       );
@@ -618,7 +620,7 @@ class FeedItemModel {
 
   /// Title shown in notification modal — prefers API / entity data over generic keys.
   String get localizedDisplayTitle {
-    if (_isTicketType) {
+    if (isTicketType) {
       return NotificationContentLocalizer.localizedTicketTitle();
     }
 
@@ -656,7 +658,7 @@ class FeedItemModel {
 
   /// Description shown in notification modal — prefers API content over generic keys.
   String get localizedDisplayContent {
-    if (_isTicketType) {
+    if (isTicketType) {
       return NotificationContentLocalizer.localizedTicketBody(
         rawBody: description.isNotEmpty ? description : displayContent,
       );

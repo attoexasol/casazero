@@ -84,24 +84,29 @@ class _CZNotificationBellState extends State<CZNotificationBell>
 
                 if (widget.count > 0)
                   Positioned(
-                    right: -2.w,
-                    top: -2.h,
+                    right: 0,
+                    top: 0,
                     child: Container(
-                      width: 22.w,
-                      height: 22.w,
+                      constraints: BoxConstraints(
+                        minWidth: 14.w,
+                        minHeight: 14.w,
+                      ),
+                      padding: EdgeInsets.symmetric(horizontal: 3.w),
                       decoration: BoxDecoration(
                         color: Colors.redAccent,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2.w),
+                        borderRadius: BorderRadius.circular(8.r),
+                        border: Border.all(color: Colors.white, width: 1.5.w),
                       ),
                       alignment: Alignment.center,
                       child: Text(
                         widget.count > 9 ? "9+" : widget.count.toString(),
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 11.sp,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 9.sp,
+                          fontWeight: FontWeight.w700,
+                          height: 1.1,
                         ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
                   ),

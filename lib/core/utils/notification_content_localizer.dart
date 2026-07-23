@@ -48,6 +48,7 @@ class NotificationContentLocalizer {
     final normalized = (type ?? '').toLowerCase().trim();
     return normalized == 'ticket' ||
         normalized == 'tickets' ||
+        normalized == 'support' ||
         normalized == 'support_ticket' ||
         normalized == 'support_tickets';
   }

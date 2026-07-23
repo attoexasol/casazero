@@ -269,13 +269,16 @@ class _NotificationsModalContentState
       final type = notif.type.toLowerCase();
       switch (_filter) {
         case 'document':
-          return type == 'document' || type == 'documents';
+          return type == 'document' ||
+              type == 'documents' ||
+              type == 'document_uploaded';
         case 'maintenance':
           return type == 'maintenance';
         case 'chat':
           return notif.isChatNotification;
         case 'ticket':
-          return type == 'ticket' || type == 'tickets';
+          // Match all ticket aliases used by API / FCM (support_ticket, etc.)
+          return notif.isTicketType;
         default:
           return true;
       }
@@ -381,7 +384,10 @@ class _NotificationCard extends StatelessWidget {
     } else if (type == 'maintenance') {
       iconData = Icons.build_outlined;
       iconColor = AppColors.warning;
-    } else if (type == 'chat' || type == 'message' || type == 'messages' || notification.isChatNotification) {
+    } else if (type == 'chat' ||
+        type == 'message' ||
+        type == 'messages' ||
+        notification.isChatNotification) {
       iconData = Icons.chat_bubble_outline;
       iconColor = AppColors.info;
     } else if (type == 'ticket' || type == 'tickets') {

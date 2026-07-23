@@ -30,6 +30,13 @@ class ProfileController extends GetxController {
   void onInit() {
     super.onInit();
     loadUser();
+    // unit_name is returned by /user/profile, not by login storage or
+    // /residences/by-token — fetch profile so ResidenceInfoCard can show it
+    // without requiring a manual pull-to-refresh.
+    final unitName = user.value?.unitName;
+    if (unitName == null || unitName.isEmpty) {
+      refreshData();
+    }
   }
 
   /// Load user from storage

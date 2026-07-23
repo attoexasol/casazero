@@ -801,16 +801,23 @@ class MaintenanceTaskCard extends StatelessWidget {
                                     Row(
                                       children: [
                                         Expanded(
-                                          child: Text(
-                                            task.companyObj!.phone!,
-                                            style: AppTextStyles.bodyMedium
-                                                .copyWith(
-                                                  color:
-                                                      AppColors.neutralInk700,
-                                                ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
+                                          child: Obx(() {
+                                            final localeController =
+                                                Get.find<LocaleController>();
+                                            // Access locale to trigger reactivity
+                                            final _ = localeController.locale;
+
+                                            return Text(
+                                              '${'phone'.tr}: ${task.companyObj!.phone!}',
+                                              style: AppTextStyles.bodyMedium
+                                                  .copyWith(
+                                                    color:
+                                                        AppColors.neutralInk700,
+                                                  ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            );
+                                          }),
                                         ),
                                         IconButton(
                                           icon: Icon(
