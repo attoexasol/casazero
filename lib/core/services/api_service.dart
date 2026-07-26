@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:get/get.dart' as getx;
+import '../auth/pending_2fa_policy.dart';
 import '../constants/api_constants.dart';
 import '../constants/app_constants.dart';
 import 'session_expiry_service.dart';
@@ -31,6 +32,23 @@ class ApiService extends getx.GetxService {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+          // While the login 2FA challenge is unfinished (pending2FA), the
+          // stored token only proves the password step. Client-side, allow
+          // only OTP send/verify and auth endpoints; reject everything else.
+          if (_storageService.isPending2FA &&
+              !Pending2FAPolicy.isAllowedEndpoint(options.path)) {
+            print(
+              '⛔ [API BLOCKED — pending 2FA] ${options.method} ${options.uri}',
+            );
+            return handler.reject(
+              DioException(
+                requestOptions: options,
+                type: DioExceptionType.cancel,
+                message: 'BLOCKED_PENDING_2FA',
+              ),
+            );
+          }
+
           // Add access token to headers and log for debugging
           final token = _storageService.getAccessToken();
 

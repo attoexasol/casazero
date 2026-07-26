@@ -15,4 +15,8 @@ class StorageKeys {
 
   /// Pending deep-link from notification tap (survives session expiry / login).
   static const String PENDING_NOTIFICATION_NAV = 'pending_notification_nav';
+
+  /// Durable auth phase: 'pending_2fa' | 'authenticated'. Absent = logged out
+  /// or legacy session (treated as authenticated). See [AuthPhase].
+  static const String AUTH_PHASE = 'auth_phase';
 }

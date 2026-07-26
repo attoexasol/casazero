@@ -1,6 +1,7 @@
 // presentation/otp_verification/controllers/otp_verification_controller.dart (WITH EMAIL OTP)
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/auth/auth_phase.dart';
 import '../../../core/controllers/message_popup_controller.dart';
 import '../../../core/widgets/responsive_alert_dialog.dart';
 import '../../../data/repositories/auth_repository.dart';
@@ -253,6 +254,11 @@ class OtpVerificationController extends GetxController {
         await Future.delayed(const Duration(milliseconds: 500));
         Get.offAllNamed(AppRoutes.FORGOT_CHANGE_PASSWORD);
       } else {
+        // Login flow: OTP completed — promote the durable auth phase BEFORE
+        // any authenticated initialization so restarts resume at HOME and
+        // the pending-2FA API allowlist no longer applies.
+        await _storageService.saveAuthPhase(AuthPhase.authenticated);
+
         // Refresh local FCM token after OTP (backend token sent on initial login payload)
         try {
           if (Get.isRegistered<FcmService>()) {

@@ -4,6 +4,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/auth/auth_phase.dart';
 import '../../../core/controllers/message_popup_controller.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../core/services/storage_service.dart';
@@ -141,11 +142,10 @@ class AuthController extends GetxController {
         }
       } catch (_) {}
 
-      // Pre-load documents in background while navigating
-      _preloadDocuments();
-
-      // Navigation logic based on user status and device trust
-      _navigateBasedOnUserStatus(user, isTrusted);
+      // Navigation logic based on user status and device trust.
+      // Persists the durable AuthPhase first and defers authenticated
+      // preloads until it is known no OTP challenge is pending.
+      await _navigateBasedOnUserStatus(user, isTrusted);
     } else {
       MessagePopupController.showError(
         messageKey: 'invalid_credentials',
@@ -161,7 +161,7 @@ class AuthController extends GetxController {
   /// 2. Trusted device (is_trusted = true) → Home (skip 2FA)
   /// 3. Untrusted device + 2FA enabled → OTP Verification
   /// 4. Otherwise → Home
-  void _navigateBasedOnUserStatus(UserModel user, bool isTrusted) {
+  Future<void> _navigateBasedOnUserStatus(UserModel user, bool isTrusted) async {
     print('🔄 Navigation Decision:');
     print('  - Password Set By Admin: ${user.isPasswordSetByAdmin}');
     print('  - Is Trusted Device: $isTrusted');
@@ -170,6 +170,8 @@ class AuthController extends GetxController {
     // Priority 1: First login (password set by admin)
     // User must change password set by admin
     if (user.isPasswordSetByAdmin) {
+      await _storageService.saveAuthPhase(AuthPhase.authenticated);
+      _preloadDocuments();
       print('  → Going to FIRST_LOGIN (password change required)');
       Get.offAllNamed(AppRoutes.FIRST_LOGIN);
       return;
@@ -179,14 +181,20 @@ class AuthController extends GetxController {
     // If password is NOT set by admin AND device IS trusted
     // Then skip 2FA verification and go directly to HOME
     if (isTrusted) {
+      await _storageService.saveAuthPhase(AuthPhase.authenticated);
+      _preloadDocuments();
       print('  → Going to HOME (trusted device - skipping 2FA)');
       Get.offAllNamed(AppRoutes.HOME);
       return;
     }
 
     // Priority 3: Untrusted device + 2FA enabled
-    // Device is not recognized, require 2FA verification
+    // Device is not recognized, require 2FA verification.
+    // Persist pending2FA BEFORE navigating so a process kill on the OTP
+    // screen resumes at OTP (splash + AuthGuard enforce this), and skip
+    // authenticated preloads until OTP succeeds.
     if (user.is2FAEnabled) {
+      await _storageService.saveAuthPhase(AuthPhase.pending2FA);
       print('  → Going to OTP_VERIFICATION (untrusted device - 2FA required)');
       Get.offAllNamed(AppRoutes.OTP_VERIFICATION);
       return;
@@ -194,6 +202,8 @@ class AuthController extends GetxController {
 
     // Priority 4: Untrusted device + No 2FA - Direct to HOME
     // This is less secure but follows the requested logic
+    await _storageService.saveAuthPhase(AuthPhase.authenticated);
+    _preloadDocuments();
     print('  → Going to HOME (untrusted device without 2FA)');
     Get.offAllNamed(AppRoutes.HOME);
   }

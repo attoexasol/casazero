@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import '../auth/auth_phase.dart';
 import '../constants/storage_keys.dart';
 
 class StorageService extends GetxService {
@@ -96,6 +97,25 @@ class StorageService extends GetxService {
   Future<void> clearFirebaseProjectId() async {
     await _box.remove(StorageKeys.FIREBASE_PROJECT_ID);
   }
+
+  // Authentication Phase (2FA pending state — survives process death)
+  Future<void> saveAuthPhase(AuthPhase phase) async {
+    if (phase == AuthPhase.none) {
+      await _box.remove(StorageKeys.AUTH_PHASE);
+      return;
+    }
+    await _box.write(StorageKeys.AUTH_PHASE, phase.storageValue);
+  }
+
+  /// Missing key returns [AuthPhase.none] (logged out or legacy session).
+  AuthPhase getAuthPhase() {
+    return AuthPhase.fromStorage(
+      _box.read(StorageKeys.AUTH_PHASE)?.toString(),
+    );
+  }
+
+  /// True only while a password login is awaiting OTP completion.
+  bool get isPending2FA => getAuthPhase() == AuthPhase.pending2FA;
 
   // User Data
   Future<void> saveUserData(Map<String, dynamic> userData) async {

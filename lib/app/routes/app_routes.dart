@@ -29,6 +29,7 @@ import '../../presentation/trusted_device/controllers/trusted_devices_controller
 import '../../presentation/profile/views/document_password_screen.dart';
 import '../../presentation/profile/controllers/document_password_controller.dart';
 import '../../presentation/profile/views/document_password_2fa_verification_screen.dart';
+import '../middleware/auth_guard.dart';
 
 class AppRoutes {
   static const String SPLASH = '/';
@@ -82,6 +83,7 @@ class AppRoutes {
     GetPage(
       name: HOME,
       page: () => const AppLifecycleRefreshWrapper(child: MainScaffold()),
+      middlewares: [AuthGuard()],
       binding: BindingsBuilder(() {
         Get.lazyPut(() => HomeController());
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -105,6 +107,7 @@ class AppRoutes {
     GetPage(
       name: TWO_FA_MANAGEMENT,
       page: () => const TwoFAManagementScreen(),
+      middlewares: [AuthGuard()],
       binding: BindingsBuilder(() {
         Get.lazyPut(() => TwoFAManagementController());
       }),
@@ -112,6 +115,7 @@ class AppRoutes {
     GetPage(
       name: TWO_FA_ACTIVATION,
       page: () => const TwoFAActivationScreen(),
+      middlewares: [AuthGuard()],
       binding: BindingsBuilder(() {
         if (!Get.isRegistered<TwoFAManagementController>()) {
           Get.lazyPut(() => TwoFAManagementController());
@@ -121,6 +125,7 @@ class AppRoutes {
     GetPage(
       name: TWO_FA_DEACTIVATION_VERIFICATION,
       page: () => const TwoFADeactivationVerificationScreen(),
+      middlewares: [AuthGuard()],
       binding: BindingsBuilder(() {
         if (!Get.isRegistered<TwoFAManagementController>()) {
           Get.lazyPut(() => TwoFAManagementController());
@@ -129,6 +134,7 @@ class AppRoutes {
     ),
     GetPage(
       name: CHANGE_PASSWORD,
+      middlewares: [AuthGuard()],
       page: () => ChangePasswordScreen(
         onBack: () => Get.back(),
         onSuccess: (String message) {
@@ -164,6 +170,7 @@ class AppRoutes {
     GetPage(
       name: TRUSTED_DEVICES,
       page: () => const TrustedDevicesScreen(),
+      middlewares: [AuthGuard()],
       binding: BindingsBuilder(() {
         Get.lazyPut(() => TrustedDevicesController());
       }),
@@ -171,6 +178,7 @@ class AppRoutes {
     GetPage(
       name: DOCUMENT_PASSWORD,
       page: () => const DocumentPasswordScreen(),
+      middlewares: [AuthGuard()],
       binding: BindingsBuilder(() {
         Get.lazyPut(() => DocumentPasswordController());
       }),
@@ -178,6 +186,7 @@ class AppRoutes {
     GetPage(
       name: DOCUMENT_PASSWORD_2FA,
       page: () => const DocumentPassword2FAVerificationScreen(),
+      middlewares: [AuthGuard()],
       binding: BindingsBuilder(() {
         Get.lazyPut(() => OtpVerificationController());
       }),

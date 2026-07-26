@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
+import '../../../core/auth/pending_2fa_policy.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../core/services/firebase_auth_service.dart';
 import '../../../core/services/fcm_service.dart';
@@ -39,11 +40,29 @@ class SplashController extends GetxController {
     // Check for stored access token
     final accessToken = _storageService.getAccessToken();
     final userData = _storageService.getUserData();
+    final phase = _storageService.getAuthPhase();
 
     print('  - Access Token: ${accessToken != null ? "Found" : "Not found"}');
     print('  - User Data: ${userData != null ? "Found" : "Not found"}');
+    print('  - Auth Phase: ${phase.name}');
 
-    if (accessToken != null && accessToken.isNotEmpty && userData != null) {
+    final destination = Pending2FAPolicy.splashDestination(
+      accessToken: accessToken,
+      userData: userData,
+      phase: phase,
+    );
+
+    if (destination == AppRoutes.OTP_VERIFICATION) {
+      // A stored token only proves the password step. If the login-time 2FA
+      // challenge was never completed (app killed on the OTP screen), resume
+      // at OTP — never HOME. Authenticated initialization (Firebase sign-in,
+      // FCM refresh) is deferred until OTP succeeds.
+      print('  ⚠️ 2FA pending from previous session - resuming OTP verification');
+      _navigateToOtpVerification();
+      return;
+    }
+
+    if (destination == AppRoutes.HOME) {
       final hasFirebaseToken =
           _storageService.getStoredFirebaseToken() != null;
       print('  - Stored firebase_token: ${hasFirebaseToken ? "Found" : "MISSING — log out and log in again"}');
@@ -52,9 +71,25 @@ class SplashController extends GetxController {
       await _registerFcmTokenAfterSessionRestore();
       print('  ✅ User authenticated - navigating to HOME');
       _navigateToHome();
-    } else {
-      // No authentication data - navigate to AUTH
-      print('  ❌ No authentication found - navigating to AUTH');
+      return;
+    }
+
+    // No authentication data - navigate to AUTH
+    print('  ❌ No authentication found - navigating to AUTH');
+    _navigateToAuth();
+  }
+
+  void _navigateToOtpVerification() {
+    print(
+      '🟢 SplashController: Attempting navigation to: ${AppRoutes.OTP_VERIFICATION}',
+    );
+
+    try {
+      Get.offAllNamed(AppRoutes.OTP_VERIFICATION);
+      print('✅ SplashController: Navigation to OTP_VERIFICATION successful');
+    } catch (e) {
+      print('❌ SplashController: Navigation to OTP_VERIFICATION failed: $e');
+      // Fallback — never fall through to HOME while 2FA is pending.
       _navigateToAuth();
     }
   }
