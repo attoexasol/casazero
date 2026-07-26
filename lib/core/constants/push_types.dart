@@ -63,7 +63,21 @@ class PushTypes {
         t == 'support_tickets';
   }
 
-  static bool isMaintenance(String? type) => normalize(type) == 'maintenance';
+  /// Maintenance aliases (API may use EN, IT, or the historical `mantenance` typo).
+  static bool isMaintenance(String? type) {
+    final t = normalize(type);
+    if (t == null) return false;
+    return t == 'maintenance' ||
+        t == 'mantenance' ||
+        t == 'manutenzione' ||
+        t == 'maintenance_updated' ||
+        t == 'maintenance_status' ||
+        t == 'maintenance_task' ||
+        t == 'maintenance_tasks' ||
+        t.contains('maintenance') ||
+        t.contains('mantenance') ||
+        t.contains('manutenzione');
+  }
 
   static bool isSyncOrAnnouncement(String? type) {
     final t = normalize(type);

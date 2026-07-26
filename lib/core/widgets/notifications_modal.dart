@@ -8,6 +8,7 @@ import '../../app/theme/app_text_styles.dart';
 import '../../app/theme/app_shadows.dart';
 import '../../presentation/home/controllers/home_controller.dart';
 import '../../data/models/feed_item_model.dart';
+import '../../core/constants/push_types.dart';
 import '../../core/localization/locale_controller.dart';
 import '../../core/services/notification_manager.dart';
 
@@ -44,7 +45,8 @@ class _NotificationsModalContent extends StatefulWidget {
 
 class _NotificationsModalContentState
     extends State<_NotificationsModalContent> {
-  String _filter = 'all'; // 'all', 'document', 'maintenance', 'chat', 'ticket'
+  /// Reactive so the list Obx rebuilds when the selected tab changes.
+  final RxString _filter = 'all'.obs; // all | document | maintenance | chat | ticket
 
   @override
   Widget build(BuildContext context) {
@@ -95,6 +97,7 @@ class _NotificationsModalContentState
                 // Header with filter tabs and mark all as read (FIXED)
                 Obx(() {
                   final unreadCount = widget.controller.unreadCount.value;
+                  final _ = _filter.value; // rebuild selected tab styling
 
                   return Container(
                     decoration: BoxDecoration(
@@ -185,7 +188,8 @@ class _NotificationsModalContentState
                 // Notification List (SCROLLABLE)
                 Expanded(
                   child: Obx(() {
-                    final notifications = widget.controller.feedItems;
+                    final _ = _filter.value;
+                    final notifications = widget.controller.feedItems.toList();
                     final filteredNotifications = _getFilteredNotifications(
                       notifications,
                     );
@@ -223,12 +227,12 @@ class _NotificationsModalContentState
   }
 
   Widget _buildFilterTab(String filter, String label) {
-    final isSelected = _filter == filter;
+    final isSelected = _filter.value == filter;
 
     return Align(
       alignment: Alignment.center,
       child: GestureDetector(
-        onTap: () => setState(() => _filter = filter),
+        onTap: () => _filter.value = filter,
         behavior: HitTestBehavior.opaque,
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
@@ -263,21 +267,20 @@ class _NotificationsModalContentState
   List<FeedItemModel> _getFilteredNotifications(
     List<FeedItemModel> notifications,
   ) {
-    if (_filter == 'all') return notifications;
+    final filter = _filter.value;
+    if (filter == 'all') return notifications;
 
+    // Use the same type helpers as FCM / navigation (PushTypes + model getters)
+    // so every API/FCM alias lands in the correct tab.
     return notifications.where((notif) {
-      final type = notif.type.toLowerCase();
-      switch (_filter) {
+      switch (filter) {
         case 'document':
-          return type == 'document' ||
-              type == 'documents' ||
-              type == 'document_uploaded';
+          return PushTypes.isDocument(notif.type);
         case 'maintenance':
-          return type == 'maintenance';
+          return notif.isMaintenanceType;
         case 'chat':
           return notif.isChatNotification;
         case 'ticket':
-          // Match all ticket aliases used by API / FCM (support_ticket, etc.)
           return notif.isTicketType;
         default:
           return true;
@@ -381,7 +384,7 @@ class _NotificationCard extends StatelessWidget {
     if (type == 'document' || type == 'documents') {
       iconData = Icons.description_outlined;
       iconColor = AppColors.brandSage600;
-    } else if (type == 'maintenance') {
+    } else if (notification.isMaintenanceType) {
       iconData = Icons.build_outlined;
       iconColor = AppColors.warning;
     } else if (type == 'chat' ||

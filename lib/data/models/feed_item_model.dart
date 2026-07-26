@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../../core/constants/push_types.dart';
 import '../../core/localization/locale_controller.dart';
 import '../../core/utils/notification_content_localizer.dart';
 
@@ -70,7 +71,9 @@ class FeedItemModel {
     }
 
     // Handle type (API uses 'notification_type', old format uses 'type')
-    type = json['notification_type'] ?? json['type'] ?? 'announcement';
+    type = (json['notification_type'] ?? json['type'] ?? 'announcement')
+        .toString()
+        .trim();
 
     // Handle title (support bilingual fields for future API)
     title = json['title']?.toString() ?? '';
@@ -212,42 +215,63 @@ class FeedItemModel {
     return null;
   }
 
-  bool get _isDocumentType {
-    final normalized = type.toLowerCase();
-    return normalized == 'document' || normalized == 'documents';
+  bool get _isDocumentType => PushTypes.isDocument(type);
+
+  bool get _categoryLooksLikeMaintenance {
+    final category = categoryName?.toLowerCase().trim() ?? '';
+    if (category.isEmpty) return false;
+    return category.contains('maintenance') ||
+        category.contains('mantenance') ||
+        category.contains('manutenzione');
   }
 
-  /// Ticket / support notification (API may send any of these aliases).
+  /// Maintenance notification (API type aliases, category, or maintenance-like content).
+  bool get isMaintenanceType {
+    if (PushTypes.isMaintenance(type)) return true;
+
+    // Never reclassify a clearly different known type.
+    if (_isDocumentType ||
+        PushTypes.isChat(type) ||
+        PushTypes.isTicketOrSupport(type)) {
+      return false;
+    }
+
+    if (_categoryLooksLikeMaintenance) return true;
+
+    // Backend sometimes stores maintenance under a generic type.
+    return NotificationContentLocalizer.looksLikeMaintenance(
+      title: title,
+      body: description,
+    );
+  }
+
+  /// Ticket / support notification (API type aliases or ticket-like content).
   bool get isTicketType {
-    final normalized = type.toLowerCase().trim();
-    return normalized == 'ticket' ||
-        normalized == 'tickets' ||
-        normalized == 'support' ||
-        normalized == 'support_ticket' ||
-        normalized == 'support_tickets';
+    // Maintenance wins when both content heuristics could match.
+    if (isMaintenanceType) return false;
+
+    if (PushTypes.isTicketOrSupport(type)) return true;
+
+    if (_isDocumentType || PushTypes.isChat(type)) return false;
+
+    // Backend sometimes stores tickets under a generic type.
+    return NotificationContentLocalizer.looksLikeTicket(
+      title: title,
+      body: description,
+    );
   }
 
   /// Whether this notification belongs to chat/messaging (API type or inferred).
   bool get isChatNotification {
-    if (_isDocumentType ||
-        isTicketType ||
-        type.toLowerCase() == 'maintenance') {
+    // Keep filters mutually exclusive — never classify as chat if another
+    // known category matches first.
+    if (_isDocumentType || isMaintenanceType || isTicketType) {
       return false;
     }
 
-    final normalized = type.toLowerCase().trim();
-    const chatTypes = {
-      'chat',
-      'message',
-      'messages',
-      'private_chat',
-      'admin_chat',
-      'adminchat',
-      'chat_message',
-      'messaggio',
-      'messaggi',
-    };
-    if (chatTypes.contains(normalized)) return true;
+    if (PushTypes.isChat(type)) return true;
+
+    final normalized = PushTypes.normalize(type) ?? '';
     if (normalized.contains('chat') || normalized.contains('messag')) {
       return true;
     }
@@ -265,12 +289,7 @@ class FeedItemModel {
   }
 
   /// Admin / private DM chat (vs condominium group chat).
-  bool get isAdminChatNotification {
-    final normalized = type.toLowerCase().trim();
-    return normalized == 'private_chat' ||
-        normalized == 'admin_chat' ||
-        normalized == 'adminchat';
-  }
+  bool get isAdminChatNotification => PushTypes.isPrivateChat(type);
 
   bool get _isMessageType => isChatNotification;
 
@@ -371,7 +390,7 @@ class FeedItemModel {
       if (title.isNotEmpty && !_isGenericApiTitle) return displayTitle;
     }
 
-    if (type.toLowerCase() == 'maintenance' || isTicketType) {
+    if (isMaintenanceType || isTicketType) {
       final content = displayContent;
       if (content.isNotEmpty && !_isGenericApiContent(content)) return content;
       if (title.isNotEmpty && !_isGenericApiTitle) return displayTitle;
@@ -391,7 +410,7 @@ class FeedItemModel {
       return '${'notification_center_prefix_document'.tr} $_centerTitleDetail';
     }
 
-    if (type.toLowerCase() == 'maintenance') {
+    if (isMaintenanceType) {
       return '${'notification_center_prefix_maintenance'.tr} $_centerTitleDetail';
     }
 

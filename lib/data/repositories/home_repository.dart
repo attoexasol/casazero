@@ -183,6 +183,10 @@ class HomeRepository {
             .map((item) => FeedItemModel.fromJson(item as Map<String, dynamic>))
             .toList();
 
+        // Debug aid: unique notification_type values (helps filter mismatches).
+        final types = notifications.map((n) => n.type).toSet().toList()..sort();
+        print('🔔 [HomeRepository] notification types: $types');
+
         print('✅ [HomeRepository] Successfully parsed ${notifications.length} notifications');
         return {
           'success': true,

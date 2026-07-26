@@ -3,6 +3,7 @@ import 'package:get_storage/get_storage.dart';
 
 import '../localization/locale_controller.dart';
 import '../constants/storage_keys.dart';
+import '../constants/push_types.dart';
 
 /// Localizes API/FCM notification title+body for in-app and push display.
 /// Works in the UI isolate via GetX, and in FCM background with GetStorage.
@@ -44,14 +45,7 @@ class NotificationContentLocalizer {
     return true;
   }
 
-  static bool isTicketType(String? type) {
-    final normalized = (type ?? '').toLowerCase().trim();
-    return normalized == 'ticket' ||
-        normalized == 'tickets' ||
-        normalized == 'support' ||
-        normalized == 'support_ticket' ||
-        normalized == 'support_tickets';
-  }
+  static bool isTicketType(String? type) => PushTypes.isTicketOrSupport(type);
 
   static bool looksLikeTicket({String? title, String? body}) {
     final haystack =
@@ -61,6 +55,20 @@ class NotificationContentLocalizer {
         haystack.contains('ticket status') ||
         haystack.contains('ticket di supporto') ||
         haystack.contains('ticket aggiornato');
+  }
+
+  /// True when title/body clearly refer to a maintenance update (EN/IT).
+  static bool looksLikeMaintenance({String? title, String? body}) {
+    final haystack =
+        '${title ?? ''} ${body ?? ''}'.toLowerCase();
+    return haystack.contains('maintenance status') ||
+        haystack.contains('maintenance updated') ||
+        haystack.contains('maintenance task') ||
+        haystack.contains('stato manutenzione') ||
+        haystack.contains('manutenzione aggiornat') ||
+        haystack.contains('attività di manutenzione') ||
+        haystack.contains('maintenance:') ||
+        haystack.contains('manutenzione:');
   }
 
   static String? extractTicketStatus(String? text) {
