@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
@@ -32,6 +34,86 @@ class NotificationRepository {
     );
 
     await _apiService.post(ApiConstants.SEND_CHAT_NOTIFICATION, data: payload);
+  }
+
+  /// Registers / rotates the device FCM token with Laravel.
+  ///
+  /// Returns `true` when the API reports success; `false` on any failure.
+  /// Never throws — callers may fire-and-forget safely.
+  Future<bool> updateFcmToken(String fcmToken) async {
+    final trimmed = fcmToken.trim();
+    final userId = _storageService.getUserData()?['id'];
+    final platform = Platform.isIOS
+        ? 'ios'
+        : (Platform.isAndroid ? 'android' : 'unknown');
+    final masked = _maskFcmToken(trimmed);
+
+    try {
+      final apiToken = _storageService.getAccessToken();
+      if (apiToken == null || apiToken.isEmpty) {
+        debugPrint(
+          '[FCM Update] skipped — no API token '
+          '(userId=$userId platform=$platform)',
+        );
+        return false;
+      }
+
+      if (trimmed.isEmpty) {
+        debugPrint(
+          '[FCM Update] skipped — empty fcm_token '
+          '(userId=$userId platform=$platform)',
+        );
+        return false;
+      }
+
+      debugPrint(
+        '[FCM Update] started '
+        '(userId=$userId platform=$platform token=$masked)',
+      );
+
+      final response = await _apiService.post(
+        ApiConstants.UPDATE_FCM_TOKEN,
+        data: {
+          'token': apiToken,
+          'fcm_token': trimmed,
+          'platform': platform,
+        },
+      );
+
+      final data = response.data is Map
+          ? Map<String, dynamic>.from(response.data as Map)
+          : <String, dynamic>{};
+      final status = data['status'];
+      final ok = (response.statusCode == 200 || response.statusCode == 201) &&
+          (status == true || status == 'true' || status == 1 || status == '1');
+
+      if (ok) {
+        debugPrint(
+          '[FCM Update] succeeded '
+          '(userId=$userId platform=$platform token=$masked)',
+        );
+        return true;
+      }
+
+      debugPrint(
+        '[FCM Update] failed '
+        '(userId=$userId platform=$platform token=$masked '
+        'statusCode=${response.statusCode} message=${data['message']})',
+      );
+      return false;
+    } catch (e) {
+      debugPrint(
+        '[FCM Update] failed '
+        '(userId=$userId platform=$platform token=$masked error=$e)',
+      );
+      return false;
+    }
+  }
+
+  static String _maskFcmToken(String token) {
+    if (token.isEmpty) return '(empty)';
+    if (token.length <= 8) return '$token********';
+    return '${token.substring(0, 8)}********';
   }
 
   Future<void> updateAppStatus({required String appStatus}) async {

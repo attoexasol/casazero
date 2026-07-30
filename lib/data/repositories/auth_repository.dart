@@ -35,15 +35,18 @@ class AuthRepository {
       // Get device information
       final deviceInfo = await _deviceInfoService.getDeviceInfoForLogin();
 
-      // Get FCM token (will be empty string if not available; getDeviceToken retries once)
-      String fcmToken = '';
+      // Get FCM token. getDeviceToken waits for APNs on iOS and retries with
+      // backoff; it returns null (never an empty string) when unavailable, and
+      // the fcm_token key is omitted from the payload in that case.
+      String? fcmToken;
       try {
         if (Get.isRegistered<FcmService>()) {
-          fcmToken = await Get.find<FcmService>().getDeviceToken() ?? '';
+          fcmToken = await Get.find<FcmService>().getDeviceToken();
         }
       } catch (e) {
         print('⚠️ FCM Service not available: $e');
       }
+      final hasFcmToken = fcmToken != null && fcmToken.trim().isNotEmpty;
 
       // Get stored device token (for trusted device verification)
       final storedToken = _storageService.getDeviceToken() ?? '';
@@ -54,12 +57,14 @@ class AuthRepository {
       print('  Platform: ${deviceInfo['platform']}');
       print('  Location: ${deviceInfo['lat']}, ${deviceInfo['lng']}');
       print('  IP: ${deviceInfo['ip_address']}');
-      print('  FCM Token: $fcmToken');
+      print(
+        '  FCM Token: ${hasFcmToken ? fcmToken : 'unavailable (omitted from payload)'}',
+      );
       print('  Phone: ${phone ?? 'not provided'}');
       print('  Stored Token: $storedToken');
 
       final loginUrl = ApiConstants.buildUrl(ApiConstants.LOGIN);
-      final loginPayload = {
+      final loginPayload = <String, dynamic>{
         'email': email,
         'phone': phone ?? '',
         'password': password,
@@ -69,9 +74,16 @@ class AuthRepository {
         'ip_address': deviceInfo['ip_address'],
         'lat': deviceInfo['lat'],
         'lng': deviceInfo['lng'],
-        'fcm_token': fcmToken,
         'token': storedToken,
       };
+
+      if (hasFcmToken) {
+        loginPayload['fcm_token'] = fcmToken;
+      } else {
+        print(
+          '⚠️ [Login] fcm_token omitted — device produced no FCM token in time',
+        );
+      }
 
       LoginApiDebug.logRequest(
         method: 'POST',

@@ -20,6 +20,8 @@ import 'firebase_options.dart';
 import 'core/utils/firebase_config_audit.dart';
 import 'helpers/local_notification_service.dart';
 import 'core/services/push_launch_handler.dart';
+import 'core/services/fcm_service.dart';
+import 'core/services/notification_manager.dart';
 import 'dart:async';
 
 const Color _splashBackgroundColor = Color(0xFFFAF7F4);
@@ -74,8 +76,10 @@ Future<void> main() async {
 }
 
 /// Fast startup work required before the splash screen can run.
-/// Includes Firebase + PushLaunchHandler so tray/lock-screen cold starts
-/// can capture [getInitialMessage] before the intent is lost.
+///
+/// Critical push order (must complete before [runApp]):
+/// Firebase.initializeApp → PushLaunchHandler.install →
+/// LocalNotificationService.initialize → await FcmService.init
 Future<void> _initializeCriticalServices() async {
   try {
     await GetStorage.init().timeout(const Duration(seconds: 3));
@@ -107,18 +111,19 @@ Future<void> _initializeCriticalServices() async {
     Get.put(LocaleController());
   }
 
-  // Must run before runApp for reliable notification-open deep links.
-  // Order matters on iOS: FCM getInitialMessage BEFORE local launch details.
+  // 1) Firebase + 2) PushLaunchHandler (getInitialMessage before local details).
   await _initializeFirebase();
 
-  // Local notification launch details (Android foreground banners / data-only).
-  // iOS system APNs taps use PushLaunchHandler instead.
+  // 3) Local notification channel + launch-details (Android FG / data-only taps).
   try {
     await LocalNotificationService.initialize();
     print('✅ Local notifications initialized (critical path)');
   } catch (e) {
     print('❌ Local notifications initialization failed: $e');
   }
+
+  // 4) FCM permission, onMessage, iOS foreground presentation — before UI.
+  await _initializeFcmServiceCritical();
 }
 
 /// Heavy services that must not block the first splash frame.
@@ -185,13 +190,43 @@ Future<void> _initializeFirebase() async {
       print('❌ Failed to register background message handler: $e');
     }
 
-    // Capture tray/lock-screen launch ASAP (before deferred FcmService.init).
+    // Capture tray/lock-screen launch ASAP (before FcmService.init / runApp).
     try {
       await PushLaunchHandler.install();
       print('✅ Push launch handler installed');
     } catch (e) {
       print('❌ Push launch handler failed: $e');
     }
+  }
+}
+
+/// Registers [NotificationManager] + [FcmService] via GetX and awaits init so
+/// foreground listeners / iOS presentation options are ready before [runApp].
+/// InitialBinding reuses these singletons (does not create a second instance).
+Future<void> _initializeFcmServiceCritical() async {
+  if (Firebase.apps.isEmpty) {
+    print(
+      '⚠️ [main] Skipping critical FcmService.init — Firebase not initialized',
+    );
+    return;
+  }
+
+  try {
+    if (!Get.isRegistered<NotificationManager>()) {
+      Get.put<NotificationManager>(NotificationManager(), permanent: true);
+      print('✅ NotificationManager registered (critical path)');
+    }
+
+    if (!Get.isRegistered<FcmService>()) {
+      Get.put<FcmService>(FcmService(), permanent: true);
+      print('✅ FcmService registered (critical path)');
+    }
+
+    await Get.find<FcmService>().init();
+    print('✅ FcmService.init awaited (critical path, before runApp)');
+  } catch (e) {
+    print('❌ Critical FcmService.init failed: $e');
+    print('⚠️  App will continue; deferred path may retry via InitialBinding');
   }
 }
 

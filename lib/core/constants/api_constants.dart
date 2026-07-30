@@ -277,6 +277,12 @@ class ApiConstants {
   /// }
   static const String SEND_CHAT_NOTIFICATION = '/send-chat-notification';
 
+  /// Update the device FCM registration token after login / token rotation.
+  /// POST /update-fcm-token
+  /// Request: { "token": "<USER_API_TOKEN>", "fcm_token": "<FCM>", "platform": "android"|"ios" }
+  /// Response: { "status": true, "message": "FCM token updated successfully" }
+  static const String UPDATE_FCM_TOKEN = '/update-fcm-token';
+
   /// Report whether the app is in foreground or background.
   /// POST /update-app-status
   /// Request: { "api_token": "<TOKEN>", "app_status": "foreground" | "background" }

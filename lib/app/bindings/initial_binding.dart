@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'dart:async';
 import '../../core/services/api_service.dart';
 import '../../core/services/device_info_service.dart';
 import '../../core/services/download_service.dart';
@@ -62,12 +63,15 @@ class InitialBinding extends Bindings {
     // ZipDownloadService for encrypted ZIP download + open (OS prompts for password)
     Get.put<ZipDownloadService>(ZipDownloadService(), permanent: true);
 
-    // NotificationManager: processes push payloads (must be registered before FcmService)
-    Get.put<NotificationManager>(NotificationManager(), permanent: true);
+    // Reuse NotificationManager / FcmService from main.dart critical path when
+    // already registered (Phase 2: await FcmService.init before runApp).
+    if (!Get.isRegistered<NotificationManager>()) {
+      Get.put<NotificationManager>(NotificationManager(), permanent: true);
+    }
 
-    // FCM Service: singleton; init after Firebase is ready.
-    final fcmService = FcmService();
-    Get.put<FcmService>(fcmService, permanent: true);
+    if (!Get.isRegistered<FcmService>()) {
+      Get.put<FcmService>(FcmService(), permanent: true);
+    }
 
     Get.find<PrivateChatNotificationService>().registerHandlers();
 
@@ -124,8 +128,10 @@ class InitialBinding extends Bindings {
       Get.put<PrivateChatProvider>(PrivateChatProvider(), permanent: true);
     }
 
+    // Idempotent safety net: critical path already awaited init before runApp.
+    // If somehow skipped (Firebase late / critical failure), init runs here.
     if (Get.isRegistered<FcmService>()) {
-      Get.find<FcmService>().init();
+      unawaited(Get.find<FcmService>().init());
     }
   }
 }
