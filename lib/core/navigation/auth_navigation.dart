@@ -11,15 +11,20 @@ class AuthNavigation {
   static bool _navigatingToAuth = false;
 
   static void replaceStackWithAuth() {
-    if (_navigatingToAuth || Get.currentRoute == AppRoutes.AUTH) {
+    final alreadyOnAuth = Get.currentRoute == AppRoutes.AUTH;
+    if (_navigatingToAuth || alreadyOnAuth) {
       return;
     }
 
     _navigatingToAuth = true;
     FocusManager.instance.primaryFocus?.unfocus();
     Get.offAllNamed(AppRoutes.AUTH);
+    // Keep the guard for more than one frame — splash + session-expiry can
+    // both request AUTH in the same event loop turn after async gaps.
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      _navigatingToAuth = false;
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        _navigatingToAuth = false;
+      });
     });
   }
 }

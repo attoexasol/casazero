@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
+import '../utils/notification_content_localizer.dart';
 import '../constants/push_types.dart';
 import '../../presentation/home/controllers/home_controller.dart';
 import '../../presentation/chat/controllers/private_chat_controller.dart';
@@ -30,7 +31,8 @@ class PrivateChatNotificationService extends GetxService {
     if (!PushTypes.isChat(type)) return;
 
     final conversationId = data['conversation_id']?.toString();
-    final senderName = data['sender_name']?.toString() ?? 'Administrator';
+    final senderName = data['sender_name']?.toString() ??
+        NotificationContentLocalizer.translate('administrator');
     final preview = data['message_preview']?.toString() ??
         data['body']?.toString() ??
         data['message']?.toString() ??

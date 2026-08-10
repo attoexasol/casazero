@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
+import '../localization/app_translations.dart';
 import '../localization/locale_controller.dart';
 import '../constants/storage_keys.dart';
 import '../constants/push_types.dart';
@@ -45,7 +46,33 @@ class NotificationContentLocalizer {
     return true;
   }
 
+  /// Resolves a translation key in UI and FCM background isolates.
+  static String translate(String key, {Map<String, String>? params}) {
+    try {
+      if (params != null && params.isNotEmpty) {
+        final result = key.trParams(params);
+        if (result != key) return result;
+      } else {
+        final result = key.tr;
+        if (result != key) return result;
+      }
+    } catch (_) {}
+
+    final map = isItalian ? AppTranslations.itIT : AppTranslations.enUS;
+    var text = map[key] ?? key;
+    if (params != null) {
+      for (final entry in params.entries) {
+        text = text
+            .replaceAll('{${entry.key}}', entry.value)
+            .replaceAll('@${entry.key}', entry.value);
+      }
+    }
+    return text;
+  }
+
   static bool isTicketType(String? type) => PushTypes.isTicketOrSupport(type);
+
+  static bool isChatType(String? type) => PushTypes.isChat(type);
 
   static bool looksLikeTicket({String? title, String? body}) {
     final haystack =
@@ -69,6 +96,60 @@ class NotificationContentLocalizer {
         haystack.contains('attività di manutenzione') ||
         haystack.contains('maintenance:') ||
         haystack.contains('manutenzione:');
+  }
+
+  /// True when title/body clearly refer to a chat message (EN/IT).
+  static bool looksLikeChat({String? title, String? body}) {
+    if (isGenericChatTitle(title ?? '')) return true;
+
+    final haystack = '${title ?? ''} ${body ?? ''}'.toLowerCase();
+    return haystack.contains('new message') ||
+        haystack.contains('nuovo messaggio') ||
+        haystack.contains('condominium chat') ||
+        haystack.contains('chat di condominio') ||
+        haystack.contains('chat message') ||
+        haystack.contains('messaggio chat') ||
+        haystack.contains('new chat message') ||
+        haystack.contains('nuovo messaggio chat');
+  }
+
+  static bool isGenericChatTitle(String text) {
+    final lower = stripEmojis(text).toLowerCase().trim();
+    if (lower.isEmpty) return true;
+
+    const genericPatterns = [
+      'new message',
+      'nuovo messaggio',
+      'condominium chat',
+      'chat di condominio',
+      'chat message',
+      'messaggio chat',
+      'new chat message',
+      'nuovo messaggio chat',
+      'group chat',
+      'chat di gruppo',
+    ];
+
+    return genericPatterns.any(
+      (pattern) => lower == pattern || lower.contains(pattern),
+    );
+  }
+
+  /// Localized chat push title — mirrors [localizedTicketTitle] pattern.
+  static String localizedChatTitle({String? type, String? rawTitle}) {
+    final titleLower = stripEmojis(rawTitle ?? '').toLowerCase();
+    final isGroup = PushTypes.isGroupChat(type) ||
+        (!PushTypes.isPrivateChat(type) &&
+            (titleLower.contains('condominium chat') ||
+                titleLower.contains('chat di condominio') ||
+                titleLower.contains('group chat') ||
+                titleLower.contains('chat di gruppo')));
+
+    if (isGroup) {
+      return translate('notification_center_title_chat');
+    }
+
+    return translate('notification_new_message');
   }
 
   static String? extractTicketStatus(String? text) {
@@ -95,33 +176,32 @@ class NotificationContentLocalizer {
     switch (normalized) {
       case 'pending':
       case 'open':
-        return isItalian ? 'In Attesa' : 'Pending';
+        return translate('pending');
       case 'in_progress':
-        return isItalian ? 'In Corso' : 'In Progress';
+        return translate('in_progress');
       case 'resolved':
       case 'closed':
-        return isItalian ? 'Risolto' : 'Resolved';
+        return translate('resolved');
       default:
         return rawStatus.replaceAll('_', ' ');
     }
   }
 
   static String localizedTicketTitle() {
-    return isItalian ? 'Ticket aggiornato' : 'Ticket updated';
+    return translate('notification_ticket_updated');
   }
 
   static String localizedTicketBody({String? rawBody}) {
     final status = extractTicketStatus(rawBody);
     if (status != null) {
       final label = localizeTicketStatus(status);
-      return isItalian
-          ? 'Lo stato del tuo ticket di supporto è stato aggiornato a "$label".'
-          : 'Your support ticket status has been updated to "$label".';
+      return translate(
+        'notification_ticket_status_updated',
+        params: {'status': label},
+      );
     }
 
-    return isItalian
-        ? 'Il tuo ticket è stato aggiornato.'
-        : 'Your ticket has been updated.';
+    return translate('notification_ticket_description');
   }
 
   /// Resolve display title/body for push and notification center.
@@ -143,8 +223,18 @@ class NotificationContentLocalizer {
       );
     }
 
+    final chat = isChatType(type) ||
+        looksLikeChat(title: cleanTitle, body: cleanBody);
+
+    if (chat) {
+      return (
+        title: localizedChatTitle(type: type, rawTitle: cleanTitle),
+        body: cleanBody,
+      );
+    }
+
     return (
-      title: cleanTitle.isNotEmpty ? cleanTitle : 'CasaZero',
+      title: cleanTitle.isNotEmpty ? cleanTitle : translate('app_name'),
       body: cleanBody,
     );
   }

@@ -7,14 +7,17 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../core/auth/pending_2fa_policy.dart';
+import '../../../core/navigation/auth_navigation.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../core/services/firebase_auth_service.dart';
 import '../../../core/services/fcm_service.dart';
+import '../../../core/services/session_expiry_service.dart';
 import '../../../data/repositories/auth_repository.dart';
 
 class SplashController extends GetxController {
   final StorageService _storageService = Get.find();
   Timer? _timer;
+  bool _navigationStarted = false;
 
   @override
   void onInit() {
@@ -33,8 +36,19 @@ class SplashController extends GetxController {
     });
   }
 
+  bool get _shouldAbortNavigation =>
+      isClosed ||
+      _navigationStarted ||
+      SessionExpiryService.isHandling ||
+      SessionExpiryService.isSigningOut;
+
   /// Check if user is already authenticated and navigate accordingly
   void _checkAuthenticationAndNavigate() async {
+    if (_shouldAbortNavigation) {
+      print('🔐 SplashController: Skipping auth check — already navigating/signed out');
+      return;
+    }
+
     print('🔐 SplashController: Checking authentication status...');
 
     // Check for stored access token
@@ -68,7 +82,19 @@ class SplashController extends GetxController {
       print('  - Stored firebase_token: ${hasFirebaseToken ? "Found" : "MISSING — log out and log in again"}');
       _storageService.debugPrintStorageKeys();
       await _ensureFirebaseSignedIn();
+      if (_shouldAbortNavigation) return;
+
       await _registerFcmTokenAfterSessionRestore();
+      if (_shouldAbortNavigation) return;
+
+      // Session may have been cleared by a 401 during Firebase/FCM restore.
+      final tokenAfterRestore = _storageService.getAccessToken();
+      if (tokenAfterRestore == null || tokenAfterRestore.isEmpty) {
+        print('  ❌ Session cleared during restore - navigating to AUTH');
+        _navigateToAuth();
+        return;
+      }
+
       print('  ✅ User authenticated - navigating to HOME');
       _navigateToHome();
       return;
@@ -80,6 +106,8 @@ class SplashController extends GetxController {
   }
 
   void _navigateToOtpVerification() {
+    if (_shouldAbortNavigation) return;
+    _navigationStarted = true;
     print(
       '🟢 SplashController: Attempting navigation to: ${AppRoutes.OTP_VERIFICATION}',
     );
@@ -90,6 +118,7 @@ class SplashController extends GetxController {
     } catch (e) {
       print('❌ SplashController: Navigation to OTP_VERIFICATION failed: $e');
       // Fallback — never fall through to HOME while 2FA is pending.
+      _navigationStarted = false;
       _navigateToAuth();
     }
   }
@@ -125,6 +154,8 @@ class SplashController extends GetxController {
   }
 
   void _navigateToHome() {
+    if (_shouldAbortNavigation) return;
+    _navigationStarted = true;
     print('🟢 SplashController: Attempting navigation to: ${AppRoutes.HOME}');
 
     try {
@@ -134,24 +165,18 @@ class SplashController extends GetxController {
     } catch (e) {
       print('❌ SplashController: Navigation to HOME failed: $e');
       // Fallback - navigate to AUTH if HOME navigation fails
+      _navigationStarted = false;
       _navigateToAuth();
     }
   }
 
   void _navigateToAuth() {
+    if (isClosed) return;
+    _navigationStarted = true;
     print('🟢 SplashController: Attempting navigation to: ${AppRoutes.AUTH}');
-
-    try {
-      // Use Get.offAllNamed to clear splash from navigation stack
-      Get.offAllNamed(AppRoutes.AUTH);
-      print('✅ SplashController: Navigation to AUTH successful');
-    } catch (e) {
-      print('❌ SplashController: Navigation to AUTH failed: $e');
-      // Fallback navigation
-      Get.offAll(() => const SizedBox(),
-        routeName: AppRoutes.AUTH,
-      );
-    }
+    // Idempotent — safe if session expiry already opened AUTH.
+    AuthNavigation.replaceStackWithAuth();
+    print('✅ SplashController: Navigation to AUTH requested');
   }
 
   @override

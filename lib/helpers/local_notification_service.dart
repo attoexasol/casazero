@@ -123,27 +123,8 @@ class LocalNotificationService {
       rawTitle = pushNotification.title!.trim();
       rawBody = pushNotification.body?.trim() ?? '';
     } else {
-      rawTitle = _firstNonEmpty(data, const [
-            'title',
-            'notification_title',
-            'subject',
-            'headline',
-            'title_en',
-            'title_it',
-          ]) ??
-          '';
-      rawBody = _firstNonEmpty(data, const [
-            'body',
-            'message',
-            'content',
-            'subtitle',
-            'notification_body',
-            'text',
-            'description',
-            'content_en',
-            'content_it',
-          ]) ??
-          '';
+      rawTitle = _localizedTitleFromData(data) ?? '';
+      rawBody = _localizedBodyFromData(data) ?? '';
     }
 
     final type = _firstNonEmpty(data, const [
@@ -156,18 +137,68 @@ class LocalNotificationService {
     if (rawTitle.isEmpty && rawBody.isEmpty) {
       return NotificationContentLocalizer.localize(
         type: type,
-        title: 'CasaZero',
-        body: NotificationContentLocalizer.isItalian
-            ? 'Hai una nuova notifica'
-            : 'You have a new notification',
+        title: NotificationContentLocalizer.translate('app_name'),
+        body: NotificationContentLocalizer.translate(
+          'notification_generic_description',
+        ),
       );
     }
 
     return NotificationContentLocalizer.localize(
       type: type,
-      title: rawTitle.isNotEmpty ? rawTitle : 'CasaZero',
+      title: rawTitle.isNotEmpty
+          ? rawTitle
+          : NotificationContentLocalizer.translate('app_name'),
       body: rawBody,
     );
+  }
+
+  static String? _localizedTitleFromData(Map<String, dynamic> data) {
+    if (NotificationContentLocalizer.isItalian) {
+      return _firstNonEmpty(data, const [
+        'title_it',
+        'title',
+        'notification_title',
+        'subject',
+        'headline',
+        'title_en',
+      ]);
+    }
+    return _firstNonEmpty(data, const [
+      'title_en',
+      'title',
+      'notification_title',
+      'subject',
+      'headline',
+      'title_it',
+    ]);
+  }
+
+  static String? _localizedBodyFromData(Map<String, dynamic> data) {
+    if (NotificationContentLocalizer.isItalian) {
+      return _firstNonEmpty(data, const [
+        'content_it',
+        'body',
+        'message',
+        'content',
+        'subtitle',
+        'notification_body',
+        'text',
+        'description',
+        'content_en',
+      ]);
+    }
+    return _firstNonEmpty(data, const [
+      'content_en',
+      'body',
+      'message',
+      'content',
+      'subtitle',
+      'notification_body',
+      'text',
+      'description',
+      'content_it',
+    ]);
   }
 
   static String? _firstNonEmpty(Map<String, dynamic> data, List<String> keys) {
@@ -335,7 +366,7 @@ class LocalNotificationService {
       styleInformation: BigTextStyleInformation(
         body,
         contentTitle: title,
-        summaryText: 'CasaZero',
+        summaryText: NotificationContentLocalizer.translate('app_name'),
       ),
     );
 

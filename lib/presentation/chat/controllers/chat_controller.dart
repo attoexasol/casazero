@@ -506,7 +506,7 @@ class ChatController extends GetxController {
       await Get.find<NotificationRepository>().sendChatNotification(
         receiverId: 0,
         senderId: senderId,
-        title: 'New Message',
+        title: 'notification_new_message'.tr,
         body: body,
         data: {
           'type': 'group_chat',

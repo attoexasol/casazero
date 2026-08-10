@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/controllers/message_popup_controller.dart';
+import '../../core/navigation/auth_navigation.dart';
 import '../../presentation/auth/views/auth_screen.dart';
 import '../../presentation/auth/controllers/auth_controller.dart';
 import '../../presentation/auth/controllers/change_password_controller.dart';
@@ -60,10 +61,12 @@ class AppRoutes {
       name: AUTH,
       page: () => const AuthScreen(),
       binding: BindingsBuilder(() {
-        if (Get.isRegistered<AuthController>()) {
-          Get.delete<AuthController>(force: true);
+        // Never force-delete a live AuthController here. Concurrent navigations
+        // to AUTH (session expiry + splash) used to dispose TextEditingControllers
+        // while AuthScreen TextFormFields were still mounted.
+        if (!Get.isRegistered<AuthController>()) {
+          Get.put(AuthController());
         }
-        Get.put(AuthController());
       }),
     ),
     GetPage(
@@ -198,7 +201,7 @@ class AppRoutes {
         onBack: () => Get.back(),
         onSuccess: (String message) {
           FocusManager.instance.primaryFocus?.unfocus();
-          Get.offAllNamed(AUTH);
+          AuthNavigation.replaceStackWithAuth();
           WidgetsBinding.instance.addPostFrameCallback((_) {
             MessagePopupController.showSuccess(
               messageKey: message,

@@ -291,7 +291,7 @@ class PrivateChatController extends GetxController {
       await Get.find<NotificationRepository>().sendChatNotification(
         receiverId: adminId,
         senderId: senderId,
-        title: 'New Message',
+        title: 'notification_new_message'.tr,
         body: body,
         data: {
           'type': 'private_chat',

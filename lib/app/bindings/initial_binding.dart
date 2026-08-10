@@ -21,7 +21,6 @@ import '../../presentation/chat/providers/message_provider.dart';
 import '../../presentation/chat/providers/private_chat_provider.dart';
 import '../../data/repositories/home_repository.dart';
 import '../../data/repositories/profile_repository.dart';
-import '../../presentation/auth/controllers/auth_controller.dart';
 import '../../presentation/home/controllers/home_controller.dart';
 import '../../presentation/profile/controllers/profile_controller.dart';
 import '../../presentation/profile/controllers/two_fa_management_controller.dart';
@@ -85,7 +84,8 @@ class InitialBinding extends Bindings {
     // -----------------------------
     // CONTROLLERS
     // -----------------------------
-    Get.lazyPut<AuthController>(() => AuthController(), fenix: true);
+    // AuthController is created only by the AUTH route binding so login
+    // TextEditingControllers are not fenix-resurrected after dispose.
     Get.lazyPut<HomeController>(() => HomeController(), fenix: true);
     Get.lazyPut<ProfileController>(() => ProfileController(), fenix: true);
     Get.lazyPut<TwoFAManagementController>(() => TwoFAManagementController());
