@@ -79,18 +79,26 @@ class TicketModel {
   }
 
   static String _normalizeStatus(String raw) {
-    switch (raw) {
+    final status = raw.trim().toLowerCase();
+    switch (status) {
       case 'in_progress':
+      case 'in-progress':
+      case 'in progress':
+      case 'inprogress':
+      case 'in corso':
         return 'in-progress';
       case 'closed':
+      case 'resolved':
+      case 'risolti':
+      case 'risolto':
         return 'resolved';
       case 'pending':
+      case 'in attesa':
+        return 'pending';
       case 'open':
-      case 'in-progress':
-      case 'resolved':
-        return raw;
+        return 'open';
       default:
-        return raw;
+        return status;
     }
   }
 

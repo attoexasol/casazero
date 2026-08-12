@@ -865,7 +865,7 @@ class AppTranslations extends Translations {
     'pleaseEnterDescription': 'Please enter a description.',
     'ticketCreationFailed': 'Failed to create ticket. Please try again.',
     'technicianUpdate':
-        'Update: Technician assigned. Expected to visit very soon.',
+        'Update: Technician assigned.You will be contacted shortly with updates..',
     'resolvedIssueFixed': 'Resolved: Issue fixed on {date}',
 
     // Add Issue Type Modal
@@ -1762,7 +1762,7 @@ class AppTranslations extends Translations {
     'pleaseEnterDescription': 'Inserisci una descrizione.',
     'ticketCreationFailed': 'Impossibile creare il ticket. Riprova.',
     'technicianUpdate':
-        'Aggiornamento: Tecnico assegnato. Si prevede di visitarlo molto presto.',
+        'Aggiornamento: Tecnico assegnato. Verrai contattato a breve per gli aggiornamenti.',
     'resolvedIssueFixed': 'Risolto: Problema risolto il {date}',
 
     // Add Issue Type Modal
