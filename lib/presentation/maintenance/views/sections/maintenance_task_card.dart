@@ -100,6 +100,8 @@ class MaintenanceTaskCard extends StatelessWidget {
         return Colors.green.shade100;
       case MaintenanceStatus.overdue:
         return Colors.red.shade100;
+      case MaintenanceStatus.due:
+        return Colors.orange.shade100;
     }
   }
 
@@ -113,21 +115,8 @@ class MaintenanceTaskCard extends StatelessWidget {
         return Colors.green.shade700;
       case MaintenanceStatus.overdue:
         return Colors.red.shade700;
-    }
-  }
-
-  /// Get localized status label using translation keys
-  /// Maps MaintenanceStatus enum to translation keys
-  String _getStatusLabel(MaintenanceStatus status) {
-    switch (status) {
-      case MaintenanceStatus.pending:
-        return 'pendingStatus'.tr;
-      case MaintenanceStatus.inProgress:
-        return 'inProgressStatus'.tr;
-      case MaintenanceStatus.completed:
-        return 'completedStatus'.tr;
-      case MaintenanceStatus.overdue:
-        return 'overdueStatus'.tr;
+      case MaintenanceStatus.due:
+        return Colors.orange.shade800;
     }
   }
 
@@ -433,38 +422,46 @@ class MaintenanceTaskCard extends StatelessWidget {
                                             ),
                                           );
                                         }),
-                                        // Status Badge
-                                        Container(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 10.w,
-                                            vertical: 4.h,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: _getStatusColor(task.status),
-                                            border: Border.all(
-                                              color: _getStatusTextColor(
-                                                task.status,
-                                              ).withOpacity(0.3),
+                                        // Status Badge (reactive to language)
+                                        Obx(() {
+                                          final localeController =
+                                              Get.find<LocaleController>();
+                                          // Access locale to trigger reactivity
+                                          final _ = localeController.locale;
+
+                                          return Container(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 10.w,
+                                              vertical: 4.h,
                                             ),
-                                            borderRadius: BorderRadius.circular(
-                                              6.r,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            _getStatusLabel(task.status),
-                                            style: TextStyle(
-                                              fontSize: 12.sp,
-                                              fontWeight: FontWeight.w600,
-                                              color: _getStatusTextColor(
+                                            decoration: BoxDecoration(
+                                              color: _getStatusColor(
                                                 task.status,
                                               ),
-                                              height: 1.2,
-                                              letterSpacing: 0,
+                                              border: Border.all(
+                                                color: _getStatusTextColor(
+                                                  task.status,
+                                                ).withOpacity(0.3),
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(6.r),
                                             ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
+                                            child: Text(
+                                              task.getStatusLabel(),
+                                              style: TextStyle(
+                                                fontSize: 12.sp,
+                                                fontWeight: FontWeight.w600,
+                                                color: _getStatusTextColor(
+                                                  task.status,
+                                                ),
+                                                height: 1.2,
+                                                letterSpacing: 0,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          );
+                                        }),
                                       ],
                                     ),
                                   ),
@@ -632,20 +629,12 @@ class MaintenanceTaskCard extends StatelessWidget {
                                     ),
                               SizedBox(height: 12.h),
 
-                              // Dates
-                              // TEMP: Log lastMaintenanceDate for verification
-                              Builder(
-                                builder: (_) {
-                                  print(
-                                    'Last maintenance date: ${task.lastMaintenanceDate}',
-                                  );
-                                  return const SizedBox.shrink();
-                                },
-                              ),
+                              // Dates from API: due_date + last_maintenance_date
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  if (task.nextDue != null)
+                                  if (task.nextDue != null &&
+                                      task.nextDue!.isNotEmpty)
                                     Row(
                                       children: [
                                         Icon(
@@ -682,29 +671,41 @@ class MaintenanceTaskCard extends StatelessWidget {
                                         ),
                                       ],
                                     ),
-                                  // Show "End Date" if lastMaintenanceDate exists
+                                  // End Date from last_maintenance_date
                                   if (task.lastMaintenanceDate != null &&
                                       task.lastMaintenanceDate!.isNotEmpty) ...[
-                                    if (task.nextDue != null)
+                                    if (task.nextDue != null &&
+                                        task.nextDue!.isNotEmpty)
                                       SizedBox(height: 8.h),
-                                    // Row(
-                                    //   mainAxisSize: MainAxisSize.min,
-                                    //   children: [
-                                    //     Icon(
-                                    //       Icons.calendar_today,
-                                    //       size: 14,
-                                    //       color: AppColors.neutralInk500,
-                                    //     ),
-                                    //     const SizedBox(width: 4),
-                                    //     Text(
-                                    //       '${'endDate'.tr}: ${_formatDate(task.lastMaintenanceDate)}',
-                                    //       style: AppTextStyles.bodySmall
-                                    //           .copyWith(
-                                    //             color: AppColors.neutralInk700,
-                                    //           ),
-                                    //     ),
-                                    //   ],
-                                    // ),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.calendar_today,
+                                          size: 14.sp,
+                                          color: AppColors.neutralInk500,
+                                        ),
+                                        SizedBox(width: 4.w),
+                                        Expanded(
+                                          child: Obx(() {
+                                            final localeController =
+                                                Get.find<LocaleController>();
+                                            // Access locale to trigger reactivity
+                                            final _ = localeController.locale;
+
+                                            return Text(
+                                              '${'endDate'.tr}: ${_formatDate(task.lastMaintenanceDate)}',
+                                              style: AppTextStyles.bodySmall
+                                                  .copyWith(
+                                                    color:
+                                                        AppColors.neutralInk700,
+                                                  ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            );
+                                          }),
+                                        ),
+                                      ],
+                                    ),
                                   ],
                                 ],
                               ),

@@ -486,6 +486,22 @@ class ApiConstants {
   /// }
   static const String DELETE_MAINTENANCE_TASK = '/maintenance/delete';
 
+  /// Mark maintenance task as completed
+  /// POST /maintenanceResidence/changeMaintenanceStatus
+  /// Request: {
+  ///   "api_token": "<TOKEN>",
+  ///   "id": <maintenance_residence_id>,
+  ///   "status": "completato"
+  /// }
+  static const String CHANGE_MAINTENANCE_STATUS =
+      '/maintenanceResidence/changeMaintenanceStatus';
+
+  /// Undo maintenance task completion
+  /// POST /maintenanceResidence/undoMaintenanceStatus
+  /// Request: { "api_token": "<TOKEN>", "id": <maintenance_residence_id> }
+  static const String UNDO_MAINTENANCE_STATUS =
+      '/maintenanceResidence/undoMaintenanceStatus';
+
   // ============================================================================
   // AI CHAT ENDPOINTS
   // ============================================================================

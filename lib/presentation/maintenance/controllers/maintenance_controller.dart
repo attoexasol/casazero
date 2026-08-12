@@ -11,6 +11,7 @@ import 'dart:typed_data';
 import '../models/maintenance_task_model.dart';
 import '../models/maintenance_category_model.dart';
 import '../../../core/services/api_service.dart';
+import '../../../core/services/storage_service.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/localization/locale_controller.dart';
@@ -360,8 +361,8 @@ class MaintenanceController extends GetxController {
 
   /// Mark task as completed
   /// Toggle task completion status
-  /// If task is completed, reverts to pending
-  /// If task is not completed, marks as completed
+  /// If task is completed, reverts via undoMaintenanceStatus
+  /// If task is not completed, marks completed via changeMaintenanceStatus
   Future<void> markTaskCompleted(String taskId) async {
     try {
       isLoadingTasks.value = true;
@@ -376,27 +377,40 @@ class MaintenanceController extends GetxController {
 
       final isCompleted = task?.status == MaintenanceStatus.completed;
       final endpoint = isCompleted
-          ? '/undo/mantenance_status'
-          : '/change/mantenance_status';
+          ? ApiConstants.UNDO_MAINTENANCE_STATUS
+          : ApiConstants.CHANGE_MAINTENANCE_STATUS;
       final action = isCompleted ? 'reverting' : 'marking as completed';
 
-      print(
-        '🔄 [MaintenanceController] $action task: $taskId',
-      );
+      final storageService = Get.find<StorageService>();
+      final apiToken = storageService.getAccessToken();
+      if (apiToken == null || apiToken.isEmpty) {
+        throw Exception('User API token not found in local storage');
+      }
 
-      // Prepare request body
+      // Endpoint validates against maintenance_residence table — use
+      // maintenance_residence_id, not the maintenance task id.
+      final maintenanceResidenceId = task?.maintenanceResidenceId;
+      if (maintenanceResidenceId == null || maintenanceResidenceId <= 0) {
+        throw Exception(
+          'Invalid maintenance_residence_id for task: $taskId',
+        );
+      }
+
+      // Mark complete: { api_token, id: maintenance_residence_id, status: "completato" }
+      // Undo:         { api_token, id: maintenance_residence_id }
       final requestBody = <String, dynamic>{
-        'maintenance_id': int.parse(taskId),
+        'api_token': apiToken,
+        'id': maintenanceResidenceId,
+        if (!isCompleted) 'status': 'completato',
       };
 
+      print('🔄 [MaintenanceController] $action task: $taskId');
       print(
-        '📤 [MaintenanceController] Request body: $requestBody',
+        '🆔 [MaintenanceController] maintenance_residence_id: $maintenanceResidenceId',
       );
-      print(
-        '🔗 [MaintenanceController] Endpoint: $endpoint',
-      );
+      print('🔗 [MaintenanceController] Endpoint: $endpoint');
+      print('📤 [MaintenanceController] Request body: $requestBody');
 
-      // Call API to update maintenance status
       final response = await _apiService.post(
         endpoint,
         data: requestBody,
@@ -421,7 +435,9 @@ class MaintenanceController extends GetxController {
           await fetchMaintenanceTasks();
 
           MessagePopupController.showSuccess(
-            messageKey: isCompleted ? 'task_reverted_successfully' : 'task_marked_completed_successfully',
+            messageKey: isCompleted
+                ? 'task_reverted_successfully'
+                : 'task_marked_completed_successfully',
             titleKey: 'success',
           );
         } else {
@@ -558,6 +574,9 @@ class MaintenanceController extends GetxController {
           break;
         case MaintenanceStatus.overdue:
           statusString = 'overdue';
+          break;
+        case MaintenanceStatus.due:
+          statusString = 'due';
           break;
       }
 

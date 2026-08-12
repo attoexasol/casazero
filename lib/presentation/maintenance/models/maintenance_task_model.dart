@@ -7,7 +7,7 @@ import 'maintenance_category_model.dart';
 
 enum MaintenancePriority { facoltative, obbligatorie, condominiali, personal, n1, n2, n3 }
 
-enum MaintenanceStatus { pending, inProgress, completed, overdue }
+enum MaintenanceStatus { pending, inProgress, completed, overdue, due }
 
 /// Maintenance Task Model matching API response structure
 class MaintenanceTask {
@@ -21,7 +21,14 @@ class MaintenanceTask {
   final String? priorityNameEn;
   /// Italian priority label from API (`priority.name` / `priority_info.name`)
   final String? priorityNameIt;
-  final MaintenanceStatus status; // maintenance_status
+  /// Parsed from API `status` only (e.g. pending, Due / In Scadenza, overdue)
+  final MaintenanceStatus status;
+  /// Raw `status` string from API
+  final String? statusRaw;
+  /// English status label from API when provided
+  final String? statusNameEn;
+  /// Italian status label from API when provided
+  final String? statusNameIt;
   final String frequency; // maintenance_frequency (deprecated - use getFrequency() for reactive updates)
   final Map<String, dynamic>? frequencyObj; // Raw frequency object from API (for reactive language updates)
   final String? nextDue; // due_date formatted
@@ -32,6 +39,9 @@ class MaintenanceTask {
   // API fields
   final int maintenanceCategoryId;
   final int? maintenanceItemId;
+  /// Pivot id for residence-maintenance row (`maintenance_residence_id`).
+  /// Used by change/undo maintenance status APIs.
+  final int? maintenanceResidenceId;
   final int residenceId;
   final MaintenanceCategory? categoryObj; // Nested category object (using existing model)
   final MaintenanceItem? itemObj; // Nested item object
@@ -53,6 +63,9 @@ class MaintenanceTask {
     this.priorityNameEn,
     this.priorityNameIt,
     required this.status,
+    this.statusRaw,
+    this.statusNameEn,
+    this.statusNameIt,
     required this.frequency,
     this.frequencyObj,
     this.nextDue,
@@ -61,6 +74,7 @@ class MaintenanceTask {
     this.contacts,
     required this.maintenanceCategoryId,
     this.maintenanceItemId,
+    this.maintenanceResidenceId,
     required this.residenceId,
     this.categoryObj,
     this.itemObj,
@@ -164,6 +178,87 @@ class MaintenanceTask {
       }
     }
     // If no itemObj, return null
+    return null;
+  }
+
+  /// Status badge label from API `status`, bilingual and reactive.
+  /// Prefer API EN/IT labels; otherwise map known values; else show raw status.
+  String getStatusLabel() {
+    try {
+      final localeController = Get.find<LocaleController>();
+      if (localeController.isEnglish) {
+        final en = statusNameEn?.trim();
+        if (en != null && en.isNotEmpty) return en;
+        final it = statusNameIt?.trim();
+        if (it != null && it.isNotEmpty) {
+          // Known IT → EN display when only IT was returned
+          final mapped = _statusDisplayFromKnownValue(it);
+          if (mapped != null) return mapped;
+        }
+      } else {
+        final it = statusNameIt?.trim();
+        if (it != null && it.isNotEmpty) return it;
+        final en = statusNameEn?.trim();
+        if (en != null && en.isNotEmpty) {
+          final mapped = _statusDisplayFromKnownValue(en);
+          if (mapped != null) return mapped;
+        }
+      }
+    } catch (_) {}
+
+    final mapped = _statusDisplayFromKnownValue(statusRaw) ??
+        _statusDisplayFromEnum(status);
+    if (mapped != null && mapped.isNotEmpty) return mapped;
+
+    return statusRaw?.trim() ?? '';
+  }
+
+  String? _statusDisplayFromEnum(MaintenanceStatus value) {
+    switch (value) {
+      case MaintenanceStatus.pending:
+        return 'pendingStatus'.tr;
+      case MaintenanceStatus.inProgress:
+        return 'inProgressStatus'.tr;
+      case MaintenanceStatus.completed:
+        return 'completedStatus'.tr;
+      case MaintenanceStatus.overdue:
+        return 'overdueStatus'.tr;
+      case MaintenanceStatus.due:
+        return 'dueStatus'.tr;
+    }
+  }
+
+  String? _statusDisplayFromKnownValue(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return null;
+    final n = raw.toLowerCase().trim().replaceAll('-', '_').replaceAll(' ', '_');
+    if (n == 'pending' || n == 'in_attesa' || n == 'attesa') {
+      return 'pendingStatus'.tr;
+    }
+    if (n == 'in_progress' ||
+        n == 'inprogress' ||
+        n == 'in_corso' ||
+        n.contains('progress') ||
+        n.contains('corso')) {
+      return 'inProgressStatus'.tr;
+    }
+    if (n == 'completed' ||
+        n == 'done' ||
+        n == 'completato' ||
+        n == 'completata' ||
+        n.contains('complet')) {
+      return 'completedStatus'.tr;
+    }
+    if (n == 'overdue' || n == 'scaduto' || n == 'scaduta') {
+      return 'overdueStatus'.tr;
+    }
+    // "In Scadenza" / "Due" (coming due) — distinct from overdue/scaduto
+    if (n == 'due' ||
+        n == 'in_scadenza' ||
+        n == 'scadenza' ||
+        n.contains('in_scadenza') ||
+        n.contains('scadenza')) {
+      return 'dueStatus'.tr;
+    }
     return null;
   }
 
@@ -293,26 +388,124 @@ class MaintenanceTask {
           : (categoryObj?.name ?? 'Unknown');
     }
 
-    // Parse status (API returns string like "pending")
-    final statusString = json['maintenance_status']?.toString().toLowerCase() ?? 'pending';
+    // Parse status from API `status` only (never maintenance_status).
+    // Examples: "pending", "Due", "In Scadenza", "overdue", "completed"
+    String? statusRawValue;
+    String? statusNameEnValue;
+    String? statusNameItValue;
+    final statusField = json['status'];
+
+    if (statusField is Map) {
+      final map = Map<String, dynamic>.from(statusField);
+      statusNameItValue = (map['name_it'] ?? map['name'])?.toString().trim();
+      statusNameEnValue =
+          (map['name_en'] ?? map['type'] ?? map['status'])?.toString().trim();
+      statusRawValue = statusNameItValue?.isNotEmpty == true
+          ? statusNameItValue
+          : statusNameEnValue;
+    } else if (statusField != null && statusField is! bool) {
+      final text = statusField.toString().trim();
+      if (text.isNotEmpty && text.toLowerCase() != 'null') {
+        statusRawValue = text;
+        final lower = text.toLowerCase();
+
+        // Combined forms e.g. "In Scadenza( Due)" / "Due (In Scadenza)"
+        final parenMatch = RegExp(
+          r'^\s*(.+?)\s*[\(\[]\s*(.+?)\s*[\)\]]\s*$',
+        ).firstMatch(text);
+        if (parenMatch != null) {
+          final first = parenMatch.group(1)!.trim();
+          final second = parenMatch.group(2)!.trim();
+          final firstLower = first.toLowerCase();
+          final secondLower = second.toLowerCase();
+          if (firstLower.contains('scadenza') || secondLower == 'due') {
+            statusNameItValue = firstLower.contains('scadenza') ? first : second;
+            statusNameEnValue = secondLower == 'due' ? second : first;
+          } else if (firstLower == 'due' || secondLower.contains('scadenza')) {
+            statusNameEnValue = firstLower == 'due' ? first : second;
+            statusNameItValue =
+                secondLower.contains('scadenza') ? second : first;
+          }
+        }
+
+        // Assign bilingual labels for known Due / In Scadenza values
+        if (statusNameEnValue == null && statusNameItValue == null) {
+          if (lower == 'due' ||
+              lower == 'in scadenza' ||
+              lower == 'in_scadenza' ||
+              lower.contains('scadenza')) {
+            statusNameEnValue = 'Due';
+            statusNameItValue = 'In Scadenza';
+          } else if (lower == 'pending' ||
+              lower == 'in attesa' ||
+              lower == 'in_attesa') {
+            statusNameEnValue = 'Pending';
+            statusNameItValue = 'In Attesa';
+          } else if (lower == 'in progress' ||
+              lower == 'in_progress' ||
+              lower == 'in corso' ||
+              lower == 'in_corso') {
+            statusNameEnValue = 'In Progress';
+            statusNameItValue = 'In Corso';
+          } else if (lower == 'completed' ||
+              lower == 'done' ||
+              lower == 'completato' ||
+              lower == 'completata') {
+            statusNameEnValue = 'Completed';
+            statusNameItValue = 'Completato';
+          } else if (lower == 'overdue' ||
+              lower == 'scaduto' ||
+              lower == 'scaduta') {
+            statusNameEnValue = 'Overdue';
+            statusNameItValue = 'Scaduto';
+          } else {
+            // Unknown API value — show exactly what API returned
+            statusNameEnValue = text;
+            statusNameItValue = text;
+          }
+        }
+      }
+    }
+
+    final statusString = (statusRawValue ?? '')
+        .toLowerCase()
+        .replaceAll('-', '_')
+        .replaceAll(' ', '_');
     MaintenanceStatus status;
-    switch (statusString) {
-      case 'pending':
-        status = MaintenanceStatus.pending;
-        break;
-      case 'in_progress':
-      case 'inprogress':
-        status = MaintenanceStatus.inProgress;
-        break;
-      case 'completed':
-      case 'done':
-        status = MaintenanceStatus.completed;
-        break;
-      case 'overdue':
-        status = MaintenanceStatus.overdue;
-        break;
-      default:
-        status = MaintenanceStatus.pending;
+    if (statusString.isEmpty) {
+      status = MaintenanceStatus.pending;
+    } else if (statusString == 'pending' ||
+        statusString == 'in_attesa' ||
+        statusString == 'attesa') {
+      status = MaintenanceStatus.pending;
+    } else if (statusString == 'in_progress' ||
+        statusString == 'inprogress' ||
+        statusString == 'in_corso' ||
+        statusString.contains('progress') ||
+        (statusString.contains('corso') && !statusString.contains('scadenza'))) {
+      status = MaintenanceStatus.inProgress;
+    } else if (statusString == 'completed' ||
+        statusString == 'done' ||
+        statusString == 'completato' ||
+        statusString == 'completata' ||
+        statusString.contains('complet')) {
+      status = MaintenanceStatus.completed;
+    } else if (statusString == 'due' ||
+        statusString == 'in_scadenza' ||
+        statusString == 'scadenza' ||
+        statusString.contains('in_scadenza') ||
+        statusString.contains('scadenza')) {
+      // "Due" / "In Scadenza" — must be checked before overdue/scaduto
+      status = MaintenanceStatus.due;
+    } else if (statusString == 'overdue' ||
+        statusString == 'scaduto' ||
+        statusString == 'scaduta' ||
+        statusString.contains('overdue') ||
+        statusString.contains('scadut')) {
+      status = MaintenanceStatus.overdue;
+    } else {
+      // Keep unknown API status displayable via statusRaw; default enum for colors
+      status = MaintenanceStatus.pending;
     }
 
     // Parse priority from API.
@@ -523,9 +716,18 @@ class MaintenanceTask {
     
     print('✅ [MaintenanceTask] Final frequency value: "$frequencyStr"');
 
-    // Format dates
-    final dueDateStr = json['due_date']?.toString() ?? '';
-    final lastMaintenanceDateStr = json['last_maintenance_date']?.toString();
+    // Format dates (due_date / last_maintenance_date from API)
+    String dueDateStr = json['due_date']?.toString().trim() ?? '';
+    if (dueDateStr.isEmpty || dueDateStr.toLowerCase() == 'null') {
+      dueDateStr = '';
+    }
+    String? lastMaintenanceDateStr =
+        json['last_maintenance_date']?.toString().trim();
+    if (lastMaintenanceDateStr == null ||
+        lastMaintenanceDateStr.isEmpty ||
+        lastMaintenanceDateStr.toLowerCase() == 'null') {
+      lastMaintenanceDateStr = null;
+    }
 
     // Parse dates
     DateTime? createdAt;
@@ -548,6 +750,10 @@ class MaintenanceTask {
         fallbackResidenceId ??
         0;
     final maintenanceItemId = json['maintenance_item_id'] ?? itemObj?.id;
+    final maintenanceResidenceIdRaw = json['maintenance_residence_id'];
+    final int? maintenanceResidenceId = maintenanceResidenceIdRaw == null
+        ? null
+        : int.tryParse(maintenanceResidenceIdRaw.toString());
 
     // Title will be populated from item_name_en/item_name_it (reactive via getTitle())
     // Fallback to maintenance_title if item is not available
@@ -592,12 +798,16 @@ class MaintenanceTask {
       priorityNameEn: priorityNameEnValue,
       priorityNameIt: priorityNameItValue,
       status: status,
+      statusRaw: statusRawValue,
+      statusNameEn: statusNameEnValue,
+      statusNameIt: statusNameItValue,
       frequency: frequencyStr,
       frequencyObj: frequencyObj, // Store raw object for reactive language updates
       nextDue: dueDateStr.isNotEmpty ? dueDateStr : null,
       lastCompleted: lastMaintenanceDateStr,
       maintenanceCategoryId: maintenanceCategoryId,
       maintenanceItemId: maintenanceItemId,
+      maintenanceResidenceId: maintenanceResidenceId,
       residenceId: residenceId,
       categoryObj: categoryObj,
       itemObj: itemObj,
