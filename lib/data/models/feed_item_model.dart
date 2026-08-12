@@ -411,11 +411,15 @@ class FeedItemModel {
     }
 
     if (isMaintenanceType) {
-      return '${'notification_center_prefix_maintenance'.tr} $_centerTitleDetail';
+      return NotificationContentLocalizer.localizedMaintenanceTitle(
+        rawTitle: displayTitle,
+      );
     }
 
     if (isTicketType) {
-      return NotificationContentLocalizer.localizedTicketTitle();
+      return NotificationContentLocalizer.localizedTicketTitle(
+        rawTitle: displayTitle,
+      );
     }
 
     return localizedDisplayTitle;
@@ -457,7 +461,15 @@ class FeedItemModel {
 
     if (isTicketType) {
       return NotificationContentLocalizer.localizedTicketBody(
-        rawBody: description,
+        rawBody: description.isNotEmpty ? description : displayContent,
+        forPush: false,
+      );
+    }
+
+    if (isMaintenanceType) {
+      return NotificationContentLocalizer.localizedMaintenanceBody(
+        rawBody: description.isNotEmpty ? description : displayContent,
+        forPush: false,
       );
     }
 
@@ -640,7 +652,15 @@ class FeedItemModel {
   /// Title shown in notification modal — prefers API / entity data over generic keys.
   String get localizedDisplayTitle {
     if (isTicketType) {
-      return NotificationContentLocalizer.localizedTicketTitle();
+      return NotificationContentLocalizer.localizedTicketTitle(
+        rawTitle: displayTitle,
+      );
+    }
+
+    if (isMaintenanceType) {
+      return NotificationContentLocalizer.localizedMaintenanceTitle(
+        rawTitle: displayTitle,
+      );
     }
 
     if (relatedEntityName != null && relatedEntityName!.isNotEmpty) {
@@ -680,6 +700,14 @@ class FeedItemModel {
     if (isTicketType) {
       return NotificationContentLocalizer.localizedTicketBody(
         rawBody: description.isNotEmpty ? description : displayContent,
+        forPush: false,
+      );
+    }
+
+    if (isMaintenanceType) {
+      return NotificationContentLocalizer.localizedMaintenanceBody(
+        rawBody: description.isNotEmpty ? description : displayContent,
+        forPush: false,
       );
     }
 

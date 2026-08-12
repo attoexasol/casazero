@@ -209,8 +209,8 @@ class AppTranslations extends Translations {
 
     // Notification types (for cards when API has no bilingual)
     'notification_document_uploaded': 'New Document Uploaded',
-    'notification_maintenance_updated': 'Maintenance status updated',
-    'notification_ticket_updated': 'Ticket updated',
+    'notification_maintenance_updated': 'Maintenance update',
+    'notification_ticket_updated': 'Support ticket updated',
     'notification_new_message': 'New Message',
     'notification_announcement': 'Community Announcement',
     'notification_generic': 'Notification',
@@ -224,6 +224,7 @@ class AppTranslations extends Translations {
     'notification_announcement_description':
         'A new announcement has been posted.',
     'notification_generic_description': 'Tap to view details.',
+    'notification_status_label': 'Status',
 
     // Notification type labels (accessibility)
     'notification_type_maintenance': 'Maintenance notification',
@@ -242,7 +243,7 @@ class AppTranslations extends Translations {
     'notification_center_prefix_maintenance': 'Maintenance:',
     'notification_center_prefix_ticket': 'Ticket:',
     'notification_center_title_chat': 'Condominium chat: New message',
-    'notification_center_title_ticket': 'Ticket updated',
+    'notification_center_title_ticket': 'Support ticket updated',
 
     // Notification action labels (viewDocument already exists above)
     'viewTask': 'View Task',
@@ -1349,8 +1350,8 @@ class AppTranslations extends Translations {
 
     // Notification types (Italian)
     'notification_document_uploaded': 'Nuovo documento caricato',
-    'notification_maintenance_updated': 'Stato manutenzione aggiornato',
-    'notification_ticket_updated': 'Ticket aggiornato',
+    'notification_maintenance_updated': 'Aggiornamento manutenzione',
+    'notification_ticket_updated': 'Ticket di supporto aggiornato',
     'notification_new_message': 'Nuovo messaggio',
     'notification_announcement': 'Annuncio della comunità',
     'notification_generic': 'Notifica',
@@ -1364,6 +1365,7 @@ class AppTranslations extends Translations {
     'notification_announcement_description':
         'È stato pubblicato un nuovo annuncio.',
     'notification_generic_description': 'Tocca per visualizzare i dettagli.',
+    'notification_status_label': 'Stato',
     'notification_mark_as_read': 'contrassegnare come letto',
     'notification_mark_all_read': 'Contrassegna',
 
@@ -1372,7 +1374,7 @@ class AppTranslations extends Translations {
     'notification_center_prefix_maintenance': 'Manutenzione:',
     'notification_center_prefix_ticket': 'Ticket:',
     'notification_center_title_chat': 'Chat di condominio: Nuovo messaggio',
-    'notification_center_title_ticket': 'Ticket aggiornato',
+    'notification_center_title_ticket': 'Ticket di supporto aggiornato',
 
     // Notification type labels (Italian)
     'notification_type_maintenance': 'Notifica manutenzione',

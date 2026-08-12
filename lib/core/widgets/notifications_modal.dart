@@ -523,7 +523,8 @@ class _NotificationCardBody extends StatelessWidget {
                 height: 1.3,
                 color: AppColors.neutralInk500,
               ),
-              maxLines: 2,
+              // Subject + "Stato/Status: …" are often two lines from the localizer.
+              maxLines: 3,
               overflow: TextOverflow.ellipsis,
             ),
           ],
