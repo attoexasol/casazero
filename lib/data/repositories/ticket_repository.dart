@@ -112,6 +112,8 @@ class TicketRepository {
     required int issueTypeId,
     String priority = 'medium',
     File? image,
+    String? residenceName,
+    String? residenceUnit,
   }) async {
     try {
       final apiToken = _storageService.getAccessToken();
@@ -127,6 +129,10 @@ class TicketRepository {
         'description': description,
         'issue_type_id': issueTypeId,
         'priority': priority,
+        if (residenceName != null && residenceName.isNotEmpty)
+          'residence_name': residenceName,
+        if (residenceUnit != null && residenceUnit.isNotEmpty)
+          'residence_unit': residenceUnit,
       };
 
       if (image != null && image.existsSync()) {

@@ -121,12 +121,25 @@ class TicketsController extends GetxController {
 
     isCreatingTicket.value = true;
     try {
+      final home = Get.find<HomeController>();
+      final residence = home.selectedResidence.value;
+      final user = home.currentUser.value;
+      final residenceName = residence?.residenceName ??
+          home.residenceData.value?['residence_name']?.toString() ??
+          '';
+      final residenceUnit =
+          (residence?.unitName != null && residence!.unitName!.isNotEmpty)
+              ? residence.unitName!
+              : (user?.unitName ?? '');
+
       final result = await _ticketRepository.createSupportTicket(
         title: title,
         description: description,
         issueTypeId: issueTypeId,
         priority: priority,
         image: attachedPhotos.isNotEmpty ? attachedPhotos.first : null,
+        residenceName: residenceName,
+        residenceUnit: residenceUnit,
       );
 
       if (result != null) {

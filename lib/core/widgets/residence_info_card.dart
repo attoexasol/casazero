@@ -149,7 +149,7 @@ class ResidenceInfoCard extends StatelessWidget {
   }
 
   // ---------------------------------------------------------------------------
-  // RESIDENCE ROW - Display residence name and address
+  // RESIDENCE ROW - Display residence name and unit
   // ---------------------------------------------------------------------------
   Widget _buildResidenceRow(ResidenceModel residence) {
     final unitName = _resolveUnitName(residence);
@@ -176,14 +176,6 @@ class ResidenceInfoCard extends StatelessWidget {
                 residence.residenceName,
                 style: AppTextStyles.cardText.copyWith(
                   color: AppColors.neutralInk900,
-                ),
-              ),
-              const SizedBox(height: 6),
-              // Second line: Residence Address / description
-              Text(
-                residence.residenceAddress ?? "address".tr,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.neutralInk500,
                 ),
               ),
               if (unitName != null) ...[
