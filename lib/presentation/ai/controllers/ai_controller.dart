@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../app/theme/app_colors.dart';
 import '../../../data/repositories/ai_repository.dart';
 import '../../../core/controllers/message_popup_controller.dart';
 
@@ -11,6 +10,8 @@ class Message {
   final DateTime timestamp;
   final String? imageUrl; // For future image support
   final int? remainingAiCredit; // AI credits left after this response
+  /// When true, [content] is a translation key resolved at display time.
+  final bool isTranslationKey;
 
   Message({
     this.id,
@@ -19,7 +20,10 @@ class Message {
     required this.timestamp,
     this.imageUrl,
     this.remainingAiCredit,
+    this.isTranslationKey = false,
   });
+
+  String get displayContent => isTranslationKey ? content.tr : content;
 
   /// Create message from API response
   factory Message.fromApiResponse({
@@ -48,22 +52,6 @@ class Message {
       return DateTime.now();
     }
   }
-}
-
-class Ticket {
-  final String id;
-  final String subject;
-  final String status; // 'open', 'in-progress', 'resolved'
-  final String date;
-  final String category;
-
-  Ticket({
-    required this.id,
-    required this.subject,
-    required this.status,
-    required this.date,
-    required this.category,
-  });
 }
 
 class SuggestedPrompt {
@@ -143,12 +131,7 @@ class AiController extends GetxController {
 
         // If no history, show greeting message
         if (historyData.isEmpty) {
-          messages.add(Message(
-            id: null,
-            role: 'assistant',
-            content: 'aiGreeting'.tr,
-            timestamp: DateTime.now(),
-          ));
+          messages.add(_greetingMessage());
           showAssistance.value = true;
         } else {
           // Parse and add messages from history
@@ -203,12 +186,7 @@ class AiController extends GetxController {
         // On error, show greeting message
         final error = result['error'] ?? 'Failed to load chat history';
         errorMessage.value = error;
-        messages.add(Message(
-          id: null,
-          role: 'assistant',
-          content: 'aiGreeting'.tr,
-          timestamp: DateTime.now(),
-        ));
+        messages.add(_greetingMessage());
         showAssistance.value = true;
         print('⚠️ [AiController] Failed to load history: ${errorMessage.value}');
       }
@@ -217,12 +195,7 @@ class AiController extends GetxController {
       final error = 'Failed to load chat history. Please try again.';
       errorMessage.value = error;
       // Show greeting message on error
-      messages.add(Message(
-        id: null,
-        role: 'assistant',
-        content: 'aiGreeting'.tr,
-        timestamp: DateTime.now(),
-      ));
+      messages.add(_greetingMessage());
       showAssistance.value = true;
     } finally {
       isLoadingHistory.value = false;
@@ -341,10 +314,11 @@ class AiController extends GetxController {
           messages.add(Message(
             id: chatId?.toString(),
             role: 'assistant',
-            content: 'aiProcessingResponse'.tr,
+            content: 'aiProcessingResponse',
             timestamp: DateTime.now(),
             imageUrl: image,
             remainingAiCredit: remainingAiCredit,
+            isTranslationKey: true,
           ));
         }
       } else {
@@ -380,91 +354,40 @@ class AiController extends GetxController {
     inputText.value = prompt; // Update reactive variable
   }
 
-  /// Get suggested prompts
+  Message _greetingMessage() {
+    return Message(
+      id: null,
+      role: 'assistant',
+      content: 'aiGreeting',
+      timestamp: DateTime.now(),
+      isTranslationKey: true,
+    );
+  }
+
+  /// Get suggested prompts (keys are translated at display time)
   List<SuggestedPrompt> getSuggestedPrompts() {
     return [
       SuggestedPrompt(
         icon: Icons.description,
-        text: 'documentLocation'.tr,
-        category: 'Documenti',
+        text: 'documentLocation',
+        category: 'documentsCategory',
       ),
       SuggestedPrompt(
         icon: Icons.build,
-        text: 'maintenanceSchedule'.tr,
-        category: 'Manutenzione',
+        text: 'maintenanceSchedule',
+        category: 'maintenanceCategory',
       ),
       SuggestedPrompt(
         icon: Icons.bolt,
-        text: 'energyUsage'.tr,
-        category: 'Energia',
+        text: 'energyUsage',
+        category: 'energyCategory',
       ),
       SuggestedPrompt(
         icon: Icons.description,
-        text: 'taxDocuments'.tr,
-        category: 'Documenti',
+        text: 'taxDocuments',
+        category: 'documentsCategory',
       ),
     ];
   }
 
-  /// Get recent tickets
-  List<Ticket> getRecentTickets() {
-    return [
-      Ticket(
-        id: 'T-001',
-        subject: 'ticketNoiseSubject'.tr,
-        status: 'in-progress',
-        date: '2 Nov 2025',
-        category: 'Disturbo',
-      ),
-      Ticket(
-        id: 'T-002',
-        subject: 'ticketWaterLeakSubject'.tr,
-        status: 'resolved',
-        date: '28 Ott 2025',
-        category: 'Idraulica',
-      ),
-    ];
-  }
-
-  /// Get status color for ticket badge
-  Color getStatusColor(String status) {
-    switch (status) {
-      case 'open':
-        return AppColors.warning.withOpacity(0.1);
-      case 'in-progress':
-        return AppColors.info.withOpacity(0.1);
-      case 'resolved':
-        return AppColors.success.withOpacity(0.1);
-      default:
-        return AppColors.neutralLine100;
-    }
-  }
-
-  /// Get status text color for ticket badge
-  Color getStatusTextColor(String status) {
-    switch (status) {
-      case 'open':
-        return AppColors.warning;
-      case 'in-progress':
-        return AppColors.info;
-      case 'resolved':
-        return AppColors.success;
-      default:
-        return AppColors.neutralInk700;
-    }
-  }
-
-  /// Get status text
-  String getStatusText(String status) {
-    switch (status) {
-      case 'open':
-        return 'statusOpen'.tr;
-      case 'in-progress':
-        return 'statusInProgress'.tr;
-      case 'resolved':
-        return 'statusResolved'.tr;
-      default:
-        return status;
-    }
-  }
 }

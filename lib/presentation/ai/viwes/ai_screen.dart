@@ -7,6 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../app/theme/app_shadows.dart';
+import '../../../core/localization/locale_controller.dart';
 import '../../../core/widgets/tablet_centered_layout.dart';
 import '../../home/controllers/home_controller.dart';
 import '../controllers/ai_controller.dart';
@@ -20,7 +21,9 @@ class AIScreen extends StatelessWidget {
     final controller = Get.find<AiController>();
 
     return Obx(
-      () => TabletCenteredLayout(
+      () {
+        Get.find<LocaleController>().locale;
+        return TabletCenteredLayout(
         child: Column(
         children: [
           // Premium Header with Cube Icon
@@ -33,7 +36,8 @@ class AIScreen extends StatelessWidget {
           _buildInputArea(controller),
         ],
         ),
-      ),
+      );
+      },
     );
   }
 
@@ -302,7 +306,7 @@ class AIScreen extends StatelessWidget {
                   SizedBox(height: 8.h),
                 ],
                 Text(
-                  message.content,
+                  message.displayContent,
                   style: AppTextStyles.bodyMedium.copyWith(
                     fontSize: 14.sp,
                     height: 1.5,
@@ -414,7 +418,6 @@ class AIScreen extends StatelessWidget {
   }
 
   Widget _buildAssistanceSection(AiController controller) {
-    final tickets = controller.getRecentTickets();
     final prompts = controller.getSuggestedPrompts();
 
     return Column(
@@ -459,25 +462,6 @@ class AIScreen extends StatelessWidget {
 
         SizedBox(height: 16.h),
 
-        // Recent Tickets
-        if (tickets.isNotEmpty) ...[
-          Text(
-            'recentTickets'.tr,
-            style: AppTextStyles.bodySmall.copyWith(
-              fontSize: 11.sp,
-              fontWeight: FontWeight.w600,
-              color: AppColors.neutralInk500,
-            ),
-          ),
-          SizedBox(height: 12.h),
-          ...tickets.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final ticket = entry.value;
-            return _buildTicketCard(ticket, controller, idx + 1);
-          }),
-          SizedBox(height: 24.h),
-        ],
-
         // Suggested Prompts
         Text(
           'exampleQuestions'.tr,
@@ -500,7 +484,7 @@ class AIScreen extends StatelessWidget {
   Widget _buildNewTicketButton(AiController controller) {
     return InkWell(
       onTap: () {
-        // TODO: Handle new ticket
+        Get.find<HomeController>().navigateToScreenByString('tickets');
       },
       borderRadius: BorderRadius.circular(16.r),
       child: Container(
@@ -570,115 +554,6 @@ class AIScreen extends StatelessWidget {
     ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.2, end: 0);
   }
 
-  Widget _buildTicketCard(Ticket ticket, AiController controller, int index) {
-    return Container(
-          margin: EdgeInsets.only(bottom: 8.h),
-          child: InkWell(
-            onTap: () {
-              // TODO: Handle ticket tap
-            },
-            borderRadius: BorderRadius.circular(12.r),
-            child: Container(
-              padding: EdgeInsets.all(14.w),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceWhite.withOpacity(0.8),
-                border: Border.all(
-                  color: AppColors.neutralLine200.withOpacity(0.5),
-                  width: 1,
-                ),
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              ticket.subject,
-                              style: AppTextStyles.bodyMedium.copyWith(
-                                fontSize: 13.sp,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.neutralInk900,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            SizedBox(height: 4.h),
-                            Text(
-                              ticket.id,
-                              style: AppTextStyles.bodySmall.copyWith(
-                                fontSize: 11.sp,
-                                color: AppColors.neutralInk500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 8.w,
-                          vertical: 4.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: controller.getStatusColor(ticket.status),
-                          borderRadius: BorderRadius.circular(6.r),
-                        ),
-                        child: Text(
-                          controller.getStatusText(ticket.status),
-                          style: AppTextStyles.bodySmall.copyWith(
-                            fontSize: 10.sp,
-                            fontWeight: FontWeight.w600,
-                            color: controller.getStatusTextColor(ticket.status),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 8.h),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.access_time,
-                        size: 12.sp,
-                        color: AppColors.neutralInk500,
-                      ),
-                      SizedBox(width: 4.w),
-                      Text(
-                        ticket.date,
-                        style: AppTextStyles.bodySmall.copyWith(
-                          fontSize: 11.sp,
-                          color: AppColors.neutralInk500,
-                        ),
-                      ),
-                      SizedBox(width: 8.w),
-                      Text(
-                        '•',
-                        style: TextStyle(color: AppColors.neutralInk400),
-                      ),
-                      SizedBox(width: 8.w),
-                      Text(
-                        ticket.category,
-                        style: AppTextStyles.bodySmall.copyWith(
-                          fontSize: 11.sp,
-                          color: AppColors.neutralInk500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        )
-        .animate()
-        .fadeIn(delay: (200 + index * 100).ms)
-        .slideY(begin: 0.2, end: 0);
-  }
-
   Widget _buildPromptCard(
     SuggestedPrompt prompt,
     AiController controller,
@@ -687,7 +562,7 @@ class AIScreen extends StatelessWidget {
     return Container(
           margin: EdgeInsets.only(bottom: 12.h),
           child: InkWell(
-            onTap: () => controller.handlePromptClick(prompt.text),
+            onTap: () => controller.handlePromptClick(prompt.text.tr),
             borderRadius: BorderRadius.circular(16.r),
             child: Container(
               padding: EdgeInsets.all(16.w),
@@ -725,7 +600,7 @@ class AIScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          prompt.text,
+                          prompt.text.tr,
                           style: AppTextStyles.bodyMedium.copyWith(
                             fontSize: 13.sp,
                             color: AppColors.neutralInk900,
@@ -747,7 +622,7 @@ class AIScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(6.r),
                           ),
                           child: Text(
-                            prompt.category,
+                            prompt.category.tr,
                             style: AppTextStyles.bodySmall.copyWith(
                               fontSize: 10.sp,
                               fontWeight: FontWeight.w600,
