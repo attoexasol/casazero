@@ -3,6 +3,7 @@ import 'package:get/get.dart' as getx;
 import '../auth/pending_2fa_policy.dart';
 import '../constants/api_constants.dart';
 import '../constants/app_constants.dart';
+import '../logging/diagnostic_logger.dart';
 import 'session_expiry_service.dart';
 import 'storage_service.dart';
 
@@ -32,6 +33,9 @@ class ApiService extends getx.GetxService {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+          options.extra['_diag_start_ms'] =
+              DateTime.now().millisecondsSinceEpoch;
+
           // While the login 2FA challenge is unfinished (pending2FA), the
           // stored token only proves the password step. Client-side, allow
           // only OTP send/verify and auth endpoints; reject everything else.
@@ -39,6 +43,12 @@ class ApiService extends getx.GetxService {
               !Pending2FAPolicy.isAllowedEndpoint(options.path)) {
             print(
               '⛔ [API BLOCKED — pending 2FA] ${options.method} ${options.uri}',
+            );
+            DiagnosticLogger.instance.warning(
+              'API ${options.method} ${_sanitizedEndpoint(options)}',
+              metadata: <String, Object?>{
+                'blocked_pending_2fa': true,
+              },
             );
             return handler.reject(
               DioException(
@@ -63,7 +73,19 @@ class ApiService extends getx.GetxService {
           print('🔑 [API TOKEN] ${token ?? 'NO_TOKEN_FOUND'}');
           return handler.next(options);
         },
+        onResponse: (response, handler) {
+          _logApiDiagnostics(
+            response.requestOptions,
+            statusCode: response.statusCode,
+          );
+          return handler.next(response);
+        },
         onError: (error, handler) async {
+          _logApiDiagnostics(
+            error.requestOptions,
+            statusCode: error.response?.statusCode,
+            error: error,
+          );
           if (error.response?.statusCode == 401 &&
               _shouldHandleSessionExpiry(error.requestOptions)) {
             if (await _refreshToken()) {
@@ -88,9 +110,16 @@ class ApiService extends getx.GetxService {
   }
 
   Future<bool> _refreshToken() async {
+    DiagnosticLogger.instance.info('Token refresh started');
     try {
       final refreshToken = _storageService.getRefreshToken();
-      if (refreshToken == null) return false;
+      if (refreshToken == null) {
+        DiagnosticLogger.instance.warning(
+          'Token refresh failed',
+          metadata: <String, Object?>{'reason': 'no_refresh_token'},
+        );
+        return false;
+      }
 
       final response = await _dio.post(
         ApiConstants.REFRESH_TOKEN,
@@ -100,10 +129,16 @@ class ApiService extends getx.GetxService {
       if (response.statusCode == 200) {
         await _storageService.saveAccessToken(response.data['access_token']);
         await _storageService.saveRefreshToken(response.data['refresh_token']);
+        DiagnosticLogger.instance.info('Token refresh completed');
         return true;
       }
+      DiagnosticLogger.instance.warning(
+        'Token refresh failed',
+        metadata: <String, Object?>{'status': response.statusCode},
+      );
       return false;
     } catch (e) {
+      DiagnosticLogger.instance.error('Token refresh failed', error: e);
       return false;
     }
   }
@@ -274,5 +309,81 @@ class ApiService extends getx.GetxService {
     }
 
     return errorMessage;
+  }
+
+  String _sanitizedEndpoint(RequestOptions options) {
+    var path = options.path;
+    if (path.startsWith('http')) {
+      try {
+        path = Uri.parse(path).path;
+      } catch (_) {}
+    }
+    final int queryIndex = path.indexOf('?');
+    if (queryIndex >= 0) {
+      path = path.substring(0, queryIndex);
+    }
+    return path;
+  }
+
+  int _requestDurationMs(RequestOptions options) {
+    final Object? start = options.extra['_diag_start_ms'];
+    if (start is int) {
+      return DateTime.now().millisecondsSinceEpoch - start;
+    }
+    return 0;
+  }
+
+  void _logApiDiagnostics(
+    RequestOptions options, {
+    int? statusCode,
+    DioException? error,
+  }) {
+    try {
+      final String endpoint = _sanitizedEndpoint(options);
+      final int durationMs = _requestDurationMs(options);
+      final Map<String, Object?> meta = <String, Object?>{
+        'status': statusCode,
+        'duration_ms': durationMs,
+      };
+
+      if (error == null) {
+        DiagnosticLogger.instance.info(
+          'API ${options.method} $endpoint',
+          metadata: meta,
+        );
+        return;
+      }
+
+      meta['error_type'] = error.type.name;
+      meta['error'] = _safeNetworkError(error);
+      DiagnosticLogger.instance.error(
+        'API ${options.method} $endpoint',
+        metadata: meta,
+      );
+    } catch (_) {}
+  }
+
+  String _safeNetworkError(DioException error) {
+    switch (error.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.receiveTimeout:
+      case DioExceptionType.sendTimeout:
+        return 'Timeout';
+      case DioExceptionType.connectionError:
+        return 'Connection error';
+      case DioExceptionType.badCertificate:
+        return 'Bad certificate';
+      case DioExceptionType.badResponse:
+        final int? status = error.response?.statusCode;
+        if (status == 401) return 'Unauthorized';
+        if (status == 403) return 'Forbidden';
+        if (status == 404) return 'Not found';
+        if (status != null && status >= 500) return 'Server error';
+        return 'Bad response';
+      case DioExceptionType.cancel:
+        return error.message ?? 'Cancelled';
+      case DioExceptionType.unknown:
+        return 'Network error';
+    }
   }
 }

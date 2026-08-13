@@ -10,6 +10,8 @@ import '../../app/theme/app_shadows.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../presentation/profile/controllers/profile_controller.dart';
 import '../../core/localization/locale_controller.dart';
+import '../../core/controllers/message_popup_controller.dart';
+import '../../core/logging/diagnostic_logger.dart';
 
 
 class PreferencesCard extends StatefulWidget {
@@ -60,6 +62,9 @@ class _PreferencesCardState extends State<PreferencesCard> {
           SizedBox(height: 16.h),
 
           Obx(() => _buildLanguageSelector(controller)),
+
+          SizedBox(height: 16.h),
+          _buildExportDiagnosticLog(),
 
           // const SizedBox(height: 16),
 
@@ -144,6 +149,68 @@ class _PreferencesCardState extends State<PreferencesCard> {
         ),
       );
     });
+  }
+
+  Widget _buildExportDiagnosticLog() {
+    return InkWell(
+      onTap: _exportDiagnosticLog,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceWarm50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.neutralLine200),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.ios_share,
+              size: 20,
+              color: AppColors.neutralInk500,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'export_diagnostic_log'.tr,
+                style: AppTextStyles.bodyMedium,
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              size: 20.sp,
+              color: AppColors.neutralInk400,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _exportDiagnosticLog() async {
+    try {
+      final RenderBox? box = context.findRenderObject() as RenderBox?;
+      Rect? origin;
+      if (box != null && box.hasSize) {
+        origin = box.localToGlobal(Offset.zero) & box.size;
+      }
+      final bool ok = await DiagnosticLogger.instance.shareLogFile(
+        shareOrigin: origin,
+      );
+      if (!ok) {
+        await MessagePopupController.showError(
+          messageKey: 'diagnostic_log_export_failed',
+          titleKey: 'error',
+        );
+      }
+    } catch (_) {
+      try {
+        await MessagePopupController.showError(
+          messageKey: 'diagnostic_log_export_failed',
+          titleKey: 'error',
+        );
+      } catch (_) {}
+    }
   }
 
   // RESET FIRST LOGIN -----------------------------------------------------

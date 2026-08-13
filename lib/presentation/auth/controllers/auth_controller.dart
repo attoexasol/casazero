@@ -17,6 +17,7 @@ import '../../../data/models/document_model.dart';
 import '../../../core/services/firebase_auth_service.dart';
 import '../../../core/services/fcm_service.dart';
 import '../../../core/services/session_expiry_service.dart';
+import '../../../core/logging/diagnostic_logger.dart';
 
 class AuthController extends GetxController {
   final AuthRepository _authRepository = Get.find();
@@ -93,6 +94,10 @@ class AuthController extends GetxController {
 
     if (result['success']) {
       SessionExpiryService.reset();
+      DiagnosticLogger.instance.info(
+        'Authentication state changed',
+        metadata: <String, Object?>{'authenticated': true},
+      );
 
       final UserModel user = result['user'];
       final bool isTrusted = result['is_trusted'] ?? false;
@@ -147,6 +152,7 @@ class AuthController extends GetxController {
       // preloads until it is known no OTP challenge is pending.
       await _navigateBasedOnUserStatus(user, isTrusted);
     } else {
+      DiagnosticLogger.instance.warning('Authentication failed');
       MessagePopupController.showError(
         messageKey: 'invalid_credentials',
         titleKey: 'login_failed',

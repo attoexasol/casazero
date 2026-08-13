@@ -6,6 +6,7 @@ import '../navigation/auth_navigation.dart';
 import 'fcm_service.dart';
 import 'firebase_auth_service.dart';
 import 'storage_service.dart';
+import '../logging/diagnostic_logger.dart';
 import '../../presentation/home/controllers/home_controller.dart';
 import '../../presentation/profile/controllers/profile_controller.dart';
 
@@ -39,6 +40,7 @@ class SessionExpiryService {
   static Future<void> handleSessionExpired() async {
     if (_isHandling) return;
     _isHandling = true;
+    DiagnosticLogger.instance.info('Session expired — signing out');
 
     try {
       final storage = Get.find<StorageService>();
@@ -74,6 +76,10 @@ class SessionExpiryService {
       });
     } catch (e) {
       print('❌ [SessionExpiryService] Error handling session expiry: $e');
+      DiagnosticLogger.instance.error(
+        'Session expiry handling failed',
+        error: e,
+      );
       try {
         if (Get.isRegistered<StorageService>()) {
           await Get.find<StorageService>().clearAll();

@@ -13,6 +13,7 @@ import '../../../core/services/firebase_auth_service.dart';
 import '../../../core/services/fcm_service.dart';
 import '../../../core/services/session_expiry_service.dart';
 import '../../../data/repositories/auth_repository.dart';
+import '../../../core/logging/diagnostic_logger.dart';
 
 class SplashController extends GetxController {
   final StorageService _storageService = Get.find();
@@ -50,6 +51,7 @@ class SplashController extends GetxController {
     }
 
     print('🔐 SplashController: Checking authentication status...');
+    DiagnosticLogger.instance.info('Session restore started');
 
     // Check for stored access token
     final accessToken = _storageService.getAccessToken();
@@ -72,6 +74,14 @@ class SplashController extends GetxController {
       // at OTP — never HOME. Authenticated initialization (Firebase sign-in,
       // FCM refresh) is deferred until OTP succeeds.
       print('  ⚠️ 2FA pending from previous session - resuming OTP verification');
+      DiagnosticLogger.instance.info(
+        'Existing session found',
+        metadata: <String, Object?>{
+          'phase': phase.name,
+          'destination': 'otp',
+        },
+      );
+      DiagnosticLogger.instance.info('Session restore completed');
       _navigateToOtpVerification();
       return;
     }
@@ -80,6 +90,13 @@ class SplashController extends GetxController {
       final hasFirebaseToken =
           _storageService.getStoredFirebaseToken() != null;
       print('  - Stored firebase_token: ${hasFirebaseToken ? "Found" : "MISSING — log out and log in again"}');
+      DiagnosticLogger.instance.info(
+        'Existing session found',
+        metadata: <String, Object?>{
+          'phase': phase.name,
+          'firebase_token_available': hasFirebaseToken,
+        },
+      );
       _storageService.debugPrintStorageKeys();
       await _ensureFirebaseSignedIn();
       if (_shouldAbortNavigation) return;
@@ -91,17 +108,24 @@ class SplashController extends GetxController {
       final tokenAfterRestore = _storageService.getAccessToken();
       if (tokenAfterRestore == null || tokenAfterRestore.isEmpty) {
         print('  ❌ Session cleared during restore - navigating to AUTH');
+        DiagnosticLogger.instance.error(
+          'Session restore failed',
+          metadata: <String, Object?>{'reason': 'session_cleared_during_restore'},
+        );
         _navigateToAuth();
         return;
       }
 
       print('  ✅ User authenticated - navigating to HOME');
+      DiagnosticLogger.instance.info('Session restore completed');
       _navigateToHome();
       return;
     }
 
     // No authentication data - navigate to AUTH
     print('  ❌ No authentication found - navigating to AUTH');
+    DiagnosticLogger.instance.info('No session found');
+    DiagnosticLogger.instance.info('Session restore completed');
     _navigateToAuth();
   }
 
@@ -131,6 +155,10 @@ class SplashController extends GetxController {
       }
     } catch (e) {
       debugPrint('  [Splash] FCM token registration failed: $e');
+      DiagnosticLogger.instance.error(
+        'FCM registration after session restore failed',
+        error: e,
+      );
     }
   }
 
@@ -143,13 +171,25 @@ class SplashController extends GetxController {
       final fb = Get.find<FirebaseAuthService>();
       if (ok && fb.isSignedIn) {
         debugPrint('  [Splash] Firebase signed in uid=${fb.firebaseUid}');
+        DiagnosticLogger.instance.info(
+          'Firebase auth signed in',
+          metadata: <String, Object?>{'uid_available': true},
+        );
       } else {
         debugPrint(
           '  [Splash] Firebase not signed in (syncOk=$ok) — uses stored login firebase_token if available',
         );
+        DiagnosticLogger.instance.warning(
+          'Firebase auth not signed in after session restore',
+          metadata: <String, Object?>{'sync_ok': ok},
+        );
       }
     } catch (e) {
       debugPrint('  [Splash] Firebase sign-in on splash failed: $e');
+      DiagnosticLogger.instance.error(
+        'Firebase sign-in on session restore failed',
+        error: e,
+      );
     }
   }
 

@@ -377,6 +377,8 @@ class AppTranslations extends Translations {
     "preferences": "Preferences",
     "language": "Language",
     "reset_first_login": "Reset First Login",
+    "export_diagnostic_log": "Export Diagnostic Log",
+    "diagnostic_log_export_failed": "Failed to export diagnostic log",
 
     // Logout
     "logout": "Logout",
@@ -1079,6 +1081,8 @@ class AppTranslations extends Translations {
     "preferences": "Preferenze",
     "language": "Lingua",
     "reset_first_login": "Reset Primo Accesso",
+    "export_diagnostic_log": "Esporta log diagnostico",
+    "diagnostic_log_export_failed": "Impossibile esportare il log diagnostico",
 
     // Logout
     "logout": "Esci",

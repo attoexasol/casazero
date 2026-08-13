@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 import '../utils/firebase_config_audit.dart';
 import '../utils/firebase_jwt_debug.dart';
 import '../utils/firebase_response_parser.dart';
+import '../logging/diagnostic_logger.dart';
 
 /// Centralized Firebase Auth for chat and FCM identity.
 /// Laravel returns a custom token; Firebase UID must match Laravel `user.id` (string).
@@ -34,6 +35,14 @@ class FirebaseAuthService extends GetxService {
       firebaseUidObs.value = user?.uid;
       debugPrint(
         '[FirebaseAuthService] authStateChanged uid=${user?.uid ?? "null"}',
+      );
+      final String? uid = user?.uid;
+      DiagnosticLogger.instance.info(
+        'Authentication state changed',
+        metadata: <String, Object?>{
+          'firebase_signed_in': user != null,
+          'uid_available': uid != null && uid.isNotEmpty,
+        },
       );
     });
   }
@@ -101,6 +110,10 @@ class FirebaseAuthService extends GetxService {
       debugPrint(
         '[FirebaseAuthService] signInWithCustomToken: ABORT — empty token (${FirebaseResponseParser.describeTokenPresence(token)})',
       );
+      DiagnosticLogger.instance.warning(
+        'Firebase custom token sign-in skipped',
+        metadata: <String, Object?>{'token_available': false},
+      );
       return false;
     }
 
@@ -123,16 +136,28 @@ class FirebaseAuthService extends GetxService {
       debugPrint(
         '[FirebaseAuth] signInWithCustomToken START ${FirebaseResponseParser.describeTokenPresence(trimmed)}',
       );
+      DiagnosticLogger.instance.info(
+        'Firebase custom token sign-in started',
+        metadata: <String, Object?>{'token_available': true},
+      );
       await _auth.signOut();
       await _auth.signInWithCustomToken(trimmed);
       final uid = _auth.currentUser?.uid;
       if (uid == null) {
         debugPrint('[FirebaseAuth] FAILED — currentUser null after signIn');
         _logClientFirebaseContext('AFTER signIn FAIL (null user)');
+        DiagnosticLogger.instance.error(
+          'Firebase custom token sign-in failed',
+          metadata: <String, Object?>{'reason': 'current_user_null'},
+        );
         return false;
       }
       debugPrint(
         '[FirebaseAuth] SUCCESS uid=$uid projectId=${_auth.app.options.projectId}',
+      );
+      DiagnosticLogger.instance.info(
+        'Firebase custom token sign-in completed',
+        metadata: <String, Object?>{'uid_available': true},
       );
       if (expectedLaravelUserId != null &&
           expectedLaravelUserId.isNotEmpty &&
@@ -150,6 +175,12 @@ class FirebaseAuthService extends GetxService {
       debugPrint(
         '[FirebaseAuthService] FirebaseAuthException code=${e.code} message=${e.message}',
       );
+      DiagnosticLogger.instance.error(
+        'Firebase custom token sign-in failed',
+        error: e,
+        stackTrace: st,
+        metadata: <String, Object?>{'code': e.code},
+      );
       _logClientFirebaseContext('AFTER signIn FAIL (${e.code})');
       _logCustomTokenClaims('AFTER signIn FAIL (${e.code})', trimmed);
       FirebaseConfigAudit.logStartupState();
@@ -164,6 +195,11 @@ class FirebaseAuthService extends GetxService {
       return false;
     } catch (e, st) {
       debugPrint('[FirebaseAuthService] signInWithCustomToken error: $e\n$st');
+      DiagnosticLogger.instance.error(
+        'Firebase custom token sign-in failed',
+        error: e,
+        stackTrace: st,
+      );
       _logClientFirebaseContext('AFTER signIn FAIL (generic)');
       _logCustomTokenClaims('AFTER signIn FAIL (generic)', trimmed);
       return false;

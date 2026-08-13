@@ -22,6 +22,7 @@ import 'helpers/local_notification_service.dart';
 import 'core/services/push_launch_handler.dart';
 import 'core/services/fcm_service.dart';
 import 'core/services/notification_manager.dart';
+import 'core/logging/diagnostic_logger.dart';
 import 'dart:async';
 
 const Color _splashBackgroundColor = Color(0xFFFAF7F4);
@@ -38,6 +39,16 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
     await GetStorage.init();
   } catch (_) {}
+  try {
+    await DiagnosticLogger.instance.init();
+    DiagnosticLogger.instance.info(
+      'FCM background message received',
+      metadata: <String, Object?>{
+        'has_notification_payload': message.notification != null,
+        'data_key_count': message.data.length,
+      },
+    );
+  } catch (_) {}
 
   final messageId = message.messageId ?? 'no-id';
   final data = message.data;
@@ -52,12 +63,23 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       await LocalNotificationService.showNotification(message);
     } catch (e) {
       print('❌ [FCM Background] Local notification error: $e');
+      DiagnosticLogger.instance.error(
+        'FCM background local notification error',
+        error: e,
+      );
     }
   }
 }
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    await DiagnosticLogger.instance.init().timeout(const Duration(seconds: 2));
+  } catch (_) {}
+  DiagnosticLogger.instance.installErrorHandlers();
+  DiagnosticLogger.instance.info('App started');
+  unawaited(DiagnosticLogger.instance.logEnvironment());
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -118,8 +140,13 @@ Future<void> _initializeCriticalServices() async {
   try {
     await LocalNotificationService.initialize();
     print('✅ Local notifications initialized (critical path)');
+    DiagnosticLogger.instance.info('Local notifications initialized');
   } catch (e) {
     print('❌ Local notifications initialization failed: $e');
+    DiagnosticLogger.instance.error(
+      'Local notifications initialization failed',
+      error: e,
+    );
   }
 
   // 4) FCM permission, onMessage, iOS foreground presentation — before UI.
@@ -141,6 +168,7 @@ Future<void> _initializeDeferredServices() async {
 }
 
 Future<void> _initializeFirebase() async {
+  DiagnosticLogger.instance.info('Firebase initialization started');
   if (defaultTargetPlatform == TargetPlatform.iOS) {
     print('🔍 iOS: Checking Firebase init...');
   }
@@ -164,15 +192,25 @@ Future<void> _initializeFirebase() async {
       );
       print('✅ Firebase initialized successfully from Flutter');
       print('✅ Firebase.apps.length after init: ${Firebase.apps.length}');
+      DiagnosticLogger.instance.info('Firebase initialization completed');
       FirebaseConfigAudit.logStartupState();
     } catch (e, stackTrace) {
       print('❌ Firebase initialization failed: $e');
       print('❌ Stack trace: $stackTrace');
       print('⚠️  App will continue without Firebase features');
+      DiagnosticLogger.instance.error(
+        'Firebase initialization failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   } else {
     print('✅ Firebase already initialized (likely by AppDelegate)');
     print('✅ Firebase.apps.length: ${Firebase.apps.length}');
+    DiagnosticLogger.instance.info(
+      'Firebase initialization completed',
+      metadata: <String, Object?>{'already_initialized': true},
+    );
     FirebaseConfigAudit.logStartupState();
   }
 
@@ -186,8 +224,13 @@ Future<void> _initializeFirebase() async {
         _firebaseMessagingBackgroundHandler,
       );
       print('✅ Background message handler registered');
+      DiagnosticLogger.instance.info('FCM background handler registered');
     } catch (e) {
       print('❌ Failed to register background message handler: $e');
+      DiagnosticLogger.instance.error(
+        'FCM background handler registration failed',
+        error: e,
+      );
     }
 
     // Capture tray/lock-screen launch ASAP (before FcmService.init / runApp).
@@ -196,6 +239,7 @@ Future<void> _initializeFirebase() async {
       print('✅ Push launch handler installed');
     } catch (e) {
       print('❌ Push launch handler failed: $e');
+      DiagnosticLogger.instance.error('Push launch handler failed', error: e);
     }
   }
 }
@@ -208,9 +252,13 @@ Future<void> _initializeFcmServiceCritical() async {
     print(
       '⚠️ [main] Skipping critical FcmService.init — Firebase not initialized',
     );
+    DiagnosticLogger.instance.warning(
+      'FCM initialization skipped — Firebase not initialized',
+    );
     return;
   }
 
+  DiagnosticLogger.instance.info('FCM initialization started');
   try {
     if (!Get.isRegistered<NotificationManager>()) {
       Get.put<NotificationManager>(NotificationManager(), permanent: true);
@@ -224,9 +272,15 @@ Future<void> _initializeFcmServiceCritical() async {
 
     await Get.find<FcmService>().init();
     print('✅ FcmService.init awaited (critical path, before runApp)');
-  } catch (e) {
+    DiagnosticLogger.instance.info('FCM initialization completed');
+  } catch (e, stackTrace) {
     print('❌ Critical FcmService.init failed: $e');
     print('⚠️  App will continue; deferred path may retry via InitialBinding');
+    DiagnosticLogger.instance.error(
+      'FCM initialization failed',
+      error: e,
+      stackTrace: stackTrace,
+    );
   }
 }
 
