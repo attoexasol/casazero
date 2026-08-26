@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../core/controllers/message_popup_controller.dart';
+import '../../../core/services/storage_service.dart';
 import '../../../core/utils/permissions.dart';
+import '../../../data/repositories/auth_repository.dart';
 import '../../../data/repositories/ticket_repository.dart';
 import '../../home/controllers/home_controller.dart';
+import '../../profile/controllers/profile_controller.dart';
 import '../models/issue_type_model.dart';
 import '../models/ticket_model.dart';
 
@@ -123,14 +126,10 @@ class TicketsController extends GetxController {
     try {
       final home = Get.find<HomeController>();
       final residence = home.selectedResidence.value;
-      final user = home.currentUser.value;
       final residenceName = residence?.residenceName ??
           home.residenceData.value?['residence_name']?.toString() ??
           '';
-      final residenceUnit =
-          (residence?.unitName != null && residence!.unitName!.isNotEmpty)
-              ? residence.unitName!
-              : (user?.unitName ?? '');
+      final residenceUnit = await _resolveResidenceUnit(home);
 
       final result = await _ticketRepository.createSupportTicket(
         title: title,
@@ -173,6 +172,62 @@ class TicketsController extends GetxController {
     } finally {
       isCreatingTicket.value = false;
     }
+  }
+
+  /// Resolves the user's residence unit name for POST /support-ticket/create.
+  /// Backend requires `residence_unit`; unit_name typically comes from profile.
+  Future<String> _resolveResidenceUnit(HomeController home) async {
+    final fromResidence = home.selectedResidence.value?.unitName?.trim();
+    if (fromResidence != null && fromResidence.isNotEmpty) {
+      return fromResidence;
+    }
+
+    final fromHomeUser = home.currentUser.value?.unitName?.trim();
+    if (fromHomeUser != null && fromHomeUser.isNotEmpty) {
+      return fromHomeUser;
+    }
+
+    if (Get.isRegistered<ProfileController>()) {
+      final fromProfile =
+          Get.find<ProfileController>().user.value?.unitName?.trim();
+      if (fromProfile != null && fromProfile.isNotEmpty) {
+        return fromProfile;
+      }
+    }
+
+    final residenceData = home.residenceData.value;
+    if (residenceData != null) {
+      final direct = residenceData['unit_name']?.toString().trim();
+      if (direct != null && direct.isNotEmpty) return direct;
+
+      final unit = residenceData['unit'];
+      if (unit is Map) {
+        final nested = unit['unit_name']?.toString().trim();
+        if (nested != null && nested.isNotEmpty) return nested;
+      }
+    }
+
+    if (Get.isRegistered<StorageService>()) {
+      final stored =
+          Get.find<StorageService>().getUserData()?['unit_name']?.toString().trim();
+      if (stored != null && stored.isNotEmpty) return stored;
+    }
+
+    // unit_name is returned by /user/profile; fetch once when local caches miss.
+    try {
+      final authRepo = Get.isRegistered<AuthRepository>()
+          ? Get.find<AuthRepository>()
+          : AuthRepository();
+      final profile = await authRepo.getUserProfile();
+      final fromApi = profile?.unitName?.trim();
+      if (fromApi != null && fromApi.isNotEmpty) {
+        return fromApi;
+      }
+    } catch (e) {
+      print('⚠️ [TicketsController] Failed to resolve unit from profile: $e');
+    }
+
+    return '';
   }
 
   static const List<String> priorityValues = ['low', 'medium', 'high'];

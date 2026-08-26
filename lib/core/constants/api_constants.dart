@@ -425,6 +425,8 @@ class ApiConstants {
   ///   "description": "...",
   ///   "issue_type_id": 4,
   ///   "priority": "high",
+  ///   "residence_unit": "...",  (required)
+  ///   "residence_name": "...",  (optional)
   ///   "image": "data:image/jpeg;base64,..."  (optional)
   /// }
   /// Response: { "status": true, "message": "Support ticket created successfully.", "data": { ... } }

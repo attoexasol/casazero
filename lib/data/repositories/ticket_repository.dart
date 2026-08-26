@@ -123,6 +123,15 @@ class TicketRepository {
         return null;
       }
 
+      // Backend requires residence_unit. Prefer caller value; fall back to
+      // stored profile unit_name so the field is never silently omitted.
+      var resolvedUnit = residenceUnit?.trim() ?? '';
+      if (resolvedUnit.isEmpty) {
+        resolvedUnit =
+            _storageService.getUserData()?['unit_name']?.toString().trim() ??
+                '';
+      }
+
       final Map<String, dynamic> requestData = {
         'api_token': apiToken,
         'title': title,
@@ -131,8 +140,7 @@ class TicketRepository {
         'priority': priority,
         if (residenceName != null && residenceName.isNotEmpty)
           'residence_name': residenceName,
-        if (residenceUnit != null && residenceUnit.isNotEmpty)
-          'residence_unit': residenceUnit,
+        'residence_unit': resolvedUnit,
       };
 
       if (image != null && image.existsSync()) {

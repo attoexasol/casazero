@@ -4,6 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'dart:ui';
 import '../controllers/auth_controller.dart';
+import '../../../core/controllers/message_popup_controller.dart';
+import '../../../core/logging/diagnostic_logger.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/custom_text_field.dart';
 import '../../../app/theme/app_colors.dart';
@@ -322,6 +324,8 @@ class AuthScreen extends GetView<AuthController> {
                   height: 48.h,
                 ),
               ),
+              SizedBox(height: 16.h),
+              _buildExportDiagnosticLog(),
               SizedBox(height: 24.h),
               _buildDemoModeDivider(),
             ],
@@ -330,6 +334,63 @@ class AuthScreen extends GetView<AuthController> {
       ),
     ),
     );
+  }
+
+  Widget _buildExportDiagnosticLog() {
+    return Builder(
+      builder: (context) {
+        return Center(
+          child: GestureDetector(
+            onTap: () => _exportDiagnosticLog(context),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.ios_share,
+                  size: 16.sp,
+                  color: Colors.white.withOpacity(0.8),
+                ),
+                SizedBox(width: 8.w),
+                Text(
+                  'export_diagnostic_log'.tr,
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: Colors.white.withOpacity(0.8),
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _exportDiagnosticLog(BuildContext context) async {
+    try {
+      final RenderBox? box = context.findRenderObject() as RenderBox?;
+      Rect? origin;
+      if (box != null && box.hasSize) {
+        origin = box.localToGlobal(Offset.zero) & box.size;
+      }
+      final bool ok = await DiagnosticLogger.instance.shareLogFile(
+        shareOrigin: origin,
+      );
+      if (!ok) {
+        await MessagePopupController.showError(
+          messageKey: 'diagnostic_log_export_failed',
+          titleKey: 'error',
+        );
+      }
+    } catch (_) {
+      try {
+        await MessagePopupController.showError(
+          messageKey: 'diagnostic_log_export_failed',
+          titleKey: 'error',
+        );
+      } catch (_) {}
+    }
   }
 
   Widget _buildDemoModeDivider() {

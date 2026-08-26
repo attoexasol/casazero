@@ -629,86 +629,44 @@ class MaintenanceTaskCard extends StatelessWidget {
                                     ),
                               SizedBox(height: 12.h),
 
-                              // Dates from API: due_date + last_maintenance_date
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  if (task.nextDue != null &&
-                                      task.nextDue!.isNotEmpty)
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.calendar_today,
-                                          size: 14.sp,
-                                          color: isOverdue
-                                              ? Colors.red.shade600
-                                              : AppColors.neutralInk500,
-                                        ),
-                                        SizedBox(width: 4.w),
-                                        Expanded(
-                                          child: Obx(() {
-                                            final localeController =
-                                                Get.find<LocaleController>();
-                                            // Access locale to trigger reactivity
-                                            final _ = localeController.locale;
-
-                                            return Text(
-                                              '${'startDate'.tr}: ${_formatDate(task.nextDue)}',
-                                              style: AppTextStyles.bodySmall
-                                                  .copyWith(
-                                                    color: isOverdue
-                                                        ? Colors.red.shade600
-                                                        : AppColors
-                                                            .neutralInk700,
-                                                    fontWeight: isOverdue
-                                                        ? FontWeight.w600
-                                                        : FontWeight.normal,
-                                                  ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            );
-                                          }),
-                                        ),
-                                      ],
+                              // Dates from API: due_date
+                              if (task.nextDue != null &&
+                                  task.nextDue!.isNotEmpty)
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.calendar_today,
+                                      size: 14.sp,
+                                      color: isOverdue
+                                          ? Colors.red.shade600
+                                          : AppColors.neutralInk500,
                                     ),
-                                  // End Date from last_maintenance_date
-                                  if (task.lastMaintenanceDate != null &&
-                                      task.lastMaintenanceDate!.isNotEmpty) ...[
-                                    if (task.nextDue != null &&
-                                        task.nextDue!.isNotEmpty)
-                                      SizedBox(height: 8.h),
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.calendar_today,
-                                          size: 14.sp,
-                                          color: AppColors.neutralInk500,
-                                        ),
-                                        SizedBox(width: 4.w),
-                                        Expanded(
-                                          child: Obx(() {
-                                            final localeController =
-                                                Get.find<LocaleController>();
-                                            // Access locale to trigger reactivity
-                                            final _ = localeController.locale;
+                                    SizedBox(width: 4.w),
+                                    Expanded(
+                                      child: Obx(() {
+                                        final localeController =
+                                            Get.find<LocaleController>();
+                                        // Access locale to trigger reactivity
+                                        final _ = localeController.locale;
 
-                                            return Text(
-                                              '${'endDate'.tr}: ${_formatDate(task.lastMaintenanceDate)}',
-                                              style: AppTextStyles.bodySmall
-                                                  .copyWith(
-                                                    color:
-                                                        AppColors.neutralInk700,
-                                                  ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            );
-                                          }),
-                                        ),
-                                      ],
+                                        return Text(
+                                          '${'startDate'.tr}: ${_formatDate(task.nextDue)}',
+                                          style: AppTextStyles.bodySmall
+                                              .copyWith(
+                                                color: isOverdue
+                                                    ? Colors.red.shade600
+                                                    : AppColors.neutralInk700,
+                                                fontWeight: isOverdue
+                                                    ? FontWeight.w600
+                                                    : FontWeight.normal,
+                                              ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        );
+                                      }),
                                     ),
                                   ],
-                                ],
-                              ),
+                                ),
                             ],
                           ),
                         ),

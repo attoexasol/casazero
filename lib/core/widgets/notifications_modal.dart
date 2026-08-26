@@ -401,14 +401,17 @@ class _NotificationCard extends StatelessWidget {
       iconColor = AppColors.neutralInk500;
     }
 
+    final isUnread = !notification.isRead;
+
     return Container(
       margin: EdgeInsets.only(bottom: 8.h),
       decoration: BoxDecoration(
         color: AppColors.surfaceWhite,
         borderRadius: BorderRadius.circular(10.r),
         border: Border.all(
-          color: AppColors.surfaceWhite,
-          width: 1,
+          // Unread: small green rectangular outline; clears once marked read.
+          color: isUnread ? AppColors.brandSage600 : AppColors.surfaceWhite,
+          width: isUnread ? 1.5 : 1,
         ),
       ),
       child: Material(
