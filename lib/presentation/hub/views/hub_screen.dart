@@ -3,10 +3,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
-import '../../../core/widgets/casazero_logo.dart';
 import '../../../core/widgets/floating_bottom_nav_bar.dart';
 import '../controllers/hub_controller.dart';
 import 'sections/hub_card_widget.dart';
+import '../../../core/logging/diagnostic_logger.dart';
 
 class HubScreen extends GetView<HubController> {
   final Function(String) onNavigate;
@@ -17,9 +17,9 @@ class HubScreen extends GetView<HubController> {
   Widget build(BuildContext context) {
     final hubCards = controller.hubCards;
 
-    print('🔍 HubScreen: Showing ${hubCards.length} cards out of 4 total');
+    DiagnosticLogger.instance.debug('🔍 HubScreen: Showing ${hubCards.length} cards out of 4 total');
     for (var card in hubCards) {
-      print('  - ${card.title} (${card.id})');
+      DiagnosticLogger.instance.debug('  - ${card.title} (${card.id})');
     }
 
     if (hubCards.isEmpty) {
@@ -232,7 +232,7 @@ class HubScreen extends GetView<HubController> {
           colors: [Color(0xFFEFF8E6), Color(0xFFF3FBEA)],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Color(0xFF6B8E23).withOpacity(0.2)),
+        border: Border.all(color: Color(0xFF6B8E23).withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [

@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../../../../core/localization/locale_controller.dart';
 import '../../../../data/models/document_model.dart';
 import 'document_colors.dart';
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 /// Callback that runs the download and completes when done (success or error).
 /// Used so the card can show a button-level loader and clear it when the future completes.
@@ -70,7 +71,7 @@ class _DocumentCardState extends State<DocumentCard> {
           clipBehavior: Clip.antiAlias,
           margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.95),
+            color: Colors.white.withValues(alpha: 0.95),
             borderRadius: BorderRadius.circular(cardRadius),
             border: Border.all(
               color: const Color(0xFFF2F2F2),
@@ -88,7 +89,7 @@ class _DocumentCardState extends State<DocumentCard> {
                 blurRadius: 8.r,
               ),
               BoxShadow(
-                color: typeColor.withOpacity(_isPressed ? 0.28 : 0.0),
+                color: typeColor.withValues(alpha: _isPressed ? 0.28 : 0.0),
                 blurRadius: _isPressed ? 30.r : 4.r,
                 spreadRadius: _isPressed ? 2.r : 0,
                 offset: Offset(0, _isPressed ? 10.h : 4.h),
@@ -103,7 +104,7 @@ class _DocumentCardState extends State<DocumentCard> {
                 width: 8.w,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [accentColor, accentColor.withOpacity(0.5)],
+                    colors: [accentColor, accentColor.withValues(alpha: 0.5)],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),
@@ -133,7 +134,7 @@ class _DocumentCardState extends State<DocumentCard> {
                             height: 48.w,
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
-                              color: accentColor.withOpacity(0.15),
+                              color: accentColor.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(14.r),
                             ),
                             child: Icon(
@@ -280,7 +281,7 @@ class _DocumentCardState extends State<DocumentCard> {
         onTap: _isDownloading
             ? null
             : () async {
-                print('🔘 [DocumentCard] Download button tapped');
+                DiagnosticLogger.instance.debug('🔘 [DocumentCard] Download button tapped');
                 setState(() => _isDownloading = true);
                 try {
                   await widget.onDownload!();
@@ -290,7 +291,7 @@ class _DocumentCardState extends State<DocumentCard> {
               },
         onTapDown: (_) {
           if (!_isDownloading) {
-            print('🔘 [DocumentCard] Action button tap down: download');
+            DiagnosticLogger.instance.debug('🔘 [DocumentCard] Action button tap down: download');
           }
         },
         behavior: HitTestBehavior.opaque,

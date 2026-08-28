@@ -73,7 +73,6 @@ class Permissions {
         );
 
       case Role.client:
-      default:
         return Permissions(
           canAccessAI: true,
           canAccessSmartHome: true, // Enable Smart Home for all users

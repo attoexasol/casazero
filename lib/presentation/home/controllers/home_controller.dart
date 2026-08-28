@@ -23,6 +23,7 @@ import '../../../core/services/session_expiry_service.dart';
 import '../../chat/controllers/private_chat_controller.dart';
 import '../../chat/controllers/chat_controller.dart';
 import '../../main/main_scaffold.dart'; // Import for AppScreen enum
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 class HomeController extends GetxController {
   final HomeRepository _homeRepository = Get.find();
@@ -133,22 +134,22 @@ class HomeController extends GetxController {
     // This ensures notifications are fetched on app launch
     if (apiToken.value.isNotEmpty) {
       if (!_isInitialized.value) {
-        print(
+        DiagnosticLogger.instance.warning(
           '✅ [HomeController] API token available, initializing data (including notifications)...',
         );
         _initializeDataWithToken();
       } else {
-        print('⚠️ [HomeController] Already initialized, skipping');
+        DiagnosticLogger.instance.warning('⚠️ [HomeController] Already initialized, skipping');
       }
     } else {
-      print(
+      DiagnosticLogger.instance.warning(
         '⚠️ [HomeController] API token not available yet, setting up listener...',
       );
       // Wait for token to be ready before making API calls
       // Use one-time listener to trigger APIs when token becomes available
       once(apiToken, (token) {
         if (token.isNotEmpty && !_isInitialized.value) {
-          print(
+          DiagnosticLogger.instance.info(
             '✅ [HomeController] API token ready via listener, initializing data (including notifications)...',
           );
           _initializeDataWithToken();
@@ -161,7 +162,7 @@ class HomeController extends GetxController {
   void _loadApiToken() {
     final token = _storageService.getAccessToken();
     apiToken.value = token ?? '';
-    print(
+    DiagnosticLogger.instance.debug(
       '🔑 [HomeController] Loaded apiToken: ${token != null && token.isNotEmpty ? "${token.substring(0, 10)}..." : "NO TOKEN"}',
     );
     // Note: Initialization is handled in onReady() to ensure proper lifecycle order
@@ -187,7 +188,7 @@ class HomeController extends GetxController {
     _isInitialized.value = false;
     _initialLoadInProgress = false;
     isLoading.value = false;
-    print('🧹 [HomeController] State cleared for logout');
+    DiagnosticLogger.instance.debug('🧹 [HomeController] State cleared for logout');
   }
 
   /// Ensures home data (notifications, residences, user) matches the current user in storage.
@@ -212,13 +213,11 @@ class HomeController extends GetxController {
 
     _loadUserData();
     // onReady may have initialized already — avoid wiping state and reloading twice.
-    if (_isInitialized.value &&
-        storageId != null &&
-        currentUser.value?.id == storageId) {
+    if (_isInitialized.value && currentUser.value?.id == storageId) {
       return;
     }
 
-    print(
+    DiagnosticLogger.instance.debug(
       '🔄 [HomeController] User changed or first load (storage: $storageId, current: $currentId), reinitializing...',
     );
 
@@ -255,17 +254,17 @@ class HomeController extends GetxController {
   void _initializeDataWithToken() {
     // Only initialize once to avoid duplicate calls
     if (_isInitialized.value) {
-      print('⚠️ [HomeController] Already initialized, skipping');
+      DiagnosticLogger.instance.error('⚠️ [HomeController] Already initialized, skipping');
       return;
     }
 
     if (apiToken.value.isEmpty) {
-      print('❌ [HomeController] Cannot initialize: API token is empty');
+      DiagnosticLogger.instance.error('❌ [HomeController] Cannot initialize: API token is empty');
       return;
     }
 
     _isInitialized.value = true;
-    print('✅ [HomeController] Initializing data with token...');
+    DiagnosticLogger.instance.info('✅ [HomeController] Initializing data with token...');
 
     unawaited(_loadInitialHomeData());
     fetchNotifications(); // Also refreshes unread count on success
@@ -282,7 +281,7 @@ class HomeController extends GetxController {
       await fetchResidences();
       await fetchResidenceData();
     } catch (e) {
-      print('❌ [HomeController] _loadInitialHomeData: $e');
+      DiagnosticLogger.instance.error('❌ [HomeController] _loadInitialHomeData: $e');
     } finally {
       isLoading.value = false;
       _initialLoadInProgress = false;
@@ -295,7 +294,7 @@ class HomeController extends GetxController {
     // Call in background - don't await
     Future.microtask(() async {
       try {
-        print('Pre-loading documents in HomeController...');
+        DiagnosticLogger.instance.debug('Pre-loading documents in HomeController...');
         final documentRepository = DocumentRepository();
         final result = await documentRepository.getDocumentsByUnit();
 
@@ -317,7 +316,7 @@ class HomeController extends GetxController {
               documentsController.applyDocuments(parsed);
             }
             await documentsController.fetchDocumentCategories();
-            print(
+            DiagnosticLogger.instance.info(
               '✅ Documents pre-loaded in HomeController: ${documentsData.length} documents',
             );
           } else {
@@ -326,10 +325,10 @@ class HomeController extends GetxController {
             await documentsController.fetchDocuments();
           }
         } else {
-          print('⚠️  Failed to pre-load documents: ${result['error']}');
+          DiagnosticLogger.instance.error('⚠️  Failed to pre-load documents: ${result['error']}');
         }
       } catch (e) {
-        print('⚠️  Error pre-loading documents: $e');
+        DiagnosticLogger.instance.error('⚠️  Error pre-loading documents: $e');
         // Don't block - just log the error
       }
     });
@@ -346,7 +345,7 @@ class HomeController extends GetxController {
   Future<void> fetchResidences() async {
     // Guard: Check token before API call
     if (apiToken.value.isEmpty) {
-      print(
+      DiagnosticLogger.instance.warning(
         '⚠️ [HomeController] fetchResidences: API token not ready, skipping',
       );
       return;
@@ -364,21 +363,21 @@ class HomeController extends GetxController {
         if (residences.isNotEmpty && selectedResidence.value == null) {
           selectedResidence.value = residences.first;
           _syncResidenceStatus(selectedResidence.value?.residenceStatus);
-          print(
+          DiagnosticLogger.instance.warning(
             'Auto-selected residence: ${selectedResidence.value?.residenceName}',
           );
         }
 
-        print('Loaded ${residences.length} residences');
+        DiagnosticLogger.instance.error('Loaded ${residences.length} residences');
       } else {
-        print('Failed to fetch residences: ${result['error']}');
+        DiagnosticLogger.instance.error('Failed to fetch residences: ${result['error']}');
         MessagePopupController.showError(
           messageKey: 'failed_to_load_residences',
           titleKey: 'error',
         );
       }
     } catch (e) {
-      print('Error fetching residences: $e');
+      DiagnosticLogger.instance.error('Error fetching residences: $e');
     } finally {
       isLoadingResidences.value = false;
     }
@@ -388,7 +387,7 @@ class HomeController extends GetxController {
   void selectResidence(ResidenceModel residence) {
     selectedResidence.value = residence;
     _syncResidenceStatus(residence.residenceStatus);
-    print('Selected residence: ${residence.residenceName}');
+    DiagnosticLogger.instance.debug('Selected residence: ${residence.residenceName}');
     unawaited(fetchResidenceData());
     if (Get.isRegistered<DocumentsController>()) {
       Get.find<DocumentsController>().fetchDocuments();
@@ -478,7 +477,7 @@ class HomeController extends GetxController {
 
     // Only proceed if token is available
     if (apiToken.value.isEmpty) {
-      print(
+      DiagnosticLogger.instance.warning(
         '⚠️ [HomeController] refreshData: API token not available, skipping refresh',
       );
       return;
@@ -493,35 +492,35 @@ class HomeController extends GetxController {
   Future<void> fetchNotifications() async {
     // Guard: Check token before API call
     if (apiToken.value.isEmpty) {
-      print(
+      DiagnosticLogger.instance.warning(
         '⚠️ [HomeController] fetchNotifications: API token not ready, skipping',
       );
       return;
     }
 
     try {
-      print('🔔 [HomeController] Fetching notifications from API...');
+      DiagnosticLogger.instance.debug('🔔 [HomeController] Fetching notifications from API...');
 
       final result = await _homeRepository.getUserNotifications();
 
       if (result['success'] == true) {
         final notifications = result['data'] as List<FeedItemModel>;
         feedItems.value = notifications;
-        print(
+        DiagnosticLogger.instance.info(
           '✅ [HomeController] Successfully loaded ${notifications.length} notifications',
         );
 
         // Refresh unread count after fetching notifications to stay in sync
         await fetchUnreadCount();
       } else {
-        print(
+        DiagnosticLogger.instance.error(
           '❌ [HomeController] Failed to fetch notifications: ${result['error']}',
         );
         // On error, set empty list (don't show mock data)
         feedItems.value = [];
       }
     } catch (e) {
-      print('❌ [HomeController] Error fetching notifications: $e');
+      DiagnosticLogger.instance.error('❌ [HomeController] Error fetching notifications: $e');
       // On error, set empty list (don't show mock data)
       feedItems.value = [];
     }
@@ -531,14 +530,14 @@ class HomeController extends GetxController {
   Future<void> fetchUnreadCount() async {
     // Guard: Check token before API call
     if (apiToken.value.isEmpty) {
-      print(
+      DiagnosticLogger.instance.warning(
         '⚠️ [HomeController] fetchUnreadCount: API token not ready, skipping',
       );
       return;
     }
 
     try {
-      print(
+      DiagnosticLogger.instance.debug(
         '🔔 [HomeController] Fetching unread notification count from API...',
       );
 
@@ -547,21 +546,21 @@ class HomeController extends GetxController {
       if (result['success'] == true) {
         final count = result['unread_count'] as int? ?? 0;
         unreadCount.value = count;
-        print('✅ [HomeController] Unread count updated: $count');
+        DiagnosticLogger.instance.error('✅ [HomeController] Unread count updated: $count');
       } else {
         final errorMessage = result['error'] ?? 'Unknown error';
-        print('❌ [HomeController] Failed to fetch unread count: $errorMessage');
+        DiagnosticLogger.instance.error('❌ [HomeController] Failed to fetch unread count: $errorMessage');
         // Keep last known value on error (don't reset to 0)
-        print(
+        DiagnosticLogger.instance.error(
           '⚠️ [HomeController] Keeping last known unread count: ${unreadCount.value}',
         );
       }
     } catch (e, stackTrace) {
-      print('❌ [HomeController] Exception fetching unread count: $e');
-      print('❌ [HomeController] Exception type: ${e.runtimeType}');
-      print('📚 [HomeController] Stack trace: $stackTrace');
+      DiagnosticLogger.instance.error('❌ [HomeController] Exception fetching unread count: $e');
+      DiagnosticLogger.instance.error('❌ [HomeController] Exception type: ${e.runtimeType}');
+      DiagnosticLogger.instance.error('📚 [HomeController] Stack trace: $stackTrace');
       // Keep last known value on error (don't reset to 0)
-      print(
+      DiagnosticLogger.instance.warning(
         '⚠️ [HomeController] Keeping last known unread count: ${unreadCount.value}',
       );
     }
@@ -571,7 +570,7 @@ class HomeController extends GetxController {
   Future<void> markNotificationAsRead(String notificationId) async {
     // Guard: Check token before API call
     if (apiToken.value.isEmpty) {
-      print(
+      DiagnosticLogger.instance.warning(
         '⚠️ [HomeController] markNotificationAsRead: API token not ready, skipping',
       );
       return;
@@ -580,13 +579,13 @@ class HomeController extends GetxController {
     // Check if notification is already read (avoid unnecessary API call)
     final index = feedItems.indexWhere((item) => item.id == notificationId);
     if (index == -1) {
-      print('⚠️ [HomeController] Notification not found: $notificationId');
+      DiagnosticLogger.instance.warning('⚠️ [HomeController] Notification not found: $notificationId');
       return;
     }
 
     final notification = feedItems[index];
     if (notification.isRead) {
-      print('ℹ️ [HomeController] Notification already read: $notificationId');
+      DiagnosticLogger.instance.debug('ℹ️ [HomeController] Notification already read: $notificationId');
       return; // Already read, don't call API
     }
 
@@ -594,13 +593,13 @@ class HomeController extends GetxController {
       // Parse notification ID to int (API expects int)
       final notificationIdInt = int.tryParse(notificationId);
       if (notificationIdInt == null) {
-        print(
+        DiagnosticLogger.instance.error(
           '❌ [HomeController] Invalid notification ID format: $notificationId',
         );
         return;
       }
 
-      print(
+      DiagnosticLogger.instance.debug(
         '📝 [HomeController] Marking notification as read: $notificationId',
       );
 
@@ -614,18 +613,18 @@ class HomeController extends GetxController {
         feedItems[index] = notification.copyWith(isRead: true);
         feedItems.refresh(); // Trigger reactive update
 
-        print('✅ [HomeController] Notification marked as read successfully');
+        DiagnosticLogger.instance.error('✅ [HomeController] Notification marked as read successfully');
 
         // Refresh unread count from API to stay in sync
         await fetchUnreadCount();
       } else {
-        print(
+        DiagnosticLogger.instance.error(
           '❌ [HomeController] Failed to mark notification as read: ${result['error']}',
         );
         // Don't update local state if API call failed
       }
     } catch (e) {
-      print('❌ [HomeController] Error marking notification as read: $e');
+      DiagnosticLogger.instance.error('❌ [HomeController] Error marking notification as read: $e');
       // Don't update local state if API call failed
     }
   }
@@ -633,7 +632,7 @@ class HomeController extends GetxController {
   /// Delete notification (with API sync)
   Future<void> deleteNotification(String notificationId) async {
     if (apiToken.value.isEmpty) {
-      print(
+      DiagnosticLogger.instance.warning(
         '⚠️ [HomeController] deleteNotification: API token not ready, skipping',
       );
       return;
@@ -641,7 +640,7 @@ class HomeController extends GetxController {
 
     final index = feedItems.indexWhere((item) => item.id == notificationId);
     if (index == -1) {
-      print('⚠️ [HomeController] Notification not found: $notificationId');
+      DiagnosticLogger.instance.warning('⚠️ [HomeController] Notification not found: $notificationId');
       return;
     }
 
@@ -651,13 +650,13 @@ class HomeController extends GetxController {
     try {
       final notificationIdInt = int.tryParse(notificationId);
       if (notificationIdInt == null) {
-        print(
+        DiagnosticLogger.instance.error(
           '❌ [HomeController] Invalid notification ID format: $notificationId',
         );
         return;
       }
 
-      print('🗑️ [HomeController] Deleting notification: $notificationId');
+      DiagnosticLogger.instance.debug('🗑️ [HomeController] Deleting notification: $notificationId');
 
       final result = await _homeRepository.deleteNotification(
         notificationIdInt,
@@ -671,9 +670,9 @@ class HomeController extends GetxController {
           await fetchUnreadCount();
         }
 
-        print('✅ [HomeController] Notification deleted successfully');
+        DiagnosticLogger.instance.error('✅ [HomeController] Notification deleted successfully');
       } else {
-        print(
+        DiagnosticLogger.instance.error(
           '❌ [HomeController] Failed to delete notification: ${result['error']}',
         );
         MessagePopupController.showError(
@@ -682,7 +681,7 @@ class HomeController extends GetxController {
         );
       }
     } catch (e) {
-      print('❌ [HomeController] Error deleting notification: $e');
+      DiagnosticLogger.instance.error('❌ [HomeController] Error deleting notification: $e');
       MessagePopupController.showError(
         messageKey: 'failed_to_delete_notification',
         titleKey: 'notifications',
@@ -714,7 +713,7 @@ class HomeController extends GetxController {
     // TODO: Integrate assistance API
     // Example: Open assistance form or contact support
     // Get.toNamed('/assistance', arguments: {'notificationId': notification.id});
-    print('🆘 Assistance pressed for notification: ${notification.id}');
+    DiagnosticLogger.instance.debug('🆘 Assistance pressed for notification: ${notification.id}');
   }
 
   /// Handle AI Support action for notification (API-ready)
@@ -722,13 +721,13 @@ class HomeController extends GetxController {
     // TODO: Integrate AI support API
     // Example: Navigate to AI chat with notification context
     // Get.toNamed('/ai-chat', arguments: {'notificationId': notification.id});
-    print('🤖 AI Support pressed for notification: ${notification.id}');
+    DiagnosticLogger.instance.debug('🤖 AI Support pressed for notification: ${notification.id}');
   }
 
   /// Fetch residence via GET /single_residence/{id} and store admin for private chat.
   Future<void> fetchResidenceData() async {
     if (apiToken.value.isEmpty) {
-      print(
+      DiagnosticLogger.instance.warning(
         '⚠️ [HomeController] fetchResidenceData: API token not ready, skipping',
       );
       return;
@@ -736,12 +735,12 @@ class HomeController extends GetxController {
 
     final residenceId = _resolveResidenceIdForSingleResidence();
     if (residenceId == null) {
-      print('⚠️ [HomeController] fetchResidenceData: no residence id yet');
+      DiagnosticLogger.instance.warning('⚠️ [HomeController] fetchResidenceData: no residence id yet');
       return;
     }
 
     try {
-      print('🏠 [HomeController] Fetching single_residence/$residenceId...');
+      DiagnosticLogger.instance.debug('🏠 [HomeController] Fetching single_residence/$residenceId...');
       final result = await _homeRepository.getSingleResidence(residenceId);
 
       if (result['success'] == true) {
@@ -751,7 +750,7 @@ class HomeController extends GetxController {
           'id': data['id'] ?? residenceId,
         };
         _storeResidenceAdminFromData(data);
-        print('✅ [HomeController] Residence data loaded: id=$residenceId');
+        DiagnosticLogger.instance.info('✅ [HomeController] Residence data loaded: id=$residenceId');
 
         _syncResidenceStatus(data['residence_status']?.toString());
         if (isResidenceUnderConstruction) {
@@ -760,12 +759,12 @@ class HomeController extends GetxController {
           constructionPhasesFromApi.clear();
         }
       } else {
-        print(
+        DiagnosticLogger.instance.error(
           '❌ [HomeController] Failed to fetch residence data: ${result['error']}',
         );
       }
     } catch (e) {
-      print('❌ [HomeController] Error fetching residence data: $e');
+      DiagnosticLogger.instance.error('❌ [HomeController] Error fetching residence data: $e');
     }
   }
 
@@ -794,7 +793,7 @@ class HomeController extends GetxController {
     if (admin is! Map) {
       residenceAdminId.value = null;
       residenceAdminName.value = null;
-      print('⚠️ [HomeController] single_residence has no admin object');
+      DiagnosticLogger.instance.warning('⚠️ [HomeController] single_residence has no admin object');
       return;
     }
 
@@ -803,7 +802,7 @@ class HomeController extends GetxController {
     residenceAdminId.value = id != null && id > 0 ? id : null;
     residenceAdminName.value = admin['user_name']?.toString();
 
-    print(
+    DiagnosticLogger.instance.debug(
       '🏠 [HomeController] Stored residence admin '
       'id=${residenceAdminId.value} name=${residenceAdminName.value}',
     );
@@ -860,7 +859,7 @@ class HomeController extends GetxController {
         constructionPhasesFromApi.clear();
       }
     } catch (e) {
-      print('❌ [HomeController] fetchConstructionPhases: $e');
+      DiagnosticLogger.instance.error('❌ [HomeController] fetchConstructionPhases: $e');
       constructionPhasesFromApi.clear();
     } finally {
       constructionPhasesLoading.value = false;
@@ -944,7 +943,7 @@ class HomeController extends GetxController {
         navigateToScreen(AppScreen.home);
         break;
       default:
-        print('Unknown destination: $destination');
+        DiagnosticLogger.instance.debug('Unknown destination: $destination');
         navigateToScreen(AppScreen.home);
     }
   }
@@ -1001,7 +1000,7 @@ class HomeController extends GetxController {
   Future<void> logout() async {
     SessionExpiryService.beginForcedSignOut();
     try {
-      print('🚪 Starting logout process from HomeController...');
+      DiagnosticLogger.instance.debug('🚪 Starting logout process from HomeController...');
 
       // Import AuthRepository
       final authRepository = AuthRepository();
@@ -1010,9 +1009,9 @@ class HomeController extends GetxController {
       final result = await authRepository.logout();
 
       if (result['success'] == true) {
-        print('✅ Logout API successful: ${result['message']}');
+        DiagnosticLogger.instance.warning('✅ Logout API successful: ${result['message']}');
       } else {
-        print('⚠️  Logout API failed: ${result['error']}');
+        DiagnosticLogger.instance.warning('⚠️  Logout API failed: ${result['error']}');
         // Still proceed with clearing storage even if API fails
       }
 
@@ -1023,19 +1022,19 @@ class HomeController extends GetxController {
 
       // Clear all storage regardless of API result
       await _storageService.clearAll();
-      print('✅ All storage cleared');
+      DiagnosticLogger.instance.error('✅ All storage cleared');
 
       // Navigate to auth screen
       AuthNavigation.replaceStackWithAuth();
-      print('✅ Navigated to auth screen');
+      DiagnosticLogger.instance.error('✅ Navigated to auth screen');
     } catch (e) {
-      print('❌ Error during logout: $e');
+      DiagnosticLogger.instance.error('❌ Error during logout: $e');
       // Even if there's an error, try to clear storage and navigate
       try {
         await _storageService.clearAll();
         AuthNavigation.replaceStackWithAuth();
       } catch (clearError) {
-        print('❌ Error clearing storage: $clearError');
+        DiagnosticLogger.instance.error('❌ Error clearing storage: $clearError');
         MessagePopupController.showError(
           messageKey: 'failed_to_logout',
           titleKey: 'error',

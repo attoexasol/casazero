@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import '../../../core/controllers/message_popup_controller.dart';
 import '../../../core/widgets/tablet_centered_layout.dart';
 
@@ -370,11 +369,11 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
     return Container(
       padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
+        color: Colors.white.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8.r,
             offset: Offset(0, 2.h),
           ),
@@ -459,8 +458,8 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
               borderRadius: BorderRadius.circular(24.r),
               elevation: isActive ? 4 : 1,
               shadowColor: isActive
-                  ? const Color(0xFF6B8E23).withOpacity(0.2)
-                  : Colors.black.withOpacity(0.05),
+                  ? const Color(0xFF6B8E23).withValues(alpha: 0.2)
+                  : Colors.black.withValues(alpha: 0.05),
               child: InkWell(
                 onTap: () {
                   setState(() {
@@ -542,11 +541,11 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
     return Container(
       padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
+        color: Colors.white.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8.r,
             offset: Offset(0, 2.h),
           ),
@@ -563,7 +562,7 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
                 height: 48.h,
                 decoration: BoxDecoration(
                   color: isActive
-                      ? const Color(0xFF6B8E23).withOpacity(0.1)
+                      ? const Color(0xFF6B8E23).withValues(alpha: 0.1)
                       : Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(12.r),
                 ),
@@ -681,7 +680,7 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
                 activeTrackColor: const Color(0xFF6B8E23),
                 inactiveTrackColor: Colors.grey.shade300,
                 thumbColor: const Color(0xFF6B8E23),
-                overlayColor: const Color(0xFF6B8E23).withOpacity(0.2),
+                overlayColor: const Color(0xFF6B8E23).withValues(alpha: 0.2),
                 trackHeight: 4.h,
               ),
               child: Slider(
@@ -708,14 +707,14 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            const Color(0xFF6B8E23).withOpacity(0.1),
+            const Color(0xFF6B8E23).withValues(alpha: 0.1),
             Colors.white,
           ],
         ),
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8.r,
             offset: Offset(0, 2.h),
           ),
@@ -835,7 +834,7 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8.r,
             offset: Offset(0, 2.h),
           ),

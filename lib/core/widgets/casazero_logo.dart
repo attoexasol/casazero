@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 class CasaZeroLogo extends StatelessWidget {
   final String assetPath;
@@ -61,8 +62,8 @@ class CasaZeroLogo extends StatelessWidget {
               ? Builder(
                   builder: (context) {
                     try {
-                      print('🖼️ [CasaZeroLogo] Loading SVG: $assetPath');
-                      print(
+                      DiagnosticLogger.instance.debug('🖼️ [CasaZeroLogo] Loading SVG: $assetPath');
+                      DiagnosticLogger.instance.debug(
                         '🖼️ [CasaZeroLogo] Logo dimensions: ${logoWidth}x$logoHeight',
                       );
 
@@ -76,7 +77,7 @@ class CasaZeroLogo extends StatelessWidget {
                           fit: BoxFit.contain,
                           alignment: Alignment.center,
                           placeholderBuilder: (context) {
-                            print('⏳ [CasaZeroLogo] SVG loading...');
+                            DiagnosticLogger.instance.debug('⏳ [CasaZeroLogo] SVG loading...');
                             return Container(
                               width: logoWidth,
                               height: logoHeight,
@@ -96,8 +97,8 @@ class CasaZeroLogo extends StatelessWidget {
                         ),
                       );
                     } catch (e, stackTrace) {
-                      print('❌ [CasaZeroLogo] Error loading SVG logo: $e');
-                      print('📚 [CasaZeroLogo] Stack trace: $stackTrace');
+                      DiagnosticLogger.instance.error('❌ [CasaZeroLogo] Error loading SVG logo: $e');
+                      DiagnosticLogger.instance.error('📚 [CasaZeroLogo] Stack trace: $stackTrace');
                       return Container(
                         width: logoWidth,
                         height: resolvedContainerHeight * 0.8,
@@ -121,7 +122,7 @@ class CasaZeroLogo extends StatelessWidget {
                   fit: BoxFit.contain,
                   alignment: Alignment.center,
                   errorBuilder: (context, error, stackTrace) {
-                    print('❌ [CasaZeroLogo] Error loading image: $error');
+                    DiagnosticLogger.instance.error('❌ [CasaZeroLogo] Error loading image: $error');
                     return Container(
                       width: logoWidth,
                       height: resolvedContainerHeight * 0.8,
@@ -143,7 +144,7 @@ class CasaZeroLogo extends StatelessWidget {
           Text(
             'smart_living'.tr,
             style: TextStyle(
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
               fontSize: 15.sp,
               letterSpacing: 1.5,
               fontWeight: FontWeight.w500,

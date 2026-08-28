@@ -363,7 +363,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
                   width: isCompact ? 48.w : 64.w,
                   height: isCompact ? 48.w : 64.w,
                   decoration: BoxDecoration(
-                    color: AppColors.brandSage500.withOpacity(0.1),
+                    color: AppColors.brandSage500.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -458,7 +458,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
                           right: 8.w,
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.6),
+                              color: Colors.black.withValues(alpha: 0.6),
                               shape: BoxShape.circle,
                             ),
                             child: IconButton(
@@ -505,7 +505,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
                     width: isConstrained ? 48.w : 56.w,
                     height: isConstrained ? 48.w : 56.w,
                     decoration: BoxDecoration(
-                      color: AppColors.brandSage500.withOpacity(0.1),
+                      color: AppColors.brandSage500.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12.r),
                     ),
                     child: Icon(
@@ -569,7 +569,7 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
       width: double.infinity,
       height: 200.h,
       decoration: BoxDecoration(
-        color: AppColors.brandSage500.withOpacity(0.1),
+        color: AppColors.brandSage500.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12.r),
       ),
       child: Column(
@@ -713,9 +713,9 @@ class _AddDocumentDialogState extends State<AddDocumentDialog> {
             Container(
               padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
-                color: AppColors.danger.withOpacity(0.1),
+                color: AppColors.danger.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(25.r),
-                border: Border.all(color: AppColors.danger.withOpacity(0.3)),
+                border: Border.all(color: AppColors.danger.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [

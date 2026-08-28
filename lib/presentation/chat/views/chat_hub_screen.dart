@@ -123,7 +123,7 @@ class ChatHubScreen extends StatelessWidget {
           colors: [ Color(0xFFE6F9FB), Color(0xFFF0FDFF)],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF6B8E23).withOpacity(0.2)),
+        border: Border.all(color: const Color(0xFF6B8E23).withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [

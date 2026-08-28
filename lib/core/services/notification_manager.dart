@@ -4,18 +4,15 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
 import '../constants/push_types.dart';
-import '../controllers/message_popup_controller.dart';
-import '../services/download_service.dart';
-import '../services/file_opener_service.dart';
 import '../services/private_chat_notification_service.dart';
 import '../services/storage_service.dart';
 import '../../app/routes/app_routes.dart';
+import '../../data/models/document_model.dart';
 import '../../data/models/feed_item_model.dart';
 import '../../presentation/home/controllers/home_controller.dart';
 import '../../presentation/documents/controllers/documents_controller.dart';
@@ -24,6 +21,7 @@ import '../../presentation/chat/controllers/private_chat_controller.dart';
 import '../../presentation/tickets/controllers/tickets_controller.dart';
 import '../../presentation/maintenance/controllers/maintenance_controller.dart';
 import '../../presentation/main/main_scaffold.dart';
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 class NotificationManager extends GetxService {
   /// Last processed FCM message ID; used to skip duplicate delivery.
@@ -41,13 +39,15 @@ class NotificationManager extends GetxService {
     final payload = _normalizePayload(data ?? {});
 
     if (messageId != null && messageId == _lastProcessedMessageId) {
-      print('📬 [NotificationManager] Skipping duplicate messageId: $messageId');
+      DiagnosticLogger.instance.debug(
+        '📬 [NotificationManager] Skipping duplicate messageId: $messageId',
+      );
       return;
     }
 
     final type = _safeType(payload);
     if (type != null && type.isNotEmpty) {
-      print('📬 [NotificationManager] Push type: $type');
+      DiagnosticLogger.instance.debug('📬 [NotificationManager] Push type: $type');
     }
 
     _refreshNotificationsAndUnread();
@@ -78,10 +78,12 @@ class NotificationManager extends GetxService {
     try {
       if (!Get.isRegistered<PrivateChatNotificationService>()) return;
       unawaited(
-        Get.find<PrivateChatNotificationService>().handleIncomingPayload(payload),
+        Get.find<PrivateChatNotificationService>().handleIncomingPayload(
+          payload,
+        ),
       );
     } catch (e) {
-      print('❌ [NotificationManager] Chat dispatch error: $e');
+      DiagnosticLogger.instance.error('❌ [NotificationManager] Chat dispatch error: $e');
     }
   }
 
@@ -94,14 +96,26 @@ class NotificationManager extends GetxService {
       _queuePendingNavigation(normalized);
 
       if (!_isNavigationReady()) {
-        print(
-          '🧭 [NotificationManager] Navigation queued — HOME/session not ready',
+        DiagnosticLogger.instance.debug(
+          '🧭 [NotificationManager] Navigation queued — scheduling flush retry',
+        );
+        Future<void>.delayed(
+          const Duration(milliseconds: 250),
+          flushPendingNavigation,
+        );
+        Future<void>.delayed(
+          const Duration(milliseconds: 600),
+          flushPendingNavigation,
+        );
+        Future<void>.delayed(
+          const Duration(milliseconds: 1200),
+          flushPendingNavigation,
         );
         return;
       }
       unawaited(_runNavigation(normalized));
     } catch (e) {
-      print('❌ [NotificationManager] Navigation error: $e');
+      DiagnosticLogger.instance.error('❌ [NotificationManager] Navigation error: $e');
     }
   }
 
@@ -115,7 +129,7 @@ class NotificationManager extends GetxService {
     if (payload == null || payload.isEmpty) return;
 
     if (!_isNavigationReady()) {
-      print(
+      DiagnosticLogger.instance.debug(
         '🧭 [NotificationManager] flushPendingNavigation deferred — HOME not ready',
       );
       // Keep stored for after login.
@@ -124,7 +138,7 @@ class NotificationManager extends GetxService {
     }
 
     _pendingNavigationExecuting = true;
-    print(
+    DiagnosticLogger.instance.debug(
       '🧭 [NotificationManager] Flushing pending navigation '
       '(type=${_safeType(payload) ?? "none"}, '
       'reference_id=${_referenceId(payload) ?? "none"})',
@@ -134,7 +148,7 @@ class NotificationManager extends GetxService {
         _pendingNavigationPayload = Map<String, dynamic>.from(payload);
         await _runNavigation(payload);
       } catch (e) {
-        print('❌ [NotificationManager] Flush navigation error: $e');
+        DiagnosticLogger.instance.error('❌ [NotificationManager] Flush navigation error: $e');
       } finally {
         _pendingNavigationExecuting = false;
       }
@@ -143,15 +157,25 @@ class NotificationManager extends GetxService {
 
   Future<void> _runNavigation(Map<String, dynamic> payload) async {
     final enriched = await _enrichPayload(payload);
-    _queuePendingNavigation(enriched);
     final navigated = _executeNavigation(enriched);
     if (navigated) {
-      _schedulePendingClear();
+      _clearPendingNavigation();
     } else {
-      print(
+      _queuePendingNavigation(enriched);
+      DiagnosticLogger.instance.debug(
         '🧭 [NotificationManager] Keeping pending — no navigable section yet',
       );
     }
+  }
+
+  void _clearPendingNavigation() {
+    _pendingNavigationPayload = null;
+    try {
+      if (Get.isRegistered<StorageService>()) {
+        unawaited(Get.find<StorageService>().clearPendingNotificationNav());
+      }
+    } catch (_) {}
+    DiagnosticLogger.instance.debug('🧭 [NotificationManager] Pending navigation cleared');
   }
 
   /// When FCM/local tap payload lacks type, resolve from in-app feed (same as modal).
@@ -161,45 +185,58 @@ class NotificationManager extends GetxService {
     if (_hasNavigableType(payload)) return payload;
 
     try {
-      if (!Get.isRegistered<HomeController>()) return payload;
-      final home = Get.find<HomeController>();
+      if (Get.isRegistered<HomeController>()) {
+        final home = Get.find<HomeController>();
 
-      if (home.feedItems.isEmpty) {
-        await home.fetchNotifications();
-      }
-
-      final notificationId = _firstNonEmpty(payload, const [
-        'id',
-        'notification_id',
-        'notificationId',
-      ]);
-      if (notificationId != null) {
-        final match = _findFeedItemById(home.feedItems, notificationId);
-        if (match != null) {
-          print(
-            '🧭 [NotificationManager] Enriched payload from feed id=$notificationId '
-            'type=${match.type}',
-          );
-          return match.toNavigationPayload();
+        if (home.feedItems.isEmpty) {
+          await home.fetchNotifications();
         }
-      }
 
-      final refId = _referenceId(payload);
-      if (refId != null) {
-        for (final item in home.feedItems) {
-          if (item.referenceId != null &&
-              item.referenceId.toString() == refId) {
-            print(
-              '🧭 [NotificationManager] Enriched payload from feed '
-              'reference_id=$refId type=${item.type}',
+        final notificationId = _firstNonEmpty(payload, const [
+          'id',
+          'notification_id',
+          'notificationId',
+        ]);
+        if (notificationId != null) {
+          final match = _findFeedItemById(home.feedItems, notificationId);
+          if (match != null) {
+            DiagnosticLogger.instance.debug(
+              '🧭 [NotificationManager] Enriched payload from feed id=$notificationId '
+              'type=${match.type}',
             );
-            return item.toNavigationPayload();
+            return match.toNavigationPayload();
+          }
+        }
+
+        final refId = _referenceId(payload);
+        if (refId != null) {
+          for (final item in home.feedItems) {
+            if (item.referenceId != null &&
+                item.referenceId.toString() == refId) {
+              DiagnosticLogger.instance.debug(
+                '🧭 [NotificationManager] Enriched payload from feed '
+                'reference_id=$refId type=${item.type}',
+              );
+              return item.toNavigationPayload();
+            }
           }
         }
       }
     } catch (e) {
-      print('❌ [NotificationManager] Enrich payload error: $e');
+      DiagnosticLogger.instance.error('❌ [NotificationManager] Enrich payload error: $e');
     }
+
+    try {
+      final synthetic = FeedItemModel.fromJson(payload);
+      final derived = synthetic.toNavigationPayload();
+      if (_hasNavigableType(derived)) {
+        DiagnosticLogger.instance.debug(
+          '🧭 [NotificationManager] Enriched payload via FeedItemModel inference: '
+          'type=${derived['type']}',
+        );
+        return derived;
+      }
+    } catch (_) {}
 
     return payload;
   }
@@ -216,6 +253,7 @@ class NotificationManager extends GetxService {
     return PushTypes.isDocument(type) ||
         PushTypes.isPrivateChat(type) ||
         PushTypes.isGroupChat(type) ||
+        PushTypes.isChat(type) ||
         PushTypes.isTicketOrSupport(type) ||
         PushTypes.isMaintenance(type);
   }
@@ -223,7 +261,7 @@ class NotificationManager extends GetxService {
   void _queuePendingNavigation(Map<String, dynamic> payload) {
     _pendingNavigationPayload = Map<String, dynamic>.from(payload);
     _persistPendingToStorage(payload);
-    print(
+    DiagnosticLogger.instance.debug(
       '🧭 [NotificationManager] Queued pending navigation '
       '(type=${_safeType(payload) ?? "none"}, '
       'reference_id=${_referenceId(payload) ?? "none"})',
@@ -233,9 +271,7 @@ class NotificationManager extends GetxService {
   void _persistPendingToStorage(Map<String, dynamic> payload) {
     try {
       if (!Get.isRegistered<StorageService>()) return;
-      unawaited(
-        Get.find<StorageService>().savePendingNotificationNav(payload),
-      );
+      unawaited(Get.find<StorageService>().savePendingNotificationNav(payload));
     } catch (_) {}
   }
 
@@ -248,23 +284,33 @@ class NotificationManager extends GetxService {
     }
   }
 
-  /// Clear pending only if the session is still valid shortly after navigate.
-  /// If a 401 forces login, the pending payload survives for post-login flush.
-  void _schedulePendingClear() {
-    Future<void>.delayed(const Duration(seconds: 3), () {
-      try {
-        if (!Get.isRegistered<StorageService>()) return;
-        final token = Get.find<StorageService>().getAccessToken();
-        if (token == null || token.isEmpty) return;
-        if (Get.currentRoute != AppRoutes.HOME) return;
-        _pendingNavigationPayload = null;
-        unawaited(Get.find<StorageService>().clearPendingNotificationNav());
-        print('🧭 [NotificationManager] Pending navigation cleared');
-      } catch (_) {}
-    });
-  }
-
   bool _isNavigationReady() {
+    if (Get.isRegistered<StorageService>()) {
+      final token = Get.find<StorageService>().getAccessToken();
+      if (token == null || token.isEmpty) return false;
+    } else {
+      return false;
+    }
+
+    // Dismiss any open modal / dialog / bottom sheet that blocks MainScaffold.
+    try {
+      if (Get.isDialogOpen == true ||
+          Get.isBottomSheetOpen == true ||
+          Get.isOverlaysOpen == true) {
+        Get.until(
+          (route) => route.settings.name == AppRoutes.HOME || route.isFirst,
+        );
+      }
+    } catch (_) {}
+
+    // If currently on an authenticated sub-route, bring user back to HOME
+    if (Get.currentRoute != AppRoutes.HOME &&
+        Get.currentRoute != AppRoutes.SPLASH &&
+        Get.currentRoute != AppRoutes.AUTH &&
+        Get.currentRoute != AppRoutes.OTP_VERIFICATION) {
+      Get.offAllNamed(AppRoutes.HOME);
+    }
+
     if (!Get.isRegistered<HomeController>()) return false;
     try {
       Get.find<HomeController>();
@@ -273,12 +319,6 @@ class NotificationManager extends GetxService {
     }
     if (Get.currentRoute != AppRoutes.HOME) return false;
 
-    // Require a session token so we don't consume the deep link right before
-    // a forced re-login (invalid/expired token).
-    if (Get.isRegistered<StorageService>()) {
-      final token = Get.find<StorageService>().getAccessToken();
-      if (token == null || token.isEmpty) return false;
-    }
     return true;
   }
 
@@ -286,7 +326,7 @@ class NotificationManager extends GetxService {
   bool _executeNavigation(Map<String, dynamic> payload) {
     final type = _safeType(payload) ?? '';
     final refId = _referenceId(payload);
-    print(
+    DiagnosticLogger.instance.debug(
       '🧭 [NotificationManager] Navigation intent – type: $type, '
       'reference_id: ${refId ?? "none"}',
     );
@@ -296,13 +336,22 @@ class NotificationManager extends GetxService {
       return true;
     }
 
-    if (PushTypes.isPrivateChat(type)) {
-      _navigateToPrivateChat();
+    if (PushTypes.isGroupChat(type)) {
+      _navigateToGroupChat(payload);
       return true;
     }
 
-    if (PushTypes.isGroupChat(type)) {
-      _navigateToGroupChat();
+    if (PushTypes.isPrivateChat(type)) {
+      _navigateToPrivateChat(payload);
+      return true;
+    }
+
+    if (PushTypes.isChat(type)) {
+      if (_looksLikeAdminChat(payload)) {
+        _navigateToPrivateChat(payload);
+      } else {
+        _navigateToGroupChat(payload);
+      }
       return true;
     }
 
@@ -316,9 +365,17 @@ class NotificationManager extends GetxService {
       return true;
     }
 
-    // Do NOT open the notification modal on push tap.
-    // Unknown / sync / announcement → stay on home (section already open if typed).
-    print(
+    if (type == 'residence_status' ||
+        type == 'construction' ||
+        type == 'home' ||
+        PushTypes.isSyncOrAnnouncement(type)) {
+      final home = Get.find<HomeController>();
+      home.navigateToScreen(AppScreen.home);
+      return true;
+    }
+
+    // Unknown → stay on current screen
+    DiagnosticLogger.instance.debug(
       '🧭 [NotificationManager] No section route for type="$type" — staying on current screen',
     );
     return false;
@@ -356,19 +413,29 @@ class NotificationManager extends GetxService {
       'type',
       'notification_type',
       'push_type',
+      'category',
+      'event',
+      'screen',
+      'click_action',
     ]) {
       final value = data[key];
       if (value == null) continue;
       final s = PushTypes.normalize(value.toString());
       if (s != null) return s;
     }
+    if (data.containsKey('group_id') &&
+        data['group_id'] != null &&
+        data['group_id'].toString().isNotEmpty) {
+      return 'group_chat';
+    }
+    if (data.containsKey('conversation_id') ||
+        (data.containsKey('chat_id') && !data.containsKey('group_id'))) {
+      return 'private_chat';
+    }
     return null;
   }
 
-  static String? _firstNonEmpty(
-    Map<String, dynamic> data,
-    List<String> keys,
-  ) {
+  static String? _firstNonEmpty(Map<String, dynamic> data, List<String> keys) {
     for (final key in keys) {
       final value = data[key];
       if (value == null) continue;
@@ -401,44 +468,31 @@ class NotificationManager extends GetxService {
     home.navigateToScreen(AppScreen.documents);
 
     final documentId = _firstNonEmpty(payload, const [
-          'reference_id',
-          'referenceId',
-          'document_id',
-          'documentId',
-          'related_document_id',
-          'related_id',
-          'entity_id',
-        ]);
-    final url = _firstNonEmpty(payload, const [
-      'url',
-      'file_url',
-      'document_url',
+      'reference_id',
+      'referenceId',
+      'document_id',
+      'documentId',
+      'related_document_id',
+      'related_id',
+      'entity_id',
     ]);
     final fileName = _firstNonEmpty(payload, const [
       'file_name',
       'document_name',
       'related_entity_name',
-      'title',
     ]);
 
-    if (documentId == null && (url == null || url.isEmpty)) return;
+    if ((documentId == null || documentId.isEmpty) &&
+        (fileName == null || fileName.isEmpty)) {
+      return;
+    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (documentId != null) {
-        unawaited(_openDocumentById(documentId));
-      } else if (url != null) {
-        unawaited(
-          _openDocumentFromUrl(
-            url,
-            fileName: fileName,
-            fileId: _firstNonEmpty(payload, const ['id', 'notification_id']),
-          ),
-        );
-      }
+      unawaited(_openDocument(documentId: documentId, fileName: fileName));
     });
   }
 
-  Future<void> _openDocumentById(String documentId) async {
+  Future<void> _openDocument({String? documentId, String? fileName}) async {
     try {
       if (!Get.isRegistered<DocumentsController>()) {
         Get.put(DocumentsController());
@@ -448,71 +502,81 @@ class NotificationManager extends GetxService {
         await docs.fetchDocuments();
       }
 
-      final match = docs.documents.firstWhereOrNull(
-        (d) => d.id == documentId || d.id == documentId.toString(),
-      );
+      DocumentModel? match;
+      if (documentId != null && documentId.isNotEmpty) {
+        match = docs.documents.firstWhereOrNull(
+          (d) => d.id == documentId || d.id == documentId.toString(),
+        );
+      }
+      if (match == null && fileName != null && fileName.isNotEmpty) {
+        final cleanTarget = fileName.toLowerCase().trim();
+        match = docs.documents.firstWhereOrNull((d) {
+          final t = d.title.toLowerCase().trim();
+          final fn = (d.fileUrl ?? '').toLowerCase().trim();
+          return t == cleanTarget ||
+              fn.endsWith(cleanTarget) ||
+              t.contains(cleanTarget);
+        });
+      }
+
       if (match == null) {
-        print(
-          '🧭 [NotificationManager] Document id=$documentId not in list — stayed on Documents',
+        DiagnosticLogger.instance.error(
+          '🧭 [NotificationManager] Document not in list — stayed on Documents',
         );
         return;
       }
 
       await docs.downloadDocument(match);
     } catch (e) {
-      print('❌ [NotificationManager] Open document error: $e');
+      DiagnosticLogger.instance.error('❌ [NotificationManager] Open document error: $e');
     }
   }
 
-  Future<void> _openDocumentFromUrl(
-    String url, {
-    String? fileName,
-    String? fileId,
-  }) async {
-    try {
-      if (!Get.isRegistered<DownloadService>()) return;
-      final downloadService = Get.find<DownloadService>();
-      final name = (fileName != null && fileName.contains('.'))
-          ? fileName
-          : (fileName != null && fileName.isNotEmpty
-              ? '$fileName.pdf'
-              : 'document.pdf');
+  bool _looksLikeAdminChat(Map<String, dynamic> payload) {
+    final type = _safeType(payload);
+    if (PushTypes.isPrivateChat(type)) return true;
+    if (PushTypes.isGroupChat(type)) return false;
 
-      MessagePopupController.showDownloading(
-        messageKey: '${'downloading'.tr}: $name',
-        titleKey: 'downloading',
-      );
+    final group = payload['group_id']?.toString() ?? '';
+    if (group.isNotEmpty) return false;
 
-      final result = await downloadService.downloadDocument(
-        fileUrl: url,
-        fileName: name,
-        fileId: fileId ?? name,
-      );
+    final title = (payload['title'] ?? payload['notification_title'] ?? '')
+        .toString()
+        .toLowerCase();
+    final cat = (payload['category'] ?? payload['category_name'] ?? '')
+        .toString()
+        .toLowerCase();
 
-      MessagePopupController.closePopup();
-
-      if (result['success'] == true) {
-        final filePath = result['filePath'] as String?;
-        if (filePath != null && await File(filePath).exists()) {
-          await FileOpenerService.openWithChooser(filePath);
-        }
-      } else {
-        MessagePopupController.showError(
-          messageKey: 'downloadError',
-          titleKey: 'downloadFailed',
-        );
-      }
-    } catch (e) {
-      print('❌ [NotificationManager] Open document URL error: $e');
-      MessagePopupController.closePopup();
-      MessagePopupController.showError(
-        messageKey: 'downloadError',
-        titleKey: 'downloadFailed',
-      );
+    if (title.contains('condomin') ||
+        title.contains('group') ||
+        title.contains('gruppo') ||
+        cat.contains('condomin') ||
+        cat.contains('group') ||
+        cat.contains('gruppo')) {
+      return false;
     }
+
+    final body = (payload['body'] ??
+            payload['description'] ??
+            payload['content'] ??
+            '')
+        .toString()
+        .toLowerCase();
+
+    return title.contains('admin') ||
+        body.contains('admin') ||
+        cat.contains('admin') ||
+        title.contains('amministratore') ||
+        body.contains('amministratore') ||
+        cat.contains('amministratore') ||
+        title.contains('private') ||
+        body.contains('private') ||
+        cat.contains('private') ||
+        title.contains('privat') ||
+        body.contains('privat');
   }
 
-  void _navigateToPrivateChat() {
+  void _navigateToPrivateChat([Map<String, dynamic>? payload]) {
     final home = Get.find<HomeController>();
     if (Get.isRegistered<PrivateChatController>()) {
       Get.delete<PrivateChatController>();
@@ -520,8 +584,11 @@ class NotificationManager extends GetxService {
     home.navigateToScreen(AppScreen.adminChat);
   }
 
-  void _navigateToGroupChat() {
+  void _navigateToGroupChat([Map<String, dynamic>? payload]) {
     final home = Get.find<HomeController>();
+    if (Get.isRegistered<ChatController>()) {
+      Get.delete<ChatController>();
+    }
     if (!Get.isRegistered<ChatController>()) {
       Get.put(ChatController());
     }
@@ -544,8 +611,9 @@ class NotificationManager extends GetxService {
       'support_ticket_id',
       'related_id',
       'entity_id',
+      'id',
     ]);
-    if (ticketId != null) {
+    if (ticketId != null && ticketId.isNotEmpty) {
       tickets.pendingExpandTicketId.value = ticketId;
     }
 
@@ -566,11 +634,14 @@ class NotificationManager extends GetxService {
       'maintenance_id',
       'maintenanceId',
       'task_id',
+      'taskId',
       'related_id',
       'entity_id',
     ]);
-    if (taskId != null) {
+    if (taskId != null && taskId.isNotEmpty) {
       maintenance.pendingFocusTaskId.value = taskId;
+      maintenance.expandedCardId.value = taskId;
+      maintenance.setSelectedCategoryId(null);
     }
 
     home.navigateToScreen(AppScreen.maintenance);
@@ -583,7 +654,7 @@ class NotificationManager extends GetxService {
       home.fetchNotifications();
       home.fetchUnreadCount();
     } catch (e) {
-      print('❌ [NotificationManager] Refresh notifications error: $e');
+      DiagnosticLogger.instance.error('❌ [NotificationManager] Refresh notifications error: $e');
     }
   }
 
@@ -592,7 +663,7 @@ class NotificationManager extends GetxService {
       if (!Get.isRegistered<DocumentsController>()) return;
       Get.find<DocumentsController>().fetchDocuments();
     } catch (e) {
-      print('❌ [NotificationManager] Refresh documents error: $e');
+      DiagnosticLogger.instance.error('❌ [NotificationManager] Refresh documents error: $e');
     }
   }
 }

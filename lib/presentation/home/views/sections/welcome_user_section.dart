@@ -71,7 +71,7 @@ class _WelcomeUserSectionState extends State<WelcomeUserSection>
       final firstName = widget.user?.firstName ?? 'User';
 
       // Build welcome text based on language
-      final welcomeText = 'welcome'.tr + ' $firstName';
+      final welcomeText = '${'welcome'.tr} $firstName';
 
       // Access reactive locale property to trigger updates on language change
       final _ = localeController.locale;

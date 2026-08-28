@@ -12,6 +12,7 @@ import '../../home/controllers/home_controller.dart';
 import '../../profile/controllers/profile_controller.dart';
 import '../models/issue_type_model.dart';
 import '../models/ticket_model.dart';
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 /// Controller for TicketsScreen. Holds filter state and ticket data.
 class TicketsController extends GetxController {
@@ -70,16 +71,16 @@ class TicketsController extends GetxController {
     isLoadingIssueTypes.value = true;
     try {
       final result = await _ticketRepository.fetchIssueTypes();
-      print('📋 [TicketsController] Fetched ${result.length} issue types');
+      DiagnosticLogger.instance.debug('📋 [TicketsController] Fetched ${result.length} issue types');
       for (final t in result) {
-        print('   - id=${t.id}, en="${t.issueTypeEn}", it="${t.issueTypeIt}"');
+        DiagnosticLogger.instance.error('   - id=${t.id}, en="${t.issueTypeEn}", it="${t.issueTypeIt}"');
       }
       issueTypes.assignAll(result.reversed.toList());
     } catch (e) {
-      print('❌ [TicketsController] Error loading issue types: $e');
+      DiagnosticLogger.instance.error('❌ [TicketsController] Error loading issue types: $e');
     } finally {
       isLoadingIssueTypes.value = false;
-      print('📋 [TicketsController] isLoading=${isLoadingIssueTypes.value}, count=${issueTypes.length}');
+      DiagnosticLogger.instance.debug('📋 [TicketsController] isLoading=${isLoadingIssueTypes.value}, count=${issueTypes.length}');
     }
   }
 
@@ -95,15 +96,15 @@ class TicketsController extends GetxController {
       );
 
       if (result != null) {
-        print('✅ [TicketsController] Issue type created: id=${result.id}, en="${result.issueTypeEn}"');
+        DiagnosticLogger.instance.warning('✅ [TicketsController] Issue type created: id=${result.id}, en="${result.issueTypeEn}"');
         await fetchIssueTypes();
         return result;
       }
 
-      print('⚠️ [TicketsController] createIssueType returned null');
+      DiagnosticLogger.instance.error('⚠️ [TicketsController] createIssueType returned null');
       return null;
     } catch (e) {
-      print('❌ [TicketsController] Error creating issue type: $e');
+      DiagnosticLogger.instance.error('❌ [TicketsController] Error creating issue type: $e');
       return null;
     }
   }
@@ -142,7 +143,7 @@ class TicketsController extends GetxController {
       );
 
       if (result != null) {
-        print('✅ [TicketsController] Ticket created successfully');
+        DiagnosticLogger.instance.info('✅ [TicketsController] Ticket created successfully');
         clearPhotos();
         newTicket.assignAll({
           'category': '',
@@ -154,7 +155,9 @@ class TicketsController extends GetxController {
 
         fetchMyTickets();
 
-        if (context != null && Navigator.of(context).canPop()) {
+        if (context != null &&
+            context.mounted &&
+            Navigator.of(context).canPop()) {
           Navigator.of(context).pop();
         }
         MessagePopupController.showSuccess(
@@ -164,10 +167,10 @@ class TicketsController extends GetxController {
         return true;
       }
 
-      print('⚠️ [TicketsController] createSupportTicket returned null');
+      DiagnosticLogger.instance.error('⚠️ [TicketsController] createSupportTicket returned null');
       return false;
     } catch (e) {
-      print('❌ [TicketsController] Error creating ticket: $e');
+      DiagnosticLogger.instance.error('❌ [TicketsController] Error creating ticket: $e');
       return false;
     } finally {
       isCreatingTicket.value = false;
@@ -224,7 +227,7 @@ class TicketsController extends GetxController {
         return fromApi;
       }
     } catch (e) {
-      print('⚠️ [TicketsController] Failed to resolve unit from profile: $e');
+      DiagnosticLogger.instance.warning('⚠️ [TicketsController] Failed to resolve unit from profile: $e');
     }
 
     return '';
@@ -268,10 +271,10 @@ class TicketsController extends GetxController {
     isLoadingTickets.value = true;
     try {
       final result = await _ticketRepository.fetchMyTickets();
-      print('🎫 [TicketsController] Fetched ${result.length} tickets');
+      DiagnosticLogger.instance.error('🎫 [TicketsController] Fetched ${result.length} tickets');
       allTickets.assignAll(result);
     } catch (e) {
-      print('❌ [TicketsController] Error loading tickets: $e');
+      DiagnosticLogger.instance.error('❌ [TicketsController] Error loading tickets: $e');
     } finally {
       isLoadingTickets.value = false;
     }

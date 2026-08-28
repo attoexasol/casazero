@@ -54,7 +54,7 @@ class CZAppBar extends StatelessWidget implements PreferredSizeWidget {
             ? []
             : [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
+                  color: Colors.black.withValues(alpha: 0.06),
                   blurRadius: 8.r,
                   offset: Offset(0, 3.h),
                 ),

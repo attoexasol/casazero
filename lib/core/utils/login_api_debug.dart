@@ -1,8 +1,7 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
-
 import 'firebase_response_parser.dart';
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 /// Verbose login API logging (passwords redacted).
 class LoginApiDebug {
@@ -20,15 +19,15 @@ class LoginApiDebug {
       safeBody['password'] = '***REDACTED***';
     }
 
-    print('');
-    print('╔══════════════════════════════════════════════════════════╗');
-    print('║              LOGIN API — OUTGOING REQUEST                ║');
-    print('╚══════════════════════════════════════════════════════════╝');
-    print('[LOGIN API] method=$method');
-    print('[LOGIN API] url=$fullUrl');
-    print('[LOGIN API] request body:');
-    print(_safeEncode(safeBody));
-    print('');
+    DiagnosticLogger.instance.debug('');
+    DiagnosticLogger.instance.debug('╔══════════════════════════════════════════════════════════╗');
+    DiagnosticLogger.instance.debug('║              LOGIN API — OUTGOING REQUEST                ║');
+    DiagnosticLogger.instance.debug('╚══════════════════════════════════════════════════════════╝');
+    DiagnosticLogger.instance.debug('[LOGIN API] method=$method');
+    DiagnosticLogger.instance.debug('[LOGIN API] url=$fullUrl');
+    DiagnosticLogger.instance.debug('[LOGIN API] request body:');
+    DiagnosticLogger.instance.debug(_safeEncode(safeBody));
+    DiagnosticLogger.instance.debug('');
   }
 
   static void logResponse({
@@ -37,57 +36,57 @@ class LoginApiDebug {
     required dynamic rawData,
     Map<String, dynamic>? normalizedBody,
   }) {
-    print('');
-    print('╔══════════════════════════════════════════════════════════╗');
-    print('║              LOGIN API — INCOMING RESPONSE               ║');
-    print('╚══════════════════════════════════════════════════════════╝');
-    print('[LOGIN API] url=$fullUrl');
-    print('[LOGIN API] statusCode=$statusCode');
-    print('[LOGIN API] rawData.runtimeType=${rawData.runtimeType}');
+    DiagnosticLogger.instance.debug('');
+    DiagnosticLogger.instance.debug('╔══════════════════════════════════════════════════════════╗');
+    DiagnosticLogger.instance.debug('║              LOGIN API — INCOMING RESPONSE               ║');
+    DiagnosticLogger.instance.debug('╚══════════════════════════════════════════════════════════╝');
+    DiagnosticLogger.instance.debug('[LOGIN API] url=$fullUrl');
+    DiagnosticLogger.instance.debug('[LOGIN API] statusCode=$statusCode');
+    DiagnosticLogger.instance.debug('[LOGIN API] rawData.runtimeType=${rawData.runtimeType}');
 
     if (rawData is String) {
-      print('[LOGIN API] rawData (string, first 2000 chars):');
+      DiagnosticLogger.instance.debug('[LOGIN API] rawData (string, first 2000 chars):');
       final s = rawData;
-      print(s.length > 2000 ? s.substring(0, 2000) : s);
+      DiagnosticLogger.instance.debug(s.length > 2000 ? s.substring(0, 2000) : s);
     } else {
-      print('[LOGIN API] rawData:');
-      print(_safeEncode(rawData));
+      DiagnosticLogger.instance.debug('[LOGIN API] rawData:');
+      DiagnosticLogger.instance.debug(_safeEncode(rawData));
     }
 
     if (normalizedBody != null) {
-      print('[LOGIN API] normalized body keys=${normalizedBody.keys.join(", ")}');
-      print('[LOGIN API] normalized body:');
-      print(_safeEncode(normalizedBody));
+      DiagnosticLogger.instance.debug('[LOGIN API] normalized body keys=${normalizedBody.keys.join(", ")}');
+      DiagnosticLogger.instance.debug('[LOGIN API] normalized body:');
+      DiagnosticLogger.instance.debug(_safeEncode(normalizedBody));
 
-      print('================ LOGIN RESPONSE DEBUG ================');
-      print('response keys=${normalizedBody.keys}');
-      print(
+      DiagnosticLogger.instance.debug('================ LOGIN RESPONSE DEBUG ================');
+      DiagnosticLogger.instance.debug('response keys=${normalizedBody.keys}');
+      DiagnosticLogger.instance.debug(
         'firebase_token (snake_case) exists=${normalizedBody['firebase_token'] != null}',
       );
-      print(
+      DiagnosticLogger.instance.debug(
         'firebaseToken (camelCase) exists=${normalizedBody['firebaseToken'] != null}',
       );
       final parsed = FirebaseResponseParser.extractFirebaseToken(normalizedBody);
-      print('firebase custom token parsed=${parsed != null}');
-      print('firebase custom token length=${parsed?.length ?? 0}');
+      DiagnosticLogger.instance.debug('firebase custom token parsed=${parsed != null}');
+      DiagnosticLogger.instance.debug('firebase custom token length=${parsed?.length ?? 0}');
       if (parsed != null && parsed.length > 20) {
-        print('firebase custom token prefix=${parsed.substring(0, 20)}...');
+        DiagnosticLogger.instance.debug('firebase custom token prefix=${parsed.substring(0, 20)}...');
       }
-      print(
+      DiagnosticLogger.instance.debug(
         'firebase_project_id=${FirebaseResponseParser.extractFirebaseProjectId(normalizedBody) ?? normalizedBody['firebase_project_id'] ?? normalizedBody['firebaseProjectId']}',
       );
-      print('status=${normalizedBody['status']}');
-      print('message=${normalizedBody['message']}');
-      print('token (api) exists=${normalizedBody['token'] != null}');
-      print('user exists=${normalizedBody['user'] != null}');
-      print('is_trusted=${normalizedBody['is_trusted']}');
-      print('=====================================================');
+      DiagnosticLogger.instance.debug('status=${normalizedBody['status']}');
+      DiagnosticLogger.instance.debug('message=${normalizedBody['message']}');
+      DiagnosticLogger.instance.debug('token (api) exists=${normalizedBody['token'] != null}');
+      DiagnosticLogger.instance.debug('user exists=${normalizedBody['user'] != null}');
+      DiagnosticLogger.instance.debug('is_trusted=${normalizedBody['is_trusted']}');
+      DiagnosticLogger.instance.warning('=====================================================');
 
       _scanForFirebaseKeys(normalizedBody, prefix: 'body');
     } else {
-      print('[LOGIN API] WARNING: could not normalize response to Map');
+      DiagnosticLogger.instance.warning('[LOGIN API] WARNING: could not normalize response to Map');
     }
-    print('');
+    DiagnosticLogger.instance.debug('');
   }
 
   /// Finds firebase_* keys anywhere in JSON (debug only).
@@ -98,7 +97,7 @@ class LoginApiDebug {
         final path = '$prefix.$key';
         if (key.toLowerCase().contains('firebase')) {
           final v = entry.value;
-          print(
+          DiagnosticLogger.instance.debug(
             '[LOGIN API] FOUND firebase-related key at $path '
             'type=${v.runtimeType} '
             'preview=${_previewValue(v)}',

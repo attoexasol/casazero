@@ -26,8 +26,8 @@ class PasswordInputField extends StatelessWidget {
         hint: '••••••••',
         controller: controller,
         obscureText: !isVisible.value,
-        backgroundColor: Colors.white.withOpacity(0.9),
-        borderColor: Colors.white.withOpacity(0.4),
+        backgroundColor: Colors.white.withValues(alpha: 0.9),
+        borderColor: Colors.white.withValues(alpha: 0.4),
         textColor: const Color(0xFF1A1A1A),
 
         suffixIcon: IconButton(

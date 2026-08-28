@@ -1,13 +1,12 @@
 // presentation/maintenance/controllers/maintenance_controller.dart
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart'; // For compute()
+import 'package:flutter/foundation.dart'; // For compute() and Uint8List
 import 'package:dio/dio.dart' as dio;
 import '../../../core/controllers/message_popup_controller.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'dart:typed_data';
 import '../models/maintenance_task_model.dart';
 import '../models/maintenance_category_model.dart';
 import '../../../core/services/api_service.dart';
@@ -16,6 +15,7 @@ import '../../../core/constants/api_constants.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../home/controllers/home_controller.dart';
+import '../../../core/logging/diagnostic_logger.dart';
 
 class MaintenanceController extends GetxController {
   // API Service
@@ -53,8 +53,7 @@ class MaintenanceController extends GetxController {
   final RxMap<int, int> categoryTaskCounts = <int, int>{}.obs;
 
   /// Pre-built filter chips — updated atomically so the bar renders all at once.
-  final RxList<Map<String, dynamic>> filterItems =
-      <Map<String, dynamic>>[].obs;
+  final RxList<Map<String, dynamic>> filterItems = <Map<String, dynamic>>[].obs;
 
   // Expanded card state
   final Rxn<String> expandedCardId = Rxn<String>();
@@ -78,6 +77,21 @@ class MaintenanceController extends GetxController {
     selectedFile.value = null;
     selectedFileName.value = '';
     selectedFileSize.value = '';
+
+    // Handle deep-link task focus
+    ever(pendingFocusTaskId, (String? taskId) {
+      if (taskId != null && taskId.isNotEmpty) {
+        expandedCardId.value = taskId;
+        selectedCategoryId.value = null;
+        _applyFilter();
+      }
+    });
+    if (pendingFocusTaskId.value != null &&
+        pendingFocusTaskId.value!.isNotEmpty) {
+      expandedCardId.value = pendingFocusTaskId.value;
+      selectedCategoryId.value = null;
+    }
+
     fetchMaintenanceCategories();
     _bindResidenceAndFetchTasks();
   }
@@ -104,14 +118,14 @@ class MaintenanceController extends GetxController {
         fetchMaintenanceTasks();
       }
     } catch (e) {
-      print(
+      DiagnosticLogger.instance.warning(
         '⚠️ [MaintenanceController] HomeController unavailable, skipping residence-wise bind: $e',
       );
     }
   }
 
   /// Fetch maintenance tasks from API
-  /// POST /residence_wise/maintenance — body: { "residence_id": <id> }
+  /// POST /residence_wise/maintenance — body: { "residence_id": `<id>` }
   /// Authorization header is automatically added by ApiService interceptor
   Future<void> fetchMaintenanceTasks() async {
     try {
@@ -126,7 +140,7 @@ class MaintenanceController extends GetxController {
       } catch (_) {}
 
       if (residenceId == null || residenceId <= 0) {
-        print(
+        DiagnosticLogger.instance.warning(
           '⚠️ [MaintenanceController] No residence selected; skip maintenance list fetch',
         );
         tasks.clear();
@@ -140,13 +154,13 @@ class MaintenanceController extends GetxController {
         return;
       }
 
-      print(
+      DiagnosticLogger.instance.info(
         '📡 [MaintenanceController] Fetching maintenance tasks from API...',
       );
-      print(
+      DiagnosticLogger.instance.debug(
         '🔗 [MaintenanceController] Endpoint: ${ApiConstants.POST_RESIDENCE_WISE_MAINTENANCE} residence_id=$residenceId',
       );
-      print(
+      DiagnosticLogger.instance.debug(
         '🔑 [MaintenanceController] Authorization: Bearer token (handled by ApiService)',
       );
 
@@ -156,39 +170,57 @@ class MaintenanceController extends GetxController {
       );
 
       // Print full API response for debugging
-      print('');
-      print('═══════════════════════════════════════════════════════════════════════════════');
-      print('📥 [MaintenanceController] RESIDENCE_WISE_MAINTENANCE API RESPONSE');
-      print('═══════════════════════════════════════════════════════════════════════════════');
-      print('📥 [MaintenanceController] Status Code: ${response.statusCode}');
-      print('📥 [MaintenanceController] Response Headers: ${response.headers}');
-      print('');
-      print('📥 [MaintenanceController] FULL RESPONSE DATA:');
-      print('───────────────────────────────────────────────────────────────────────────────');
+      DiagnosticLogger.instance.debug('');
+      DiagnosticLogger.instance.debug(
+        '═══════════════════════════════════════════════════════════════════════════════',
+      );
+      DiagnosticLogger.instance.debug(
+        '📥 [MaintenanceController] RESIDENCE_WISE_MAINTENANCE API RESPONSE',
+      );
+      DiagnosticLogger.instance.debug(
+        '═══════════════════════════════════════════════════════════════════════════════',
+      );
+      DiagnosticLogger.instance.debug('📥 [MaintenanceController] Status Code: ${response.statusCode}');
+      DiagnosticLogger.instance.debug('📥 [MaintenanceController] Response Headers: ${response.headers}');
+      DiagnosticLogger.instance.debug('');
+      DiagnosticLogger.instance.debug('📥 [MaintenanceController] FULL RESPONSE DATA:');
+      DiagnosticLogger.instance.debug(
+        '───────────────────────────────────────────────────────────────────────────────',
+      );
       // Print the full response data in a readable format
       try {
         // Convert to JSON string for better readability
         final jsonString = response.data.toString();
-        print('📥 [MaintenanceController] $jsonString');
+        DiagnosticLogger.instance.debug('📥 [MaintenanceController] $jsonString');
       } catch (e) {
-        print('📥 [MaintenanceController] ${response.data}');
+        DiagnosticLogger.instance.debug('📥 [MaintenanceController] ${response.data}');
       }
-      print('───────────────────────────────────────────────────────────────────────────────');
-      print('═══════════════════════════════════════════════════════════════════════════════');
-      print('');
+      DiagnosticLogger.instance.debug(
+        '───────────────────────────────────────────────────────────────────────────────',
+      );
+      DiagnosticLogger.instance.debug(
+        '═══════════════════════════════════════════════════════════════════════════════',
+      );
+      DiagnosticLogger.instance.debug('');
 
       final okStatus = response.statusCode == 200 || response.statusCode == 201;
       // Check response status
       if (okStatus && response.data != null) {
         final responseData = response.data as Map<String, dynamic>;
-        
+
         // Print parsed response structure
-        print('📋 [MaintenanceController] Parsed Response Structure:');
-        print('📋 [MaintenanceController] - status: ${responseData['status']}');
-        print('📋 [MaintenanceController] - message: ${responseData['message']}');
-        print('📋 [MaintenanceController] - data type: ${responseData['data']?.runtimeType}');
+        DiagnosticLogger.instance.debug('📋 [MaintenanceController] Parsed Response Structure:');
+        DiagnosticLogger.instance.debug('📋 [MaintenanceController] - status: ${responseData['status']}');
+        DiagnosticLogger.instance.debug(
+          '📋 [MaintenanceController] - message: ${responseData['message']}',
+        );
+        DiagnosticLogger.instance.debug(
+          '📋 [MaintenanceController] - data type: ${responseData['data']?.runtimeType}',
+        );
         if (responseData['data'] is List) {
-          print('📋 [MaintenanceController] - data length: ${(responseData['data'] as List).length}');
+          DiagnosticLogger.instance.debug(
+            '📋 [MaintenanceController] - data length: ${(responseData['data'] as List).length}',
+          );
         }
 
         if (responseData['status'] == true && responseData['data'] != null) {
@@ -202,21 +234,21 @@ class MaintenanceController extends GetxController {
                 try {
                   // DEBUG: Log full task JSON to find priority field
                   final taskMap = item as Map<String, dynamic>;
-                  print(
+                  DiagnosticLogger.instance.debug(
                     '🔍 [MaintenanceController] Full task JSON for ID ${taskMap['id']}:',
                   );
-                  print('   All keys: ${taskMap.keys.toList()}');
+                  DiagnosticLogger.instance.debug('   All keys: ${taskMap.keys.toList()}');
                   // Log the entire task structure (first task only to avoid spam)
                   if (dataList.indexOf(item) == 0) {
-                    print('   Full task JSON: $taskMap');
+                    DiagnosticLogger.instance.debug('   Full task JSON: $taskMap');
                   }
                   return MaintenanceTask.fromJson(
                     taskMap,
                     fallbackResidenceId: residenceId,
                   );
                 } catch (e) {
-                  print('⚠️ [MaintenanceController] Error parsing task: $e');
-                  print('⚠️ [MaintenanceController] Task data: $item');
+                  DiagnosticLogger.instance.error('⚠️ [MaintenanceController] Error parsing task: $e');
+                  DiagnosticLogger.instance.warning('⚠️ [MaintenanceController] Task data: $item');
                   return null;
                 }
               })
@@ -228,12 +260,22 @@ class MaintenanceController extends GetxController {
           _updateFilterCounts(fetchedTasks);
           _updateCategoryTaskCounts(); // Update category counts when tasks are loaded
           _applyFilter(); // Apply current filter to update filteredTasks
+          if (pendingFocusTaskId.value != null &&
+              pendingFocusTaskId.value!.isNotEmpty) {
+            expandedCardId.value = pendingFocusTaskId.value;
+          }
 
-          print('');
-          print('✅ [MaintenanceController] Successfully parsed ${tasks.length} maintenance tasks from API');
-          print('✅ [MaintenanceController] Total task count: ${totalTaskCount.value}');
-          print('✅ [MaintenanceController] Filtered task count: ${filteredTasks.length}');
-          print('');
+          DiagnosticLogger.instance.info('');
+          DiagnosticLogger.instance.info(
+            '✅ [MaintenanceController] Successfully parsed ${tasks.length} maintenance tasks from API',
+          );
+          DiagnosticLogger.instance.info(
+            '✅ [MaintenanceController] Total task count: ${totalTaskCount.value}',
+          );
+          DiagnosticLogger.instance.info(
+            '✅ [MaintenanceController] Filtered task count: ${filteredTasks.length}',
+          );
+          DiagnosticLogger.instance.warning('');
         } else {
           // API returned error or empty data
           final message =
@@ -245,8 +287,8 @@ class MaintenanceController extends GetxController {
         throw Exception('Invalid response status: ${response.statusCode}');
       }
     } catch (e, stackTrace) {
-      print('❌ [MaintenanceController] Error in fetchMaintenanceTasks: $e');
-      print('❌ [MaintenanceController] Stack trace: $stackTrace');
+      DiagnosticLogger.instance.error('❌ [MaintenanceController] Error in fetchMaintenanceTasks: $e');
+      DiagnosticLogger.instance.error('❌ [MaintenanceController] Stack trace: $stackTrace');
       errorMessage.value =
           'An error occurred while fetching tasks: ${e.toString()}';
       hasError.value = true;
@@ -302,8 +344,8 @@ class MaintenanceController extends GetxController {
         requestBody['last_maintenance_date'] = lastMaintenanceDate;
       }
 
-      print('📡 [MaintenanceController] Creating maintenance task...');
-      print('📦 [MaintenanceController] Request body: $requestBody');
+      DiagnosticLogger.instance.info('📡 [MaintenanceController] Creating maintenance task...');
+      DiagnosticLogger.instance.debug('📦 [MaintenanceController] Request body: $requestBody');
 
       // Call API
       final response = await _apiService.post(
@@ -315,7 +357,7 @@ class MaintenanceController extends GetxController {
         final responseData = response.data as Map<String, dynamic>;
 
         if (responseData['status'] == true) {
-          print(
+          DiagnosticLogger.instance.info(
             '✅ [MaintenanceController] Maintenance task created successfully',
           );
 
@@ -337,7 +379,7 @@ class MaintenanceController extends GetxController {
         throw Exception('Invalid response status: ${response.statusCode}');
       }
     } catch (e) {
-      print('❌ [MaintenanceController] Error creating maintenance task: $e');
+      DiagnosticLogger.instance.error('❌ [MaintenanceController] Error creating maintenance task: $e');
 
       MessagePopupController.showError(
         messageKey: 'failed_to_create_maintenance',
@@ -391,9 +433,7 @@ class MaintenanceController extends GetxController {
       // maintenance_residence_id, not the maintenance task id.
       final maintenanceResidenceId = task?.maintenanceResidenceId;
       if (maintenanceResidenceId == null || maintenanceResidenceId <= 0) {
-        throw Exception(
-          'Invalid maintenance_residence_id for task: $taskId',
-        );
+        throw Exception('Invalid maintenance_residence_id for task: $taskId');
       }
 
       // Mark complete: { api_token, id: maintenance_residence_id, status: "completato" }
@@ -404,32 +444,25 @@ class MaintenanceController extends GetxController {
         if (!isCompleted) 'status': 'completato',
       };
 
-      print('🔄 [MaintenanceController] $action task: $taskId');
-      print(
+      DiagnosticLogger.instance.debug('🔄 [MaintenanceController] $action task: $taskId');
+      DiagnosticLogger.instance.debug(
         '🆔 [MaintenanceController] maintenance_residence_id: $maintenanceResidenceId',
       );
-      print('🔗 [MaintenanceController] Endpoint: $endpoint');
-      print('📤 [MaintenanceController] Request body: $requestBody');
+      DiagnosticLogger.instance.debug('🔗 [MaintenanceController] Endpoint: $endpoint');
+      DiagnosticLogger.instance.debug('📤 [MaintenanceController] Request body: $requestBody');
 
-      final response = await _apiService.post(
-        endpoint,
-        data: requestBody,
-      );
+      final response = await _apiService.post(endpoint, data: requestBody);
 
-      print(
+      DiagnosticLogger.instance.debug(
         '📥 [MaintenanceController] Response status: ${response.statusCode}',
       );
-      print(
-        '📥 [MaintenanceController] Response data: ${response.data}',
-      );
+      DiagnosticLogger.instance.debug('📥 [MaintenanceController] Response data: ${response.data}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = response.data as Map<String, dynamic>;
 
         if (responseData['status'] == true) {
-          print(
-            '✅ [MaintenanceController] Task status updated successfully',
-          );
+          DiagnosticLogger.instance.info('✅ [MaintenanceController] Task status updated successfully');
 
           // Refresh maintenance list to get updated task with new status
           await fetchMaintenanceTasks();
@@ -449,12 +482,10 @@ class MaintenanceController extends GetxController {
           );
         }
       } else {
-        throw Exception(
-          'Invalid response status: ${response.statusCode}',
-        );
+        throw Exception('Invalid response status: ${response.statusCode}');
       }
     } catch (e) {
-      print('❌ [MaintenanceController] Error updating task status: $e');
+      DiagnosticLogger.instance.error('❌ [MaintenanceController] Error updating task status: $e');
       MessagePopupController.showError(
         messageKey: 'failed_to_update_task_status',
         titleKey: 'error',
@@ -487,7 +518,7 @@ class MaintenanceController extends GetxController {
             initialDate = DateTime.parse(task.dueDate);
           }
         } catch (e) {
-          print(
+          DiagnosticLogger.instance.warning(
             '⚠️ [MaintenanceController] Could not parse existing due_date: ${task.dueDate}',
           );
           initialDate = DateTime.now();
@@ -531,7 +562,7 @@ class MaintenanceController extends GetxController {
       // Update task via API
       await _updateTaskSchedule(taskId, formattedDate);
     } catch (e) {
-      print('❌ Error scheduling visit: $e');
+      DiagnosticLogger.instance.error('❌ Error scheduling visit: $e');
       MessagePopupController.showError(
         messageKey: 'failed_to_schedule_visit',
         titleKey: 'error',
@@ -544,7 +575,7 @@ class MaintenanceController extends GetxController {
     try {
       isLoadingTasks.value = true;
 
-      print(
+      DiagnosticLogger.instance.debug(
         '📅 [MaintenanceController] Updating task schedule: $taskId with date: $dueDate',
       );
 
@@ -606,47 +637,47 @@ class MaintenanceController extends GetxController {
 
       try {
         // Try RESTful PUT to /maintenance/{id}
-        print('🔄 [MaintenanceController] Trying PUT /maintenance/$taskId');
+        DiagnosticLogger.instance.debug('🔄 [MaintenanceController] Trying PUT /maintenance/$taskId');
         response = await _apiService.put(
           '/maintenance/$taskId',
           data: requestBody,
         );
-        print('✅ [MaintenanceController] PUT /maintenance/$taskId succeeded');
+        DiagnosticLogger.instance.warning('✅ [MaintenanceController] PUT /maintenance/$taskId succeeded');
       } catch (e) {
-        print('⚠️ [MaintenanceController] PUT /maintenance/{id} failed: $e');
-        print('⚠️ [MaintenanceController] Trying alternative endpoint...');
+        DiagnosticLogger.instance.warning('⚠️ [MaintenanceController] PUT /maintenance/{id} failed: $e');
+        DiagnosticLogger.instance.warning('⚠️ [MaintenanceController] Trying alternative endpoint...');
         try {
           // Try PUT to /maintenance/update/{id}
-          print(
+          DiagnosticLogger.instance.debug(
             '🔄 [MaintenanceController] Trying PUT /maintenance/update/$taskId',
           );
           response = await _apiService.put(
             '/maintenance/update/$taskId',
             data: requestBody,
           );
-          print(
+          DiagnosticLogger.instance.warning(
             '✅ [MaintenanceController] PUT /maintenance/update/$taskId succeeded',
           );
         } catch (e2) {
-          print(
+          DiagnosticLogger.instance.warning(
             '⚠️ [MaintenanceController] PUT /maintenance/update/{id} failed: $e2',
           );
-          print('⚠️ [MaintenanceController] Trying POST as last resort...');
+          DiagnosticLogger.instance.warning('⚠️ [MaintenanceController] Trying POST as last resort...');
           try {
             // Try POST to /maintenance/update with ID (Laravel-style update)
             requestBody['id'] = int.parse(taskId);
-            print(
+            DiagnosticLogger.instance.debug(
               '🔄 [MaintenanceController] Trying POST /maintenance/update with id: $taskId',
             );
             response = await _apiService.post(
               '/maintenance/update',
               data: requestBody,
             );
-            print(
+            DiagnosticLogger.instance.error(
               '✅ [MaintenanceController] POST /maintenance/update succeeded',
             );
           } catch (e3) {
-            print(
+            DiagnosticLogger.instance.error(
               '❌ [MaintenanceController] POST /maintenance/update failed: $e3',
             );
             errorMessage =
@@ -660,7 +691,7 @@ class MaintenanceController extends GetxController {
         final responseData = response.data as Map<String, dynamic>;
 
         if (responseData['status'] == true) {
-          print('✅ [MaintenanceController] Task schedule updated successfully');
+          DiagnosticLogger.instance.info('✅ [MaintenanceController] Task schedule updated successfully');
 
           // Refresh maintenance list to get updated task
           await fetchMaintenanceTasks();
@@ -682,7 +713,7 @@ class MaintenanceController extends GetxController {
         );
       }
     } catch (e) {
-      print('❌ [MaintenanceController] Error updating task schedule: $e');
+      DiagnosticLogger.instance.error('❌ [MaintenanceController] Error updating task schedule: $e');
       MessagePopupController.showError(
         messageKey: 'failed_to_update_schedule',
         titleKey: 'error',
@@ -697,7 +728,7 @@ class MaintenanceController extends GetxController {
   /// Immediately updates UI after successful deletion
   Future<bool> deleteMaintenanceTask(String taskId) async {
     try {
-      print('🗑️ [MaintenanceController] Deleting maintenance task: $taskId');
+      DiagnosticLogger.instance.debug('🗑️ [MaintenanceController] Deleting maintenance task: $taskId');
 
       // Call DELETE API endpoint
       final response = await _apiService.delete(
@@ -708,7 +739,7 @@ class MaintenanceController extends GetxController {
         final responseData = response.data as Map<String, dynamic>;
 
         if (responseData['status'] == true) {
-          print(
+          DiagnosticLogger.instance.info(
             '✅ [MaintenanceController] Delete success, updating UI immediately',
           );
 
@@ -741,7 +772,7 @@ class MaintenanceController extends GetxController {
         throw Exception('Invalid response status: ${response.statusCode}');
       }
     } catch (e) {
-      print('❌ [MaintenanceController] Error deleting maintenance task: $e');
+      DiagnosticLogger.instance.error('❌ [MaintenanceController] Error deleting maintenance task: $e');
 
       MessagePopupController.showError(
         messageKey: 'failed_to_delete_maintenance',
@@ -765,44 +796,64 @@ class MaintenanceController extends GetxController {
       categoriesErrorMessage.value = '';
       hasCategoriesError.value = false;
 
-      print('📡 [MaintenanceController] Fetching maintenance categories...');
-      print('🔗 [MaintenanceController] Endpoint: ${ApiConstants.GET_MAINTENANCE_CATEGORIES}');
+      DiagnosticLogger.instance.info('📡 [MaintenanceController] Fetching maintenance categories...');
+      DiagnosticLogger.instance.debug(
+        '🔗 [MaintenanceController] Endpoint: ${ApiConstants.GET_MAINTENANCE_CATEGORIES}',
+      );
       final response = await _apiService.get(
         ApiConstants.GET_MAINTENANCE_CATEGORIES,
       );
 
       // Print full API response for debugging
-      print('');
-      print('═══════════════════════════════════════════════════════════════════════════════');
-      print('📥 [MaintenanceController] GET_MAINTENANCE_CATEGORIES API RESPONSE');
-      print('═══════════════════════════════════════════════════════════════════════════════');
-      print('📥 [MaintenanceController] Status Code: ${response.statusCode}');
-      print('📥 [MaintenanceController] Response Headers: ${response.headers}');
-      print('');
-      print('📥 [MaintenanceController] FULL RESPONSE DATA:');
-      print('───────────────────────────────────────────────────────────────────────────────');
+      DiagnosticLogger.instance.debug('');
+      DiagnosticLogger.instance.debug(
+        '═══════════════════════════════════════════════════════════════════════════════',
+      );
+      DiagnosticLogger.instance.debug(
+        '📥 [MaintenanceController] GET_MAINTENANCE_CATEGORIES API RESPONSE',
+      );
+      DiagnosticLogger.instance.debug(
+        '═══════════════════════════════════════════════════════════════════════════════',
+      );
+      DiagnosticLogger.instance.debug('📥 [MaintenanceController] Status Code: ${response.statusCode}');
+      DiagnosticLogger.instance.debug('📥 [MaintenanceController] Response Headers: ${response.headers}');
+      DiagnosticLogger.instance.debug('');
+      DiagnosticLogger.instance.debug('📥 [MaintenanceController] FULL RESPONSE DATA:');
+      DiagnosticLogger.instance.debug(
+        '───────────────────────────────────────────────────────────────────────────────',
+      );
       // Print the full response data in a readable format
       try {
         // Convert to JSON string for better readability
         final jsonString = response.data.toString();
-        print('📥 [MaintenanceController] $jsonString');
+        DiagnosticLogger.instance.debug('📥 [MaintenanceController] $jsonString');
       } catch (e) {
-        print('📥 [MaintenanceController] ${response.data}');
+        DiagnosticLogger.instance.debug('📥 [MaintenanceController] ${response.data}');
       }
-      print('───────────────────────────────────────────────────────────────────────────────');
-      print('═══════════════════════════════════════════════════════════════════════════════');
-      print('');
+      DiagnosticLogger.instance.debug(
+        '───────────────────────────────────────────────────────────────────────────────',
+      );
+      DiagnosticLogger.instance.debug(
+        '═══════════════════════════════════════════════════════════════════════════════',
+      );
+      DiagnosticLogger.instance.debug('');
 
       if (response.statusCode == 200 && response.data != null) {
         final responseData = response.data as Map<String, dynamic>;
-        
+
         // Print parsed response structure
-        print('📋 [MaintenanceController] Parsed Response Structure:');
-        print('📋 [MaintenanceController] - status: ${responseData['status']}');
-        print('📋 [MaintenanceController] - message: ${responseData['message']}');
-        print('📋 [MaintenanceController] - data type: ${responseData['data']?.runtimeType}');
+        DiagnosticLogger.instance.debug('📋 [MaintenanceController] Parsed Response Structure:');
+        DiagnosticLogger.instance.debug('📋 [MaintenanceController] - status: ${responseData['status']}');
+        DiagnosticLogger.instance.debug(
+          '📋 [MaintenanceController] - message: ${responseData['message']}',
+        );
+        DiagnosticLogger.instance.debug(
+          '📋 [MaintenanceController] - data type: ${responseData['data']?.runtimeType}',
+        );
         if (responseData['data'] is List) {
-          print('📋 [MaintenanceController] - data length: ${(responseData['data'] as List).length}');
+          DiagnosticLogger.instance.debug(
+            '📋 [MaintenanceController] - data length: ${(responseData['data'] as List).length}',
+          );
         }
 
         if (responseData['status'] == true && responseData['data'] != null) {
@@ -811,7 +862,7 @@ class MaintenanceController extends GetxController {
           final List<MaintenanceCategory> fetchedCategories = categoriesData
               .map((json) {
                 // Debug: Log raw category data to verify API response structure
-                print('🔍 [MaintenanceController] Raw category JSON: $json');
+                DiagnosticLogger.instance.debug('🔍 [MaintenanceController] Raw category JSON: $json');
                 return MaintenanceCategory.fromJson(
                   json as Map<String, dynamic>,
                 );
@@ -821,20 +872,22 @@ class MaintenanceController extends GetxController {
           categories.value = fetchedCategories;
 
           // Debug: Log parsed categories to verify name_en and name_it fields are populated
-          print('');
-          print('📋 [MaintenanceController] Parsed Categories:');
+          DiagnosticLogger.instance.debug('');
+          DiagnosticLogger.instance.debug('📋 [MaintenanceController] Parsed Categories:');
           for (final category in fetchedCategories) {
-            print(
+            DiagnosticLogger.instance.debug(
               '   📁 ID: ${category.id} | Name (IT): "${category.name}" | Name (EN): "${category.nameEn}" | Description: "${category.description}"',
             );
           }
-          print('');
-          
+          DiagnosticLogger.instance.info('');
+
           _updateCategoryTaskCounts();
           _applyFilter(); // Reapply filter in case category selection needs updating
 
-          print('✅ [MaintenanceController] Successfully loaded ${categories.length} maintenance categories');
-          print('');
+          DiagnosticLogger.instance.info(
+            '✅ [MaintenanceController] Successfully loaded ${categories.length} maintenance categories',
+          );
+          DiagnosticLogger.instance.error('');
         } else {
           throw Exception(
             responseData['message'] ?? 'Failed to fetch categories',
@@ -844,7 +897,7 @@ class MaintenanceController extends GetxController {
         throw Exception('Invalid response format');
       }
     } catch (e) {
-      print('❌ [MaintenanceController] Error fetching categories: $e');
+      DiagnosticLogger.instance.error('❌ [MaintenanceController] Error fetching categories: $e');
       _syncFilterItems();
     } finally {
       isLoadingCategories.value = false;
@@ -950,13 +1003,13 @@ class MaintenanceController extends GetxController {
   Future<bool> pickFile() async {
     // Prevent multiple simultaneous file picks
     if (isPickingFile.value) {
-      print('⚠️ [MaintenanceController] File picker already in progress');
+      DiagnosticLogger.instance.warning('⚠️ [MaintenanceController] File picker already in progress');
       return false;
     }
 
     try {
       isPickingFile.value = true;
-      print('📁 [MaintenanceController] Opening file picker...');
+      DiagnosticLogger.instance.debug('📁 [MaintenanceController] Opening file picker...');
 
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -966,12 +1019,12 @@ class MaintenanceController extends GetxController {
 
       // User cancelled
       if (result == null || result.files.isEmpty) {
-        print('📁 [MaintenanceController] File picker cancelled');
+        DiagnosticLogger.instance.debug('📁 [MaintenanceController] File picker cancelled');
         return false;
       }
 
       final pickedFile = result.files.single;
-      print('📁 [MaintenanceController] File selected: ${pickedFile.name}');
+      DiagnosticLogger.instance.debug('📁 [MaintenanceController] File selected: ${pickedFile.name}');
 
       // Check file size before processing (prevent memory issues and Android killing app)
       // This check happens BEFORE any heavy operations
@@ -984,7 +1037,7 @@ class MaintenanceController extends GetxController {
           'File size (${_formatFileSize(fileSize)}) exceeds maximum allowed size (${_formatFileSize(maxFileSizeBytes)})',
         );
       }
-      print(
+      DiagnosticLogger.instance.debug(
         '📁 [MaintenanceController] File size: ${_formatFileSize(fileSize)}',
       );
 
@@ -1051,14 +1104,14 @@ class MaintenanceController extends GetxController {
         });
       }
 
-      print(
+      DiagnosticLogger.instance.info(
         '✅ [MaintenanceController] File selected successfully: $fileName (${selectedFileSize.value})',
       );
-      print('📁 [MaintenanceController] File saved to: $permanentFilePath');
+      DiagnosticLogger.instance.error('📁 [MaintenanceController] File saved to: $permanentFilePath');
       return true;
     } catch (e, stackTrace) {
-      print('❌ [MaintenanceController] Error picking file: $e');
-      print('❌ [MaintenanceController] Stack trace: $stackTrace');
+      DiagnosticLogger.instance.error('❌ [MaintenanceController] Error picking file: $e');
+      DiagnosticLogger.instance.error('❌ [MaintenanceController] Stack trace: $stackTrace');
 
       // Only show popup if controller is still valid
       if (!isClosed) {
@@ -1087,7 +1140,7 @@ class MaintenanceController extends GetxController {
     selectedFileName.value = '';
     selectedFileSize.value = '';
 
-    print('🗑️ [MaintenanceController] File removed');
+    DiagnosticLogger.instance.debug('🗑️ [MaintenanceController] File removed');
   }
 
   /// Format file size for display
@@ -1119,200 +1172,6 @@ class MaintenanceController extends GetxController {
     overdueCount.value = tasks
         .where((t) => t.status == MaintenanceStatus.overdue)
         .length;
-  }
-
-  /// Get mock tasks (kept for fallback/testing - not used when API is available)
-  List<MaintenanceTask> _getMockTasks() {
-    return [
-      MaintenanceTask(
-        id: 'p1',
-        title: 'Filter Replacement - Kitchen Hood',
-        category: 'Appliances',
-        description:
-            'Replace grease filters in kitchen ventilation hood for optimal performance.',
-        priority: MaintenancePriority.personal,
-        status: MaintenanceStatus.pending,
-        frequency: 'Every 3 months',
-        nextDue: '10 Nov 2025',
-        lastCompleted: '10 Aug 2025',
-        maintenanceCategoryId: 1,
-        residenceId: 1,
-        dueDate: '2025-11-10',
-        lastMaintenanceDate: '2025-08-10',
-      ),
-      MaintenanceTask(
-        id: 'p2',
-        title: 'Fridge Coil Cleaning',
-        category: 'Appliances',
-        description:
-            'Clean refrigerator coils to improve efficiency and reduce energy consumption.',
-        priority: MaintenancePriority.personal,
-        status: MaintenanceStatus.inProgress,
-        frequency: 'Every 6 months',
-        nextDue: '5 Dec 2025',
-        maintenanceCategoryId: 1,
-        residenceId: 1,
-        dueDate: '2025-12-05',
-        attachments: [
-          TaskAttachment(name: 'cleaning_guide.pdf', type: 'PDF', url: '#'),
-        ],
-      ),
-      MaintenanceTask(
-        id: '1',
-        title: 'Ispezione Annuale Sistema HVAC',
-        category: 'Climatizzazione',
-        description:
-            'Ispezione annuale e sostituzione dei filtri per il sistema di riscaldamento, ventilazione e climatizzazione. Richiesto per la conformità alla garanzia e per garantire l\'efficienza energetica ottimale.',
-        priority: MaintenancePriority.obbligatorie,
-        status: MaintenanceStatus.overdue,
-        frequency: 'Annualmente',
-        nextDue: '30 Ott 2025',
-        lastCompleted: '28 Ott 2024',
-        maintenanceCategoryId: 1,
-        residenceId: 1,
-        dueDate: '2025-10-30',
-        lastMaintenanceDate: '2024-10-28',
-        attachments: [
-          TaskAttachment(
-            name: 'Certificato_Ispezione_2024.pdf',
-            type: 'PDF',
-            url: '#',
-          ),
-          TaskAttachment(name: 'Manuale_HVAC.pdf', type: 'PDF', url: '#'),
-        ],
-        contacts: [
-          TaskContact(
-            name: 'TechClima Services',
-            role: 'Specialista HVAC',
-            phone: '+39 02 1234 5678',
-            email: 'info@techclima.it',
-          ),
-        ],
-      ),
-      MaintenanceTask(
-        id: '2',
-        title: 'Controllo Pressione Caldaia',
-        category: 'Riscaldamento',
-        description:
-            'Controllo di routine della pressione e ottimizzazione del sistema. Raccomandato per prestazioni ottimali ed efficienza energetica.',
-        priority: MaintenancePriority.facoltative,
-        status: MaintenanceStatus.pending,
-        frequency: 'Ogni 6 mesi',
-        nextDue: '15 Nov 2025',
-        lastCompleted: '10 Mag 2025',
-        maintenanceCategoryId: 1,
-        residenceId: 1,
-        dueDate: '2025-11-15',
-        lastMaintenanceDate: '2025-05-10',
-      ),
-      MaintenanceTask(
-        id: '3',
-        title: 'Ispezione Sicurezza Ascensore',
-        category: 'Sistemi Edificio',
-        description:
-            'Ispezione di sicurezza obbligatoria secondo le normative edilizie. Gestito dall\'amministratore condominiale.',
-        priority: MaintenancePriority.condominiali,
-        status: MaintenanceStatus.inProgress,
-        frequency: 'Annualmente',
-        nextDue: '8 Nov 2025',
-        maintenanceCategoryId: 1,
-        residenceId: 1,
-        dueDate: '2025-11-08',
-        attachments: [
-          TaskAttachment(
-            name: 'Certificato_Sicurezza.pdf',
-            type: 'PDF',
-            url: '#',
-          ),
-        ],
-        contacts: [
-          TaskContact(
-            name: 'SafeLift Italia',
-            role: 'Ispettore Certificato',
-            phone: '+39 02 9876 5432',
-          ),
-        ],
-      ),
-      MaintenanceTask(
-        id: '4',
-        title: 'Sostituzione Batterie Rilevatori di Fumo',
-        category: 'Sicurezza',
-        description:
-            'Sostituire le batterie in tutti i rilevatori di fumo per garantire il corretto funzionamento. Requisito di sicurezza critico.',
-        priority: MaintenancePriority.obbligatorie,
-        status: MaintenanceStatus.pending,
-        frequency: 'Ogni 12 mesi',
-        nextDue: '20 Nov 2025',
-        lastCompleted: '18 Nov 2024',
-        maintenanceCategoryId: 1,
-        residenceId: 1,
-        dueDate: '2025-11-20',
-        lastMaintenanceDate: '2024-11-18',
-      ),
-      MaintenanceTask(
-        id: '5',
-        title: 'Manutenzione Scaldabagno',
-        category: 'Idraulica',
-        description:
-            'Decalcificazione e controllo dell\'efficienza. Aiuta a prevenire guasti e prolunga la vita dell\'apparecchiatura.',
-        priority: MaintenancePriority.facoltative,
-        status: MaintenanceStatus.pending,
-        frequency: 'Ogni 18 mesi',
-        nextDue: '1 Dic 2025',
-        lastCompleted: '1 Giu 2024',
-        maintenanceCategoryId: 1,
-        residenceId: 1,
-        dueDate: '2025-12-01',
-        lastMaintenanceDate: '2024-06-01',
-      ),
-      MaintenanceTask(
-        id: '6',
-        title: 'Ispezione Guarnizioni Finestre',
-        category: 'Involucro Edificio',
-        description:
-            'Controllare e mantenere le guarnizioni delle finestre per l\'efficienza energetica. Raccomandato prima della stagione invernale.',
-        priority: MaintenancePriority.facoltative,
-        status: MaintenanceStatus.pending,
-        frequency: 'Annualmente',
-        nextDue: '5 Nov 2025',
-        maintenanceCategoryId: 1,
-        residenceId: 1,
-        dueDate: '2025-11-05',
-      ),
-      MaintenanceTask(
-        id: '7',
-        title: 'Controllo Estintori',
-        category: 'Sicurezza',
-        description:
-            'Ispezione annuale obbligatoria di tutte le attrezzature antincendio.',
-        priority: MaintenancePriority.obbligatorie,
-        status: MaintenanceStatus.pending,
-        frequency: 'Annualmente',
-        nextDue: '12 Nov 2025',
-        lastCompleted: '10 Nov 2024',
-        maintenanceCategoryId: 1,
-        residenceId: 1,
-        dueDate: '2025-11-12',
-        lastMaintenanceDate: '2024-11-10',
-        contacts: [
-          TaskContact(name: 'FireSafe Solutions', role: 'Ispettore Sicurezza'),
-        ],
-      ),
-      MaintenanceTask(
-        id: '8',
-        title: 'Aggiornamento Illuminazione Aree Comuni',
-        category: 'Sistemi Edificio',
-        description:
-            'Progetto di aggiornamento LED per corridoi e spazi comuni dell\'edificio. Gestito dall\'amministratore.',
-        priority: MaintenancePriority.condominiali,
-        status: MaintenanceStatus.pending,
-        frequency: 'Progetto una tantum',
-        nextDue: '25 Nov 2025',
-        maintenanceCategoryId: 1,
-        residenceId: 1,
-        dueDate: '2025-11-25',
-      ),
-    ];
   }
 }
 
@@ -1388,7 +1247,7 @@ Future<_FileProcessResult> _processFileInIsolate(
     }
 
     // Validate bytes were read successfully
-    if (fileBytes == null || fileBytes.isEmpty) {
+    if (fileBytes.isEmpty) {
       return _FileProcessResult(
         success: false,
         error: 'Failed to read file bytes',
@@ -1424,8 +1283,8 @@ Future<_FileProcessResult> _processFileInIsolate(
     return _FileProcessResult(success: true, fileSize: fileSize);
   } catch (e, stackTrace) {
     // Log error details for debugging
-    print('❌ [Isolate] Error processing file: $e');
-    print('❌ [Isolate] Stack trace: $stackTrace');
+    DiagnosticLogger.instance.error('❌ [Isolate] Error processing file: $e');
+    DiagnosticLogger.instance.error('❌ [Isolate] Stack trace: $stackTrace');
     return _FileProcessResult(
       success: false,
       error: 'File processing failed: ${e.toString()}',

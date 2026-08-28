@@ -23,16 +23,16 @@ class SplashController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    print('🟢 SplashController: onInit called');
+    DiagnosticLogger.instance.debug('🟢 SplashController: onInit called');
     _startSplashTimer();
   }
 
   void _startSplashTimer() {
-    print('🟢 SplashController: Starting 3.5 second timer');
+    DiagnosticLogger.instance.debug('🟢 SplashController: Starting 3.5 second timer');
 
     // Auto-transition after 3.5 seconds
     _timer = Timer(const Duration(milliseconds: 3500), () {
-      print('🟢 SplashController: Timer completed, checking authentication');
+      DiagnosticLogger.instance.debug('🟢 SplashController: Timer completed, checking authentication');
       _checkAuthenticationAndNavigate();
     });
   }
@@ -46,11 +46,11 @@ class SplashController extends GetxController {
   /// Check if user is already authenticated and navigate accordingly
   void _checkAuthenticationAndNavigate() async {
     if (_shouldAbortNavigation) {
-      print('🔐 SplashController: Skipping auth check — already navigating/signed out');
+      DiagnosticLogger.instance.debug('🔐 SplashController: Skipping auth check — already navigating/signed out');
       return;
     }
 
-    print('🔐 SplashController: Checking authentication status...');
+    DiagnosticLogger.instance.debug('🔐 SplashController: Checking authentication status...');
     DiagnosticLogger.instance.info('Session restore started');
 
     // Check for stored access token
@@ -58,9 +58,9 @@ class SplashController extends GetxController {
     final userData = _storageService.getUserData();
     final phase = _storageService.getAuthPhase();
 
-    print('  - Access Token: ${accessToken != null ? "Found" : "Not found"}');
-    print('  - User Data: ${userData != null ? "Found" : "Not found"}');
-    print('  - Auth Phase: ${phase.name}');
+    DiagnosticLogger.instance.debug('  - Access Token: ${accessToken != null ? "Found" : "Not found"}');
+    DiagnosticLogger.instance.debug('  - User Data: ${userData != null ? "Found" : "Not found"}');
+    DiagnosticLogger.instance.debug('  - Auth Phase: ${phase.name}');
 
     final destination = Pending2FAPolicy.splashDestination(
       accessToken: accessToken,
@@ -73,7 +73,7 @@ class SplashController extends GetxController {
       // challenge was never completed (app killed on the OTP screen), resume
       // at OTP — never HOME. Authenticated initialization (Firebase sign-in,
       // FCM refresh) is deferred until OTP succeeds.
-      print('  ⚠️ 2FA pending from previous session - resuming OTP verification');
+      DiagnosticLogger.instance.warning('  ⚠️ 2FA pending from previous session - resuming OTP verification');
       DiagnosticLogger.instance.info(
         'Existing session found',
         metadata: <String, Object?>{
@@ -89,7 +89,7 @@ class SplashController extends GetxController {
     if (destination == AppRoutes.HOME) {
       final hasFirebaseToken =
           _storageService.getStoredFirebaseToken() != null;
-      print('  - Stored firebase_token: ${hasFirebaseToken ? "Found" : "MISSING — log out and log in again"}');
+      DiagnosticLogger.instance.debug('  - Stored firebase_token: ${hasFirebaseToken ? "Found" : "MISSING — log out and log in again"}');
       DiagnosticLogger.instance.info(
         'Existing session found',
         metadata: <String, Object?>{
@@ -107,7 +107,7 @@ class SplashController extends GetxController {
       // Session may have been cleared by a 401 during Firebase/FCM restore.
       final tokenAfterRestore = _storageService.getAccessToken();
       if (tokenAfterRestore == null || tokenAfterRestore.isEmpty) {
-        print('  ❌ Session cleared during restore - navigating to AUTH');
+        DiagnosticLogger.instance.error('  ❌ Session cleared during restore - navigating to AUTH');
         DiagnosticLogger.instance.error(
           'Session restore failed',
           metadata: <String, Object?>{'reason': 'session_cleared_during_restore'},
@@ -116,14 +116,14 @@ class SplashController extends GetxController {
         return;
       }
 
-      print('  ✅ User authenticated - navigating to HOME');
+      DiagnosticLogger.instance.info('  ✅ User authenticated - navigating to HOME');
       DiagnosticLogger.instance.info('Session restore completed');
       _navigateToHome();
       return;
     }
 
     // No authentication data - navigate to AUTH
-    print('  ❌ No authentication found - navigating to AUTH');
+    DiagnosticLogger.instance.error('  ❌ No authentication found - navigating to AUTH');
     DiagnosticLogger.instance.info('No session found');
     DiagnosticLogger.instance.info('Session restore completed');
     _navigateToAuth();
@@ -132,15 +132,15 @@ class SplashController extends GetxController {
   void _navigateToOtpVerification() {
     if (_shouldAbortNavigation) return;
     _navigationStarted = true;
-    print(
+    DiagnosticLogger.instance.info(
       '🟢 SplashController: Attempting navigation to: ${AppRoutes.OTP_VERIFICATION}',
     );
 
     try {
       Get.offAllNamed(AppRoutes.OTP_VERIFICATION);
-      print('✅ SplashController: Navigation to OTP_VERIFICATION successful');
+      DiagnosticLogger.instance.error('✅ SplashController: Navigation to OTP_VERIFICATION successful');
     } catch (e) {
-      print('❌ SplashController: Navigation to OTP_VERIFICATION failed: $e');
+      DiagnosticLogger.instance.error('❌ SplashController: Navigation to OTP_VERIFICATION failed: $e');
       // Fallback — never fall through to HOME while 2FA is pending.
       _navigationStarted = false;
       _navigateToAuth();
@@ -196,14 +196,14 @@ class SplashController extends GetxController {
   void _navigateToHome() {
     if (_shouldAbortNavigation) return;
     _navigationStarted = true;
-    print('🟢 SplashController: Attempting navigation to: ${AppRoutes.HOME}');
+    DiagnosticLogger.instance.info('🟢 SplashController: Attempting navigation to: ${AppRoutes.HOME}');
 
     try {
       // Use Get.offAllNamed to clear splash from navigation stack
       Get.offAllNamed(AppRoutes.HOME);
-      print('✅ SplashController: Navigation to HOME successful');
+      DiagnosticLogger.instance.error('✅ SplashController: Navigation to HOME successful');
     } catch (e) {
-      print('❌ SplashController: Navigation to HOME failed: $e');
+      DiagnosticLogger.instance.error('❌ SplashController: Navigation to HOME failed: $e');
       // Fallback - navigate to AUTH if HOME navigation fails
       _navigationStarted = false;
       _navigateToAuth();
@@ -213,15 +213,15 @@ class SplashController extends GetxController {
   void _navigateToAuth() {
     if (isClosed) return;
     _navigationStarted = true;
-    print('🟢 SplashController: Attempting navigation to: ${AppRoutes.AUTH}');
+    DiagnosticLogger.instance.info('🟢 SplashController: Attempting navigation to: ${AppRoutes.AUTH}');
     // Idempotent — safe if session expiry already opened AUTH.
     AuthNavigation.replaceStackWithAuth();
-    print('✅ SplashController: Navigation to AUTH requested');
+    DiagnosticLogger.instance.info('✅ SplashController: Navigation to AUTH requested');
   }
 
   @override
   void onClose() {
-    print('🟢 SplashController: onClose called, cancelling timer');
+    DiagnosticLogger.instance.debug('🟢 SplashController: onClose called, cancelling timer');
     _timer?.cancel();
     super.onClose();
   }
@@ -229,6 +229,6 @@ class SplashController extends GetxController {
   @override
   void onReady() {
     super.onReady();
-    print('🟢 SplashController: onReady called');
+    DiagnosticLogger.instance.debug('🟢 SplashController: onReady called');
   }
 }

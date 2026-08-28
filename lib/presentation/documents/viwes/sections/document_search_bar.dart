@@ -28,7 +28,7 @@ class DocumentSearchBar extends StatelessWidget {
             elevation: 4,
             shadowColor: const Color(0x22388E3C),
             borderRadius: BorderRadius.circular(16.r),
-            color: Colors.white.withOpacity(0.9),
+            color: Colors.white.withValues(alpha: 0.9),
             child: DecoratedBox(
               decoration: BoxDecoration(
                 color: const Color(0xFFF7FAF7),

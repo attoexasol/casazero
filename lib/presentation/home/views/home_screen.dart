@@ -6,21 +6,14 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../core/widgets/floating_bottom_nav_bar.dart';
 import '../../../core/widgets/loading_indicator.dart';
-import '../../../core/utils/permissions.dart';
 import '../../../app/theme/app_colors.dart';
 import '../controllers/home_controller.dart';
 
 // SECTIONS
-import 'sections/premium_banner.dart';
 import 'sections/residence_name.dart';
 import 'sections/hero_image.dart';
-import 'sections/welcome_message.dart';
 import 'sections/welcome_user_section.dart';
 import 'sections/construction_progress_section.dart';
-import 'sections/view_all_buildings_card.dart';
-import 'sections/quick_tiles.dart';
-import 'sections/latest_notifications.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 
 class HomeScreen extends GetView<HomeController> {
   const HomeScreen({super.key});

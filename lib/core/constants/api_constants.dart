@@ -16,7 +16,7 @@ class ApiConstants {
 
   /// Get Document Password (read-only, for display on document password screen)
   /// POST /user/get-document-password
-  /// Request: { "token": "<stored_user_token>" }
+  /// Request: { "token": "`<stored_user_token>`" }
   /// Response: { "status": true, "document_password": "..." }
   static const String GET_DOCUMENT_PASSWORD = '/user/get-document-password';
 
@@ -203,7 +203,7 @@ class ApiConstants {
 
   /// Get residence status with phases (construction progress)
   /// POST /residence/status-with-phases
-  /// Request: { "api_token": "<TOKEN>", "residence_id": <ID> }
+  /// Request: { "api_token": "`<TOKEN>`", "residence_id": `<ID>` }
   static const String GET_RESIDENCE_STATUS_WITH_PHASES =
       '/residence/status-with-phases';
 
@@ -213,7 +213,7 @@ class ApiConstants {
 
   /// Get User Notifications
   /// POST /get_user/notifications
-  /// Request: { "api_token": "<CURRENT_USER_API_TOKEN>" }
+  /// Request: { "api_token": "`<CURRENT_USER_API_TOKEN>`" }
   /// Response: {
   ///   "status": true,
   ///   "data": [
@@ -234,8 +234,8 @@ class ApiConstants {
   /// Mark Notification as Read
   /// POST /get_user/mark_as_read
   /// Request: {
-  ///   "api_token": "<CURRENT_USER_API_TOKEN>",
-  ///   "notification_id": <NOTIFICATION_ID>
+  ///   "api_token": "`<CURRENT_USER_API_TOKEN>`",
+  ///   "notification_id": `<NOTIFICATION_ID>`
   /// }
   /// Response: {
   ///   "status": true,
@@ -246,7 +246,7 @@ class ApiConstants {
   /// Get Unread Notification Count
   /// POST /get_user/unread_count
   /// Request: {
-  ///   "api_token": "<CURRENT_USER_API_TOKEN>"
+  ///   "api_token": "`<CURRENT_USER_API_TOKEN>`"
   /// }
   /// Response: {
   ///   "status": true,
@@ -257,8 +257,8 @@ class ApiConstants {
   /// Delete Notification
   /// POST /notification/delete
   /// Request: {
-  ///   "api_token": "<CURRENT_USER_API_TOKEN>",
-  ///   "notification_id": <NOTIFICATION_ID>
+  ///   "api_token": "`<CURRENT_USER_API_TOKEN>`",
+  ///   "notification_id": `<NOTIFICATION_ID>`
   /// }
   /// Response: {
   ///   "status": true,
@@ -279,13 +279,13 @@ class ApiConstants {
 
   /// Update the device FCM registration token after login / token rotation.
   /// POST /update-fcm-token
-  /// Request: { "token": "<USER_API_TOKEN>", "fcm_token": "<FCM>", "platform": "android"|"ios" }
+  /// Request: { "token": "`<USER_API_TOKEN>`", "fcm_token": "`<FCM>`", "platform": "android"|"ios" }
   /// Response: { "status": true, "message": "FCM token updated successfully" }
   static const String UPDATE_FCM_TOKEN = '/update-fcm-token';
 
   /// Report whether the app is in foreground or background.
   /// POST /update-app-status
-  /// Request: { "api_token": "<TOKEN>", "app_status": "foreground" | "background" }
+  /// Request: { "api_token": "`<TOKEN>`", "app_status": "foreground" | "background" }
   static const String UPDATE_APP_STATUS = '/update-app-status';
 
   // Buildings Endpoints
@@ -383,15 +383,15 @@ class ApiConstants {
   /// Download Document
   /// POST /download_document
   /// Request: {
-  ///   "token": "<CURRENT_USER_API_TOKEN>",
-  ///   "document_id": <DOCUMENT_ID>
+  ///   "token": "`<CURRENT_USER_API_TOKEN>`",
+  ///   "document_id": `<DOCUMENT_ID>`
   /// }
   /// Response: File bytes (binary data)
   static const String DOWNLOAD_DOCUMENT = '/download_document';
 
   /// Delete Document
   /// DELETE /documents/delete/{id}
-  /// Request: { "api_token": "<CURRENT_USER_API_TOKEN>" }
+  /// Request: { "api_token": "`<CURRENT_USER_API_TOKEN>`" }
   /// Response: {
   ///   "status": true,
   ///   "message": "Document deleted successfully."
@@ -401,26 +401,26 @@ class ApiConstants {
   // Ticket / Issue Type Endpoints
   /// Get Issue Types (ticket categories)
   /// POST /issue-type/list
-  /// Request: { "api_token": "<CURRENT_USER_API_TOKEN>" }
+  /// Request: { "api_token": "`<CURRENT_USER_API_TOKEN>`" }
   /// Response: { "success": true, "total": 3, "data": [ { "id": 4, "issue_type_en": "...", "issue_type_it": "..." } ] }
   static const String GET_ISSUE_TYPES = '/issue-type/list';
 
   /// Create Issue Type
   /// POST /issue-type/create
-  /// Request: { "api_token": "<CURRENT_USER_API_TOKEN>", "issue_type_en": "...", "issue_type_it": "..." }
+  /// Request: { "api_token": "`<CURRENT_USER_API_TOKEN>`", "issue_type_en": "...", "issue_type_it": "..." }
   /// Response: { "success": true, "message": "Issue type created successfully", "data": { "id": 4, ... } }
   static const String CREATE_ISSUE_TYPE = '/issue-type/create';
 
   /// Get My Support Tickets
   /// POST /my-support-tickets
-  /// Request: { "api_token": "<TOKEN>" }
+  /// Request: { "api_token": "`<TOKEN>`" }
   /// Response: { "status": true, "data": [ { "id": 12, "title": "...", ... } ] }
   static const String GET_MY_SUPPORT_TICKETS = '/my-support-tickets';
 
   /// Create Support Ticket
   /// POST /support-ticket/create
   /// Request: {
-  ///   "api_token": "<TOKEN>",
+  ///   "api_token": "`<TOKEN>`",
   ///   "title": "...",
   ///   "description": "...",
   ///   "issue_type_id": 4,
@@ -440,7 +440,7 @@ class ApiConstants {
 
   /// Residence-wise maintenance list
   /// POST /residence_wise/maintenance
-  /// Request: { "residence_id": <int> }
+  /// Request: { "residence_id": `<int>` }
   static const String POST_RESIDENCE_WISE_MAINTENANCE =
       '/residence_wise/maintenance';
 
@@ -491,8 +491,8 @@ class ApiConstants {
   /// Mark maintenance task as completed
   /// POST /maintenanceResidence/changeMaintenanceStatus
   /// Request: {
-  ///   "api_token": "<TOKEN>",
-  ///   "id": <maintenance_residence_id>,
+  ///   "api_token": "`<TOKEN>`",
+  ///   "id": `<maintenance_residence_id>`,
   ///   "status": "completato"
   /// }
   static const String CHANGE_MAINTENANCE_STATUS =
@@ -500,7 +500,7 @@ class ApiConstants {
 
   /// Undo maintenance task completion
   /// POST /maintenanceResidence/undoMaintenanceStatus
-  /// Request: { "api_token": "<TOKEN>", "id": <maintenance_residence_id> }
+  /// Request: { "api_token": "`<TOKEN>`", "id": `<maintenance_residence_id>` }
   static const String UNDO_MAINTENANCE_STATUS =
       '/maintenanceResidence/undoMaintenanceStatus';
 
@@ -511,13 +511,13 @@ class ApiConstants {
   /// Send AI Message
   /// POST /casazero-ai/send-message
   /// Request: {
-  ///   "token": "<USER_API_TOKEN>",
-  ///   "message": "<USER_MESSAGE>"
+  ///   "token": "`<USER_API_TOKEN>`",
+  ///   "message": "`<USER_MESSAGE>`"
   /// }
   /// Response: {
   ///   "success": true,
   ///   "chat_id": 10,
-  ///   "reply": "<AI_REPLY>",
+  ///   "reply": "`<AI_REPLY>`",
   ///   "image": null
   /// }
   static const String AI_SEND_MESSAGE = '/casazero-ai/send-message';
@@ -525,7 +525,7 @@ class ApiConstants {
   /// Get AI Message History
   /// POST /casazero-ai/get-message
   /// Request: {
-  ///   "token": "<USER_API_TOKEN>"
+  ///   "token": "`<USER_API_TOKEN>`"
   /// }
   /// Response: {
   ///   "success": true,

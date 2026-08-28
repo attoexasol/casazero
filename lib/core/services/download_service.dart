@@ -6,6 +6,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/services.dart';
 import '../constants/api_constants.dart';
 import 'storage_service.dart';
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 class DownloadService extends getx.GetxService {
   final Dio _dio = Dio();
@@ -25,8 +26,8 @@ class DownloadService extends getx.GetxService {
           if (token != null) {
             options.headers['Authorization'] = 'Bearer $token';
           }
-          print('🌐 [DOWNLOAD REQUEST] ${options.method} ${options.uri}');
-          print('🔑 [DOWNLOAD TOKEN] ${token ?? 'NO_TOKEN_FOUND'}');
+          DiagnosticLogger.instance.debug('🌐 [DOWNLOAD REQUEST] ${options.method} ${options.uri}');
+          DiagnosticLogger.instance.debug('🔑 [DOWNLOAD TOKEN] ${token ?? 'NO_TOKEN_FOUND'}');
           return handler.next(options);
         },
       ),
@@ -84,8 +85,8 @@ class DownloadService extends getx.GetxService {
 
       final finalPath = '${directory.path}/$fileName';
 
-      print('📥 Downloading to: $finalPath');
-      print('📥 From URL: $fileUrl');
+      DiagnosticLogger.instance.debug('📥 Downloading to: $finalPath');
+      DiagnosticLogger.instance.debug('📥 From URL: $fileUrl');
 
       // Prepare the full URL
       String fullUrl = fileUrl;
@@ -94,7 +95,7 @@ class DownloadService extends getx.GetxService {
         fullUrl = ApiConstants.buildOriginUrl(fileUrl);
       }
 
-      print('📥 Full URL: $fullUrl');
+      DiagnosticLogger.instance.debug('📥 Full URL: $fullUrl');
 
       // Download the file with progress tracking
       await _dio.download(
@@ -104,7 +105,7 @@ class DownloadService extends getx.GetxService {
           if (total != -1) {
             final progress = (received / total);
             downloadProgress[fileId] = progress;
-            print('📥 Download progress: ${(progress * 100).toStringAsFixed(0)}%');
+            DiagnosticLogger.instance.debug('📥 Download progress: ${(progress * 100).toStringAsFixed(0)}%');
           }
         },
       );
@@ -113,7 +114,7 @@ class DownloadService extends getx.GetxService {
       isDownloading[fileId] = false;
       downloadProgress.remove(fileId);
 
-      print('✅ Download completed: $finalPath');
+      DiagnosticLogger.instance.error('✅ Download completed: $finalPath');
 
       return {
         'success': true,
@@ -121,7 +122,7 @@ class DownloadService extends getx.GetxService {
         'fileName': fileName,
       };
     } catch (e) {
-      print('❌ Download error: $e');
+      DiagnosticLogger.instance.error('❌ Download error: $e');
       isDownloading[fileId] = false;
       downloadProgress.remove(fileId);
 
@@ -169,7 +170,7 @@ class DownloadService extends getx.GetxService {
             return true;
           }
         } catch (e) {
-          print('⚠️ Photos permission not available: $e');
+          DiagnosticLogger.instance.warning('⚠️ Photos permission not available: $e');
         }
       }
 
@@ -180,7 +181,7 @@ class DownloadService extends getx.GetxService {
 
       // Even if permission is denied, we can still use app's external directory
       // Return true to allow saving to app's Downloads folder
-      print('⚠️ Storage permission not granted, but will try app directory');
+      DiagnosticLogger.instance.warning('⚠️ Storage permission not granted, but will try app directory');
       return true;
     } else if (Platform.isIOS) {
       // iOS doesn't need special permissions for app's documents directory
@@ -207,43 +208,40 @@ class DownloadService extends getx.GetxService {
         if (!await publicDownloads.exists()) {
           try {
             await publicDownloads.create(recursive: true);
-            print('📁 Created public Downloads directory: $publicDownloadsPath');
+            DiagnosticLogger.instance.warning('📁 Created public Downloads directory: $publicDownloadsPath');
           } catch (e) {
-            print('⚠️ Could not create public Downloads directory: $e');
+            DiagnosticLogger.instance.warning('⚠️ Could not create public Downloads directory: $e');
             // Still try to return it - might work even if create failed
           }
         }
         
         // Verify we can access the directory
         try {
-          final testFile = File('${publicDownloads.path}/.test');
-          // Just check if we can create a test file (we'll delete it immediately)
-          // This verifies write permissions
           if (await publicDownloads.exists()) {
-            print('📁 Using public Downloads directory: ${publicDownloads.path}');
+            DiagnosticLogger.instance.warning('📁 Using public Downloads directory: ${publicDownloads.path}');
             return publicDownloads;
           }
         } catch (e) {
-          print('⚠️ Cannot write to public Downloads directory: $e');
+          DiagnosticLogger.instance.warning('⚠️ Cannot write to public Downloads directory: $e');
         }
         
         // If public Downloads fails, log error but don't fallback to app directory
         // This ensures we know when files won't be visible
-        print('❌ Public Downloads directory not accessible. Files may not be visible in File Manager.');
+        DiagnosticLogger.instance.error('❌ Public Downloads directory not accessible. Files may not be visible in File Manager.');
         return publicDownloads; // Return anyway - let the save operation handle the error
       } else if (Platform.isIOS) {
         // iOS: Use Documents directory (visible in Files app)
         final documentsDir = await getApplicationDocumentsDirectory();
-        print('📁 Using iOS Documents directory: ${documentsDir.path}');
+        DiagnosticLogger.instance.debug('📁 Using iOS Documents directory: ${documentsDir.path}');
         return documentsDir;
       }
 
       // For other platforms
       final appDir = await getApplicationDocumentsDirectory();
-      print('📁 Using default documents directory: ${appDir.path}');
+      DiagnosticLogger.instance.error('📁 Using default documents directory: ${appDir.path}');
       return appDir;
     } catch (e) {
-      print('❌ Error getting download directory: $e');
+      DiagnosticLogger.instance.error('❌ Error getting download directory: $e');
       return null;
     }
   }
@@ -265,7 +263,7 @@ class DownloadService extends getx.GetxService {
   }
 
   /// Save document bytes to file
-  /// [fileBytes] - File bytes as List<int>
+  /// [fileBytes] - File bytes as List`<int>`
   /// [fileName] - Name to save the file as
   /// [fileId] - Unique identifier for tracking this download
   /// Saves to device Downloads folder (Android) or Documents directory (iOS)
@@ -302,7 +300,7 @@ class DownloadService extends getx.GetxService {
       if (!await directory.exists()) {
         await directory.create(recursive: true);
       }
-      print('📁 Using download directory: ${directory.path}');
+      DiagnosticLogger.instance.debug('📁 Using download directory: ${directory.path}');
 
       // Sanitize filename - remove invalid characters
       String sanitizedFileName = fileName
@@ -326,9 +324,9 @@ class DownloadService extends getx.GetxService {
         file = File(filePath); // Create new File object with updated path
       }
 
-      print('💾 Saving file bytes to: $filePath');
-      print('💾 File size: ${fileBytes.length} bytes');
-      print('💾 Directory exists: ${await directory.exists()}');
+      DiagnosticLogger.instance.debug('💾 Saving file bytes to: $filePath');
+      DiagnosticLogger.instance.debug('💾 File size: ${fileBytes.length} bytes');
+      DiagnosticLogger.instance.debug('💾 Directory exists: ${await directory.exists()}');
 
       // Write bytes to file with flush to ensure data is written
       await file.writeAsBytes(fileBytes, flush: true);
@@ -336,7 +334,7 @@ class DownloadService extends getx.GetxService {
       // CRITICAL: Verify file exists after writing
       final fileExists = await file.exists();
       if (!fileExists) {
-        print('❌ File does not exist after write operation');
+        DiagnosticLogger.instance.error('❌ File does not exist after write operation');
         isDownloading[fileId] = false;
         downloadProgress.remove(fileId);
         return {
@@ -348,7 +346,7 @@ class DownloadService extends getx.GetxService {
       // Verify file size matches
       final savedFileSize = await file.length();
       if (savedFileSize != fileBytes.length) {
-        print('⚠️ File size mismatch: Expected ${fileBytes.length}, got $savedFileSize');
+        DiagnosticLogger.instance.warning('⚠️ File size mismatch: Expected ${fileBytes.length}, got $savedFileSize');
         // Don't fail here, but log the warning
       }
 
@@ -360,7 +358,7 @@ class DownloadService extends getx.GetxService {
           await _indexFileInMediaStore(filePath, sanitizedFileName);
         } catch (e) {
           // Don't fail if MediaStore indexing fails - file is still saved
-          print('⚠️ Could not index file in MediaStore (file is still saved): $e');
+          DiagnosticLogger.instance.warning('⚠️ Could not index file in MediaStore (file is still saved): $e');
         }
       }
 
@@ -368,10 +366,10 @@ class DownloadService extends getx.GetxService {
       isDownloading[fileId] = false;
       downloadProgress.remove(fileId);
 
-      print('✅ File saved successfully: $filePath');
-      print('✅ File exists: ${await file.exists()}');
-      print('✅ File size: ${await file.length()} bytes');
-      print('✅ File location: ${directory.path} (visible in File Manager)');
+      DiagnosticLogger.instance.info('✅ File saved successfully: $filePath');
+      DiagnosticLogger.instance.info('✅ File exists: ${await file.exists()}');
+      DiagnosticLogger.instance.info('✅ File size: ${await file.length()} bytes');
+      DiagnosticLogger.instance.info('✅ File location: ${directory.path} (visible in File Manager)');
 
       return {
         'success': true,
@@ -379,8 +377,8 @@ class DownloadService extends getx.GetxService {
         'fileName': sanitizedFileName,
       };
     } catch (e, stackTrace) {
-      print('❌ Error saving file bytes: $e');
-      print('❌ Stack trace: $stackTrace');
+      DiagnosticLogger.instance.error('❌ Error saving file bytes: $e');
+      DiagnosticLogger.instance.error('❌ Stack trace: $stackTrace');
       isDownloading[fileId] = false;
       downloadProgress.remove(fileId);
 
@@ -409,13 +407,13 @@ class DownloadService extends getx.GetxService {
       );
 
       if (result == true) {
-        print('✅ File indexed in MediaStore: $fileName');
+        DiagnosticLogger.instance.warning('✅ File indexed in MediaStore: $fileName');
       } else {
-        print('⚠️ MediaStore indexing returned false (file still saved)');
+        DiagnosticLogger.instance.warning('⚠️ MediaStore indexing returned false (file still saved)');
       }
     } catch (e) {
       // Don't throw - file is still saved and visible in File Manager
-      print('⚠️ MediaStore indexing error (non-critical): $e');
+      DiagnosticLogger.instance.warning('⚠️ MediaStore indexing error (non-critical): $e');
     }
   }
 }

@@ -114,7 +114,7 @@ class ProfileHeaderCard extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: AppColors.brandSage500.withOpacity(0.3),
+                color: AppColors.brandSage500.withValues(alpha: 0.3),
                 width: 2,
               ),
             ),
@@ -126,7 +126,7 @@ class ProfileHeaderCard extends StatelessWidget {
                 imageUrl: cacheBustedUrl,
                 fit: BoxFit.cover,
                 placeholder: (context, url) => Container(
-                  color: AppColors.brandSage500.withOpacity(0.1),
+                  color: AppColors.brandSage500.withValues(alpha: 0.1),
                   child: Center(
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
@@ -171,9 +171,9 @@ class ProfileHeaderCard extends StatelessWidget {
       height: 64,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: AppColors.brandSage500.withOpacity(0.1),
+        color: AppColors.brandSage500.withValues(alpha: 0.1),
         border: Border.all(
-          color: AppColors.brandSage500.withOpacity(0.3),
+          color: AppColors.brandSage500.withValues(alpha: 0.3),
           width: 2,
         ),
       ),
@@ -250,22 +250,6 @@ class ProfileHeaderCard extends StatelessWidget {
       // Use refresh timestamp as cache-buster - changes on every pull-to-refresh
       // This ensures image is always reloaded from backend when refresh is triggered
       queryParams['_refresh'] = refreshTimestamp.toString();
-      return uri.replace(queryParameters: queryParams).toString();
-    } catch (e) {
-      // If URL parsing fails, return original URL
-      return url;
-    }
-  }
-
-  // Legacy cache-busting method (kept for backward compatibility)
-  // Uses URL hash to ensure cache-buster only changes when URL changes
-  String _addCacheBuster(String url) {
-    try {
-      final uri = Uri.parse(url);
-      final queryParams = Map<String, String>.from(uri.queryParameters);
-      // Use URL hash as cache-buster - changes only when URL changes
-      // This ensures cache refresh without unnecessary reloads on every rebuild
-      queryParams['_v'] = url.hashCode.toString();
       return uri.replace(queryParameters: queryParams).toString();
     } catch (e) {
       // If URL parsing fails, return original URL

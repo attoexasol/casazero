@@ -56,7 +56,7 @@ class _ChatOptionCardState extends State<ChatOptionCard> {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: _hovered
-                ? widget.hoverColor.withOpacity(0.4)
+                ? widget.hoverColor.withValues(alpha: 0.4)
                 : Colors.grey.shade200,
             width: _hovered ? 2 : 1,
           ),

@@ -116,7 +116,12 @@ class NotificationContentLocalizer {
 
   static bool isMaintenanceType(String? type) => PushTypes.isMaintenance(type);
 
-  static bool isChatType(String? type) => PushTypes.isChat(type);
+  static bool isChatType(String? type) {
+    final t = PushTypes.normalize(type);
+    if (t == null) return false;
+    if (t == 'announcement' || t == 'announcements') return false;
+    return PushTypes.isChat(t);
+  }
 
   static bool looksLikeTicket({String? title, String? body}) {
     final haystack = '${title ?? ''} ${body ?? ''}'.toLowerCase();

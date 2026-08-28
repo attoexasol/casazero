@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import '../auth/auth_phase.dart';
 import '../constants/storage_keys.dart';
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 class StorageService extends GetxService {
   late GetStorage _box;
@@ -61,8 +62,7 @@ class StorageService extends GetxService {
   }
 
   void debugPrintStorageKeys() {
-    // ignore: avoid_print
-    print(
+    DiagnosticLogger.instance.debug(
       '[Storage] keys in box: access=${getAccessToken() != null} '
       'firebase_token=${getStoredFirebaseToken() != null} '
       'project_id=${getFirebaseProjectId() != null}',

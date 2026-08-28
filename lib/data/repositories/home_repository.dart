@@ -7,6 +7,7 @@ import '../models/feed_item_model.dart';
 import '../models/construction_phase_model.dart';
 import '../models/residence_model.dart';
 import '../models/residence_status_phase_model.dart';
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 class HomeRepository {
   final ApiService _apiService = Get.find();
@@ -18,14 +19,14 @@ class HomeRepository {
   /// Returns list of residences for the user
   Future<Map<String, dynamic>> getUserResidences() async {
     try {
-      print('🏠 [HomeRepository] Starting getUserResidences()...');
+      DiagnosticLogger.instance.debug('🏠 [HomeRepository] Starting getUserResidences()...');
       final token = _storageService.getAccessToken();
-      print(
+      DiagnosticLogger.instance.error(
         '🔑 [HomeRepository] Token retrieved: ${token != null && token.isNotEmpty ? "Token exists (${token.length} chars)" : "NO TOKEN"}',
       );
 
       if (token == null || token.isEmpty) {
-        print('❌ [HomeRepository] Token is null or empty');
+        DiagnosticLogger.instance.error('❌ [HomeRepository] Token is null or empty');
         return {
           'success': false,
           'error': 'User token not found in local storage',
@@ -34,17 +35,17 @@ class HomeRepository {
 
       final endpoint = ApiConstants.GET_USER_RESIDENCES;
       final fullUrl = '${ApiConstants.BASE_URL}$endpoint';
-      print('📡 [HomeRepository] Making PUT request to: $endpoint');
-      print('🌐 [HomeRepository] Full URL: $fullUrl');
-      print(
+      DiagnosticLogger.instance.info('📡 [HomeRepository] Making PUT request to: $endpoint');
+      DiagnosticLogger.instance.debug('🌐 [HomeRepository] Full URL: $fullUrl');
+      DiagnosticLogger.instance.debug(
         '📦 [HomeRepository] Request data: {"token": "${token.substring(0, token.length > 20 ? 20 : token.length)}..."}',
       );
 
       final response = await _apiService.post(endpoint, data: {'token': token});
-      print(response);
-      print('✅ [HomeRepository] API Response received');
-      print('📊 [HomeRepository] Status Code: ${response.statusCode}');
-      print('📊 [HomeRepository] Response Data: ${response.data}');
+      DiagnosticLogger.instance.debug('$response');
+      DiagnosticLogger.instance.info('✅ [HomeRepository] API Response received');
+      DiagnosticLogger.instance.debug('📊 [HomeRepository] Status Code: ${response.statusCode}');
+      DiagnosticLogger.instance.debug('📊 [HomeRepository] Response Data: ${response.data}');
 
       // Response structure:
       // {
@@ -60,14 +61,14 @@ class HomeRepository {
       // }
       if (response.statusCode == 200 && response.data['status'] == true) {
         final List<dynamic> residencesData = response.data['data'] ?? [];
-        print(
+        DiagnosticLogger.instance.debug(
           '🏘️ [HomeRepository] Parsing ${residencesData.length} residences',
         );
         final residences = residencesData
             .map((item) => ResidenceModel.fromJson(item))
             .toList();
 
-        print(
+        DiagnosticLogger.instance.info(
           '✅ [HomeRepository] Successfully parsed ${residences.length} residences',
         );
         return {
@@ -80,12 +81,12 @@ class HomeRepository {
             response.data['message'] ??
             response.data['error'] ??
             'Failed to fetch residences';
-        print('❌ [HomeRepository] API returned error: $errorMessage');
+        DiagnosticLogger.instance.error('❌ [HomeRepository] API returned error: $errorMessage');
         return {'success': false, 'error': errorMessage};
       }
     } on DioException catch (e, stackTrace) {
-      print('❌ [HomeRepository] DioException in getUserResidences: $e');
-      print('📚 [HomeRepository] Stack trace: $stackTrace');
+      DiagnosticLogger.instance.error('❌ [HomeRepository] DioException in getUserResidences: $e');
+      DiagnosticLogger.instance.error('📚 [HomeRepository] Stack trace: $stackTrace');
 
       // Try to extract error message from response
       String errorMessage = 'Failed to fetch residences. Please try again.';
@@ -95,13 +96,13 @@ class HomeRepository {
           errorMessage =
               responseData['message'] ?? responseData['error'] ?? errorMessage;
         }
-        print('📊 [HomeRepository] Error response data: $responseData');
+        DiagnosticLogger.instance.error('📊 [HomeRepository] Error response data: $responseData');
       }
 
       return {'success': false, 'error': errorMessage};
     } catch (e, stackTrace) {
-      print('❌ [HomeRepository] Exception in getUserResidences: $e');
-      print('📚 [HomeRepository] Stack trace: $stackTrace');
+      DiagnosticLogger.instance.error('❌ [HomeRepository] Exception in getUserResidences: $e');
+      DiagnosticLogger.instance.error('📚 [HomeRepository] Stack trace: $stackTrace');
       return {
         'success': false,
         'error': 'Failed to fetch residences. Please try again.',
@@ -129,18 +130,18 @@ class HomeRepository {
 
   /// Get User Notifications
   /// POST /get_user/notifications
-  /// Request: { "api_token": "<CURRENT_USER_API_TOKEN>" }
+  /// Request: { "api_token": "`<CURRENT_USER_API_TOKEN>`" }
   /// Returns list of notifications for the current user
   Future<Map<String, dynamic>> getUserNotifications() async {
     try {
-      print('🔔 [HomeRepository] Starting getUserNotifications()...');
+      DiagnosticLogger.instance.debug('🔔 [HomeRepository] Starting getUserNotifications()...');
       
       // Get access token (api_token) from storage
       final apiToken = _storageService.getAccessToken();
-      print('Notification API token: ${apiToken != null && apiToken.isNotEmpty ? "${apiToken.substring(0, 10)}..." : "NO TOKEN"}');
+      DiagnosticLogger.instance.error('Notification API token: ${apiToken != null && apiToken.isNotEmpty ? "${apiToken.substring(0, 10)}..." : "NO TOKEN"}');
       
       if (apiToken == null || apiToken.isEmpty) {
-        print('❌ [HomeRepository] API token is null or empty');
+        DiagnosticLogger.instance.error('❌ [HomeRepository] API token is null or empty');
         return {
           'success': false,
           'error': 'User API token not found in local storage',
@@ -148,7 +149,7 @@ class HomeRepository {
       }
 
       final endpoint = ApiConstants.GET_USER_NOTIFICATIONS;
-      print('📡 [HomeRepository] Making POST request to: $endpoint');
+      DiagnosticLogger.instance.info('📡 [HomeRepository] Making POST request to: $endpoint');
 
       // Call API with api_token in request body
       final response = await _apiService.post(
@@ -156,8 +157,8 @@ class HomeRepository {
         data: {'api_token': apiToken},
       );
 
-      print('✅ [HomeRepository] API Response received');
-      print('📊 [HomeRepository] Status Code: ${response.statusCode}');
+      DiagnosticLogger.instance.info('✅ [HomeRepository] API Response received');
+      DiagnosticLogger.instance.debug('📊 [HomeRepository] Status Code: ${response.statusCode}');
 
       // Response structure:
       // {
@@ -177,7 +178,7 @@ class HomeRepository {
       // }
       if (response.statusCode == 200 && response.data['status'] == true) {
         final List<dynamic> notificationsData = response.data['data'] ?? [];
-        print('Fetched notifications: ${notificationsData.length}');
+        DiagnosticLogger.instance.debug('Fetched notifications: ${notificationsData.length}');
         
         final notifications = notificationsData
             .map((item) => FeedItemModel.fromJson(item as Map<String, dynamic>))
@@ -185,9 +186,9 @@ class HomeRepository {
 
         // Debug aid: unique notification_type values (helps filter mismatches).
         final types = notifications.map((n) => n.type).toSet().toList()..sort();
-        print('🔔 [HomeRepository] notification types: $types');
+        DiagnosticLogger.instance.info('🔔 [HomeRepository] notification types: $types');
 
-        print('✅ [HomeRepository] Successfully parsed ${notifications.length} notifications');
+        DiagnosticLogger.instance.info('✅ [HomeRepository] Successfully parsed ${notifications.length} notifications');
         return {
           'success': true,
           'data': notifications,
@@ -197,12 +198,12 @@ class HomeRepository {
             response.data['message'] ??
             response.data['error'] ??
             'Failed to fetch notifications';
-        print('❌ [HomeRepository] API returned error: $errorMessage');
+        DiagnosticLogger.instance.error('❌ [HomeRepository] API returned error: $errorMessage');
         return {'success': false, 'error': errorMessage};
       }
     } on DioException catch (e, stackTrace) {
-      print('❌ [HomeRepository] DioException in getUserNotifications: $e');
-      print('📚 [HomeRepository] Stack trace: $stackTrace');
+      DiagnosticLogger.instance.error('❌ [HomeRepository] DioException in getUserNotifications: $e');
+      DiagnosticLogger.instance.error('📚 [HomeRepository] Stack trace: $stackTrace');
 
       String errorMessage = 'Failed to fetch notifications. Please try again.';
       if (e.response != null && e.response!.data != null) {
@@ -211,14 +212,14 @@ class HomeRepository {
           errorMessage =
               responseData['message'] ?? responseData['error'] ?? errorMessage;
         }
-        print('📊 [HomeRepository] Error response data: $responseData');
+        DiagnosticLogger.instance.error('📊 [HomeRepository] Error response data: $responseData');
       }
 
       return {'success': false, 'error': errorMessage};
     } catch (e, stackTrace) {
-      print('❌ [HomeRepository] Exception in getUserNotifications: $e');
-      print('❌ [HomeRepository] Exception type: ${e.runtimeType}');
-      print('📚 [HomeRepository] Stack trace: $stackTrace');
+      DiagnosticLogger.instance.error('❌ [HomeRepository] Exception in getUserNotifications: $e');
+      DiagnosticLogger.instance.error('❌ [HomeRepository] Exception type: ${e.runtimeType}');
+      DiagnosticLogger.instance.error('📚 [HomeRepository] Stack trace: $stackTrace');
       
       String errorMessage = 'Failed to fetch notifications. Please try again.';
       
@@ -247,8 +248,8 @@ class HomeRepository {
   /// Mark Notification as Read
   /// POST /get_user/mark_as_read
   /// Request: {
-  ///   "api_token": "<CURRENT_USER_API_TOKEN>",
-  ///   "notification_id": <NOTIFICATION_ID>
+  ///   "api_token": "`<CURRENT_USER_API_TOKEN>`",
+  ///   "notification_id": `<NOTIFICATION_ID>`
   /// }
   /// Response: {
   ///   "status": true,
@@ -256,14 +257,14 @@ class HomeRepository {
   /// }
   Future<Map<String, dynamic>> markNotificationAsRead(int notificationId) async {
     try {
-      print('✅ [HomeRepository] Marking notification as read: $notificationId');
+      DiagnosticLogger.instance.info('✅ [HomeRepository] Marking notification as read: $notificationId');
       
       // Get access token (api_token) from storage
       final apiToken = _storageService.getAccessToken();
-      print('User api_token: ${apiToken != null && apiToken.isNotEmpty ? "${apiToken.substring(0, 10)}..." : "NO TOKEN"}');
+      DiagnosticLogger.instance.error('User api_token: ${apiToken != null && apiToken.isNotEmpty ? "${apiToken.substring(0, 10)}..." : "NO TOKEN"}');
       
       if (apiToken == null || apiToken.isEmpty) {
-        print('❌ [HomeRepository] API token is null or empty');
+        DiagnosticLogger.instance.error('❌ [HomeRepository] API token is null or empty');
         return {
           'success': false,
           'error': 'User API token not found in local storage',
@@ -271,7 +272,7 @@ class HomeRepository {
       }
 
       final endpoint = ApiConstants.MARK_NOTIFICATION_AS_READ;
-      print('📡 [HomeRepository] Making POST request to: $endpoint');
+      DiagnosticLogger.instance.info('📡 [HomeRepository] Making POST request to: $endpoint');
 
       // Call API with api_token and notification_id in request body
       final response = await _apiService.post(
@@ -282,11 +283,11 @@ class HomeRepository {
         },
       );
 
-      print('✅ [HomeRepository] Mark as read response received');
-      print('📊 [HomeRepository] Status Code: ${response.statusCode}');
+      DiagnosticLogger.instance.info('✅ [HomeRepository] Mark as read response received');
+      DiagnosticLogger.instance.info('📊 [HomeRepository] Status Code: ${response.statusCode}');
 
       if (response.statusCode == 200 && response.data['status'] == true) {
-        print('✅ [HomeRepository] Notification marked as read successfully');
+        DiagnosticLogger.instance.info('✅ [HomeRepository] Notification marked as read successfully');
         return {
           'success': true,
           'message': response.data['message'] ?? 'Notification marked as read',
@@ -296,12 +297,12 @@ class HomeRepository {
             response.data['message'] ??
             response.data['error'] ??
             'Failed to mark notification as read';
-        print('❌ [HomeRepository] API returned error: $errorMessage');
+        DiagnosticLogger.instance.error('❌ [HomeRepository] API returned error: $errorMessage');
         return {'success': false, 'error': errorMessage};
       }
     } on DioException catch (e, stackTrace) {
-      print('❌ [HomeRepository] DioException in markNotificationAsRead: $e');
-      print('📚 [HomeRepository] Stack trace: $stackTrace');
+      DiagnosticLogger.instance.error('❌ [HomeRepository] DioException in markNotificationAsRead: $e');
+      DiagnosticLogger.instance.error('📚 [HomeRepository] Stack trace: $stackTrace');
 
       String errorMessage = 'Failed to mark notification as read. Please try again.';
       if (e.response != null && e.response!.data != null) {
@@ -310,13 +311,13 @@ class HomeRepository {
           errorMessage =
               responseData['message'] ?? responseData['error'] ?? errorMessage;
         }
-        print('📊 [HomeRepository] Error response data: $responseData');
+        DiagnosticLogger.instance.error('📊 [HomeRepository] Error response data: $responseData');
       }
 
       return {'success': false, 'error': errorMessage};
     } catch (e, stackTrace) {
-      print('❌ [HomeRepository] Exception in markNotificationAsRead: $e');
-      print('📚 [HomeRepository] Stack trace: $stackTrace');
+      DiagnosticLogger.instance.error('❌ [HomeRepository] Exception in markNotificationAsRead: $e');
+      DiagnosticLogger.instance.error('📚 [HomeRepository] Stack trace: $stackTrace');
       return {
         'success': false,
         'error': 'Failed to mark notification as read. Please try again.',
@@ -327,8 +328,8 @@ class HomeRepository {
   /// Delete Notification
   /// POST /notification/delete
   /// Request: {
-  ///   "api_token": "<CURRENT_USER_API_TOKEN>",
-  ///   "notification_id": <NOTIFICATION_ID>
+  ///   "api_token": "`<CURRENT_USER_API_TOKEN>`",
+  ///   "notification_id": `<NOTIFICATION_ID>`
   /// }
   /// Response: {
   ///   "status": true,
@@ -336,11 +337,11 @@ class HomeRepository {
   /// }
   Future<Map<String, dynamic>> deleteNotification(int notificationId) async {
     try {
-      print('🗑️ [HomeRepository] Deleting notification: $notificationId');
+      DiagnosticLogger.instance.error('🗑️ [HomeRepository] Deleting notification: $notificationId');
 
       final apiToken = _storageService.getAccessToken();
       if (apiToken == null || apiToken.isEmpty) {
-        print('❌ [HomeRepository] API token is null or empty');
+        DiagnosticLogger.instance.error('❌ [HomeRepository] API token is null or empty');
         return {
           'success': false,
           'error': 'User API token not found in local storage',
@@ -348,7 +349,7 @@ class HomeRepository {
       }
 
       final endpoint = ApiConstants.DELETE_NOTIFICATION;
-      print('📡 [HomeRepository] Making POST request to: $endpoint');
+      DiagnosticLogger.instance.info('📡 [HomeRepository] Making POST request to: $endpoint');
 
       final response = await _apiService.post(
         endpoint,
@@ -358,11 +359,11 @@ class HomeRepository {
         },
       );
 
-      print('✅ [HomeRepository] Delete notification response received');
-      print('📊 [HomeRepository] Status Code: ${response.statusCode}');
+      DiagnosticLogger.instance.info('✅ [HomeRepository] Delete notification response received');
+      DiagnosticLogger.instance.info('📊 [HomeRepository] Status Code: ${response.statusCode}');
 
       if (response.statusCode == 200 && response.data['status'] == true) {
-        print('✅ [HomeRepository] Notification deleted successfully');
+        DiagnosticLogger.instance.info('✅ [HomeRepository] Notification deleted successfully');
         return {
           'success': true,
           'message':
@@ -373,12 +374,12 @@ class HomeRepository {
             response.data['message'] ??
             response.data['error'] ??
             'Failed to delete notification';
-        print('❌ [HomeRepository] API returned error: $errorMessage');
+        DiagnosticLogger.instance.error('❌ [HomeRepository] API returned error: $errorMessage');
         return {'success': false, 'error': errorMessage};
       }
     } on DioException catch (e, stackTrace) {
-      print('❌ [HomeRepository] DioException in deleteNotification: $e');
-      print('📚 [HomeRepository] Stack trace: $stackTrace');
+      DiagnosticLogger.instance.error('❌ [HomeRepository] DioException in deleteNotification: $e');
+      DiagnosticLogger.instance.error('📚 [HomeRepository] Stack trace: $stackTrace');
 
       String errorMessage = 'Failed to delete notification. Please try again.';
       if (e.response != null && e.response!.data != null) {
@@ -387,13 +388,13 @@ class HomeRepository {
           errorMessage =
               responseData['message'] ?? responseData['error'] ?? errorMessage;
         }
-        print('📊 [HomeRepository] Error response data: $responseData');
+        DiagnosticLogger.instance.error('📊 [HomeRepository] Error response data: $responseData');
       }
 
       return {'success': false, 'error': errorMessage};
     } catch (e, stackTrace) {
-      print('❌ [HomeRepository] Exception in deleteNotification: $e');
-      print('📚 [HomeRepository] Stack trace: $stackTrace');
+      DiagnosticLogger.instance.error('❌ [HomeRepository] Exception in deleteNotification: $e');
+      DiagnosticLogger.instance.error('📚 [HomeRepository] Stack trace: $stackTrace');
       return {
         'success': false,
         'error': 'Failed to delete notification. Please try again.',
@@ -404,7 +405,7 @@ class HomeRepository {
   /// Get Unread Notification Count
   /// POST /get_user/unread_count
   /// Request: {
-  ///   "api_token": "<CURRENT_USER_API_TOKEN>"
+  ///   "api_token": "`<CURRENT_USER_API_TOKEN>`"
   /// }
   /// Response: {
   ///   "status": true,
@@ -412,14 +413,14 @@ class HomeRepository {
   /// }
   Future<Map<String, dynamic>> getUnreadNotificationCount() async {
     try {
-      print('🔔 [HomeRepository] Fetching unread notification count...');
+      DiagnosticLogger.instance.debug('🔔 [HomeRepository] Fetching unread notification count...');
       
       // Get access token (api_token) from storage
       final apiToken = _storageService.getAccessToken();
-      print('User api_token: ${apiToken != null && apiToken.isNotEmpty ? "${apiToken.substring(0, 10)}..." : "NO TOKEN"}');
+      DiagnosticLogger.instance.error('User api_token: ${apiToken != null && apiToken.isNotEmpty ? "${apiToken.substring(0, 10)}..." : "NO TOKEN"}');
       
       if (apiToken == null || apiToken.isEmpty) {
-        print('❌ [HomeRepository] API token is null or empty');
+        DiagnosticLogger.instance.error('❌ [HomeRepository] API token is null or empty');
         return {
           'success': false,
           'error': 'User API token not found in local storage',
@@ -428,7 +429,7 @@ class HomeRepository {
       }
 
       final endpoint = ApiConstants.GET_UNREAD_NOTIFICATION_COUNT;
-      print('📡 [HomeRepository] Making POST request to: $endpoint');
+      DiagnosticLogger.instance.info('📡 [HomeRepository] Making POST request to: $endpoint');
 
       // Call API with api_token in request body
       final response = await _apiService.post(
@@ -436,14 +437,14 @@ class HomeRepository {
         data: {'api_token': apiToken},
       );
 
-      print('✅ [HomeRepository] Unread count response received');
-      print('📊 [HomeRepository] Status Code: ${response.statusCode}');
+      DiagnosticLogger.instance.info('✅ [HomeRepository] Unread count response received');
+      DiagnosticLogger.instance.debug('📊 [HomeRepository] Status Code: ${response.statusCode}');
 
-      print('📊 [HomeRepository] Response data: ${response.data}');
+      DiagnosticLogger.instance.info('📊 [HomeRepository] Response data: ${response.data}');
 
       if (response.statusCode == 200 && response.data['status'] == true) {
         final unreadCount = response.data['unread_count'] ?? 0;
-        print('✅ [HomeRepository] Unread count: $unreadCount');
+        DiagnosticLogger.instance.info('✅ [HomeRepository] Unread count: $unreadCount');
         return {
           'success': true,
           'unread_count': unreadCount,
@@ -453,9 +454,9 @@ class HomeRepository {
             response.data['message'] ??
             response.data['error'] ??
             'Failed to fetch unread count';
-        print('❌ [HomeRepository] API returned error: $errorMessage');
-        print('📊 [HomeRepository] Response status: ${response.statusCode}');
-        print('📊 [HomeRepository] Response data: ${response.data}');
+        DiagnosticLogger.instance.error('❌ [HomeRepository] API returned error: $errorMessage');
+        DiagnosticLogger.instance.debug('📊 [HomeRepository] Response status: ${response.statusCode}');
+        DiagnosticLogger.instance.error('📊 [HomeRepository] Response data: ${response.data}');
         return {
           'success': false,
           'error': errorMessage,
@@ -463,12 +464,12 @@ class HomeRepository {
         };
       }
     } on DioException catch (e, stackTrace) {
-      print('❌ [HomeRepository] DioException in getUnreadNotificationCount');
-      print('❌ [HomeRepository] Error type: ${e.type}');
-      print('❌ [HomeRepository] Error message: ${e.message}');
-      print('📊 [HomeRepository] Status code: ${e.response?.statusCode}');
-      print('📊 [HomeRepository] Response data: ${e.response?.data}');
-      print('📚 [HomeRepository] Stack trace: $stackTrace');
+      DiagnosticLogger.instance.error('❌ [HomeRepository] DioException in getUnreadNotificationCount');
+      DiagnosticLogger.instance.error('❌ [HomeRepository] Error type: ${e.type}');
+      DiagnosticLogger.instance.error('❌ [HomeRepository] Error message: ${e.message}');
+      DiagnosticLogger.instance.error('📊 [HomeRepository] Status code: ${e.response?.statusCode}');
+      DiagnosticLogger.instance.error('📊 [HomeRepository] Response data: ${e.response?.data}');
+      DiagnosticLogger.instance.error('📚 [HomeRepository] Stack trace: $stackTrace');
 
       String errorMessage = 'Failed to fetch unread count. Please try again.';
       
@@ -496,9 +497,9 @@ class HomeRepository {
         'unread_count': 0,
       };
     } catch (e, stackTrace) {
-      print('❌ [HomeRepository] Exception in getUnreadNotificationCount: $e');
-      print('❌ [HomeRepository] Exception type: ${e.runtimeType}');
-      print('📚 [HomeRepository] Stack trace: $stackTrace');
+      DiagnosticLogger.instance.error('❌ [HomeRepository] Exception in getUnreadNotificationCount: $e');
+      DiagnosticLogger.instance.error('❌ [HomeRepository] Exception type: ${e.runtimeType}');
+      DiagnosticLogger.instance.error('📚 [HomeRepository] Stack trace: $stackTrace');
       
       String errorMessage = 'Failed to fetch unread count. Please try again.';
       
@@ -570,7 +571,7 @@ class HomeRepository {
   Future<Map<String, dynamic>> getSingleResidence(int residenceId) async {
     try {
       final endpoint = '${ApiConstants.GET_SINGLE_RESIDENCE}/$residenceId';
-      print('🏠 [HomeRepository] GET $endpoint');
+      DiagnosticLogger.instance.debug('🏠 [HomeRepository] GET $endpoint');
 
       final response = await _apiService.get(endpoint);
 
@@ -581,7 +582,7 @@ class HomeRepository {
         final data = Map<String, dynamic>.from(
           response.data['data'] as Map,
         );
-        print(
+        DiagnosticLogger.instance.info(
           '✅ [HomeRepository] single_residence loaded id=$residenceId '
           'admin=${data['admin']}',
         );
@@ -594,13 +595,13 @@ class HomeRepository {
           : 'Failed to fetch residence';
       return {'success': false, 'error': errorMessage.toString()};
     } on DioException catch (e) {
-      print('❌ [HomeRepository] getSingleResidence DioException: $e');
+      DiagnosticLogger.instance.error('❌ [HomeRepository] getSingleResidence DioException: $e');
       return {
         'success': false,
         'error': 'Failed to fetch residence. Please try again.',
       };
     } catch (e) {
-      print('❌ [HomeRepository] getSingleResidence error: $e');
+      DiagnosticLogger.instance.error('❌ [HomeRepository] getSingleResidence error: $e');
       return {
         'success': false,
         'error': 'Failed to fetch residence. Please try again.',
@@ -610,29 +611,29 @@ class HomeRepository {
 
   // Get Residence Data by Token (for Home Screen)
   /// POST /residences/by-token
-  /// Request: { "token": "<TOKEN_FROM_LOCAL_STORAGE>" }
+  /// Request: { "token": "`<TOKEN_FROM_LOCAL_STORAGE>`" }
   /// Returns residence data with photo and status
   Future<Map<String, dynamic>> getResidenceByToken() async {
     try {
-      print('🏠 [HomeRepository] Starting getResidenceByToken()...');
+      DiagnosticLogger.instance.debug('🏠 [HomeRepository] Starting getResidenceByToken()...');
       
       // Fetch token dynamically from local storage
       final token = _storageService.getAccessToken();
-      print('Residence token from storage: $token');
+      DiagnosticLogger.instance.error('Residence token from storage: $token');
       
       if (token == null || token.isEmpty) {
-        print('❌ [HomeRepository] Token is null or empty');
+        DiagnosticLogger.instance.error('❌ [HomeRepository] Token is null or empty');
         return {
           'success': false,
           'error': 'User token not found in local storage',
         };
       }
 
-      print('🔑 [HomeRepository] Using token from storage (${token.length} chars)');
+      DiagnosticLogger.instance.info('🔑 [HomeRepository] Using token from storage (${token.length} chars)');
 
       final endpoint = ApiConstants.GET_USER_RESIDENCES;
-      print('📡 [HomeRepository] Making POST request to: $endpoint');
-      print('📦 [HomeRepository] Request body: {"token": "${token.substring(0, token.length > 20 ? 20 : token.length)}..."}');
+      DiagnosticLogger.instance.info('📡 [HomeRepository] Making POST request to: $endpoint');
+      DiagnosticLogger.instance.debug('📦 [HomeRepository] Request body: {"token": "${token.substring(0, token.length > 20 ? 20 : token.length)}..."}');
 
       // Use POST with request body for token (as per API specification)
       final response = await _apiService.post(
@@ -640,12 +641,12 @@ class HomeRepository {
         data: {'token': token},
       );
 
-      print('✅ [HomeRepository] API Response received');
-      print('📊 [HomeRepository] Status Code: ${response.statusCode}');
-      print('📊 [HomeRepository] Response Data: ${response.data}');
+      DiagnosticLogger.instance.info('✅ [HomeRepository] API Response received');
+      DiagnosticLogger.instance.debug('📊 [HomeRepository] Status Code: ${response.statusCode}');
+      DiagnosticLogger.instance.debug('📊 [HomeRepository] Response Data: ${response.data}');
       
       // Temp log as requested
-      print('Home residence data: ${response.data}');
+      DiagnosticLogger.instance.debug('Home residence data: ${response.data}');
 
       // Response structure:
       // {
@@ -677,7 +678,7 @@ class HomeRepository {
             final errorMessage = responseData['message'] ?? 
                                responseData['error'] ?? 
                                'API returned status: false';
-            print('❌ [HomeRepository] API status is false: $errorMessage');
+            DiagnosticLogger.instance.error('❌ [HomeRepository] API status is false: $errorMessage');
             return {'success': false, 'error': errorMessage};
           }
         }
@@ -701,13 +702,13 @@ class HomeRepository {
           return {'success': false, 'error': 'Invalid response format'};
         }
 
-        print('✅ [HomeRepository] Successfully extracted residence data');
-        print('📋 [HomeRepository] Residence name: ${residenceData['residence_name']}');
-        print('📋 [HomeRepository] Residence address: ${residenceData['residence_address']}');
-        print('📋 [HomeRepository] Residence status: ${residenceData['residence_status']}');
+        DiagnosticLogger.instance.info('✅ [HomeRepository] Successfully extracted residence data');
+        DiagnosticLogger.instance.debug('📋 [HomeRepository] Residence name: ${residenceData['residence_name']}');
+        DiagnosticLogger.instance.debug('📋 [HomeRepository] Residence address: ${residenceData['residence_address']}');
+        DiagnosticLogger.instance.debug('📋 [HomeRepository] Residence status: ${residenceData['residence_status']}');
         // Temporary log: Residence image URL
         final residencePhoto = residenceData['residence_photo'];
-        print('🏠 [HomeRepository] Residence image URL: $residencePhoto');
+        DiagnosticLogger.instance.debug('🏠 [HomeRepository] Residence image URL: $residencePhoto');
         return {
           'success': true,
           'data': residenceData,
@@ -717,12 +718,12 @@ class HomeRepository {
             response.data['message'] ??
             response.data['error'] ??
             'Failed to fetch residence data';
-        print('❌ [HomeRepository] API returned error: $errorMessage');
+        DiagnosticLogger.instance.error('❌ [HomeRepository] API returned error: $errorMessage');
         return {'success': false, 'error': errorMessage};
       }
     } on DioException catch (e, stackTrace) {
-      print('❌ [HomeRepository] DioException in getResidenceByToken: $e');
-      print('📚 [HomeRepository] Stack trace: $stackTrace');
+      DiagnosticLogger.instance.error('❌ [HomeRepository] DioException in getResidenceByToken: $e');
+      DiagnosticLogger.instance.error('📚 [HomeRepository] Stack trace: $stackTrace');
 
       String errorMessage = 'Failed to fetch residence data. Please try again.';
       if (e.response != null && e.response!.data != null) {
@@ -731,13 +732,13 @@ class HomeRepository {
           errorMessage =
               responseData['message'] ?? responseData['error'] ?? errorMessage;
         }
-        print('📊 [HomeRepository] Error response data: $responseData');
+        DiagnosticLogger.instance.error('📊 [HomeRepository] Error response data: $responseData');
       }
 
       return {'success': false, 'error': errorMessage};
     } catch (e, stackTrace) {
-      print('❌ [HomeRepository] Exception in getResidenceByToken: $e');
-      print('📚 [HomeRepository] Stack trace: $stackTrace');
+      DiagnosticLogger.instance.error('❌ [HomeRepository] Exception in getResidenceByToken: $e');
+      DiagnosticLogger.instance.error('📚 [HomeRepository] Stack trace: $stackTrace');
       return {
         'success': false,
         'error': 'Failed to fetch residence data. Please try again.',
@@ -747,13 +748,13 @@ class HomeRepository {
 
   /// Get residence status with phases (construction progress)
   /// POST /residence/status-with-phases
-  /// Request: { "api_token": "<TOKEN>", "residence_id": <ID> }
+  /// Request: { "api_token": "`<TOKEN>`", "residence_id": `<ID>` }
   Future<Map<String, dynamic>> getResidenceStatusWithPhases({
     required String apiToken,
     required int residenceId,
   }) async {
     try {
-      print(
+      DiagnosticLogger.instance.debug(
           '📐 [HomeRepository] getResidenceStatusWithPhases residenceId=$residenceId');
       final endpoint = ApiConstants.GET_RESIDENCE_STATUS_WITH_PHASES;
       final response = await _apiService.post(
@@ -773,17 +774,17 @@ class HomeRepository {
             .map((e) => ResidenceStatusPhaseModel.fromJson(
                 Map<String, dynamic>.from(e as Map)))
             .toList();
-        print(
+        DiagnosticLogger.instance.info(
             '✅ [HomeRepository] getResidenceStatusWithPhases parsed ${phases.length} phases');
         return {'success': true, 'data': phases};
       }
       final errorMessage = response.data['message'] ??
           response.data['error'] ??
           'Failed to fetch construction phases';
-      print('❌ [HomeRepository] getResidenceStatusWithPhases: $errorMessage');
+      DiagnosticLogger.instance.error('❌ [HomeRepository] getResidenceStatusWithPhases: $errorMessage');
       return {'success': false, 'error': errorMessage};
     } on DioException catch (e) {
-      print(
+      DiagnosticLogger.instance.error(
           '❌ [HomeRepository] DioException getResidenceStatusWithPhases: $e');
       String errorMessage = 'Failed to fetch construction phases.';
       if (e.response?.data is Map) {
@@ -793,7 +794,7 @@ class HomeRepository {
       }
       return {'success': false, 'error': errorMessage};
     } catch (e) {
-      print('❌ [HomeRepository] getResidenceStatusWithPhases: $e');
+      DiagnosticLogger.instance.error('❌ [HomeRepository] getResidenceStatusWithPhases: $e');
       return {
         'success': false,
         'error': 'Failed to fetch construction phases. Please try again.',

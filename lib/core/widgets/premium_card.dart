@@ -32,7 +32,6 @@ class _PremiumCardState extends State<PremiumCard>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _elevationAnimation;
 
   @override
   void initState() {
@@ -42,9 +41,6 @@ class _PremiumCardState extends State<PremiumCard>
       vsync: this,
     );
     _scaleAnimation = Tween<double>(begin: 1.0, end: 1.02).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
-    _elevationAnimation = Tween<double>(begin: 0, end: 4).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeOut),
     );
   }

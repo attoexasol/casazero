@@ -10,6 +10,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 // This is safe – just don't call Platform.* when kIsWeb == true
 import 'dart:io' show Platform;
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 class DeviceInfoService extends GetxService {
   final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
@@ -26,8 +27,7 @@ class DeviceInfoService extends GetxService {
 
       if (Platform.isAndroid) {
         final androidInfo = await _deviceInfo.androidInfo;
-        return androidInfo.id ??
-            'unknown-android-${DateTime.now().millisecondsSinceEpoch}';
+        return androidInfo.id;
       }
 
       if (Platform.isIOS) {
@@ -38,7 +38,7 @@ class DeviceInfoService extends GetxService {
 
       return 'unknown-${DateTime.now().millisecondsSinceEpoch}';
     } catch (e) {
-      print('Error getting device ID: $e');
+      DiagnosticLogger.instance.error('Error getting device ID: $e');
       return 'unknown-${DateTime.now().millisecondsSinceEpoch}';
     }
   }
@@ -64,7 +64,7 @@ class DeviceInfoService extends GetxService {
 
       return 'Unknown Device';
     } catch (e) {
-      print('Error getting device name: $e');
+      DiagnosticLogger.instance.error('Error getting device name: $e');
       return 'Unknown Device';
     }
   }
@@ -114,7 +114,7 @@ class DeviceInfoService extends GetxService {
         'lng': position.longitude,
       };
     } catch (e) {
-      print('Error getting location: $e');
+      DiagnosticLogger.instance.error('Error getting location: $e');
       return {'lat': 0.0, 'lng': 0.0};
     }
   }
@@ -134,7 +134,7 @@ class DeviceInfoService extends GetxService {
       }
       return 'unknown';
     } catch (e) {
-      print('Error getting IP address: $e');
+      DiagnosticLogger.instance.error('Error getting IP address: $e');
       return 'unknown';
     }
   }
@@ -162,7 +162,7 @@ class DeviceInfoService extends GetxService {
         'ip_address': results[3],
       };
     } catch (e) {
-      print('Error getting device info for login: $e');
+      DiagnosticLogger.instance.error('Error getting device info for login: $e');
       return {
         'device_id': 'unknown-${DateTime.now().millisecondsSinceEpoch}',
         'device_name': 'Unknown Device',

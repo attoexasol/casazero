@@ -1,30 +1,80 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+import 'dart:io';
 
+import 'package:casazero/core/localization/locale_controller.dart';
+import 'package:casazero/core/services/storage_service.dart';
+import 'package:casazero/main.dart';
+import 'package:casazero/presentation/splash/views/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:casazero/main.dart';
+import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const CasaZeroApp());
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  late Directory tempDir;
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+  setUpAll(() async {
+    tempDir = await Directory.systemTemp.createTemp('casazero_widget_test_');
+    PathProviderPlatform.instance = _FakePathProvider(tempDir.path);
+    await GetStorage.init();
+  });
+
+  tearDownAll(() async {
+    try {
+      if (await tempDir.exists()) {
+        await tempDir.delete(recursive: true);
+      }
+    } catch (_) {}
+  });
+
+  setUp(() async {
+    Get.reset();
+    await GetStorage().erase();
+    await Get.putAsync(() => StorageService().init());
+  });
+
+  tearDown(Get.reset);
+
+  testWidgets('CasaZero app starts on the splash screen', (tester) async {
+    // LocaleController.onInit calls Get.updateLocale, which reassembles the
+    // binding. Register it after a widget tree exists (same order as main.dart:
+    // StorageService → LocaleController → CasaZeroApp).
+    await tester.pumpWidget(const SizedBox.shrink());
+    Get.put(LocaleController());
     await tester.pump();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.pumpWidget(const CasaZeroApp());
+    await tester.pump();
+
+    expect(find.byType(SplashScreen), findsOneWidget);
+    expect(find.text('La tua casa, sempre con te.'), findsOneWidget);
+    expect(find.text('CASAZERO', findRichText: true), findsOneWidget);
   });
+}
+
+/// Test-only path_provider stand-in used by GetStorage (see auth_2fa_recovery_test).
+class _FakePathProvider extends Fake
+    with MockPlatformInterfaceMixin
+    implements PathProviderPlatform {
+  _FakePathProvider(this._path);
+
+  final String _path;
+
+  @override
+  Future<String?> getApplicationDocumentsPath() async => _path;
+
+  @override
+  Future<String?> getTemporaryPath() async => _path;
+
+  @override
+  Future<String?> getApplicationSupportPath() async => _path;
+
+  @override
+  Future<String?> getLibraryPath() async => _path;
+
+  @override
+  Future<String?> getDownloadsPath() async => _path;
 }

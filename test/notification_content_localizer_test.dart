@@ -1,4 +1,5 @@
 import 'package:casazero/core/utils/notification_content_localizer.dart';
+import 'package:casazero/data/models/feed_item_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -8,6 +9,130 @@ void main() {
 
   tearDown(() {
     NotificationContentLocalizer.debugIsItalianOverride = null;
+  });
+
+  group('FeedItemModel type inference and payload mapping', () {
+    test('announcement type infers group_chat type safely without loop or overflow', () {
+      final item = FeedItemModel(
+        id: '1',
+        type: 'announcement',
+        title: 'Community Announcement',
+        description: 'Notice about power cut',
+        timestamp: DateTime.now(),
+      );
+      expect(item.isDocumentType, isFalse);
+      expect(item.isMaintenanceType, isFalse);
+      expect(item.isTicketType, isFalse);
+      expect(item.isChatNotification, isTrue);
+      expect(item.isAdminChatNotification, isFalse);
+      expect(item.toNavigationPayload()['type'], 'group_chat');
+    });
+
+    test('maintenance_residence type infers maintenance correctly', () {
+      final item = FeedItemModel(
+        id: '2',
+        type: 'maintenance_residence',
+        title: 'Carica refrigerante',
+        description: 'Controllo refrigerante',
+        timestamp: DateTime.now(),
+        referenceId: '196',
+      );
+      expect(item.isMaintenanceType, isTrue);
+      expect(item.isDocumentType, isFalse);
+      expect(item.toNavigationPayload()['type'], 'maintenance');
+      expect(item.toNavigationPayload()['reference_id'], '196');
+    });
+
+    test('residence_status type maps safely', () {
+      final item = FeedItemModel(
+        id: '3',
+        type: 'residence_status',
+        title: 'Status Updated',
+        description: 'Phase completed',
+        timestamp: DateTime.now(),
+      );
+      expect(item.isDocumentType, isFalse);
+      expect(item.isMaintenanceType, isFalse);
+      expect(item.toNavigationPayload()['type'], 'residence_status');
+    });
+
+    test('announcement with pdf url infers document type', () {
+      final item = FeedItemModel(
+        id: '4',
+        type: 'announcement',
+        title: 'New Document Uploaded 📄',
+        description: 'Your document is ready',
+        timestamp: DateTime.now(),
+        url: 'https://backend.casazero.site/storage/documents/contract.pdf',
+      );
+      expect(item.isDocumentType, isTrue);
+      expect(item.toNavigationPayload()['type'], 'document');
+    });
+
+    test('chat announcement infers group_chat type', () {
+      final item = FeedItemModel(
+        id: '5',
+        type: 'announcement',
+        title: 'New Message 💬',
+        description: 'New chat message in group',
+        timestamp: DateTime.now(),
+      );
+      expect(item.isChatNotification, isTrue);
+      expect(item.isAdminChatNotification, isFalse);
+      expect(item.toNavigationPayload()['type'], 'group_chat');
+    });
+
+    test('condominium group chat notification in Italian infers group_chat type', () {
+      final item = FeedItemModel(
+        id: '6',
+        type: 'announcement',
+        title: 'Chat di condominio: Nuovo messaggio',
+        description: 'Marco Rossi: Buongiorno a tutti i residenti',
+        timestamp: DateTime.now(),
+      );
+      expect(item.isChatNotification, isTrue);
+      expect(item.isAdminChatNotification, isFalse);
+      expect(item.toNavigationPayload()['type'], 'group_chat');
+    });
+
+    test('condominium_chat alias maps to group_chat', () {
+      final item = FeedItemModel(
+        id: '7',
+        type: 'condominium_chat',
+        title: 'Condominium Chat',
+        description: 'Hello everyone',
+        timestamp: DateTime.now(),
+      );
+      expect(item.isChatNotification, isTrue);
+      expect(item.isAdminChatNotification, isFalse);
+      expect(item.toNavigationPayload()['type'], 'group_chat');
+    });
+
+    test('admin private chat notification maps to private_chat', () {
+      final item = FeedItemModel(
+        id: '8',
+        type: 'private_chat',
+        title: 'Amministratore Supporto',
+        description: 'Abbiamo ricevuto la tua richiesta',
+        timestamp: DateTime.now(),
+      );
+      expect(item.isChatNotification, isTrue);
+      expect(item.isAdminChatNotification, isTrue);
+      expect(item.toNavigationPayload()['type'], 'private_chat');
+    });
+
+    test('chat notification with admin in title maps to private_chat', () {
+      final item = FeedItemModel(
+        id: '9',
+        type: 'announcement',
+        title: 'Messaggio da Amministratore',
+        description: 'Gentile condomino, si comunica...',
+        timestamp: DateTime.now(),
+      );
+      expect(item.isChatNotification, isTrue);
+      expect(item.isAdminChatNotification, isTrue);
+      expect(item.toNavigationPayload()['type'], 'private_chat');
+    });
   });
 
   group('normalizeWhitespace', () {

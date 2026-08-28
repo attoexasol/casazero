@@ -14,6 +14,7 @@ import '../../../data/models/document_model.dart';
 import '../../profile/controllers/document_password_controller.dart';
 import '../../../core/services/fcm_service.dart';
 import '../../../core/services/firebase_auth_service.dart';
+import '../../../core/logging/diagnostic_logger.dart';
 
 class OtpVerificationController extends GetxController {
   final AuthRepository _authRepository = Get.find();
@@ -55,7 +56,7 @@ class OtpVerificationController extends GetxController {
     if (fromForgotPassword.value) {
       final userId = userData?['id'];
       if (userId == null) {
-        print('❌ [OTPVerification] User ID not found in storage for forgot password flow');
+        DiagnosticLogger.instance.error('❌ [OTPVerification] User ID not found in storage for forgot password flow');
         MessagePopupController.showError(
           messageKey: 'user_id_not_found',
           titleKey: 'error',
@@ -65,7 +66,7 @@ class OtpVerificationController extends GetxController {
         });
         return;
       } else {
-        print('✅ [OTPVerification] User ID found in storage for forgot password flow: $userId');
+        DiagnosticLogger.instance.info('✅ [OTPVerification] User ID found in storage for forgot password flow: $userId');
       }
     }
     
@@ -241,7 +242,10 @@ class OtpVerificationController extends GetxController {
     );
 
     isLoading.value = false;
-    print(result.toString());
+    DiagnosticLogger.instance.debug(
+      'OTP verification completed',
+      metadata: <String, Object?>{'success': result['success'] == true},
+    );
     if (result['success']) {
       // Check if this is from document password flow
       if (fromDocumentPassword.value) {
@@ -407,7 +411,7 @@ class OtpVerificationController extends GetxController {
     // Call in background - don't await, don't block navigation
     Future.microtask(() async {
       try {
-        print('📄 Pre-loading documents after OTP verification...');
+        DiagnosticLogger.instance.debug('📄 Pre-loading documents after OTP verification...');
         final documentRepository = DocumentRepository();
         final result = await documentRepository.getDocumentsByUnit();
         
@@ -424,17 +428,17 @@ class OtpVerificationController extends GetxController {
             }).toList();
             documentsController.applyDocuments(parsed);
             await documentsController.fetchDocumentCategories();
-            print('✅ Documents pre-loaded: ${documentsData.length} documents');
+            DiagnosticLogger.instance.info('✅ Documents pre-loaded: ${documentsData.length} documents');
           } else {
             // If controller exists, just refresh
             final documentsController = Get.find<DocumentsController>();
             await documentsController.fetchDocuments();
           }
         } else {
-          print('⚠️  Failed to pre-load documents: ${result['error']}');
+          DiagnosticLogger.instance.error('⚠️  Failed to pre-load documents: ${result['error']}');
         }
       } catch (e) {
-        print('⚠️  Error pre-loading documents: $e');
+        DiagnosticLogger.instance.error('⚠️  Error pre-loading documents: $e');
         // Don't block - just log the error
       }
     });

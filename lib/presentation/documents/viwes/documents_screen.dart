@@ -14,6 +14,7 @@ import '../../../core/utils/permissions.dart';
 import '../../../core/widgets/floating_bottom_nav_bar.dart';
 import '../../../core/widgets/tablet_centered_layout.dart';
 import '../controllers/documents_controller.dart';
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 class DocumentsScreen extends StatefulWidget {
   final Role role;
@@ -51,7 +52,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
       builder: (dialogContext) => AddDocumentDialog(
         onClose: () => Navigator.of(dialogContext).pop(),
         onUpload: (documentData) async {
-          print('✅ Document upload completed: ${documentData['title']}');
+          DiagnosticLogger.instance.info('✅ Document upload completed: ${documentData['title']}');
         },
       ),
     );
@@ -202,7 +203,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                           document: doc,
                           onAskAI: widget.onAskAI,
                           onView: () {
-                            print('View document: ${doc.title}');
+                            DiagnosticLogger.instance.debug('View document: ${doc.title}');
                           },
                           onDelete: permissions.canDeleteDocuments &&
                                   doc.isDeletableByUser(currentUserId)

@@ -8,6 +8,7 @@ import '../../core/services/storage_service.dart';
 import '../models/trusted_device_model.dart';
 import '../models/user_model.dart';
 import 'package:dio/dio.dart' as dio;
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 class ProfileRepository {
   final ApiService _apiService = Get.find();
@@ -32,12 +33,12 @@ class ProfileRepository {
     double? longitude,
     String? description,
   }) async {
-    print('🟢 [ProfileRepository] updateProfile() called for userId: $userId');
+    DiagnosticLogger.instance.debug('🟢 [ProfileRepository] updateProfile() called for userId: $userId');
     try {
       // Token required by backend for auth (same pattern as getUserProfile, logout, etc.)
       final token = _storageService.getAccessToken();
       if (token == null || token.isEmpty) {
-        print('❌ [ProfileRepository] No access token found');
+        DiagnosticLogger.instance.error('❌ [ProfileRepository] No access token found');
         return {'success': false, 'error': 'User token not found. Please login again.'};
       }
 
@@ -65,22 +66,22 @@ class ProfileRepository {
       final endpoint = "${ApiConstants.UPDATE_USER_PROFILE}/$userId";
       final fullUrl = '${ApiConstants.BASE_URL}$endpoint';
       
-      print('═══════════════════════════════════════════════════════════');
-      print('📤 [ProfileRepository] UPDATE PROFILE REQUEST');
-      print('═══════════════════════════════════════════════════════════');
-      print('🌐 Method: POST');
-      print('📍 Endpoint: $endpoint');
-      print('🔗 Full URL: $fullUrl');
-      print('👤 User ID: $userId');
-      print('📦 Request Body (JSON):');
+      DiagnosticLogger.instance.debug('═══════════════════════════════════════════════════════════');
+      DiagnosticLogger.instance.debug('📤 [ProfileRepository] UPDATE PROFILE REQUEST');
+      DiagnosticLogger.instance.debug('═══════════════════════════════════════════════════════════');
+      DiagnosticLogger.instance.debug('🌐 Method: POST');
+      DiagnosticLogger.instance.debug('📍 Endpoint: $endpoint');
+      DiagnosticLogger.instance.debug('🔗 Full URL: $fullUrl');
+      DiagnosticLogger.instance.debug('👤 User ID: $userId');
+      DiagnosticLogger.instance.debug('📦 Request Body (JSON):');
       try {
         final safeBody = Map<String, dynamic>.from(requestBody);
         if (safeBody['token'] != null) safeBody['token'] = '${(safeBody['token'] as String).substring(0, 10)}...';
-        print(convert.JsonEncoder.withIndent('   ').convert(safeBody));
+        DiagnosticLogger.instance.debug(convert.JsonEncoder.withIndent('   ').convert(safeBody));
       } catch (e) {
-        print('   [request body]');
+        DiagnosticLogger.instance.debug('   [request body]');
       }
-      print('═══════════════════════════════════════════════════════════');
+      DiagnosticLogger.instance.debug('═══════════════════════════════════════════════════════════');
 
       // Make API call
       final response = await _apiService.post(
@@ -88,17 +89,17 @@ class ProfileRepository {
         data: requestBody,
       );
 
-      print('═══════════════════════════════════════════════════════════');
-      print('📥 [ProfileRepository] UPDATE PROFILE RESPONSE');
-      print('═══════════════════════════════════════════════════════════');
-      print('📊 Status Code: ${response.statusCode}');
-      print('📦 Response Data (JSON):');
+      DiagnosticLogger.instance.debug('═══════════════════════════════════════════════════════════');
+      DiagnosticLogger.instance.debug('📥 [ProfileRepository] UPDATE PROFILE RESPONSE');
+      DiagnosticLogger.instance.debug('═══════════════════════════════════════════════════════════');
+      DiagnosticLogger.instance.debug('📊 Status Code: ${response.statusCode}');
+      DiagnosticLogger.instance.debug('📦 Response Data (JSON):');
       try {
-        print(convert.JsonEncoder.withIndent('   ').convert(response.data));
+        DiagnosticLogger.instance.debug(convert.JsonEncoder.withIndent('   ').convert(response.data));
       } catch (e) {
-        print('   ${response.data.toString()}');
+        DiagnosticLogger.instance.debug('   ${response.data.toString()}');
       }
-      print('═══════════════════════════════════════════════════════════');
+      DiagnosticLogger.instance.debug('═══════════════════════════════════════════════════════════');
 
       // Safe response handling (response.data may be null or not a Map)
       final data = response.data is Map<String, dynamic> ? response.data as Map<String, dynamic> : <String, dynamic>{};
@@ -114,7 +115,7 @@ class ProfileRepository {
             final updatedUser = UserModel.fromJson(userData);
             await _storageService.saveUserData(updatedUser.toJson());
           } catch (e) {
-            print('⚠️ [ProfileRepository] Could not parse updated user: $e');
+            DiagnosticLogger.instance.warning('⚠️ [ProfileRepository] Could not parse updated user: $e');
           }
         }
 
@@ -128,7 +129,7 @@ class ProfileRepository {
         return {'success': false, 'error': errorMsg};
       }
     } catch (e) {
-      print('❌ [ProfileRepository] updateProfile error: $e');
+      DiagnosticLogger.instance.error('❌ [ProfileRepository] updateProfile error: $e');
       return {
         'success': false,
         'error': e.toString(),
@@ -240,17 +241,17 @@ class ProfileRepository {
         };
       }
 
-      print('📱 Fetching trusted devices for user ID: $userId');
+      DiagnosticLogger.instance.info('📱 Fetching trusted devices for user ID: $userId');
 
       final response = await _apiService.get(
         '${ApiConstants.GET_ALL_TRUSTED_DEVICES}/$userId',
       );
 
-      print('✅ Trusted Devices Response:');
-      print('  Status Code: ${response.statusCode}');
-      print('  Status: ${response.data['status']}');
-      print('  Message: ${response.data['message']}');
-      print('  Device Count: ${(response.data['trusted_devices'] as List?)?.length ?? 0}');
+      DiagnosticLogger.instance.info('✅ Trusted Devices Response:');
+      DiagnosticLogger.instance.debug('  Status Code: ${response.statusCode}');
+      DiagnosticLogger.instance.debug('  Status: ${response.data['status']}');
+      DiagnosticLogger.instance.debug('  Message: ${response.data['message']}');
+      DiagnosticLogger.instance.debug('  Device Count: ${(response.data['trusted_devices'] as List?)?.length ?? 0}');
 
       if (response.statusCode == 200 && response.data['status'] == true) {
         final devicesJson = response.data['trusted_devices'] as List<dynamic>;
@@ -270,7 +271,7 @@ class ProfileRepository {
         };
       }
     } catch (e) {
-      print('❌ Error fetching trusted devices: $e');
+      DiagnosticLogger.instance.error('❌ Error fetching trusted devices: $e');
       return {
         'success': false,
         'error': 'Failed to fetch trusted devices. Please try again.',
@@ -290,7 +291,7 @@ class ProfileRepository {
         };
       }
 
-      print('🗑️ Deleting device: $deviceId for user: $userId');
+      DiagnosticLogger.instance.debug('🗑️ Deleting device: $deviceId for user: $userId');
 
       final response = await _apiService.post(
         ApiConstants.DELETE_SPECIFIC_USER_DEVICE,
@@ -300,10 +301,10 @@ class ProfileRepository {
         },
       );
 
-      print('✅ Delete Device Response:');
-      print('  Status Code: ${response.statusCode}');
-      print('  Status: ${response.data['status']}');
-      print('  Message: ${response.data['message']}');
+      DiagnosticLogger.instance.info('✅ Delete Device Response:');
+      DiagnosticLogger.instance.debug('  Status Code: ${response.statusCode}');
+      DiagnosticLogger.instance.debug('  Status: ${response.data['status']}');
+      DiagnosticLogger.instance.debug('  Message: ${response.data['message']}');
 
       if (response.statusCode == 200 && response.data['status'] == true) {
         return {
@@ -317,7 +318,7 @@ class ProfileRepository {
         };
       }
     } catch (e) {
-      print('❌ Error deleting device: $e');
+      DiagnosticLogger.instance.error('❌ Error deleting device: $e');
       return {
         'success': false,
         'error': 'Failed to remove device. Please try again.',
@@ -334,7 +335,7 @@ class ProfileRepository {
     required String language,
   }) async {
     try {
-      print('🌐 Changing language for user $userId to: $language');
+      DiagnosticLogger.instance.debug('🌐 Changing language for user $userId to: $language');
 
       final response = await _apiService.post(
         ApiConstants.CHANGE_LANGUAGE,
@@ -344,9 +345,9 @@ class ProfileRepository {
         },
       );
 
-      print('✅ Change Language Response:');
-      print('  Status Code: ${response.statusCode}');
-      print('  Response: ${response.data}');
+      DiagnosticLogger.instance.info('✅ Change Language Response:');
+      DiagnosticLogger.instance.debug('  Status Code: ${response.statusCode}');
+      DiagnosticLogger.instance.debug('  Response: ${response.data}');
 
       if (response.statusCode == 200 && response.data['success'] == true) {
         // Update language in local storage
@@ -372,7 +373,7 @@ class ProfileRepository {
         };
       }
     } catch (e) {
-      print('❌ Error changing language: $e');
+      DiagnosticLogger.instance.error('❌ Error changing language: $e');
       return {
         'success': false,
         'error': 'Failed to update language. Please try again.',
@@ -385,7 +386,7 @@ class ProfileRepository {
   /// Request: { "device_id": 1 }
   Future<Map<String, dynamic>> revokeTrustedDevice(int deviceId) async {
     try {
-      print('🔐 Revoking device ID: $deviceId');
+      DiagnosticLogger.instance.debug('🔐 Revoking device ID: $deviceId');
 
       final response = await _apiService.post(
         ApiConstants.REVOKE_TRUSTED_DEVICE,
@@ -406,7 +407,7 @@ class ProfileRepository {
         };
       }
     } catch (e) {
-      print('❌ Error revoking device: $e');
+      DiagnosticLogger.instance.error('❌ Error revoking device: $e');
       return {
         'success': false,
         'error': 'Failed to revoke device. Please try again.',

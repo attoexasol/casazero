@@ -10,6 +10,7 @@ import 'package:get_storage/get_storage.dart';
 import '../constants/storage_keys.dart';
 import 'notification_manager.dart';
 import 'storage_service.dart';
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 /// Captures FCM notification-open events as early as possible (Android + iOS).
 ///
@@ -33,28 +34,28 @@ class PushLaunchHandler {
     _installed = true;
 
     final platform = defaultTargetPlatform.name;
-    print('📬 [PushLaunchHandler] Installing on $platform');
+    DiagnosticLogger.instance.debug('📬 [PushLaunchHandler] Installing on $platform');
 
     // Terminated → tray/lock-screen tap (must run early; before local launch details).
     try {
       final initial = await FirebaseMessaging.instance.getInitialMessage();
       if (initial != null) {
-        print(
+        DiagnosticLogger.instance.debug(
           '📬 [PushLaunchHandler] getInitialMessage '
           'keys=${initial.data.keys.join(",")} '
           'hasNotification=${initial.notification != null}',
         );
         _handleOpened(initial, source: 'getInitialMessage');
       } else {
-        print('📬 [PushLaunchHandler] getInitialMessage: null');
+        DiagnosticLogger.instance.error('📬 [PushLaunchHandler] getInitialMessage: null');
       }
     } catch (e) {
-      print('❌ [PushLaunchHandler] getInitialMessage error: $e');
+      DiagnosticLogger.instance.error('❌ [PushLaunchHandler] getInitialMessage error: $e');
     }
 
     // Background → tray tap (both Android and iOS).
     FirebaseMessaging.onMessageOpenedApp.listen((message) {
-      print(
+      DiagnosticLogger.instance.debug(
         '📬 [PushLaunchHandler] onMessageOpenedApp '
         'keys=${message.data.keys.join(",")}',
       );
@@ -85,6 +86,19 @@ class PushLaunchHandler {
       merge(nested);
     }
 
+    if (message.notification != null) {
+      final notif = message.notification!;
+      if (notif.title != null && notif.title!.isNotEmpty) {
+        data['title'] ??= notif.title;
+        data['notification_title'] ??= notif.title;
+      }
+      if (notif.body != null && notif.body!.isNotEmpty) {
+        data['body'] ??= notif.body;
+        data['description'] ??= notif.body;
+        data['content'] ??= notif.body;
+      }
+    }
+
     return data;
   }
 
@@ -93,7 +107,7 @@ class PushLaunchHandler {
     required String source,
   }) {
     final data = dataFromRemoteMessage(message);
-    print(
+    DiagnosticLogger.instance.debug(
       '🧭 [PushLaunchHandler] opened via $source '
       'type=${data['type'] ?? data['notification_type'] ?? "none"} '
       'reference_id=${data['reference_id'] ?? "none"} '
@@ -101,7 +115,7 @@ class PushLaunchHandler {
     );
 
     if (data.isEmpty) {
-      print(
+      DiagnosticLogger.instance.warning(
         '⚠️ [PushLaunchHandler] Opened notification has empty data — '
         'will rely on local-notification payload / feed enrichment if available',
       );
@@ -147,7 +161,7 @@ class PushLaunchHandler {
       final box = GetStorage();
       unawaited(box.write(StorageKeys.PENDING_NOTIFICATION_NAV, data));
     } catch (e) {
-      print('❌ [PushLaunchHandler] persist error: $e');
+      DiagnosticLogger.instance.error('❌ [PushLaunchHandler] persist error: $e');
     }
   }
 }

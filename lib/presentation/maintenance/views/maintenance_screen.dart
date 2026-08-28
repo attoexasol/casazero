@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:casazero/app/theme/app_colors.dart';
-import 'package:casazero/core/utils/permissions.dart';
 import 'package:casazero/core/widgets/floating_bottom_nav_bar.dart';
 import 'package:casazero/core/widgets/tablet_centered_layout.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -10,9 +9,7 @@ import 'package:get/get.dart';
 import 'sections/maintenance_filter_bar.dart';
 import 'sections/maintenance_task_card.dart';
 import 'sections/maintenance_empty_state.dart';
-import 'sections/add_maintenance_task_dialog.dart';
 import '../controllers/maintenance_controller.dart';
-import '../models/maintenance_task_model.dart';
 
 class MaintenanceScreen extends StatefulWidget {
   final String role; // 'client', 'admin', 'super-admin'
@@ -31,7 +28,6 @@ class MaintenanceScreen extends StatefulWidget {
 class _MaintenanceScreenState extends State<MaintenanceScreen>
     with SingleTickerProviderStateMixin {
   String _activeFilter = 'all';
-  bool _isCreateDialogVisible = false;
 
   late AnimationController _fabController;
 
@@ -67,32 +63,8 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
   // Removed _getFilteredTasks() - filtering now handled in controller
   // Use _controller.filteredTasks instead
 
-  void _showCreateDialog() {
-    setState(() {
-      _isCreateDialogVisible = true;
-    });
-  }
-
-  Role _getRoleFromString(String roleString) {
-    switch (roleString.toLowerCase()) {
-      case 'admin':
-        return Role.admin;
-      case 'manager':
-        return Role.manager;
-      case 'client':
-      default:
-        return Role.client;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final roleEnum = _getRoleFromString(widget.role);
-    final permissions = Permissions.fromRole(roleEnum);
-    // Allow all users to create personal maintenance tasks
-    final canCreateTasks =
-        true; // All users can create personal maintenance tasks
-
     return Stack(
       clipBehavior: Clip.none,
       children: [

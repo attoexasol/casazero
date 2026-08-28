@@ -6,6 +6,7 @@ import '../../../core/controllers/message_popup_controller.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../core/utils/validators.dart';
 import '../../../core/services/storage_service.dart';
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 class ForgotPasswordController extends GetxController {
   // ---------------------------------------------------------------------------
@@ -77,9 +78,9 @@ class ForgotPasswordController extends GetxController {
       userData['email'] = email;
       if (userId != null) {
         userData['id'] = userId;
-        print('✅ [ForgotPassword] User ID stored: $userId');
+        DiagnosticLogger.instance.warning('✅ [ForgotPassword] User ID stored: $userId');
       } else {
-        print('⚠️ [ForgotPassword] User ID not found in API response');
+        DiagnosticLogger.instance.warning('⚠️ [ForgotPassword] User ID not found in API response');
       }
       await _storageService.saveUserData(userData);
 

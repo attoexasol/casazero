@@ -137,7 +137,7 @@ class _PremiumBannerState extends State<PremiumBanner>
         color: AppColors.surfaceWhite, // Pure white background
         border: Border(
           bottom: BorderSide(
-            color: AppColors.neutralLine200.withOpacity(0.5), // 50% opacity
+            color: AppColors.neutralLine200.withValues(alpha: 0.5), // 50% opacity
             width: 1, // 1px thickness
           ),
         ),

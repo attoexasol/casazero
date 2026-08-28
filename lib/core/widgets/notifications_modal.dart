@@ -101,7 +101,7 @@ class _NotificationsModalContentState
 
                   return Container(
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceWhite.withOpacity(0.95),
+                      color: AppColors.surfaceWhite.withValues(alpha: 0.95),
                       border: Border(
                         bottom: BorderSide(
                           color: AppColors.neutralLine100,
@@ -349,7 +349,7 @@ class _NotificationsModalContentState
 
     Navigator.of(context).pop();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    Future.delayed(const Duration(milliseconds: 150), () {
       if (!Get.isRegistered<NotificationManager>()) return;
       Get.find<NotificationManager>().handleNotificationNavigation(
         notification.toNavigationPayload(),
@@ -433,7 +433,7 @@ class _NotificationCard extends StatelessWidget {
                         width: 32.w,
                         height: 32.w,
                         decoration: BoxDecoration(
-                          color: iconColor.withOpacity(0.12),
+                          color: iconColor.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(8.r),
                         ),
                         child: Icon(iconData, size: 17.sp, color: iconColor),

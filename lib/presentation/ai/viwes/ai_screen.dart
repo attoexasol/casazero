@@ -171,10 +171,10 @@ class AIScreen extends StatelessWidget {
     return Container(
           padding: EdgeInsets.all(12.w),
           decoration: BoxDecoration(
-            color: AppColors.surfaceWhite.withOpacity(0.7),
+            color: AppColors.surfaceWhite.withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(12.r),
             border: Border.all(
-              color: AppColors.brandSage300.withOpacity(0.5),
+              color: AppColors.brandSage300.withValues(alpha: 0.5),
               width: 1,
             ),
           ),
@@ -270,11 +270,11 @@ class AIScreen extends StatelessWidget {
                       colors: [AppColors.brandSage600, AppColors.brandSage500],
                     )
                   : null,
-              color: isUser ? null : AppColors.surfaceWhite.withOpacity(0.9),
+              color: isUser ? null : AppColors.surfaceWhite.withValues(alpha: 0.9),
               border: isUser
                   ? null
                   : Border.all(
-                      color: AppColors.neutralLine200.withOpacity(0.5),
+                      color: AppColors.neutralLine200.withValues(alpha: 0.5),
                       width: 1,
                     ),
               borderRadius: BorderRadius.circular(16.r),
@@ -326,7 +326,7 @@ class AIScreen extends StatelessWidget {
                           '${message.timestamp.hour.toString().padLeft(2, '0')}:${message.timestamp.minute.toString().padLeft(2, '0')}',
                           style: AppTextStyles.caption.copyWith(
                             color: isUser
-                                ? AppColors.surfaceWhite.withOpacity(0.7)
+                                ? AppColors.surfaceWhite.withValues(alpha: 0.7)
                                 : AppColors.neutralInk400,
                           ),
                         ),
@@ -364,9 +364,9 @@ class AIScreen extends StatelessWidget {
         margin: EdgeInsets.only(bottom: 16.h),
         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 14.h),
         decoration: BoxDecoration(
-          color: AppColors.surfaceWhite.withOpacity(0.9),
+          color: AppColors.surfaceWhite.withValues(alpha: 0.9),
           border: Border.all(
-            color: AppColors.neutralLine200.withOpacity(0.5),
+            color: AppColors.neutralLine200.withValues(alpha: 0.5),
             width: 1,
           ),
           borderRadius: BorderRadius.circular(16.r),
@@ -447,7 +447,7 @@ class AIScreen extends StatelessWidget {
             SizedBox(width: 12.w),
             Text(
               'assistance'.tr,
-              style: AppTextStyles.CardHeaderText.copyWith(
+              style: AppTextStyles.cardHeaderText.copyWith(
                 fontSize: 16.sp,
                 fontWeight: FontWeight.w600,
                 color: AppColors.neutralInk800,
@@ -498,7 +498,7 @@ class AIScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(16.r),
           boxShadow: [
             BoxShadow(
-              color: AppColors.brandSage500.withOpacity(0.3),
+              color: AppColors.brandSage500.withValues(alpha: 0.3),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -510,7 +510,7 @@ class AIScreen extends StatelessWidget {
               width: 40.w,
               height: 40.h,
               decoration: BoxDecoration(
-                color: AppColors.surfaceWhite.withOpacity(0.2),
+                color: AppColors.surfaceWhite.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(10.r),
               ),
               child: Icon(
@@ -567,9 +567,9 @@ class AIScreen extends StatelessWidget {
             child: Container(
               padding: EdgeInsets.all(16.w),
               decoration: BoxDecoration(
-                color: AppColors.surfaceWhite.withOpacity(0.8),
+                color: AppColors.surfaceWhite.withValues(alpha: 0.8),
                 border: Border.all(
-                  color: AppColors.neutralLine200.withOpacity(0.5),
+                  color: AppColors.neutralLine200.withValues(alpha: 0.5),
                   width: 1,
                 ),
                 borderRadius: BorderRadius.circular(16.r),
@@ -646,16 +646,16 @@ class AIScreen extends StatelessWidget {
   Widget _buildInputArea(AiController controller) {
     return Container(
           decoration: BoxDecoration(
-            color: AppColors.surfaceWhite.withOpacity(0.95),
+            color: AppColors.surfaceWhite.withValues(alpha: 0.95),
             border: Border(
               top: BorderSide(
-                color: AppColors.neutralLine200.withOpacity(0.5),
+                color: AppColors.neutralLine200.withValues(alpha: 0.5),
                 width: 1,
               ),
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, -2),
               ),
@@ -679,7 +679,7 @@ class AIScreen extends StatelessWidget {
                           fontStyle: FontStyle.italic,
                         ),
                         filled: true,
-                        fillColor: AppColors.surfaceWarm50.withOpacity(0.5),
+                        fillColor: AppColors.surfaceWarm50.withValues(alpha: 0.5),
                         border: UnderlineInputBorder(
                           borderSide: BorderSide(
                             color: AppColors.brandSage400,
@@ -720,7 +720,7 @@ class AIScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12.r),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.brandSage500.withOpacity(0.3),
+                          color: AppColors.brandSage500.withValues(alpha: 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -747,7 +747,7 @@ class AIScreen extends StatelessWidget {
                               Icons.send,
                               color: isEnabled
                                   ? AppColors.surfaceWhite
-                                  : AppColors.surfaceWhite.withOpacity(0.5),
+                                  : AppColors.surfaceWhite.withValues(alpha: 0.5),
                               size: 20.sp,
                             ),
                           ),

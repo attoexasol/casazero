@@ -7,11 +7,10 @@ import '../../../core/controllers/message_popup_controller.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/repositories/profile_repository.dart';
 import '../../../data/repositories/auth_repository.dart';
-import '../../../app/theme/app_colors.dart';
 import '../../../core/navigation/auth_navigation.dart';
 import '../../../core/services/session_expiry_service.dart';
 import '../../home/controllers/home_controller.dart';
-import 'package:flutter/material.dart';
+import '../../../core/logging/diagnostic_logger.dart';
 
 class ProfileController extends GetxController {
   final StorageService _storage = Get.find<StorageService>();
@@ -48,10 +47,10 @@ class ProfileController extends GetxController {
       final data = _storage.getUserData();
       if (data != null) {
         user.value = UserModel.fromJson(data);
-        print('📥 [ProfileController] User loaded from storage');
+        DiagnosticLogger.instance.warning('📥 [ProfileController] User loaded from storage');
       }
     } else {
-      print(
+      DiagnosticLogger.instance.warning(
         '⚠️ [ProfileController] loadUser() called but user.value is already set - skipping to preserve reactive state',
       );
     }
@@ -62,7 +61,7 @@ class ProfileController extends GetxController {
     final data = _storage.getUserData();
     if (data != null) {
       user.value = UserModel.fromJson(data);
-      print('🔄 [ProfileController] User force-reloaded from storage');
+      DiagnosticLogger.instance.debug('🔄 [ProfileController] User force-reloaded from storage');
     }
   }
 
@@ -71,7 +70,7 @@ class ProfileController extends GetxController {
   /// Also syncs with HomeController if available to ensure app-wide consistency
   Future<void> refreshData() async {
     try {
-      print('🔄 [ProfileController] Refreshing user data from backend...');
+      DiagnosticLogger.instance.debug('🔄 [ProfileController] Refreshing user data from backend...');
       
       // Fetch latest user data from backend API
       final updatedUser = await _authRepository.getUserProfile();
@@ -92,26 +91,26 @@ class ProfileController extends GetxController {
           if (Get.isRegistered<HomeController>()) {
             final homeController = Get.find<HomeController>();
             homeController.currentUser.value = updatedUser;
-            print('✅ [ProfileController] Synced updated user data to HomeController');
+            DiagnosticLogger.instance.warning('✅ [ProfileController] Synced updated user data to HomeController');
           }
         } catch (e) {
-          print('⚠️ [ProfileController] Could not sync with HomeController: $e');
+          DiagnosticLogger.instance.warning('⚠️ [ProfileController] Could not sync with HomeController: $e');
           // Non-critical - continue even if HomeController sync fails
         }
         
-        print('✅ [ProfileController] User data refreshed successfully from backend');
-        print('   User ID: ${updatedUser.id}');
-        print('   User Name: ${updatedUser.userName}');
-        print('   Role: ${updatedUser.role.name} (API/storage)');
-        print('   Email: ${updatedUser.email}');
-        print('   Image refresh timestamp: ${imageRefreshTimestamp.value}');
+        DiagnosticLogger.instance.info('✅ [ProfileController] User data refreshed successfully from backend');
+        DiagnosticLogger.instance.debug('   User ID: ${updatedUser.id}');
+        DiagnosticLogger.instance.debug('   User Name: ${updatedUser.userName}');
+        DiagnosticLogger.instance.debug('   Role: ${updatedUser.role.name} (API/storage)');
+        DiagnosticLogger.instance.warning('   Email: ${updatedUser.email}');
+        DiagnosticLogger.instance.warning('   Image refresh timestamp: ${imageRefreshTimestamp.value}');
       } else {
-        print('⚠️ [ProfileController] Failed to fetch user data from backend');
+        DiagnosticLogger.instance.warning('⚠️ [ProfileController] Failed to fetch user data from backend');
         // Fallback: reload from storage if API fails
         forceReloadUser();
       }
     } catch (e) {
-      print('❌ [ProfileController] Error refreshing user data: $e');
+      DiagnosticLogger.instance.error('❌ [ProfileController] Error refreshing user data: $e');
       // Fallback: reload from storage if API fails
       forceReloadUser();
     }
@@ -124,24 +123,24 @@ class ProfileController extends GetxController {
     // Only sync if user is null or it's a different user
     // This prevents overwriting reactive updates with stale data
     if (user.value == null) {
-      print(
+      DiagnosticLogger.instance.debug(
         '📥 [ProfileController] syncUserData: User is null, syncing from external source',
       );
       user.value = updatedUser;
       _saveUserToStorage();
     } else if (user.value!.id != updatedUser.id) {
-      print(
+      DiagnosticLogger.instance.debug(
         '📥 [ProfileController] syncUserData: Different user ID, syncing from external source',
       );
       user.value = updatedUser;
       _saveUserToStorage();
     } else {
       // Same user - don't overwrite reactive state with potentially stale data
-      print(
+      DiagnosticLogger.instance.warning(
         '⚠️ [ProfileController] syncUserData: Same user detected, skipping sync to preserve reactive state',
       );
-      print('   Current user hash: ${user.value!.hashCode}');
-      print('   Incoming user hash: ${updatedUser.hashCode}');
+      DiagnosticLogger.instance.debug('   Current user hash: ${user.value!.hashCode}');
+      DiagnosticLogger.instance.debug('   Incoming user hash: ${updatedUser.hashCode}');
     }
   }
 
@@ -196,7 +195,7 @@ class ProfileController extends GetxController {
       }
     } catch (e) {
       _showError('error_uploading_image');
-      print('Error uploading profile image: $e');
+      DiagnosticLogger.instance.error('Error uploading profile image: $e');
     } finally {
       isUploadingImage.value = false;
     }
@@ -233,7 +232,7 @@ class ProfileController extends GetxController {
       }
     } catch (e) {
       _showError('error_updating_language');
-      print('Error changing language: $e');
+      DiagnosticLogger.instance.error('Error changing language: $e');
     } finally {
       isChangingLanguage.value = false;
     }
@@ -241,31 +240,31 @@ class ProfileController extends GetxController {
 
   /// Update notification setting and save
   Future<void> updateNotification(String key, bool value) async {
-    print('🔄 [ProfileController] updateNotification called: $key = $value');
+    DiagnosticLogger.instance.error('🔄 [ProfileController] updateNotification called: $key = $value');
 
     if (user.value == null) {
-      print('❌ [ProfileController] User is null, cannot update notification');
+      DiagnosticLogger.instance.error('❌ [ProfileController] User is null, cannot update notification');
       return;
     }
 
     // Get current user state BEFORE any potential reloads
     // Capture the reference to ensure we're working with the current reactive value
     final currentUser = user.value!;
-    print('📝 [ProfileController] Current user state (from reactive value):');
-    print('   User object hash: ${currentUser.hashCode}');
-    print('   isDocumentNotify: ${currentUser.isDocumentNotify}');
-    print('   isMaintenanceNotify: ${currentUser.isMaintenanceNotify}');
-    print('   isChatNotify: ${currentUser.isChatNotify}');
-    print('   isSupportTicketNotify: ${currentUser.isSupportTicketNotify}');
+    DiagnosticLogger.instance.debug('📝 [ProfileController] Current user state (from reactive value):');
+    DiagnosticLogger.instance.debug('   User object hash: ${currentUser.hashCode}');
+    DiagnosticLogger.instance.debug('   isDocumentNotify: ${currentUser.isDocumentNotify}');
+    DiagnosticLogger.instance.debug('   isMaintenanceNotify: ${currentUser.isMaintenanceNotify}');
+    DiagnosticLogger.instance.debug('   isChatNotify: ${currentUser.isChatNotify}');
+    DiagnosticLogger.instance.debug('   isSupportTicketNotify: ${currentUser.isSupportTicketNotify}');
 
     // Double-check: Read from reactive value again to ensure it hasn't changed
     final doubleCheckUser = user.value!;
     if (currentUser.hashCode != doubleCheckUser.hashCode) {
-      print(
+      DiagnosticLogger.instance.warning(
         '⚠️ [ProfileController] WARNING: user.value changed during updateNotification!',
       );
-      print('   Original hash: ${currentUser.hashCode}');
-      print('   New hash: ${doubleCheckUser.hashCode}');
+      DiagnosticLogger.instance.debug('   Original hash: ${currentUser.hashCode}');
+      DiagnosticLogger.instance.debug('   New hash: ${doubleCheckUser.hashCode}');
     }
 
     UserModel? updatedUser;
@@ -283,7 +282,7 @@ class ProfileController extends GetxController {
         updatedUser = currentUser.copyWith(isSupportTicketNotify: value);
         break;
       default:
-        print('⚠️ [ProfileController] Unknown notification key: $key');
+        DiagnosticLogger.instance.warning('⚠️ [ProfileController] Unknown notification key: $key');
         return;
     }
 
@@ -292,12 +291,12 @@ class ProfileController extends GetxController {
     // Assigning a new object reference will trigger GetX observers
     user.value = updatedUser;
 
-    print('✅ [ProfileController] User updated in reactive state:');
-    print('   isDocumentNotify: ${user.value!.isDocumentNotify}');
-    print('   isMaintenanceNotify: ${user.value!.isMaintenanceNotify}');
-    print('   isChatNotify: ${user.value!.isChatNotify}');
-    print('   isSupportTicketNotify: ${user.value!.isSupportTicketNotify}');
-    print('   User object hash after update: ${user.value!.hashCode}');
+    DiagnosticLogger.instance.info('✅ [ProfileController] User updated in reactive state:');
+    DiagnosticLogger.instance.debug('   isDocumentNotify: ${user.value!.isDocumentNotify}');
+    DiagnosticLogger.instance.debug('   isMaintenanceNotify: ${user.value!.isMaintenanceNotify}');
+    DiagnosticLogger.instance.debug('   isChatNotify: ${user.value!.isChatNotify}');
+    DiagnosticLogger.instance.debug('   isSupportTicketNotify: ${user.value!.isSupportTicketNotify}');
+    DiagnosticLogger.instance.debug('   User object hash after update: ${user.value!.hashCode}');
 
     // Save to storage AFTER updating reactive value
     await _saveUserToStorage();
@@ -305,7 +304,7 @@ class ProfileController extends GetxController {
     // Trigger GetX update for GetBuilder widgets (though Obx should auto-update)
     update();
 
-    print('💾 [ProfileController] User saved to storage and UI updated');
+    DiagnosticLogger.instance.debug('💾 [ProfileController] User saved to storage and UI updated');
   }
 
   /// Update user profile information (name, email, phone)
@@ -349,7 +348,7 @@ class ProfileController extends GetxController {
       }
     } catch (e) {
       _showError('error_updating_profile');
-      print('Error updating profile: $e');
+      DiagnosticLogger.instance.error('Error updating profile: $e');
       return false;
     } finally {
       isSaving.value = false;
@@ -360,15 +359,15 @@ class ProfileController extends GetxController {
   /// Saves: Language, Notification preferences, Profile info
   /// Ensures all settings are validated, persisted locally, and synced to server
   Future<void> saveSettings() async {
-    print('🔵 [ProfileController] saveSettings() called');
+    DiagnosticLogger.instance.error('🔵 [ProfileController] saveSettings() called');
 
     if (user.value == null) {
-      print('❌ [ProfileController] User is null, cannot save settings');
+      DiagnosticLogger.instance.error('❌ [ProfileController] User is null, cannot save settings');
       _showError('no_user_data');
       return;
     }
 
-    print(
+    DiagnosticLogger.instance.info(
       '✅ [ProfileController] User found: ${user.value!.id} - ${user.value!.userName}',
     );
     isSaving.value = true;
@@ -381,7 +380,7 @@ class ProfileController extends GetxController {
 
       // Update user's language if it differs from LocaleController
       if (user.value!.language != currentLanguage) {
-        print(
+        DiagnosticLogger.instance.debug(
           '🔄 [ProfileController] Syncing language from LocaleController: $currentLanguage',
         );
         user.value = user.value!.copyWith(language: currentLanguage);
@@ -389,25 +388,25 @@ class ProfileController extends GetxController {
 
       // Step 2: Ensure all local changes are saved to storage first
       await _saveUserToStorage();
-      print('💾 [ProfileController] User data saved to local storage');
+      DiagnosticLogger.instance.debug('💾 [ProfileController] User data saved to local storage');
 
       // Step 3: Get current user from reactive state (has latest changes)
       final currentUser = user.value!;
-      print(
+      DiagnosticLogger.instance.debug(
         '👤 [ProfileController] Preparing to save settings for user: ${currentUser.id}',
       );
-      print('   Language: ${currentUser.language}');
-      print('   Notifications - Documents: ${currentUser.isDocumentNotify}');
-      print(
+      DiagnosticLogger.instance.debug('   Language: ${currentUser.language}');
+      DiagnosticLogger.instance.debug('   Notifications - Documents: ${currentUser.isDocumentNotify}');
+      DiagnosticLogger.instance.debug(
         '   Notifications - Maintenance: ${currentUser.isMaintenanceNotify}',
       );
-      print('   Notifications - Chat: ${currentUser.isChatNotify}');
-      print(
+      DiagnosticLogger.instance.debug('   Notifications - Chat: ${currentUser.isChatNotify}');
+      DiagnosticLogger.instance.info(
         '   Notifications - Support Tickets: ${currentUser.isSupportTicketNotify}',
       );
 
       // Step 4: Save all settings to API
-      print('📡 [ProfileController] Calling updateProfile() API...');
+      DiagnosticLogger.instance.info('📡 [ProfileController] Calling updateProfile() API...');
       final result = await _profileRepository.updateProfile(
         userId: currentUser.id,
         userName: currentUser.userName,
@@ -422,9 +421,9 @@ class ProfileController extends GetxController {
         // Note: twoFaMethod is not included in Save Settings request
       );
 
-      print('📥 [ProfileController] Received result from updateProfile()');
-      print('   Success: ${result['success']}');
-      print('   Message: ${result['message'] ?? result['error']}');
+      DiagnosticLogger.instance.debug('📥 [ProfileController] Received result from updateProfile()');
+      DiagnosticLogger.instance.debug('   Success: ${result['success']}');
+      DiagnosticLogger.instance.debug('   Message: ${result['message'] ?? result['error']}');
 
       if (result['success'] == true) {
         // Step 5: Force reload user data from storage (updated by repository after API success)
@@ -434,22 +433,22 @@ class ProfileController extends GetxController {
         // Step 6: Ensure UI updates immediately
         update();
 
-        print('✅ [ProfileController] All settings saved successfully');
-        print('   Settings persisted to: Local storage + Server API');
+        DiagnosticLogger.instance.info('✅ [ProfileController] All settings saved successfully');
+        DiagnosticLogger.instance.error('   Settings persisted to: Local storage + Server API');
         _showSuccess('settings_saved_successfully');
       } else {
-        print(
+        DiagnosticLogger.instance.error(
           '❌ [ProfileController] Failed to save settings: ${result['error']}',
         );
         _showError('failed_to_save_settings');
       }
     } catch (e, stackTrace) {
-      print('❌ [ProfileController] Exception in saveSettings(): $e');
-      print('📚 [ProfileController] Stack trace: $stackTrace');
+      DiagnosticLogger.instance.error('❌ [ProfileController] Exception in saveSettings(): $e');
+      DiagnosticLogger.instance.error('📚 [ProfileController] Stack trace: $stackTrace');
       _showError('error_saving_settings');
     } finally {
       isSaving.value = false;
-      print('🏁 [ProfileController] saveSettings() completed');
+      DiagnosticLogger.instance.debug('🏁 [ProfileController] saveSettings() completed');
     }
   }
 
@@ -458,15 +457,15 @@ class ProfileController extends GetxController {
   Future<void> logout() async {
     SessionExpiryService.beginForcedSignOut();
     try {
-      print('🚪 Starting logout process...');
+      DiagnosticLogger.instance.info('🚪 Starting logout process...');
 
       // Call logout API first
       final result = await _authRepository.logout();
 
       if (result['success'] == true) {
-        print('✅ Logout API successful: ${result['message']}');
+        DiagnosticLogger.instance.warning('✅ Logout API successful: ${result['message']}');
       } else {
-        print('⚠️  Logout API failed: ${result['error']}');
+        DiagnosticLogger.instance.warning('⚠️  Logout API failed: ${result['error']}');
         // Still proceed with clearing storage even if API fails
       }
 
@@ -477,19 +476,19 @@ class ProfileController extends GetxController {
 
       // Clear all storage regardless of API result
       await _storage.clearAll();
-      print('✅ All storage cleared');
+      DiagnosticLogger.instance.info('✅ All storage cleared');
 
       // Navigate to auth screen
       AuthNavigation.replaceStackWithAuth();
-      print('✅ Navigated to auth screen');
+      DiagnosticLogger.instance.error('✅ Navigated to auth screen');
     } catch (e) {
-      print('❌ Error during logout: $e');
+      DiagnosticLogger.instance.error('❌ Error during logout: $e');
       // Even if there's an error, try to clear storage and navigate
       try {
         await _storage.clearAll();
         AuthNavigation.replaceStackWithAuth();
       } catch (clearError) {
-        print('❌ Error clearing storage: $clearError');
+        DiagnosticLogger.instance.error('❌ Error clearing storage: $clearError');
         _showError('failed_to_logout_please_try_again');
       }
     }
@@ -498,7 +497,7 @@ class ProfileController extends GetxController {
   Future<void> _saveUserToStorage() async {
     if (user.value != null) {
       await _storage.saveUserData(user.value!.toJson());
-      print('💾 [ProfileController] User data saved to storage successfully');
+      DiagnosticLogger.instance.debug('💾 [ProfileController] User data saved to storage successfully');
     }
   }
 

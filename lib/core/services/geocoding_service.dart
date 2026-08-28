@@ -2,6 +2,7 @@
 
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 class GeocodingService {
   // Using Nominatim (OpenStreetMap) - Free, no API key required
@@ -36,11 +37,11 @@ class GeocodingService {
         final data = json.decode(response.body);
         return _formatLocationName(data);
       } else {
-        print('Geocoding API error: ${response.statusCode}');
+        DiagnosticLogger.instance.error('Geocoding API error: ${response.statusCode}');
         return 'Unknown Location';
       }
     } catch (e) {
-      print('Error getting location: $e');
+      DiagnosticLogger.instance.error('Error getting location: $e');
       return 'Unknown Location';
     }
   }
@@ -73,7 +74,7 @@ class GeocodingService {
         return 'Unknown Location';
       }
     } catch (e) {
-      print('Error formatting location: $e');
+      DiagnosticLogger.instance.error('Error formatting location: $e');
       return 'Unknown Location';
     }
   }

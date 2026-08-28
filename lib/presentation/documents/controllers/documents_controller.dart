@@ -10,6 +10,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:open_filex/open_filex.dart';
 import 'dart:io';
 import '../models/upload_result.dart';
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 class DocumentsController extends GetxController {
   final DocumentRepository _repository = DocumentRepository();
@@ -66,7 +67,7 @@ class DocumentsController extends GetxController {
         categories.value = [];
       }
     } catch (e) {
-      print('Error in fetchDocumentCategories: $e');
+      DiagnosticLogger.instance.error('Error in fetchDocumentCategories: $e');
       errorMessage.value = 'errorFetchingCategories'.tr;
       categories.value = [];
     } finally {
@@ -82,7 +83,7 @@ class DocumentsController extends GetxController {
       errorMessage.value = '';
       hasError.value = false;
 
-      print('📄 Fetching documents by unit from API');
+      DiagnosticLogger.instance.debug('📄 Fetching documents by unit from API');
 
       final result = await _repository.getDocumentsByUnit();
 
@@ -97,15 +98,15 @@ class DocumentsController extends GetxController {
 
         _applyLoadedDocuments(fetchedDocuments);
 
-        print('✅ Loaded ${documents.length} documents from API');
+        DiagnosticLogger.instance.error('✅ Loaded ${documents.length} documents from API');
       } else {
-        print('⚠️ API Error: ${result['error']}');
+        DiagnosticLogger.instance.error('⚠️ API Error: ${result['error']}');
         errorMessage.value = result['error'] ?? 'failedToFetchDocuments'.tr;
         hasError.value = true;
         clearDocuments();
       }
     } catch (e) {
-      print('❌ Error in fetchDocuments: $e');
+      DiagnosticLogger.instance.error('❌ Error in fetchDocuments: $e');
       errorMessage.value = 'errorFetchingDocuments'.tr;
       hasError.value = true;
       clearDocuments();
@@ -135,11 +136,11 @@ class DocumentsController extends GetxController {
       final fileName = _generateFileName(document);
       final fileId = document.id;
 
-      print('📥 Starting download: $fileName');
+      DiagnosticLogger.instance.debug('📥 Starting download: $fileName');
 
       if (showDownloadingPopup) {
         MessagePopupController.showDownloading(
-          messageKey: 'downloading'.tr + ': ${document.title}',
+          messageKey: '${'downloading'.tr}: ${document.title}',
         );
       }
 
@@ -167,7 +168,7 @@ class DocumentsController extends GetxController {
           messageKey: 'noFileDataReceived',
           titleKey: 'downloadFailed',
         );
-        print('❌ [DocumentsController] No file bytes received');
+        DiagnosticLogger.instance.error('❌ [DocumentsController] No file bytes received');
         return;
       }
 
@@ -186,7 +187,7 @@ class DocumentsController extends GetxController {
         final fileExists = await savedFile.exists();
 
         if (!fileExists) {
-          print(
+          DiagnosticLogger.instance.error(
             '❌ [DocumentsController] File does not exist after save: $filePath',
           );
           if (showDownloadingPopup && (Get.isDialogOpen ?? false)) Get.back();
@@ -200,7 +201,7 @@ class DocumentsController extends GetxController {
         // Verify file has content
         final fileSize = await savedFile.length();
         if (fileSize == 0) {
-          print('❌ [DocumentsController] File is empty after save: $filePath');
+          DiagnosticLogger.instance.error('❌ [DocumentsController] File is empty after save: $filePath');
           if (showDownloadingPopup && (Get.isDialogOpen ?? false)) Get.back();
           await MessagePopupController.showError(
             messageKey: 'fileEmptyPleaseDownloadAgain',
@@ -209,9 +210,9 @@ class DocumentsController extends GetxController {
           return;
         }
 
-        print('✅ [DocumentsController] Download successful: $filePath');
-        print(
-          '✅ [DocumentsController] File verified: exists=${fileExists}, size=${fileSize} bytes',
+        DiagnosticLogger.instance.info('✅ [DocumentsController] Download successful: $filePath');
+        DiagnosticLogger.instance.info(
+          '✅ [DocumentsController] File verified: exists=$fileExists, size=$fileSize bytes',
         );
 
         if (showDownloadingPopup && (Get.isDialogOpen ?? false)) Get.back();
@@ -227,7 +228,7 @@ class DocumentsController extends GetxController {
             ),
           );
           if (!userWantsOpen) {
-            print('📂 User cancelled. File remains saved at: $filePath');
+            DiagnosticLogger.instance.debug('📂 User cancelled. File remains saved at: $filePath');
             return;
           }
           await _openFileFromLocalStorage(filePath, document.title);
@@ -238,10 +239,10 @@ class DocumentsController extends GetxController {
           messageKey: 'downloadError',
           titleKey: 'downloadFailed',
         );
-        print('❌ [DocumentsController] Save failed: ${saveResult['error']}');
+        DiagnosticLogger.instance.error('❌ [DocumentsController] Save failed: ${saveResult['error']}');
       }
     } catch (e) {
-      print('❌ [DocumentsController] Error downloading document: $e');
+      DiagnosticLogger.instance.error('❌ [DocumentsController] Error downloading document: $e');
       if (showDownloadingPopup && (Get.isDialogOpen ?? false)) Get.back();
       await MessagePopupController.showError(
         messageKey: 'downloadError',
@@ -261,7 +262,7 @@ class DocumentsController extends GetxController {
       final fileExists = await file.exists();
 
       if (!fileExists) {
-        print(
+        DiagnosticLogger.instance.error(
           '❌ [DocumentsController] File not found when trying to open: $filePath',
         );
         MessagePopupController.showError(
@@ -274,7 +275,7 @@ class DocumentsController extends GetxController {
       // Verify file has content
       final fileSize = await file.length();
       if (fileSize == 0) {
-        print(
+        DiagnosticLogger.instance.error(
           '❌ [DocumentsController] File is empty when trying to open: $filePath',
         );
         MessagePopupController.showError(
@@ -284,8 +285,8 @@ class DocumentsController extends GetxController {
         return;
       }
 
-      print(
-        '📂 [DocumentsController] Opening file from local storage: $filePath (${fileSize} bytes)',
+      DiagnosticLogger.instance.debug(
+        '📂 [DocumentsController] Opening file from local storage: $filePath ($fileSize bytes)',
       );
 
       // CRITICAL: Force native chooser for ALL file types (including images)
@@ -294,7 +295,7 @@ class DocumentsController extends GetxController {
       try {
         final result = await FileOpenerService.openWithChooser(filePath);
 
-        print(
+        DiagnosticLogger.instance.debug(
           '📂 [DocumentsController] Open file result: ${result.type} - ${result.message}',
         );
 
@@ -311,65 +312,19 @@ class DocumentsController extends GetxController {
             titleKey: 'openFileFailed',
           );
         } else if (result.type == ResultType.done) {
-          print('✅ [DocumentsController] File chooser shown successfully');
+          DiagnosticLogger.instance.error('✅ [DocumentsController] File chooser shown successfully');
         }
       } catch (e) {
-        print('❌ [DocumentsController] Error opening file: $e');
+        DiagnosticLogger.instance.error('❌ [DocumentsController] Error opening file: $e');
         MessagePopupController.showError(
           messageKey: 'openFileError',
           titleKey: 'openFileFailed',
         );
       }
     } catch (e) {
-      print(
+      DiagnosticLogger.instance.error(
         '❌ [DocumentsController] Error opening file from local storage: $e',
       );
-      MessagePopupController.showError(
-        messageKey: 'openFileError',
-        titleKey: 'openFileFailed',
-      );
-    }
-  }
-
-  /// Show native "Open with" chooser with available apps to open the file
-  /// Uses open_filex which shows native Android chooser or iOS share sheet
-  /// NOTE: This method is kept for backward compatibility but is no longer called automatically
-  Future<void> _showOpenFileBottomSheet(
-    String filePath,
-    String fileName,
-  ) async {
-    try {
-      final file = File(filePath);
-      if (!await file.exists()) {
-        MessagePopupController.showError(
-          messageKey: 'fileNotFound'.tr,
-          titleKey: 'openFileFailed'.tr,
-        );
-        return;
-      }
-
-      // Use open_filex to show native "Open with" chooser
-      // This will show all available apps that can open the file type
-      print('📂 Opening native "Open with" chooser for file: $fileName');
-      final result = await OpenFilex.open(filePath);
-
-      print('📂 Open file result: ${result.type} - ${result.message}');
-
-      // Handle the result
-      if (result.type == ResultType.noAppToOpen) {
-        MessagePopupController.showWarning(
-          messageKey: 'noAppToOpen'.tr,
-          titleKey: 'openFileFailed'.tr,
-        );
-      } else if (result.type == ResultType.error ||
-          result.type == ResultType.fileNotFound) {
-        MessagePopupController.showError(
-          messageKey: 'openFileError',
-          titleKey: 'openFileFailed',
-        );
-      }
-    } catch (e) {
-      print('❌ Error showing file chooser: $e');
       MessagePopupController.showError(
         messageKey: 'openFileError',
         titleKey: 'openFileFailed',
@@ -381,7 +336,7 @@ class DocumentsController extends GetxController {
   /// Uses native file manager or appropriate app viewer
   Future<void> openFile(String filePath, String fileName) async {
     try {
-      print('📂 Opening file: $filePath');
+      DiagnosticLogger.instance.error('📂 Opening file: $filePath');
 
       // Check if file exists
       final file = File(filePath);
@@ -390,20 +345,20 @@ class DocumentsController extends GetxController {
           messageKey: 'fileNotFound',
           titleKey: 'openFileFailed',
         );
-        print('❌ File not found: $filePath');
+        DiagnosticLogger.instance.error('❌ File not found: $filePath');
         return;
       }
 
       // Open the file using open_filex
       final result = await OpenFilex.open(filePath);
 
-      print('📂 Open file result: ${result.type} - ${result.message}');
+      DiagnosticLogger.instance.info('📂 Open file result: ${result.type} - ${result.message}');
 
       // Handle the result
       switch (result.type) {
         case ResultType.done:
           // File opened successfully
-          print('✅ File opened successfully');
+          DiagnosticLogger.instance.error('✅ File opened successfully');
           break;
 
         case ResultType.fileNotFound:
@@ -435,7 +390,7 @@ class DocumentsController extends GetxController {
           break;
       }
     } catch (e) {
-      print('❌ Error opening file: $e');
+      DiagnosticLogger.instance.error('❌ Error opening file: $e');
       MessagePopupController.showError(
         messageKey: 'openFileError',
         titleKey: 'openFileFailed',
@@ -462,11 +417,11 @@ class DocumentsController extends GetxController {
       final fileName = _generateFileName(document);
       final fileId = document.id;
 
-      print('📤 Starting share process: $fileName');
+      DiagnosticLogger.instance.debug('📤 Starting share process: $fileName');
 
       // Show preparing share info (no auto-dismiss; we close when done)
       MessagePopupController.showInfo(
-        messageKey: 'preparingShare'.tr + ': ${document.title}',
+        messageKey: '${'preparingShare'.tr}: ${document.title}',
         titleKey: '',
         autoDismissSeconds: 0,
       );
@@ -481,7 +436,7 @@ class DocumentsController extends GetxController {
           messageKey: 'shareError',
           titleKey: 'shareFailed',
         );
-        print('❌ Share failed: ${apiResult['error']}');
+        DiagnosticLogger.instance.error('❌ Share failed: ${apiResult['error']}');
         return;
       }
 
@@ -506,7 +461,7 @@ class DocumentsController extends GetxController {
         final file = File(filePath);
 
         if (await file.exists()) {
-          print('✅ File ready for sharing: $filePath');
+          DiagnosticLogger.instance.info('✅ File ready for sharing: $filePath');
 
           if (Get.isDialogOpen ?? false) Get.back();
           // iOS needs the preparing dialog fully dismissed before presenting
@@ -525,7 +480,7 @@ class DocumentsController extends GetxController {
                 : null,
           );
 
-          print('✅ Share dialog opened successfully');
+          DiagnosticLogger.instance.error('✅ Share dialog opened successfully');
         } else {
           throw Exception('File not found after download');
         }
@@ -535,10 +490,10 @@ class DocumentsController extends GetxController {
           messageKey: 'shareError',
           titleKey: 'shareFailed',
         );
-        print('❌ Share failed: ${saveResult['error']}');
+        DiagnosticLogger.instance.error('❌ Share failed: ${saveResult['error']}');
       }
     } catch (e) {
-      print('❌ Error sharing document: $e');
+      DiagnosticLogger.instance.error('❌ Error sharing document: $e');
       if (Get.isDialogOpen ?? false) Get.back();
       await MessagePopupController.showError(
         messageKey: 'shareError',
@@ -686,7 +641,7 @@ class DocumentsController extends GetxController {
 
     final categoryName = typeToCategoryName[documentType];
     if (categoryName == null) {
-      print('⚠️ [DocumentsController] Unknown document type: $documentType');
+      DiagnosticLogger.instance.warning('⚠️ [DocumentsController] Unknown document type: $documentType');
       return null;
     }
 
@@ -698,7 +653,7 @@ class DocumentsController extends GetxController {
             categoryName.toLowerCase().trim(),
       );
 
-      print(
+      DiagnosticLogger.instance.info(
         '✅ [DocumentsController] Mapped "$documentType" to category "${category.categoryName}" (ID: ${category.id})',
       );
       return category.id;
@@ -711,7 +666,7 @@ class DocumentsController extends GetxController {
           ),
         );
 
-        print(
+        DiagnosticLogger.instance.info(
           '✅ [DocumentsController] Mapped "$documentType" to category "${fallbackCategory.categoryName}" (ID: ${fallbackCategory.id}) - fallback match',
         );
         return fallbackCategory.id;
@@ -720,7 +675,7 @@ class DocumentsController extends GetxController {
       }
     }
 
-    print(
+    DiagnosticLogger.instance.warning(
       '⚠️ [DocumentsController] Could not find category for type: $documentType',
     );
     return null;
@@ -788,9 +743,9 @@ class DocumentsController extends GetxController {
 
     categories.value = updatedCategories;
 
-    print('📊 Updated category counts:');
+    DiagnosticLogger.instance.debug('📊 Updated category counts:');
     for (var cat in updatedCategories) {
-      print('  - ${cat.categoryName}: ${cat.count}');
+      DiagnosticLogger.instance.debug('  - ${cat.categoryName}: ${cat.count}');
     }
   }
 
@@ -807,7 +762,7 @@ class DocumentsController extends GetxController {
       // Parse document ID from String to int (API expects int)
       final documentId = int.tryParse(document.id);
       if (documentId == null) {
-        print('❌ [DocumentsController] Invalid document ID: ${document.id}');
+        DiagnosticLogger.instance.error('❌ [DocumentsController] Invalid document ID: ${document.id}');
         MessagePopupController.showError(
           messageKey: 'invalidDocumentId',
           titleKey: 'deleteFailed',
@@ -815,7 +770,7 @@ class DocumentsController extends GetxController {
         return false;
       }
 
-      print(
+      DiagnosticLogger.instance.debug(
         '🗑️ [DocumentsController] Deleting document: ${document.title} (ID: $documentId)',
       );
 
@@ -823,7 +778,7 @@ class DocumentsController extends GetxController {
       final result = await _repository.deleteDocument(documentId);
 
       if (result['success'] == true) {
-        print('✅ [DocumentsController] Delete success, removing from UI');
+        DiagnosticLogger.instance.info('✅ [DocumentsController] Delete success, removing from UI');
 
         // Remove document from reactive list immediately
         documents.removeWhere((d) => d.id == document.id);
@@ -853,11 +808,11 @@ class DocumentsController extends GetxController {
           );
         }
 
-        print('❌ [DocumentsController] Delete failed: ${result['error']}');
+        DiagnosticLogger.instance.error('❌ [DocumentsController] Delete failed: ${result['error']}');
         return false;
       }
     } catch (e) {
-      print('❌ [DocumentsController] Error deleting document: $e');
+      DiagnosticLogger.instance.error('❌ [DocumentsController] Error deleting document: $e');
       MessagePopupController.showError(
         messageKey: 'errorDeletingDocument',
         titleKey: 'deleteFailed',

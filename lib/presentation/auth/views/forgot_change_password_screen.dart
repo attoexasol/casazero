@@ -76,9 +76,9 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Colors.black.withOpacity(0.2),
-                Colors.black.withOpacity(0.1),
-                Colors.black.withOpacity(0.3),
+                Colors.black.withValues(alpha: 0.2),
+                Colors.black.withValues(alpha: 0.1),
+                Colors.black.withValues(alpha: 0.3),
               ],
             ),
           ),
@@ -128,14 +128,14 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
             children: [
               Icon(
                 Icons.arrow_back,
-                color: Colors.white.withOpacity(0.9),
+                color: Colors.white.withValues(alpha: 0.9),
                 size: 20.sp,
               ),
               SizedBox(width: 8.w),
               Text(
                 'back'.tr,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                   fontSize: 14.sp,
                 ),
               ),
@@ -152,12 +152,12 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
   Widget _buildGlassCard() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.white.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(24.r),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 20.r,
             offset: Offset(0, 10.h),
           ),
@@ -170,8 +170,8 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Colors.white.withOpacity(0.2),
-                Colors.white.withOpacity(0.05),
+                Colors.white.withValues(alpha: 0.2),
+                Colors.white.withValues(alpha: 0.05),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -200,7 +200,7 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
                   style: TextStyle(
                     fontSize: 24.sp,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white.withOpacity(0.95),
+                    color: Colors.white.withValues(alpha: 0.95),
                   ),
                 ),
                 SizedBox(height: 8.h),
@@ -208,7 +208,7 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
                   'create_new_password'.tr,
                   style: TextStyle(
                     fontSize: 13.sp,
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                   ),
                 ),
                 SizedBox(height: 32.h),
@@ -270,7 +270,7 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
             'password_requirements'.tr,
             style: TextStyle(
               fontSize: 11.sp,
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
             ),
           ),
           SizedBox(height: 8.h),
@@ -285,7 +285,7 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
                   decoration: BoxDecoration(
                     color: req.isMet
                         ? const Color(0xFF22C55E)
-                        : Colors.white.withOpacity(0.3),
+                        : Colors.white.withValues(alpha: 0.3),
                     shape: BoxShape.circle,
                   ),
                   child: req.isMet
@@ -304,7 +304,7 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
                       fontSize: 11.sp,
                       color: req.isMet
                           ? const Color(0xFF22C55E)
-                          : Colors.white.withOpacity(0.7),
+                          : Colors.white.withValues(alpha: 0.7),
                     ),
                   ),
                 ),
@@ -360,7 +360,7 @@ class _ForgotChangePasswordScreenState extends State<ForgotChangePasswordScreen>
           ),
           elevation: 8,
           shadowColor: ctrl.canSubmit
-              ? AppColors.brandSage800.withOpacity(0.4)
+              ? AppColors.brandSage800.withValues(alpha: 0.4)
               : Colors.transparent,
         ),
         child: ctrl.isLoading.value

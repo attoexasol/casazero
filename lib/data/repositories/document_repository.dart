@@ -7,6 +7,7 @@ import '../../core/services/storage_service.dart';
 import '../../core/constants/api_constants.dart';
 import '../models/document_category_model.dart';
 import '../models/document_model.dart';
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 /// Upload method enum
 enum DocumentUploadMethod {
@@ -54,7 +55,7 @@ class DocumentRepository {
         };
       }
     } catch (e) {
-      print('Error fetching document categories: $e');
+      DiagnosticLogger.instance.error('Error fetching document categories: $e');
       return {
         'success': false,
         'error': 'Failed to fetch categories. Please try again.',
@@ -104,7 +105,7 @@ class DocumentRepository {
         };
       }
     } catch (e) {
-      print('Error fetching residence documents: $e');
+      DiagnosticLogger.instance.error('Error fetching residence documents: $e');
       return {
         'success': false,
         'error': 'Failed to fetch documents. Please try again.',
@@ -150,7 +151,7 @@ class DocumentRepository {
         };
       }
     } catch (e) {
-      print('Error fetching all documents: $e');
+      DiagnosticLogger.instance.error('Error fetching all documents: $e');
       return {
         'success': false,
         'error': 'Failed to fetch documents. Please try again.',
@@ -210,7 +211,7 @@ class DocumentRepository {
         };
       }
     } catch (e) {
-      print('Error fetching unit-wise documents: $e');
+      DiagnosticLogger.instance.error('Error fetching unit-wise documents: $e');
       return {
         'success': false,
         'error': 'Failed to fetch documents. Please try again.',
@@ -259,7 +260,7 @@ class DocumentRepository {
         };
       }
 
-      print(
+      DiagnosticLogger.instance.debug(
         '📄 Fetching documents by unit with token: ${token.substring(0, 10)}...',
       );
 
@@ -278,20 +279,20 @@ class DocumentRepository {
             .map((item) => DocumentModel.fromJson(item as Map<String, dynamic>))
             .toList();
 
-        print(
+        DiagnosticLogger.instance.warning(
           '✅ Successfully fetched ${documents.length} documents by unit (unit_id: $unitId)',
         );
 
         return {'success': true, 'data': documents, 'unit_id': unitId};
       } else {
-        print('⚠️ API Error: ${response.data['message']}');
+        DiagnosticLogger.instance.error('⚠️ API Error: ${response.data['message']}');
         return {
           'success': false,
           'error': response.data['message'] ?? 'Failed to fetch documents',
         };
       }
     } catch (e) {
-      print('❌ Error fetching documents by unit: $e');
+      DiagnosticLogger.instance.error('❌ Error fetching documents by unit: $e');
       return {
         'success': false,
         'error': 'Failed to fetch documents. Please try again.',
@@ -394,8 +395,8 @@ class DocumentRepository {
         );
       }
     } catch (e) {
-      print('❌ [DocumentRepository] Error uploading document: $e');
-      print('📚 [DocumentRepository] Error stack trace: ${StackTrace.current}');
+      DiagnosticLogger.instance.error('❌ [DocumentRepository] Error uploading document: $e');
+      DiagnosticLogger.instance.error('📚 [DocumentRepository] Error stack trace: ${StackTrace.current}');
       return {'success': false, 'error': 'Upload failed: ${e.toString()}'};
     }
   }
@@ -447,7 +448,7 @@ class DocumentRepository {
           };
         }
         if (decodedBytes.length != fileBytes.length) {
-          print(
+          DiagnosticLogger.instance.warning(
             '⚠️ [DocumentRepository] WARNING: Decoded size (${decodedBytes.length}) != original size (${fileBytes.length})',
           );
         }
@@ -497,20 +498,20 @@ class DocumentRepository {
       // ============================================
       // STEP 5: Debug logging (without full base64)
       // ============================================
-      print('═══════════════════════════════════════════════════════════');
-      print('📤 [DocumentRepository] BASE64 UPLOAD REQUEST');
-      print('═══════════════════════════════════════════════════════════');
-      print('📄 File: $fileName');
-      print('📏 Original file size: ${fileBytes.length} bytes');
-      print('🔤 Base64 length: ${cleanBase64.length} characters');
-      print('📋 MIME type: $mimeType');
-      print('📝 File extension: $fileExtension');
-      print('🏷️  Document title: $documentTitle');
-      print('📂 Category ID: $documentCategory');
-      print('🔑 Token: ${token.substring(0, 10)}...');
-      print('📊 Data URI prefix: data:$mimeType;base64,');
-      print('✅ Base64 validation: PASSED (non-empty, properly formatted)');
-      print('═══════════════════════════════════════════════════════════');
+      DiagnosticLogger.instance.debug('═══════════════════════════════════════════════════════════');
+      DiagnosticLogger.instance.debug('📤 [DocumentRepository] BASE64 UPLOAD REQUEST');
+      DiagnosticLogger.instance.debug('═══════════════════════════════════════════════════════════');
+      DiagnosticLogger.instance.debug('📄 File: $fileName');
+      DiagnosticLogger.instance.debug('📏 Original file size: ${fileBytes.length} bytes');
+      DiagnosticLogger.instance.debug('🔤 Base64 length: ${cleanBase64.length} characters');
+      DiagnosticLogger.instance.debug('📋 MIME type: $mimeType');
+      DiagnosticLogger.instance.debug('📝 File extension: $fileExtension');
+      DiagnosticLogger.instance.info('🏷️  Document title: $documentTitle');
+      DiagnosticLogger.instance.info('📂 Category ID: $documentCategory');
+      DiagnosticLogger.instance.info('🔑 Token: ${token.substring(0, 10)}...');
+      DiagnosticLogger.instance.info('📊 Data URI prefix: data:$mimeType;base64,');
+      DiagnosticLogger.instance.info('✅ Base64 validation: PASSED (non-empty, properly formatted)');
+      DiagnosticLogger.instance.debug('═══════════════════════════════════════════════════════════');
 
       // ============================================
       // STEP 6: Make API call with JSON payload
@@ -524,11 +525,11 @@ class DocumentRepository {
 
         return _handleUploadResponse(response, 'BASE64');
       } on dio.DioException catch (dioError) {
-        print('❌ [DocumentRepository] DioException in Base64 upload:');
-        print('   Type: ${dioError.type}');
-        print('   Message: ${dioError.message}');
-        print('   Response: ${dioError.response?.data}');
-        print('   Status Code: ${dioError.response?.statusCode}');
+        DiagnosticLogger.instance.error('❌ [DocumentRepository] DioException in Base64 upload:');
+        DiagnosticLogger.instance.error('   Type: ${dioError.type}');
+        DiagnosticLogger.instance.error('   Message: ${dioError.message}');
+        DiagnosticLogger.instance.error('   Response: ${dioError.response?.data}');
+        DiagnosticLogger.instance.error('   Status Code: ${dioError.response?.statusCode}');
 
         String errorMessage = 'Failed to upload document';
         if (dioError.response?.data != null) {
@@ -544,15 +545,15 @@ class DocumentRepository {
 
         return {'success': false, 'error': errorMessage};
       } catch (e) {
-        print('❌ [DocumentRepository] Error in Base64 upload: $e');
-        print('📚 [DocumentRepository] Stack trace: ${StackTrace.current}');
+        DiagnosticLogger.instance.error('❌ [DocumentRepository] Error in Base64 upload: $e');
+        DiagnosticLogger.instance.error('📚 [DocumentRepository] Stack trace: ${StackTrace.current}');
         return {
           'success': false,
           'error': 'Base64 upload failed: ${e.toString()}',
         };
       }
     } catch (e) {
-      print('❌ [DocumentRepository] Error in Base64 upload (outer): $e');
+      DiagnosticLogger.instance.error('❌ [DocumentRepository] Error in Base64 upload (outer): $e');
       return {
         'success': false,
         'error': 'Base64 upload failed: ${e.toString()}',
@@ -593,25 +594,25 @@ class DocumentRepository {
       // ============================================
       // STEP 2: Debug logging
       // ============================================
-      print('═══════════════════════════════════════════════════════════');
-      print('📤 [DocumentRepository] MULTIPART UPLOAD REQUEST');
-      print(
+      DiagnosticLogger.instance.debug('═══════════════════════════════════════════════════════════');
+      DiagnosticLogger.instance.debug('📤 [DocumentRepository] MULTIPART UPLOAD REQUEST');
+      DiagnosticLogger.instance.debug(
         '📤 [DocumentRepository] Format: multipart/form-data (Postman-compatible)',
       );
-      print('═══════════════════════════════════════════════════════════');
-      print('📄 File: $fileName');
-      print(
+      DiagnosticLogger.instance.debug('═══════════════════════════════════════════════════════════');
+      DiagnosticLogger.instance.debug('📄 File: $fileName');
+      DiagnosticLogger.instance.debug(
         '📏 File size: ${fileBytes.length} bytes (${(fileBytes.length / 1024 / 1024).toStringAsFixed(2)} MB)',
       );
-      print('📋 MIME type: $mimeType');
-      print('🏷️  Document title: $documentTitle');
-      print('📂 Category ID: $documentCategory');
-      print('📝 Description: ${documentDescription ?? '(none)'}');
-      print('🔑 Token: ${token.substring(0, 10)}...');
-      print('📊 Content-Type: multipart/form-data (auto-set by Dio)');
-      print('✅ File validation: PASSED (file exists, non-empty)');
-      print('✅ Request format: MATCHES POSTMAN');
-      print('═══════════════════════════════════════════════════════════');
+      DiagnosticLogger.instance.debug('📋 MIME type: $mimeType');
+      DiagnosticLogger.instance.debug('🏷️  Document title: $documentTitle');
+      DiagnosticLogger.instance.debug('📂 Category ID: $documentCategory');
+      DiagnosticLogger.instance.info('📝 Description: ${documentDescription ?? '(none)'}');
+      DiagnosticLogger.instance.info('🔑 Token: ${token.substring(0, 10)}...');
+      DiagnosticLogger.instance.info('📊 Content-Type: multipart/form-data (auto-set by Dio)');
+      DiagnosticLogger.instance.info('✅ File validation: PASSED (file exists, non-empty)');
+      DiagnosticLogger.instance.info('✅ Request format: MATCHES POSTMAN');
+      DiagnosticLogger.instance.debug('═══════════════════════════════════════════════════════════');
 
       // ============================================
       // STEP 3: Make API call with FormData
@@ -625,11 +626,11 @@ class DocumentRepository {
 
       return _handleUploadResponse(response, 'MULTIPART');
     } on dio.DioException catch (dioError) {
-      print('❌ [DocumentRepository] DioException in multipart upload:');
-      print('   Type: ${dioError.type}');
-      print('   Message: ${dioError.message}');
-      print('   Response: ${dioError.response?.data}');
-      print('   Status Code: ${dioError.response?.statusCode}');
+      DiagnosticLogger.instance.error('❌ [DocumentRepository] DioException in multipart upload:');
+      DiagnosticLogger.instance.error('   Type: ${dioError.type}');
+      DiagnosticLogger.instance.error('   Message: ${dioError.message}');
+      DiagnosticLogger.instance.error('   Response: ${dioError.response?.data}');
+      DiagnosticLogger.instance.error('   Status Code: ${dioError.response?.statusCode}');
 
       String errorMessage = 'Failed to upload document';
       if (dioError.response?.data != null) {
@@ -648,10 +649,10 @@ class DocumentRepository {
       // ApiService throws the server message string on DioException, so we often
       // get a plain string (e.g. "Upload failed") instead of DioException here.
       final message = e.toString();
-      print('❌ [DocumentRepository] Error in multipart upload: $e');
-      print('📚 [DocumentRepository] Stack trace: ${StackTrace.current}');
+      DiagnosticLogger.instance.error('❌ [DocumentRepository] Error in multipart upload: $e');
+      DiagnosticLogger.instance.error('📚 [DocumentRepository] Stack trace: ${StackTrace.current}');
       if (e is! dio.DioException) {
-        print(
+        DiagnosticLogger.instance.warning(
           '📌 [DocumentRepository] Message may be from server. Check [API ERROR RESPONSE] logs above for status and body.',
         );
       }
@@ -666,8 +667,8 @@ class DocumentRepository {
     dynamic response,
     String uploadMethod,
   ) async {
-    print('✅ [DocumentRepository] Upload response: ${response.statusCode}');
-    print('📊 [DocumentRepository] Response data: ${response.data}');
+    DiagnosticLogger.instance.info('✅ [DocumentRepository] Upload response: ${response.statusCode}');
+    DiagnosticLogger.instance.debug('📊 [DocumentRepository] Response data: ${response.data}');
 
     // ============================================
     // Handle response and verify database fields
@@ -681,41 +682,41 @@ class DocumentRepository {
         final fileType = responseData['file_type'];
         final fileSize = responseData['file_size'];
 
-        print('═══════════════════════════════════════════════════════════');
-        print('📋 [DocumentRepository] DATABASE VERIFICATION ($uploadMethod)');
-        print('═══════════════════════════════════════════════════════════');
-        print('📁 file_url: ${fileUrl ?? '❌ NULL'}');
-        print('📄 file_type: ${fileType ?? '❌ NULL'}');
-        print('📏 file_size: ${fileSize ?? '❌ NULL'}');
+        DiagnosticLogger.instance.debug('═══════════════════════════════════════════════════════════');
+        DiagnosticLogger.instance.error('📋 [DocumentRepository] DATABASE VERIFICATION ($uploadMethod)');
+        DiagnosticLogger.instance.error('═══════════════════════════════════════════════════════════');
+        DiagnosticLogger.instance.error('📁 file_url: ${fileUrl ?? '❌ NULL'}');
+        DiagnosticLogger.instance.error('📄 file_type: ${fileType ?? '❌ NULL'}');
+        DiagnosticLogger.instance.error('📏 file_size: ${fileSize ?? '❌ NULL'}');
 
         // Check if any critical fields are missing
         bool hasIssues = false;
         if (fileUrl == null || fileUrl.toString().isEmpty) {
-          print('⚠️ [DocumentRepository] WARNING: file_url is NULL or empty');
+          DiagnosticLogger.instance.warning('⚠️ [DocumentRepository] WARNING: file_url is NULL or empty');
           hasIssues = true;
         }
         if (fileType == null || fileType.toString().isEmpty) {
-          print('⚠️ [DocumentRepository] WARNING: file_type is NULL or empty');
+          DiagnosticLogger.instance.warning('⚠️ [DocumentRepository] WARNING: file_type is NULL or empty');
           hasIssues = true;
         }
         if (fileSize == null || fileSize.toString().isEmpty) {
-          print('⚠️ [DocumentRepository] WARNING: file_size is NULL or empty');
+          DiagnosticLogger.instance.warning('⚠️ [DocumentRepository] WARNING: file_size is NULL or empty');
           hasIssues = true;
         }
 
         // If all fields are present, log success
         if (!hasIssues) {
-          print(
+          DiagnosticLogger.instance.error(
             '✅ [DocumentRepository] All file metadata fields are populated correctly',
           );
         } else {
-          print('❌ [DocumentRepository] Some file metadata fields are missing');
-          print(
+          DiagnosticLogger.instance.error('❌ [DocumentRepository] Some file metadata fields are missing');
+          DiagnosticLogger.instance.debug(
             '   Backend may not have processed $uploadMethod upload correctly',
           );
-          print('   Check backend logic for $uploadMethod file handling');
+          DiagnosticLogger.instance.debug('   Check backend logic for $uploadMethod file handling');
         }
-        print('═══════════════════════════════════════════════════════════');
+        DiagnosticLogger.instance.debug('═══════════════════════════════════════════════════════════');
       }
 
       return {
@@ -763,14 +764,14 @@ class DocumentRepository {
 
   /// Delete Document
   /// DELETE /documents/delete/{document_id}
-  /// Request: { "api_token": "<CURRENT_USER_API_TOKEN>" }
+  /// Request: { "api_token": "`<CURRENT_USER_API_TOKEN>`" }
   /// Response: {
   ///   "status": true,
   ///   "message": "Document deleted successfully."
   /// }
   Future<Map<String, dynamic>> deleteDocument(int documentId) async {
     try {
-      print('🗑️ [DocumentRepository] Deleting document with ID: $documentId');
+      DiagnosticLogger.instance.debug('🗑️ [DocumentRepository] Deleting document with ID: $documentId');
 
       final storageService = Get.find<StorageService>();
       final apiToken = storageService.getAccessToken();
@@ -788,7 +789,7 @@ class DocumentRepository {
       );
 
       if (response.statusCode == 200 && response.data['status'] == true) {
-        print('✅ [DocumentRepository] Document deleted successfully');
+        DiagnosticLogger.instance.info('✅ [DocumentRepository] Document deleted successfully');
         return {
           'success': true,
           'message':
@@ -799,7 +800,7 @@ class DocumentRepository {
             response.data['message'] ??
             response.data['error'] ??
             'Failed to delete document';
-        print('⚠️ [DocumentRepository] Delete failed: $errorMessage');
+        DiagnosticLogger.instance.error('⚠️ [DocumentRepository] Delete failed: $errorMessage');
         return {
           'success': false,
           'error': errorMessage,
@@ -807,7 +808,7 @@ class DocumentRepository {
         };
       }
     } catch (e) {
-      print('❌ [DocumentRepository] Error deleting document: $e');
+      DiagnosticLogger.instance.error('❌ [DocumentRepository] Error deleting document: $e');
 
       final errorMessage = e.toString().isNotEmpty
           ? e.toString()
@@ -834,8 +835,8 @@ class DocumentRepository {
   /// Download Document
   /// POST /download_document
   /// Request: {
-  ///   "token": "<CURRENT_USER_API_TOKEN>",
-  ///   "document_id": <DOCUMENT_ID>
+  ///   "token": "`<CURRENT_USER_API_TOKEN>`",
+  ///   "document_id": `<DOCUMENT_ID>`
   /// }
   /// Response: File bytes (binary data)
   Future<Map<String, dynamic>> downloadDocument({
@@ -852,10 +853,10 @@ class DocumentRepository {
         };
       }
 
-      print(
+      DiagnosticLogger.instance.debug(
         '📥 [DocumentRepository] Downloading document with ID: $documentId',
       );
-      print(
+      DiagnosticLogger.instance.debug(
         '🔑 [DocumentRepository] Using token: ${token.substring(0, 10)}...',
       );
 
@@ -877,7 +878,7 @@ class DocumentRepository {
       );
 
       if (response.statusCode == 200) {
-        print(
+        DiagnosticLogger.instance.info(
           '✅ [DocumentRepository] Document downloaded successfully (${response.data.length} bytes)',
         );
         return {
@@ -885,7 +886,7 @@ class DocumentRepository {
           'data': response.data as List<int>, // File bytes
         };
       } else {
-        print(
+        DiagnosticLogger.instance.warning(
           '⚠️ [DocumentRepository] Download failed: Status ${response.statusCode}',
         );
         return {
@@ -895,7 +896,7 @@ class DocumentRepository {
         };
       }
     } catch (e) {
-      print('❌ [DocumentRepository] Error downloading document: $e');
+      DiagnosticLogger.instance.error('❌ [DocumentRepository] Error downloading document: $e');
 
       String errorMessage = 'Failed to download document. Please try again.';
       if (e is dio.DioException) {

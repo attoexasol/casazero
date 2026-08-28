@@ -12,7 +12,7 @@ class ApiService extends getx.GetxService {
   final StorageService _storageService = getx.Get.find();
 
   ApiService() {
-    print('[ApiService] baseUrl=${ApiConstants.BASE_URL}');
+    DiagnosticLogger.instance.debug('[ApiService] baseUrl=${ApiConstants.BASE_URL}');
     _dio = Dio(
       BaseOptions(
         baseUrl: ApiConstants.BASE_URL,
@@ -41,7 +41,7 @@ class ApiService extends getx.GetxService {
           // only OTP send/verify and auth endpoints; reject everything else.
           if (_storageService.isPending2FA &&
               !Pending2FAPolicy.isAllowedEndpoint(options.path)) {
-            print(
+            DiagnosticLogger.instance.debug(
               '⛔ [API BLOCKED — pending 2FA] ${options.method} ${options.uri}',
             );
             DiagnosticLogger.instance.warning(
@@ -69,8 +69,8 @@ class ApiService extends getx.GetxService {
             options.headers.remove('Authorization');
           }
 
-          print('🌐 [API REQUEST] ${options.method} ${options.uri}');
-          print('🔑 [API TOKEN] ${token ?? 'NO_TOKEN_FOUND'}');
+          DiagnosticLogger.instance.debug('🌐 [API REQUEST] ${options.method} ${options.uri}');
+          DiagnosticLogger.instance.debug('🔑 [API TOKEN] ${token ?? 'NO_TOKEN_FOUND'}');
           return handler.next(options);
         },
         onResponse: (response, handler) {
@@ -181,8 +181,8 @@ class ApiService extends getx.GetxService {
       requestOptions.headers.remove('Authorization');
     }
 
-    print('🔄 [API RETRY] ${requestOptions.method} ${requestOptions.uri}');
-    print('🔑 [API RETRY TOKEN] ${freshToken ?? 'NO_TOKEN_FOUND'}');
+    DiagnosticLogger.instance.debug('🔄 [API RETRY] ${requestOptions.method} ${requestOptions.uri}');
+    DiagnosticLogger.instance.debug('🔑 [API RETRY TOKEN] ${freshToken ?? 'NO_TOKEN_FOUND'}');
 
     final options = Options(
       method: requestOptions.method,
@@ -249,8 +249,8 @@ class ApiService extends getx.GetxService {
     } else if (error.type == DioExceptionType.badResponse) {
       final statusCode = error.response?.statusCode;
       // Log full error response for debugging (e.g. document upload failures)
-      print('❌ [API ERROR RESPONSE] Status: $statusCode');
-      print('❌ [API ERROR RESPONSE] Body: ${error.response?.data}');
+      DiagnosticLogger.instance.error('❌ [API ERROR RESPONSE] Status: $statusCode');
+      DiagnosticLogger.instance.error('❌ [API ERROR RESPONSE] Body: ${error.response?.data}');
 
       // Handle specific HTTP status codes
       if (statusCode == 403) {

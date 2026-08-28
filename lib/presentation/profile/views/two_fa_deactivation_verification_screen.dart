@@ -9,7 +9,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
-import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/tablet_centered_layout.dart';
 import '../controllers/two_fa_management_controller.dart';
 
@@ -125,20 +124,20 @@ class TwoFADeactivationVerificationScreen extends GetView<TwoFAManagementControl
               color: AppColors.surfaceWhite,
               borderRadius: BorderRadius.circular(16.r),
               border: Border.all(
-                color: AppColors.danger.withOpacity(0.3),
+                color: AppColors.danger.withValues(alpha: 0.3),
                 width: 2,
               ),
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  AppColors.danger.withOpacity(0.05),
+                  AppColors.danger.withValues(alpha: 0.05),
                   AppColors.surfaceWhite,
                 ],
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.danger.withOpacity(0.1),
+                  color: AppColors.danger.withValues(alpha: 0.1),
                   blurRadius: 20,
                   offset: Offset(0, 4),
                 ),
@@ -151,7 +150,7 @@ class TwoFADeactivationVerificationScreen extends GetView<TwoFAManagementControl
                   width: 48.w,
                   height: 48.w,
                   decoration: BoxDecoration(
-                    color: AppColors.danger.withOpacity(0.1),
+                    color: AppColors.danger.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -197,7 +196,7 @@ class TwoFADeactivationVerificationScreen extends GetView<TwoFAManagementControl
               border: Border.all(color: AppColors.neutralLine200),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: Offset(0, 2),
                 ),
@@ -463,131 +462,6 @@ class TwoFADeactivationVerificationScreen extends GetView<TwoFAManagementControl
     );
   }
 
-  void _showConfirmationDialog(Rx<DeactivationStep> currentStep) {
-    Get.dialog(
-      Builder(
-        builder: (dialogContext) {
-          final viewInsets = MediaQuery.viewInsetsOf(dialogContext);
-          final screenSize = MediaQuery.sizeOf(dialogContext);
-          final maxWidth = screenSize.width >= 600
-              ? 480.0
-              : (screenSize.width - 32).clamp(280.0, 480.0);
-
-          return Dialog(
-            insetPadding: EdgeInsets.fromLTRB(
-              16,
-              16,
-              16,
-              16 + viewInsets.bottom,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16.r),
-            ),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: maxWidth),
-              child: SingleChildScrollView(
-                padding: EdgeInsets.all(24.w),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.warning_amber_rounded,
-                          color: AppColors.danger,
-                          size: 24.sp,
-                        ),
-                        SizedBox(width: 12.w),
-                        Expanded(
-                          child: Text(
-                            'confirm_deactivation'.tr,
-                            style: AppTextStyles.h4.copyWith(
-                              color: AppColors.danger,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 16.h),
-                    Text(
-                      'confirm_deactivation_message'.tr,
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.neutralInk700,
-                      ),
-                      maxLines: 4,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: 24.h),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => Get.back(),
-                            style: OutlinedButton.styleFrom(
-                              padding: EdgeInsets.symmetric(vertical: 12.h),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12.r),
-                              ),
-                              side: BorderSide(color: AppColors.neutralInk300),
-                            ),
-                            child: Text(
-                              'cancel'.tr,
-                              style: AppTextStyles.bodyMedium.copyWith(
-                                color: AppColors.neutralInk700,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 12.w),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              Get.back(); // Close confirmation dialog
-
-                              // Send OTP for email/SMS methods
-                              // if (controller.current2FAMethod.value == 'email' ||
-                              //     controller.current2FAMethod.value == 'sms') {
-                              //   await controller.sendDeactivationOTP();
-                              // }
-
-                              // Navigate to verify step
-                              currentStep.value = DeactivationStep.verify;
-                            },
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.symmetric(vertical: 12.h),
-                              backgroundColor: AppColors.danger,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12.r),
-                              ),
-                            ),
-                            child: Text(
-                              'proceed'.tr,
-                              style: AppTextStyles.bodyMedium.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
   // ============================================================================
   // STEP 2: VERIFY
   // ============================================================================
@@ -653,7 +527,7 @@ class TwoFADeactivationVerificationScreen extends GetView<TwoFAManagementControl
               border: Border.all(color: AppColors.neutralLine200),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: Offset(0, 2),
                 ),
@@ -832,7 +706,7 @@ class TwoFADeactivationVerificationScreen extends GetView<TwoFAManagementControl
               width: 80.w,
               height: 80.w,
               decoration: BoxDecoration(
-                color: AppColors.warning.withOpacity(0.1),
+                color: AppColors.warning.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Center(

@@ -28,31 +28,61 @@ class PushTypes {
 
   static bool isDocument(String? type) {
     final t = normalize(type);
-    return t == documentUploaded || t == 'document' || t == 'documents';
+    return t == documentUploaded ||
+        t == 'document' ||
+        t == 'documents' ||
+        t == 'document_upload' ||
+        t == 'user_document_upload' ||
+        (t != null && t.contains('document'));
   }
 
   /// Private / admin DM aliases (backend may send any of these).
   static bool isPrivateChat(String? type) {
     final t = normalize(type);
+    if (t == null) return false;
     return t == privateChatMessage ||
         t == privateChat ||
+        t == 'privatechat' ||
         t == 'admin_chat' ||
-        t == 'adminchat';
+        t == 'adminchat' ||
+        t == 'admin_message' ||
+        t == 'private_message' ||
+        t == 'direct_message' ||
+        t == 'dm' ||
+        t.contains('private_chat') ||
+        t.contains('admin_chat') ||
+        t.contains('privatechat') ||
+        t.contains('adminchat');
   }
 
   /// Group / condominium chat aliases.
   static bool isGroupChat(String? type) {
     final t = normalize(type);
+    if (t == null) return false;
+    if (isPrivateChat(t)) return false;
     return t == groupChat ||
         t == 'groupchat' ||
         t == 'chat' ||
         t == 'message' ||
         t == 'messages' ||
-        t == 'chat_message';
+        t == 'chat_message' ||
+        t == 'group_message' ||
+        t == 'condominium_chat' ||
+        t == 'condominio_chat' ||
+        t == 'condominium' ||
+        t == 'condominio' ||
+        t == 'condo_chat' ||
+        t == 'announcement' ||
+        t == 'announcements' ||
+        t.contains('group_chat') ||
+        t.contains('groupchat') ||
+        t.contains('condominium') ||
+        t.contains('condominio') ||
+        t.contains('announcement') ||
+        t.contains('chat');
   }
 
-  static bool isChat(String? type) =>
-      isPrivateChat(type) || isGroupChat(type);
+  static bool isChat(String? type) => isPrivateChat(type) || isGroupChat(type);
 
   static bool isTicketOrSupport(String? type) {
     final t = normalize(type);
@@ -81,9 +111,6 @@ class PushTypes {
 
   static bool isSyncOrAnnouncement(String? type) {
     final t = normalize(type);
-    return t == null ||
-        t == syncNotifications ||
-        t == 'announcement' ||
-        t == 'announcements';
+    return t == null || t == syncNotifications;
   }
 }

@@ -326,13 +326,13 @@ class DocumentPasswordScreen extends GetView<DocumentPasswordController> {
         padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
         decoration: BoxDecoration(
           color: match
-              ? AppColors.success.withOpacity(0.1)
-              : AppColors.danger.withOpacity(0.1),
+              ? AppColors.success.withValues(alpha: 0.1)
+              : AppColors.danger.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: match
-                ? AppColors.success.withOpacity(0.3)
-                : AppColors.danger.withOpacity(0.3),
+                ? AppColors.success.withValues(alpha: 0.3)
+                : AppColors.danger.withValues(alpha: 0.3),
             width: 1,
           ),
         ),

@@ -65,7 +65,7 @@ class _BuildingSelectorState extends State<BuildingSelector> {
                 "Building Scope",
                 style: TextStyle(
                   fontSize: 12.sp,
-                  color: Colors.white.withOpacity(0.7),
+                  color: Colors.white.withValues(alpha: 0.7),
                 ),
               ),
               SizedBox(width: 6.w),
@@ -78,9 +78,9 @@ class _BuildingSelectorState extends State<BuildingSelector> {
           Container(
             padding: EdgeInsets.symmetric(horizontal: 12.w),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.12),
+              color: Colors.white.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10.r),
-              border: Border.all(color: Colors.white.withOpacity(0.2)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
@@ -102,7 +102,7 @@ class _BuildingSelectorState extends State<BuildingSelector> {
                           b.address,
                           style: TextStyle(
                             fontSize: 12.sp,
-                            color: Colors.white.withOpacity(0.65),
+                            color: Colors.white.withValues(alpha: 0.65),
                           ),
                         ),
                       ],
@@ -124,7 +124,7 @@ class _BuildingSelectorState extends State<BuildingSelector> {
             "${widget.currentBuilding.units} units · ${widget.currentBuilding.residents} residents",
             style: TextStyle(
               fontSize: 12.sp,
-              color: Colors.white.withOpacity(0.75),
+              color: Colors.white.withValues(alpha: 0.75),
             ),
           ),
         ],
@@ -151,7 +151,7 @@ class _BuildingSelectorState extends State<BuildingSelector> {
                 "Managing Building",
                 style: TextStyle(
                   fontSize: 12.sp,
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                 ),
               ),
               SizedBox(width: 6.w),
@@ -171,7 +171,7 @@ class _BuildingSelectorState extends State<BuildingSelector> {
             widget.currentBuilding.address,
             style: TextStyle(
               fontSize: 12.sp,
-              color: Colors.white.withOpacity(0.7),
+              color: Colors.white.withValues(alpha: 0.7),
             ),
           ),
           SizedBox(height: 8.h),
@@ -179,7 +179,7 @@ class _BuildingSelectorState extends State<BuildingSelector> {
             "${widget.currentBuilding.units} units · ${widget.currentBuilding.residents} residents",
             style: TextStyle(
               fontSize: 12.sp,
-              color: Colors.white.withOpacity(0.75),
+              color: Colors.white.withValues(alpha: 0.75),
             ),
           ),
         ],
@@ -219,7 +219,7 @@ class _BuildingSelectorState extends State<BuildingSelector> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        color: Colors.white.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(8.r),
       ),
       child: Text(

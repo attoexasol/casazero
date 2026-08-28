@@ -33,6 +33,6 @@ class AppGradients {
   static LinearGradient glassOverlay = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [Colors.white.withOpacity(0.8), Colors.white.withOpacity(0.6)],
+    colors: [Colors.white.withValues(alpha: 0.8), Colors.white.withValues(alpha: 0.6)],
   );
 }

@@ -79,7 +79,7 @@ class AppShadows {
   }) {
     return [
       BoxShadow(
-        color: color.withOpacity(opacity),
+        color: color.withValues(alpha: opacity),
         blurRadius: 8,
         offset: const Offset(0, 2),
       ),

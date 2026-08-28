@@ -57,7 +57,7 @@ class CustomTextField extends StatelessWidget {
         Text(
           label,
           style: AppTextStyles.label.copyWith(
-            color: labelColor ?? AppColors.surfaceWhite.withOpacity(0.9),
+            color: labelColor ?? AppColors.surfaceWhite.withValues(alpha: 0.9),
             fontSize: 14.sp,
           ),
           maxLines: 2,
@@ -92,7 +92,7 @@ class CustomTextField extends StatelessWidget {
             counterText: '',
             filled: true,
             fillColor: enabled
-                ? (backgroundColor ?? AppColors.surfaceWhite.withOpacity(0.9))
+                ? (backgroundColor ?? AppColors.surfaceWhite.withValues(alpha: 0.9))
                 : AppColors.neutralLine100,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(25),
@@ -102,7 +102,7 @@ class CustomTextField extends StatelessWidget {
               borderRadius: BorderRadius.circular(25),
               borderSide: BorderSide(
                 color: enabled
-                    ? (borderColor ?? AppColors.surfaceWhite.withOpacity(0.4))
+                    ? (borderColor ?? AppColors.surfaceWhite.withValues(alpha: 0.4))
                     : AppColors.neutralLine200,
                 width: 1,
               ),

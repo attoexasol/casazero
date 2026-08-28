@@ -9,6 +9,7 @@ import '../../../data/models/residence_model.dart';
 import '../../app/theme/app_shadows.dart';
 import '../../../presentation/home/controllers/home_controller.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 class ResidenceInfoCard extends StatelessWidget {
   final UserModel user;
@@ -27,7 +28,7 @@ class ResidenceInfoCard extends StatelessWidget {
     // This ensures we always have fresh data when viewing the profile
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (homeController.residences.isEmpty && !homeController.isLoadingResidences.value) {
-        print('[ResidenceInfoCard] Residences empty, triggering fetchResidences()');
+        DiagnosticLogger.instance.debug('[ResidenceInfoCard] Residences empty, triggering fetchResidences()');
         homeController.fetchResidences();
       }
     });
@@ -84,7 +85,7 @@ class ResidenceInfoCard extends StatelessWidget {
   Widget _header() {
     return Text(
       "residence".tr,
-      style: AppTextStyles.CardHeaderText.copyWith(
+      style: AppTextStyles.cardHeaderText.copyWith(
         color: AppColors.regulerTextColor,
       ),
     );

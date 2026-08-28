@@ -4,6 +4,7 @@
 import 'package:get/get.dart';
 import '../../../core/localization/locale_controller.dart';
 import 'maintenance_category_model.dart';
+import '../../../core/logging/diagnostic_logger.dart';
 
 enum MaintenancePriority { facoltative, obbligatorie, condominiali, personal, n1, n2, n3 }
 
@@ -323,8 +324,8 @@ class MaintenanceTask {
     int? fallbackResidenceId,
   }) {
     // DEBUG: Log full task JSON to find priority field
-    print('🔍 [MaintenanceTask] Full task JSON for ID ${json['id']}:');
-    print('   All keys: ${json.keys.toList()}');
+    DiagnosticLogger.instance.debug('🔍 [MaintenanceTask] Full task JSON for ID ${json['id']}:');
+    DiagnosticLogger.instance.debug('   All keys: ${json.keys.toList()}');
     // Log all fields that might contain priority
     json.forEach((key, value) {
       if (key.toLowerCase().contains('priority') || 
@@ -332,7 +333,7 @@ class MaintenanceTask {
           key.toLowerCase().contains('n1') ||
           key.toLowerCase().contains('n2') ||
           key.toLowerCase().contains('n3')) {
-        print('   🔑 Found potential priority field: $key = $value (type: ${value.runtimeType})');
+        DiagnosticLogger.instance.debug('   🔑 Found potential priority field: $key = $value (type: ${value.runtimeType})');
       }
     });
     
@@ -359,7 +360,7 @@ class MaintenanceTask {
     if (json['company'] != null && json['company'] is Map) {
       companyObj = MaintenanceCompany.fromJson(json['company']);
       // DEBUG: Log company phone for verification
-      print('📞 [MaintenanceTask] Company phone: ${companyObj.phone}');
+      DiagnosticLogger.instance.debug('📞 [MaintenanceTask] Company phone: ${companyObj.phone}');
     }
 
     // Get category name from nested object based on user's language settings
@@ -559,9 +560,9 @@ class MaintenanceTask {
         json['priorityLevel'];
     
     // DEBUG: Log priority data from API
-    print('🔍 [MaintenanceTask] Priority field check for task ID: ${json['id']}');
-    print('🔍 [MaintenanceTask] priorityValue found: $priorityValue (type: ${priorityValue != null ? priorityValue.runtimeType : 'null'})');
-    print('🔍 [MaintenanceTask] priority IT="$priorityNameItValue" EN="$priorityNameEnValue"');
+    DiagnosticLogger.instance.debug('🔍 [MaintenanceTask] Priority field check for task ID: ${json['id']}');
+    DiagnosticLogger.instance.debug('🔍 [MaintenanceTask] priorityValue found: $priorityValue (type: ${priorityValue != null ? priorityValue.runtimeType : 'null'})');
+    DiagnosticLogger.instance.debug('🔍 [MaintenanceTask] priority IT="$priorityNameItValue" EN="$priorityNameEnValue"');
     
     if (priorityValue != null) {
       String priorityStr = '';
@@ -628,17 +629,17 @@ class MaintenanceTask {
           enumSource.contains('OPTIONAL') ||
           enumSource.contains('N1')) {
         priority = MaintenancePriority.facoltative;
-        if (priorityRawValue == null) priorityRawValue = 'Facoltativa';
+        priorityRawValue ??= 'Facoltativa';
       } else if (enumSource.contains('OBBLIGATOR') ||
           enumSource.contains('MANDATORY') ||
           enumSource.contains('N2')) {
         priority = MaintenancePriority.obbligatorie;
-        if (priorityRawValue == null) priorityRawValue = 'Obbligatoria';
+        priorityRawValue ??= 'Obbligatoria';
       } else if (enumSource.contains('CONDOMINIAL') ||
           enumSource.contains('ADMINISTRATIVE') ||
           enumSource.contains('N3')) {
         priority = MaintenancePriority.condominiali;
-        if (priorityRawValue == null) priorityRawValue = 'Condominiale';
+        priorityRawValue ??= 'Condominiale';
       } else if (enumSource.contains('PERSONAL') ||
           enumSource.contains('PERSONALE')) {
         priority = MaintenancePriority.personal;
@@ -648,17 +649,17 @@ class MaintenanceTask {
           case 'N1':
           case '1':
             priority = MaintenancePriority.n1;
-            if (priorityRawValue == null) priorityRawValue = 'N1';
+            priorityRawValue ??= 'N1';
             break;
           case 'N2':
           case '2':
             priority = MaintenancePriority.n2;
-            if (priorityRawValue == null) priorityRawValue = 'N2';
+            priorityRawValue ??= 'N2';
             break;
           case 'N3':
           case '3':
             priority = MaintenancePriority.n3;
-            if (priorityRawValue == null) priorityRawValue = 'N3';
+            priorityRawValue ??= 'N3';
             break;
           default:
             priority = MaintenancePriority.personal;
@@ -666,9 +667,9 @@ class MaintenanceTask {
       }
       
       // DEBUG: Log parsed priority
-      print('🔍 [MaintenanceTask] Parsed priority: enum=$priority, raw=$priorityRawValue, en=$priorityNameEnValue, it=$priorityNameItValue');
+      DiagnosticLogger.instance.warning('🔍 [MaintenanceTask] Parsed priority: enum=$priority, raw=$priorityRawValue, en=$priorityNameEnValue, it=$priorityNameItValue');
     } else {
-      print('⚠️ [MaintenanceTask] No priority value found in API response, using default: personal');
+      DiagnosticLogger.instance.warning('⚠️ [MaintenanceTask] No priority value found in API response, using default: personal');
     }
 
     // Parse maintenance_frequency (can be object with name_en/name_it or string)
@@ -679,30 +680,30 @@ class MaintenanceTask {
       if (json['maintenance_frequency'] is Map) {
         // It's an object, store it for reactive language updates
         frequencyObj = Map<String, dynamic>.from(json['maintenance_frequency'] as Map);
-        print('🔍 [MaintenanceTask] Frequency object: $frequencyObj');
-        print('🔍 [MaintenanceTask] Frequency keys: ${frequencyObj.keys.toList()}');
+        DiagnosticLogger.instance.debug('🔍 [MaintenanceTask] Frequency object: $frequencyObj');
+        DiagnosticLogger.instance.debug('🔍 [MaintenanceTask] Frequency keys: ${frequencyObj.keys.toList()}');
         
         // Also set initial frequency based on current language
         try {
           final localeController = Get.find<LocaleController>();
           final isEnglish = localeController.isEnglish;
           
-          print('🌐 [MaintenanceTask] User language - isEnglish: $isEnglish');
+          DiagnosticLogger.instance.debug('🌐 [MaintenanceTask] User language - isEnglish: $isEnglish');
           
           if (isEnglish) {
             // English: use name_en, fallback to name
             frequencyStr = frequencyObj['name_en']?.toString().trim() ?? 
                           frequencyObj['name']?.toString().trim() ?? '';
-            print('🌐 [MaintenanceTask] Selected frequency (EN): "$frequencyStr"');
+            DiagnosticLogger.instance.debug('🌐 [MaintenanceTask] Selected frequency (EN): "$frequencyStr"');
           } else {
             // Italian: use name_it, fallback to name_en, then name
             frequencyStr = frequencyObj['name_it']?.toString().trim() ?? 
                           frequencyObj['name_en']?.toString().trim() ?? 
                           frequencyObj['name']?.toString().trim() ?? '';
-            print('🌐 [MaintenanceTask] Selected frequency (IT): "$frequencyStr"');
+            DiagnosticLogger.instance.warning('🌐 [MaintenanceTask] Selected frequency (IT): "$frequencyStr"');
           }
         } catch (e) {
-          print('⚠️ [MaintenanceTask] LocaleController not found, defaulting to English');
+          DiagnosticLogger.instance.warning('⚠️ [MaintenanceTask] LocaleController not found, defaulting to English');
           // Fallback if LocaleController not available
           frequencyStr = frequencyObj['name_en']?.toString().trim() ?? 
                         frequencyObj['name']?.toString().trim() ?? '';
@@ -710,11 +711,11 @@ class MaintenanceTask {
       } else {
         // It's a string - store as is
         frequencyStr = json['maintenance_frequency'].toString().trim();
-        print('🔍 [MaintenanceTask] Frequency is string: "$frequencyStr"');
+        DiagnosticLogger.instance.info('🔍 [MaintenanceTask] Frequency is string: "$frequencyStr"');
       }
     }
     
-    print('✅ [MaintenanceTask] Final frequency value: "$frequencyStr"');
+    DiagnosticLogger.instance.info('✅ [MaintenanceTask] Final frequency value: "$frequencyStr"');
 
     // Format dates (due_date / last_maintenance_date from API)
     String dueDateStr = json['due_date']?.toString().trim() ?? '';
@@ -740,7 +741,7 @@ class MaintenanceTask {
         updatedAt = DateTime.parse(json['updated_at'].toString());
       }
     } catch (e) {
-      print('Error parsing dates: $e');
+      DiagnosticLogger.instance.error('Error parsing dates: $e');
     }
 
     // Get IDs from nested objects if not present directly

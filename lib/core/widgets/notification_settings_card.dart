@@ -8,6 +8,7 @@ import '../../../app/theme/app_text_styles.dart';
 import '../../../data/models/user_model.dart';
 import '../../../presentation/profile/controllers/profile_controller.dart';
 import '../../app/theme/app_shadows.dart';
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 class NotificationSettingsCard extends StatelessWidget {
   final UserModel user;
@@ -28,7 +29,7 @@ class NotificationSettingsCard extends StatelessWidget {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (profileController.user.value == null) {
             profileController.user.value = user;
-            print('📥 [NotificationCard] User initialized from prop');
+            DiagnosticLogger.instance.debug('📥 [NotificationCard] User initialized from prop');
           }
         });
       }
@@ -62,7 +63,7 @@ class NotificationSettingsCard extends StatelessWidget {
           children: [
             Text(
               "notification_preferences".tr,
-              style: AppTextStyles.CardHeaderText,
+              style: AppTextStyles.cardHeaderText,
             ),
             SizedBox(height: 4.h),
             Text(
@@ -81,7 +82,7 @@ class NotificationSettingsCard extends StatelessWidget {
               label: "documents".tr,
               value: isDocumentNotify,
               onChanged: (v) {
-                print('🔘 [NotificationCard] Documents switch toggled: $v');
+                DiagnosticLogger.instance.debug('🔘 [NotificationCard] Documents switch toggled: $v');
                 profileController.updateNotification('documents', v);
               },
             ),
@@ -93,7 +94,7 @@ class NotificationSettingsCard extends StatelessWidget {
               label: "maintenance".tr,
               value: isMaintenanceNotify,
               onChanged: (v) {
-                print('🔘 [NotificationCard] Maintenance switch toggled: $v');
+                DiagnosticLogger.instance.debug('🔘 [NotificationCard] Maintenance switch toggled: $v');
                 profileController.updateNotification('maintenance', v);
               },
             ),
@@ -105,7 +106,7 @@ class NotificationSettingsCard extends StatelessWidget {
               label: "chat_messages".tr,
               value: isChatNotify,
               onChanged: (v) {
-                print('🔘 [NotificationCard] Chat switch toggled: $v');
+                DiagnosticLogger.instance.debug('🔘 [NotificationCard] Chat switch toggled: $v');
                 profileController.updateNotification('chat', v);
               },
             ),
@@ -117,7 +118,7 @@ class NotificationSettingsCard extends StatelessWidget {
               label: "support_tickets".tr,
               value: isSupportTicketNotify,
               onChanged: (v) {
-                print('🔘 [NotificationCard] Tickets switch toggled: $v');
+                DiagnosticLogger.instance.debug('🔘 [NotificationCard] Tickets switch toggled: $v');
                 profileController.updateNotification('tickets', v);
               },
             ),
@@ -153,12 +154,12 @@ class NotificationSettingsCard extends StatelessWidget {
           Switch(
             value: value,
             onChanged: (newValue) {
-              print(
+              DiagnosticLogger.instance.debug(
                 '🔘 [NotificationCard] Switch tapped: $label = $newValue (was $value)',
               );
               // Call the callback immediately to update state
               onChanged(newValue);
-              print(
+              DiagnosticLogger.instance.info(
                 '✅ [NotificationCard] Switch callback executed for: $label',
               );
             },

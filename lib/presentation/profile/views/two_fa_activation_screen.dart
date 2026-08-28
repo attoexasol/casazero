@@ -20,7 +20,7 @@ class TwoFAActivationScreen extends GetView<TwoFAManagementController> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false, // Prevent automatic popping
-      onPopInvoked: (didPop) async {
+      onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
 
         // Only allow manual back navigation, not automatic from controller
@@ -343,7 +343,7 @@ class TwoFAActivationScreen extends GetView<TwoFAManagementController> {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.success.withOpacity(0.1),
+                                color: AppColors.success.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -1001,7 +1001,7 @@ class TwoFAActivationScreen extends GetView<TwoFAManagementController> {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: AppColors.success.withOpacity(0.1),
+                    color: AppColors.success.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Center(

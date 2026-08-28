@@ -55,7 +55,7 @@ class ChatScreen extends GetView<ChatController> {
               children: [
                 Obx(() => Text(
                   controller.residenceName.value,
-                  style: AppTextStyles.CardHeaderText.copyWith(
+                  style: AppTextStyles.cardHeaderText.copyWith(
                     fontSize: 18.sp,
                     fontWeight: FontWeight.w600,
                     color: AppColors.neutralInk900,
@@ -496,7 +496,7 @@ class ChatScreen extends GetView<ChatController> {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
+                            color: Colors.black.withValues(alpha: 0.08),
                             blurRadius: 6,
                             offset: const Offset(0, 2),
                           ),
@@ -521,7 +521,7 @@ class ChatScreen extends GetView<ChatController> {
                       //     height: 20.sp,
                       //     color: hasText
                       //         ? AppColors.surfaceWhite
-                      //         : AppColors.surfaceWhite.withOpacity(0.6),
+                      //         : AppColors.surfaceWhite.withValues(alpha: 0.6),
                       //     colorBlendMode: BlendMode.srcIn,
                       //   ),
                     ),

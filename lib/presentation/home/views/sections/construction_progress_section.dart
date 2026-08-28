@@ -14,7 +14,6 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
-import '../../../../app/theme/app_shadows.dart';
 import '../../../../core/controllers/message_popup_controller.dart';
 import '../../../../core/services/file_opener_service.dart';
 import '../../../../data/models/construction_phase_model.dart';
@@ -287,7 +286,7 @@ class _TimelineCircle extends StatelessWidget {
         boxShadow: [
           if (elevation == 2)
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -324,12 +323,13 @@ class _StepCard extends StatelessWidget {
     final isFuture = phase.status == 'pending';
 
     String statusLabel;
-    if (isCompleted)
+    if (isCompleted) {
       statusLabel = 'completed'.tr;
-    else if (isActive)
+    } else if (isActive) {
       statusLabel = 'inProgressStatus'.tr;
-    else
+    } else {
       statusLabel = 'upcoming'.tr;
+    }
 
     final dateStr = phase.startDate != null
         ? _formatPhaseDate(phase.startDate!)
@@ -367,8 +367,8 @@ class _StepCard extends StatelessWidget {
               ? [
                   BoxShadow(
                     color: isActive
-                        ? _inProgressBrandDark.withOpacity(0.12)
-                        : Colors.black.withOpacity(0.04),
+                        ? _inProgressBrandDark.withValues(alpha: 0.12)
+                        : Colors.black.withValues(alpha: 0.04),
                     blurRadius: isActive ? 8 : 4,
                     spreadRadius: isActive ? 0 : 0,
                     offset: const Offset(0, 2),
@@ -537,7 +537,7 @@ class _ConstructionProgressSectionState
                 border: Border.all(color: AppColors.neutralLine100, width: 1),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
+                    color: Colors.black.withValues(alpha: 0.03),
                     blurRadius: 4.r,
                     spreadRadius: 0,
                     offset: Offset(0, 1.h),
@@ -562,8 +562,8 @@ class _ConstructionProgressSectionState
                               center: Alignment.topRight,
                               radius: 0.8,
                               colors: [
-                                AppColors.aquaGreen100.withOpacity(0.3),
-                                AppColors.aquaGreen100.withOpacity(0.0),
+                                AppColors.aquaGreen100.withValues(alpha: 0.3),
+                                AppColors.aquaGreen100.withValues(alpha: 0.0),
                               ],
                             ),
                           ),

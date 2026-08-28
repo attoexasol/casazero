@@ -9,13 +9,8 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
-
-
-
-
-
 import '../../controllers/two_fa_management_controller.dart';
-
+import '../../../../core/logging/diagnostic_logger.dart';
 
 class TwoFAManagementWidgets {
 
@@ -237,7 +232,7 @@ class TwoFAManagementWidgets {
     try {
       // Use the otpauth URL directly if available
       if (otpauthUrl.isNotEmpty && otpauthUrl.startsWith('otpauth://')) {
-        print('✅ Using otpauth URL directly: $otpauthUrl');
+        DiagnosticLogger.instance.debug('Using otpauth URL for QR display');
         return QrImageView(
           data: otpauthUrl,
           version: QrVersions.auto,
@@ -271,7 +266,7 @@ class TwoFAManagementWidgets {
         );
       }
     } catch (e) {
-      print('Error displaying QR code: $e');
+      DiagnosticLogger.instance.error('Error displaying QR code: $e');
       return Container(
         width: 200,
         height: 200,
@@ -292,7 +287,7 @@ class TwoFAManagementWidgets {
     // Fallback: Create otpauth URL from secret
     // Format: otpauth://totp/CasaZero:account?secret=SECRET&issuer=CasaZero
     if (fallbackSecret.isNotEmpty) {
-      print('⚠️ Creating fallback otpauth URL from secret');
+      DiagnosticLogger.instance.warning('⚠️ Creating fallback otpauth URL from secret');
       return 'otpauth://totp/CasaZero:User?secret=$fallbackSecret&issuer=CasaZero';
     }
 
@@ -417,10 +412,10 @@ class TwoFAManagementWidgets {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: AppColors.warning.withOpacity(0.1),
+                        color: AppColors.warning.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: AppColors.warning.withOpacity(0.3),
+                          color: AppColors.warning.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Row(

@@ -58,7 +58,7 @@ class _PreferencesCardState extends State<PreferencesCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("preferences".tr, style: AppTextStyles.CardHeaderText),
+          Text("preferences".tr, style: AppTextStyles.cardHeaderText),
           SizedBox(height: 16.h),
 
           Obx(() => _buildLanguageSelector(controller)),
@@ -211,36 +211,5 @@ class _PreferencesCardState extends State<PreferencesCard> {
         );
       } catch (_) {}
     }
-  }
-
-  // RESET FIRST LOGIN -----------------------------------------------------
-
-  Widget _buildResetFirstLogin() {
-    return InkWell(
-      onTap: () {
-        // You can implement logic here later
-      },
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.warning.withOpacity(.2)),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.refresh, color: AppColors.warning),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                "reset_first_login".tr,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.warning,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

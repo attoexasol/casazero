@@ -248,7 +248,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
                   width: isCompact ? 48.w : 64.w,
                   height: isCompact ? 48.w : 64.w,
                   decoration: BoxDecoration(
-                    color: AppColors.brandSage500.withOpacity(0.1),
+                    color: AppColors.brandSage500.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -336,7 +336,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
                           width: 22.w,
                           height: 22.w,
                           decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.6),
+                            color: Colors.black.withValues(alpha: 0.6),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -357,7 +357,7 @@ class _CreateTicketDialogState extends State<CreateTicketDialog> {
                     width: thumbSize,
                     height: thumbSize,
                     decoration: BoxDecoration(
-                      color: AppColors.brandSage500.withOpacity(0.1),
+                      color: AppColors.brandSage500.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12.r),
                       border: Border.all(color: AppColors.brandSage300),
                     ),

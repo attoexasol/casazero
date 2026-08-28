@@ -33,7 +33,7 @@ class DemoControlsPanel extends GetView<DemoController> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 24,
             offset: const Offset(-4, 0),
           ),
@@ -316,10 +316,10 @@ class DemoControlsPanel extends GetView<DemoController> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.info.withOpacity(0.08),
+        color: AppColors.info.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: AppColors.info.withOpacity(0.2),
+          color: AppColors.info.withValues(alpha: 0.2),
           width: 1,
         ),
       ),

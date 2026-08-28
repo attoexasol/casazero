@@ -8,6 +8,7 @@ import '../../core/services/api_service.dart';
 import '../../core/services/storage_service.dart';
 import '../../presentation/tickets/models/issue_type_model.dart';
 import '../../presentation/tickets/models/ticket_model.dart';
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 class TicketRepository {
   final ApiService _apiService = Get.find();
@@ -18,7 +19,7 @@ class TicketRepository {
       final apiToken = _storageService.getAccessToken();
 
       if (apiToken == null || apiToken.isEmpty) {
-        print('❌ [TicketRepository] API token not found');
+        DiagnosticLogger.instance.error('❌ [TicketRepository] API token not found');
         return [];
       }
 
@@ -27,26 +28,26 @@ class TicketRepository {
         data: {'api_token': apiToken},
       );
 
-      print('📋 [TicketRepository] Issue types response status: ${response.statusCode}');
+      DiagnosticLogger.instance.debug('📋 [TicketRepository] Issue types response status: ${response.statusCode}');
 
       final dynamic rawData = response.data;
       final Map<String, dynamic> body =
           rawData is String ? json.decode(rawData) : Map<String, dynamic>.from(rawData);
 
-      print('📋 [TicketRepository] Issue types body: $body');
+      DiagnosticLogger.instance.debug('📋 [TicketRepository] Issue types body: $body');
 
       final bool isSuccess = body['success'] == true || body['status'] == true;
 
       if (isSuccess) {
         final List<dynamic> data = body['data'] ?? [];
-        print('📋 [TicketRepository] Parsed ${data.length} issue types');
+        DiagnosticLogger.instance.warning('📋 [TicketRepository] Parsed ${data.length} issue types');
         return data.map((e) => IssueTypeModel.fromJson(e)).toList();
       }
 
-      print('⚠️ [TicketRepository] API returned success=false');
+      DiagnosticLogger.instance.error('⚠️ [TicketRepository] API returned success=false');
       return [];
     } catch (e) {
-      print('❌ [TicketRepository] Error fetching issue types: $e');
+      DiagnosticLogger.instance.error('❌ [TicketRepository] Error fetching issue types: $e');
       return [];
     }
   }
@@ -61,7 +62,7 @@ class TicketRepository {
       final apiToken = _storageService.getAccessToken();
 
       if (apiToken == null || apiToken.isEmpty) {
-        print('❌ [TicketRepository] API token not found');
+        DiagnosticLogger.instance.error('❌ [TicketRepository] API token not found');
         return null;
       }
 
@@ -74,13 +75,13 @@ class TicketRepository {
         },
       );
 
-      print('📋 [TicketRepository] Create issue type status: ${response.statusCode}');
+      DiagnosticLogger.instance.debug('📋 [TicketRepository] Create issue type status: ${response.statusCode}');
 
       final dynamic rawData = response.data;
       final Map<String, dynamic> body =
           rawData is String ? json.decode(rawData) : Map<String, dynamic>.from(rawData);
 
-      print('📋 [TicketRepository] Create issue type body: $body');
+      DiagnosticLogger.instance.debug('📋 [TicketRepository] Create issue type body: $body');
 
       final bool isSuccess = body['success'] == true || body['status'] == true;
 
@@ -96,10 +97,10 @@ class TicketRepository {
         );
       }
 
-      print('⚠️ [TicketRepository] Create issue type failed: ${body['message'] ?? 'unknown error'}');
+      DiagnosticLogger.instance.error('⚠️ [TicketRepository] Create issue type failed: ${body['message'] ?? 'unknown error'}');
       return null;
     } catch (e) {
-      print('❌ [TicketRepository] Error creating issue type: $e');
+      DiagnosticLogger.instance.error('❌ [TicketRepository] Error creating issue type: $e');
       return null;
     }
   }
@@ -119,7 +120,7 @@ class TicketRepository {
       final apiToken = _storageService.getAccessToken();
 
       if (apiToken == null || apiToken.isEmpty) {
-        print('❌ [TicketRepository] API token not found');
+        DiagnosticLogger.instance.error('❌ [TicketRepository] API token not found');
         return null;
       }
 
@@ -151,20 +152,20 @@ class TicketRepository {
         requestData['image'] = 'data:$mimeType;base64,$base64Str';
       }
 
-      print('🎫 [TicketRepository] Creating support ticket...');
+      DiagnosticLogger.instance.debug('🎫 [TicketRepository] Creating support ticket...');
 
       final response = await _apiService.post(
         ApiConstants.CREATE_SUPPORT_TICKET,
         data: requestData,
       );
 
-      print('🎫 [TicketRepository] Create ticket status: ${response.statusCode}');
+      DiagnosticLogger.instance.debug('🎫 [TicketRepository] Create ticket status: ${response.statusCode}');
 
       final dynamic rawData = response.data;
       final Map<String, dynamic> body =
           rawData is String ? json.decode(rawData) : Map<String, dynamic>.from(rawData);
 
-      print('🎫 [TicketRepository] Create ticket body: $body');
+      DiagnosticLogger.instance.warning('🎫 [TicketRepository] Create ticket body: $body');
 
       final bool isSuccess = body['success'] == true || body['status'] == true;
 
@@ -172,10 +173,10 @@ class TicketRepository {
         return body;
       }
 
-      print('⚠️ [TicketRepository] Create ticket failed: ${body['message'] ?? 'unknown error'}');
+      DiagnosticLogger.instance.error('⚠️ [TicketRepository] Create ticket failed: ${body['message'] ?? 'unknown error'}');
       return null;
     } catch (e) {
-      print('❌ [TicketRepository] Error creating support ticket: $e');
+      DiagnosticLogger.instance.error('❌ [TicketRepository] Error creating support ticket: $e');
       return null;
     }
   }
@@ -186,7 +187,7 @@ class TicketRepository {
       final apiToken = _storageService.getAccessToken();
 
       if (apiToken == null || apiToken.isEmpty) {
-        print('❌ [TicketRepository] API token not found');
+        DiagnosticLogger.instance.error('❌ [TicketRepository] API token not found');
         return [];
       }
 
@@ -195,7 +196,7 @@ class TicketRepository {
         data: {'api_token': apiToken},
       );
 
-      print('🎫 [TicketRepository] My tickets response status: ${response.statusCode}');
+      DiagnosticLogger.instance.debug('🎫 [TicketRepository] My tickets response status: ${response.statusCode}');
 
       final dynamic rawData = response.data;
       final Map<String, dynamic> body =
@@ -205,14 +206,14 @@ class TicketRepository {
 
       if (isSuccess) {
         final List<dynamic> data = body['data'] ?? [];
-        print('🎫 [TicketRepository] Parsed ${data.length} tickets');
+        DiagnosticLogger.instance.warning('🎫 [TicketRepository] Parsed ${data.length} tickets');
         return data.map((e) => TicketModel.fromJson(e)).toList();
       }
 
-      print('⚠️ [TicketRepository] fetchMyTickets API returned success=false');
+      DiagnosticLogger.instance.error('⚠️ [TicketRepository] fetchMyTickets API returned success=false');
       return [];
     } catch (e) {
-      print('❌ [TicketRepository] Error fetching my tickets: $e');
+      DiagnosticLogger.instance.error('❌ [TicketRepository] Error fetching my tickets: $e');
       return [];
     }
   }

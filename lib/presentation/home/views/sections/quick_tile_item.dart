@@ -22,9 +22,9 @@ class QuickTileItem extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(24.r),
         decoration: BoxDecoration(
-          color: AppColors.surfaceWhite.withOpacity(0.85),
+          color: AppColors.surfaceWhite.withValues(alpha: 0.85),
           borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(color: AppColors.neutralLine200.withOpacity(0.5)),
+          border: Border.all(color: AppColors.neutralLine200.withValues(alpha: 0.5)),
           boxShadow: AppShadows.shadowLg,
         ),
         child: Column(

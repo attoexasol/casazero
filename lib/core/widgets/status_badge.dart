@@ -20,13 +20,13 @@ class StatusBadge extends StatelessWidget {
   Color get _backgroundColor {
     switch (type) {
       case BadgeType.success:
-        return AppColors.success.withOpacity(0.1);
+        return AppColors.success.withValues(alpha: 0.1);
       case BadgeType.warning:
-        return AppColors.warning.withOpacity(0.1);
+        return AppColors.warning.withValues(alpha: 0.1);
       case BadgeType.danger:
-        return AppColors.danger.withOpacity(0.1);
+        return AppColors.danger.withValues(alpha: 0.1);
       case BadgeType.info:
-        return AppColors.info.withOpacity(0.1);
+        return AppColors.info.withValues(alpha: 0.1);
       case BadgeType.neutral:
         return AppColors.neutralLine100;
     }

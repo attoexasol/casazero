@@ -17,6 +17,7 @@ import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/custom_text_field.dart';
 import '../../../core/widgets/tablet_centered_layout.dart';
 import '../controllers/two_fa_management_controller.dart';
+import '../../../core/logging/diagnostic_logger.dart';
 
 class TwoFAManagementScreen extends GetView<TwoFAManagementController> {
   const TwoFAManagementScreen({super.key});
@@ -141,7 +142,6 @@ class TwoFAManagementScreen extends GetView<TwoFAManagementController> {
   // ============================================================================
 
   Widget _buildProgressIndicator() {
-    final steps = ['select', 'setup', 'verify', 'success'];
     int currentStepIndex = 0;
 
     // Determine current step based on state
@@ -274,7 +274,7 @@ class TwoFAManagementScreen extends GetView<TwoFAManagementController> {
                     ),
                     borderRadius: BorderRadius.circular(16.r),
                     border: Border.all(
-                      color: AppColors.brandSage300.withOpacity(0.3),
+                      color: AppColors.brandSage300.withValues(alpha: 0.3),
                     ),
                     boxShadow: AppShadows.shadowPremium,
                   ),
@@ -734,7 +734,7 @@ class TwoFAManagementScreen extends GetView<TwoFAManagementController> {
             );
           }
         } catch (e) {
-          print('Error decoding base64 QR data: $e');
+          DiagnosticLogger.instance.error('Error decoding base64 QR data: $e');
         }
       }
 
@@ -755,7 +755,7 @@ class TwoFAManagementScreen extends GetView<TwoFAManagementController> {
         ),
       );
     } catch (e) {
-      print('Error generating QR code: $e');
+      DiagnosticLogger.instance.error('Error generating QR code: $e');
       return Container(
         width: 200.w,
         height: 200.w,
@@ -835,7 +835,7 @@ class TwoFAManagementScreen extends GetView<TwoFAManagementController> {
             width: 80.w,
             height: 80.w,
             decoration: BoxDecoration(
-              color: AppColors.warning.withOpacity(0.1),
+              color: AppColors.warning.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -858,10 +858,10 @@ class TwoFAManagementScreen extends GetView<TwoFAManagementController> {
           Container(
             padding: EdgeInsets.all(16.w),
             decoration: BoxDecoration(
-              color: AppColors.warning.withOpacity(0.1),
+              color: AppColors.warning.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12.r),
               border: Border.all(
-                color: AppColors.warning.withOpacity(0.3),
+                color: AppColors.warning.withValues(alpha: 0.3),
               ),
             ),
             child: Text(

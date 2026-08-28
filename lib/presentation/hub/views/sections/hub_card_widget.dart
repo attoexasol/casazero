@@ -43,7 +43,7 @@ class _HubCardWidgetState extends State<HubCardWidget> {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: hovered
-                ? widget.card.hoverColor.withOpacity(0.4)
+                ? widget.card.hoverColor.withValues(alpha: 0.4)
                 : Colors.grey.shade200,
             width: hovered ? 2 : 1,
           ),

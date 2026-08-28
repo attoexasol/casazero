@@ -16,7 +16,7 @@ import 'dart:ui';
 import '../ai/viwes/ai_screen.dart';
 import '../documents/viwes/documents_screen.dart';
 import '../home/views/home_screen.dart';
-import '../hub/views/hub_screen.dart' hide Role;
+import '../hub/views/hub_screen.dart';
 import '../maintenance/views/maintenance_screen.dart';
 import '../profile/views/profile_screen.dart';
 import '../smart_home/views/smart_home_screen.dart';
@@ -31,13 +31,10 @@ import '../chat/controllers/chat_controller.dart';
 import '../chat/controllers/private_chat_controller.dart';
 import '../hub/controllers/hub_controller.dart';
 import '../tickets/controllers/tickets_controller.dart';
-import '../../data/models/user_model.dart';
-import '../../data/models/feed_item_model.dart';
 import '../../core/utils/permissions.dart';
 import '../../core/utils/accessibility.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../trusted_device/views/trusted_devices_screen.dart';
 import '../chat/views/chat_screen.dart';
 import '../chat/views/chat_hub_screen.dart';
 import '../chat/views/private_chat_screen.dart';
@@ -71,11 +68,6 @@ class MainScaffold extends GetView<HomeController> {
     if (!Get.isRegistered<MaintenanceController>()) {
       Get.put(MaintenanceController());
     }
-  }
-
-  bool _isRouteObscuredByModal(BuildContext context) {
-    final route = ModalRoute.of(context);
-    return route != null && !route.isCurrent;
   }
 
   @override
@@ -116,9 +108,8 @@ class MainScaffold extends GetView<HomeController> {
 
   // BUILD APP BAR - PERSISTENT ACROSS ALL SCREENS
   PreferredSizeWidget _buildAppBar() {
-    String? title;
+    late String title;
     bool showNotification = true;
-    bool showSearch = false;
     bool showResidenceSwitcher = false;
     bool canGoBack = false;
     bool canGoForward = false;
@@ -128,7 +119,6 @@ class MainScaffold extends GetView<HomeController> {
       case AppScreen.home:
         title = 'home_page'.tr;
         showNotification = true;
-        showSearch = false;
         showResidenceSwitcher = false; // No residence switcher on home screen
         canGoBack = controller.canGoBack;
         canGoForward = controller.canGoForward;
@@ -148,7 +138,6 @@ class MainScaffold extends GetView<HomeController> {
       case AppScreen.hubScreen:
         title = 'ecosystemHub'.tr;
         showNotification = true; // Show notification on all screens
-        showSearch = false;
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
         canGoForward = controller.canGoForward;
@@ -166,7 +155,6 @@ class MainScaffold extends GetView<HomeController> {
       case AppScreen.profile:
         title = 'profile'.tr;
         showNotification = true; // Show notification on all screens
-        showSearch = false;
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
         canGoForward = controller.canGoForward;
@@ -175,7 +163,6 @@ class MainScaffold extends GetView<HomeController> {
       case AppScreen.smartHome:
         title = 'smartHome'.tr;
         showNotification = true; // Show notification on all screens
-        showSearch = false;
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
         canGoForward = controller.canGoForward;
@@ -184,7 +171,6 @@ class MainScaffold extends GetView<HomeController> {
       case AppScreen.changePassword:
         title = 'Change Password';
         showNotification = true; // Show notification on all screens
-        showSearch = false;
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
         canGoForward = controller.canGoForward;
@@ -192,7 +178,6 @@ class MainScaffold extends GetView<HomeController> {
       case AppScreen.ai:
         title = 'casaZeroAI'.tr;
         showNotification = true; // Show notification on all screens
-        showSearch = false;
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
         canGoForward = controller.canGoForward;
@@ -201,7 +186,6 @@ class MainScaffold extends GetView<HomeController> {
       case AppScreen.trustedDevices:
         title = 'trusted_devices'.tr;
         showNotification = true; // Show notification on all screens
-        showSearch = false;
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
         canGoForward = controller.canGoForward;
@@ -210,7 +194,6 @@ class MainScaffold extends GetView<HomeController> {
       case AppScreen.chatHub:
         title = 'appbarchatHub'.tr;
         showNotification = true;
-        showSearch = false;
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
         canGoForward = controller.canGoForward;
@@ -219,7 +202,6 @@ class MainScaffold extends GetView<HomeController> {
       case AppScreen.chat:
         title = 'appbargroupChat'.tr;
         showNotification = true;
-        showSearch = false;
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
         canGoForward = controller.canGoForward;
@@ -228,7 +210,6 @@ class MainScaffold extends GetView<HomeController> {
       case AppScreen.adminChat:
         title = 'appbarAdminChat'.tr;
         showNotification = true;
-        showSearch = false;
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
         canGoForward = controller.canGoForward;
@@ -237,7 +218,6 @@ class MainScaffold extends GetView<HomeController> {
       case AppScreen.tickets:
         title = 'tickets'.tr;
         showNotification = true;
-        showSearch = false;
         showResidenceSwitcher = false;
         canGoBack = controller.canGoBack;
         canGoForward = controller.canGoForward;
@@ -291,8 +271,8 @@ class MainScaffold extends GetView<HomeController> {
                   if (showBackButton) SizedBox(width: 4.w),
 
                   // Logo/Title Section (only for non-title cases like logo/residence switcher)
-                  if (variant == 'branded' && !showNavigationControls ||
-                      (showResidenceSwitcher && title != null))
+                  if ((variant == 'branded' && !showNavigationControls) ||
+                      showResidenceSwitcher)
                     _buildTitleSection(
                       title: title,
                       showNavigationControls: showNavigationControls,
@@ -311,9 +291,8 @@ class MainScaffold extends GetView<HomeController> {
             ),
 
             // Center section - Title positioned absolutely in center
-            if (title != null &&
-                !(variant == 'branded' && !showNavigationControls) &&
-                !(showResidenceSwitcher && title != null))
+            if (!(variant == 'branded' && !showNavigationControls) &&
+                !showResidenceSwitcher)
               Positioned.fill(
                 child: Padding(
                   padding: EdgeInsets.symmetric(
@@ -378,10 +357,10 @@ class MainScaffold extends GetView<HomeController> {
                 decoration: BoxDecoration(
                   color: useOpaqueAppBar
                       ? AppColors.surfaceWhite
-                      : AppColors.surfaceWhite.withOpacity(0.95),
+                      : AppColors.surfaceWhite.withValues(alpha: 0.95),
                   border: Border(
                     bottom: BorderSide(
-                      color: AppColors.neutralLine200.withOpacity(0.5),
+                      color: AppColors.neutralLine200.withValues(alpha: 0.5),
                       width: 1,
                     ),
                   ),
@@ -389,7 +368,7 @@ class MainScaffold extends GetView<HomeController> {
                       ? null
                       : [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 15.r,
                             offset: Offset(0, 4.h),
                           ),
@@ -412,58 +391,6 @@ class MainScaffold extends GetView<HomeController> {
                 curve: Curves.easeOut,
               )
               .fadeIn(duration: 500.ms),
-    );
-  }
-
-  Widget _buildNavButton({
-    required IconData icon,
-    required bool enabled,
-    required VoidCallback? onTap,
-    required String tooltip,
-  }) {
-    return Tooltip(
-      message: enabled ? tooltip : '',
-      waitDuration: const Duration(milliseconds: 300),
-      textStyle: TextStyle(
-        color: AppColors.surfaceWhite,
-        fontSize: 12.sp,
-        fontWeight: FontWeight.w500,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.neutralInk900,
-        borderRadius: BorderRadius.circular(20.r),
-      ),
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-      child: MouseRegion(
-        cursor: enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
-        child: GestureDetector(
-          onTap: enabled ? onTap : null,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            width: 48.w,
-            height: 48.w,
-            constraints: Accessibility.iconButtonConstraints,
-            decoration: BoxDecoration(
-              color: enabled ? AppColors.brandSage50 : AppColors.neutralLine100,
-              shape: BoxShape.circle,
-              boxShadow: enabled
-                  ? [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 4.r,
-                        offset: Offset(0, 2.h),
-                      ),
-                    ]
-                  : [],
-            ),
-            child: Icon(
-              icon,
-              size: 20.sp,
-              color: enabled ? AppColors.brandSage600 : AppColors.neutralInk300,
-            ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -497,11 +424,11 @@ class MainScaffold extends GetView<HomeController> {
             duration: const Duration(milliseconds: 300),
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
             decoration: BoxDecoration(
-              color: AppColors.brandSage50.withOpacity(0.8),
+              color: AppColors.brandSage50.withValues(alpha: 0.8),
               borderRadius: BorderRadius.circular(12.r),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 4.r,
                   offset: Offset(0, 2.h),
                 ),
@@ -557,50 +484,6 @@ class MainScaffold extends GetView<HomeController> {
     }
 
     return const SizedBox.shrink();
-  }
-
-  Widget _buildSearchButton({required VoidCallback onTap}) {
-    return Tooltip(
-      message: 'Search',
-      waitDuration: const Duration(milliseconds: 300),
-      textStyle: TextStyle(
-        color: AppColors.surfaceWhite,
-        fontSize: 12.sp,
-        fontWeight: FontWeight.w500,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.neutralInk900,
-        borderRadius: BorderRadius.circular(20.r),
-      ),
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: GestureDetector(
-          onTap: onTap,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            width: 43.w,
-            height: 43.w,
-            decoration: BoxDecoration(
-              color: AppColors.brandSage50,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 4.r,
-                  offset: Offset(0, 2.h),
-                ),
-              ],
-            ),
-            child: Icon(
-              Icons.search,
-              size: 25.sp,
-              color: AppColors.brandSage600,
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   Widget _buildNotificationButton({
@@ -707,7 +590,7 @@ class _AnimatedNotificationButtonState extends State<_AnimatedNotificationButton
                             gradient: LinearGradient(
                               colors: [
                                 AppColors.danger,
-                                AppColors.danger.withOpacity(0.9),
+                                AppColors.danger.withValues(alpha: 0.9),
                               ],
                             ),
                             borderRadius: BorderRadius.circular(8.r),
@@ -717,7 +600,7 @@ class _AnimatedNotificationButtonState extends State<_AnimatedNotificationButton
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.15),
+                                color: Colors.black.withValues(alpha: 0.15),
                                 blurRadius: 4.r,
                                 offset: Offset(0, 1.h),
                               ),

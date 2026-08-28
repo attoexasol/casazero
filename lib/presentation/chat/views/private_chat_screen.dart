@@ -89,7 +89,7 @@ class PrivateChatScreen extends GetView<PrivateChatController> {
               children: [
                 Text(
                   adminName,
-                  style: AppTextStyles.CardHeaderText.copyWith(
+                  style: AppTextStyles.cardHeaderText.copyWith(
                     fontSize: 18.sp,
                     fontWeight: FontWeight.w600,
                     color: AppColors.neutralInk900,

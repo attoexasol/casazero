@@ -72,7 +72,7 @@ class AppTextStyles {
         color: AppColors.regulerTextColor,
       );
 
-  static TextStyle get CardHeaderText => _style(
+  static TextStyle get cardHeaderText => _style(
         fontSize: _cardHeaderSize,
         fontWeight: FontWeight.w600,
         height: 1.5,

@@ -68,10 +68,5 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileHeader() {
-    // Your existing profile header implementation
-    return Container();
-  }
-
 // ... rest of your profile widgets
 }

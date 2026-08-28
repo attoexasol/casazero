@@ -28,7 +28,7 @@ class FcmService extends GetxService with WidgetsBindingObserver {
       }
       return _messaging;
     } catch (e) {
-      print('❌ [FcmService] Error accessing FirebaseMessaging: $e');
+      DiagnosticLogger.instance.error('❌ [FcmService] Error accessing FirebaseMessaging: $e');
       return null;
     }
   }
@@ -101,7 +101,7 @@ class FcmService extends GetxService with WidgetsBindingObserver {
   /// Safe to call multiple times; core setup runs only once.
   Future<FcmService> init() async {
     if (Firebase.apps.isEmpty) {
-      print('⚠️ [FcmService] Firebase not initialized, skipping init');
+      DiagnosticLogger.instance.warning('⚠️ [FcmService] Firebase not initialized, skipping init');
       DiagnosticLogger.instance.warning(
         'FCM initialization skipped — Firebase not initialized',
       );
@@ -109,7 +109,7 @@ class FcmService extends GetxService with WidgetsBindingObserver {
     }
 
     if (_initialized) {
-      print('📌 [FcmService] init skipped (already initialized)');
+      DiagnosticLogger.instance.debug('📌 [FcmService] init skipped (already initialized)');
       await registerAfterAuth();
       return this;
     }
@@ -124,10 +124,10 @@ class FcmService extends GetxService with WidgetsBindingObserver {
       _setupTokenRefreshListener();
       _setupForegroundAndBackgroundHandlers();
       await _setIOSForegroundPresentationOptions();
-      print('✅ [FcmService] Initialization complete');
+      DiagnosticLogger.instance.error('✅ [FcmService] Initialization complete');
       DiagnosticLogger.instance.info('FCM initialization completed');
     } catch (e, stackTrace) {
-      print('❌ [FcmService] init error: $e');
+      DiagnosticLogger.instance.error('❌ [FcmService] init error: $e');
       DiagnosticLogger.instance.error(
         'FCM initialization error',
         error: e,
@@ -150,11 +150,11 @@ class FcmService extends GetxService with WidgetsBindingObserver {
     Duration budget = _authWarmUpBudget,
   }) async {
     if (Firebase.apps.isEmpty) {
-      print('⚠️ [FcmService] registerAfterAuth skipped — Firebase not initialized');
+      DiagnosticLogger.instance.warning('⚠️ [FcmService] registerAfterAuth skipped — Firebase not initialized');
       return null;
     }
 
-    print(
+    DiagnosticLogger.instance.debug(
       '🔄 [FcmService] registerAfterAuth — permission + token '
       '(waitForToken=$waitForToken, budget=${budget.inSeconds}s)',
     );
@@ -170,7 +170,7 @@ class FcmService extends GetxService with WidgetsBindingObserver {
 
     final cached = _currentToken;
     if (cached != null && cached.isNotEmpty) {
-      print('✅ [FcmService] registerAfterAuth — cached token ${_mask(cached)}');
+      DiagnosticLogger.instance.info('✅ [FcmService] registerAfterAuth — cached token ${_mask(cached)}');
       unawaited(_syncFcmTokenWithBackend(cached));
       // Warm local cache; skip second sync for the same cached value.
       unawaited(
@@ -200,12 +200,12 @@ class FcmService extends GetxService with WidgetsBindingObserver {
   }) async {
     final token = await getDeviceToken(budget: budget);
     if (token == null) {
-      print(
+      DiagnosticLogger.instance.warning(
         '⚠️ [FcmService] Token warm-up ($reason) finished without a token — '
         'will retry on next auth event / permission grant',
       );
     } else {
-      print('✅ [FcmService] Token warm-up ($reason) ready: ${_mask(token)}');
+      DiagnosticLogger.instance.info('✅ [FcmService] Token warm-up ($reason) ready: ${_mask(token)}');
       if (syncWithBackend) {
         unawaited(_syncFcmTokenWithBackend(token));
       }
@@ -221,14 +221,14 @@ class FcmService extends GetxService with WidgetsBindingObserver {
       if (!Get.isRegistered<StorageService>()) return;
       final apiToken = Get.find<StorageService>().getAccessToken();
       if (apiToken == null || apiToken.isEmpty) {
-        print(
+        DiagnosticLogger.instance.warning(
           '⚠️ [FcmService] Skip backend FCM sync — user not authenticated',
         );
         return;
       }
 
       if (!Get.isRegistered<NotificationRepository>()) {
-        print(
+        DiagnosticLogger.instance.warning(
           '⚠️ [FcmService] Skip backend FCM sync — NotificationRepository missing',
         );
         return;
@@ -237,7 +237,7 @@ class FcmService extends GetxService with WidgetsBindingObserver {
       await Get.find<NotificationRepository>().updateFcmToken(trimmed);
     } catch (e) {
       // Local token is intentionally kept; next registerAfterAuth / refresh retries.
-      print('❌ [FcmService] Backend FCM sync error (local token kept): $e');
+      DiagnosticLogger.instance.error('❌ [FcmService] Backend FCM sync error (local token kept): $e');
     }
   }
 
@@ -250,7 +250,7 @@ class FcmService extends GetxService with WidgetsBindingObserver {
         granted && !_lastNotificationPermissionGranted;
 
     if (permissionChanged) {
-      print(
+      DiagnosticLogger.instance.debug(
         '📱 [FcmService] Notification permission granted after resume — refreshing token',
       );
       DiagnosticLogger.instance.info(
@@ -278,7 +278,7 @@ class FcmService extends GetxService with WidgetsBindingObserver {
             status == AuthorizationStatus.provisional;
       }
     } catch (e) {
-      print('❌ [FcmService] Error checking notification permission: $e');
+      DiagnosticLogger.instance.error('❌ [FcmService] Error checking notification permission: $e');
     }
     return false;
   }
@@ -293,9 +293,9 @@ class FcmService extends GetxService with WidgetsBindingObserver {
         badge: true,
         sound: true,
       );
-      print('📱 [FcmService] iOS foreground presentation options set');
+      DiagnosticLogger.instance.error('📱 [FcmService] iOS foreground presentation options set');
     } catch (e) {
-      print('❌ [FcmService] iOS foreground options error: $e');
+      DiagnosticLogger.instance.error('❌ [FcmService] iOS foreground options error: $e');
     }
   }
 
@@ -311,7 +311,7 @@ class FcmService extends GetxService with WidgetsBindingObserver {
         sound: true,
         provisional: false,
       );
-      print('📱 [FcmService] Permission: ${settings.authorizationStatus}');
+      DiagnosticLogger.instance.debug('📱 [FcmService] Permission: ${settings.authorizationStatus}');
       DiagnosticLogger.instance.info(
         'Notification permission result',
         metadata: <String, Object?>{
@@ -321,13 +321,13 @@ class FcmService extends GetxService with WidgetsBindingObserver {
 
       if (Platform.isAndroid) {
         final androidStatus = await Permission.notification.request();
-        print('📱 [FcmService] Android notification permission: $androidStatus');
+        DiagnosticLogger.instance.error('📱 [FcmService] Android notification permission: $androidStatus');
       }
 
       _lastNotificationPermissionGranted =
           await _isNotificationPermissionGranted();
     } catch (e) {
-      print('❌ [FcmService] Error requesting permission: $e');
+      DiagnosticLogger.instance.error('❌ [FcmService] Error requesting permission: $e');
       DiagnosticLogger.instance.error(
         'Notification permission request failed',
         error: e,
@@ -352,7 +352,7 @@ class FcmService extends GetxService with WidgetsBindingObserver {
       try {
         apnsToken = await messaging!.getAPNSToken();
       } catch (e) {
-        print('❌ [FcmService][APNs] attempt $attempt — getAPNSToken error: $e');
+        DiagnosticLogger.instance.error('❌ [FcmService][APNs] attempt $attempt — getAPNSToken error: $e');
         if (attempt == 1) {
           DiagnosticLogger.instance.error(
             'APNs token lookup error',
@@ -362,7 +362,7 @@ class FcmService extends GetxService with WidgetsBindingObserver {
       }
 
       if (apnsToken != null && apnsToken.isNotEmpty) {
-        print(
+        DiagnosticLogger.instance.info(
           '✅ [FcmService][APNs] token available after $attempt attempt(s): '
           '${_mask(apnsToken)}',
         );
@@ -378,7 +378,7 @@ class FcmService extends GetxService with WidgetsBindingObserver {
 
       final remaining = deadline.difference(DateTime.now());
       if (remaining <= Duration.zero) {
-        print(
+        DiagnosticLogger.instance.debug(
           '⏱️ [FcmService][APNs] no token after $attempt attempt(s) / '
           '${budget.inSeconds}s — skipping getToken() to avoid '
           'apns-token-not-set. Check Push Notifications capability, '
@@ -397,7 +397,7 @@ class FcmService extends GetxService with WidgetsBindingObserver {
 
       final backoff = _backoffFor(attempt);
       final wait = backoff > remaining ? remaining : backoff;
-      print(
+      DiagnosticLogger.instance.debug(
         '🔄 [FcmService][APNs] attempt $attempt — not ready, retrying in '
         '${wait.inMilliseconds}ms (remaining ${remaining.inMilliseconds}ms)',
       );
@@ -413,7 +413,7 @@ class FcmService extends GetxService with WidgetsBindingObserver {
   Future<String?> _refreshToken({Duration? apnsBudget}) {
     final inFlight = _tokenFetchInFlight;
     if (inFlight != null) {
-      print('⏳ [FcmService] Token fetch already in flight — joining');
+      DiagnosticLogger.instance.debug('⏳ [FcmService] Token fetch already in flight — joining');
       return inFlight;
     }
 
@@ -432,7 +432,7 @@ class FcmService extends GetxService with WidgetsBindingObserver {
         budget: apnsBudget ?? _apnsWaitBudget,
       );
       if (apnsToken == null || apnsToken.isEmpty) {
-        print(
+        DiagnosticLogger.instance.warning(
           '⚠️ [FcmService] iOS — APNs token unavailable; not requesting FCM token',
         );
         DiagnosticLogger.instance.warning(
@@ -449,7 +449,7 @@ class FcmService extends GetxService with WidgetsBindingObserver {
     try {
       final token = await messaging!.getToken();
       if (token == null || token.trim().isEmpty) {
-        print(
+        DiagnosticLogger.instance.debug(
           '🔑 [FcmService] getToken() returned null/empty — keeping cached '
           'token (${_currentToken == null ? "none" : "present"})',
         );
@@ -465,7 +465,7 @@ class FcmService extends GetxService with WidgetsBindingObserver {
 
       final changed = _currentToken != token;
       _currentToken = token;
-      print(
+      DiagnosticLogger.instance.debug(
         '🔑 [FcmService] FCM token ${changed ? "updated" : "unchanged"}: '
         '${_mask(token)}',
       );
@@ -478,7 +478,7 @@ class FcmService extends GetxService with WidgetsBindingObserver {
       );
       return token;
     } catch (e) {
-      print('❌ [FcmService] Error getting token: $e');
+      DiagnosticLogger.instance.error('❌ [FcmService] Error getting token: $e');
       DiagnosticLogger.instance.error(
         'FCM token lookup error',
         error: e,
@@ -491,10 +491,10 @@ class FcmService extends GetxService with WidgetsBindingObserver {
     if (Firebase.apps.isEmpty || messaging == null) return;
     messaging!.onTokenRefresh.listen((newToken) {
       if (newToken.trim().isEmpty) {
-        print('⚠️ [FcmService] Token refresh delivered an empty token — ignored');
+        DiagnosticLogger.instance.warning('⚠️ [FcmService] Token refresh delivered an empty token — ignored');
         return;
       }
-      print('🔄 [FcmService] Token refresh — cached ${_mask(newToken)}');
+      DiagnosticLogger.instance.debug('🔄 [FcmService] Token refresh — cached ${_mask(newToken)}');
       _currentToken = newToken;
       DiagnosticLogger.instance.info(
         'FCM token availability status',
@@ -506,7 +506,7 @@ class FcmService extends GetxService with WidgetsBindingObserver {
       // Fire-and-forget — never block UI; local cache already updated.
       unawaited(_syncFcmTokenWithBackend(newToken));
     }).onError((e) {
-      print('❌ [FcmService] Token refresh error: $e');
+      DiagnosticLogger.instance.error('❌ [FcmService] Token refresh error: $e');
       DiagnosticLogger.instance.error('FCM token refresh error', error: e);
     });
   }
@@ -530,7 +530,7 @@ class FcmService extends GetxService with WidgetsBindingObserver {
       final skipLocalOnIos =
           !kIsWeb && Platform.isIOS && message.notification != null;
       if (skipLocalOnIos) {
-        print(
+        DiagnosticLogger.instance.debug(
           '📨 [FcmService] iOS foreground — using system presentation '
           '(skipping local duplicate)',
         );
@@ -538,12 +538,12 @@ class FcmService extends GetxService with WidgetsBindingObserver {
         await LocalNotificationService.showNotification(message);
       }
     } catch (e) {
-      print('❌ [FcmService] Local notification error: $e');
+      DiagnosticLogger.instance.error('❌ [FcmService] Local notification error: $e');
     }
 
     final data = PushLaunchHandler.dataFromRemoteMessage(message);
     final messageId = message.messageId;
-    print(
+    DiagnosticLogger.instance.debug(
       '📨 [FcmService] Foreground push – data keys: ${data.isNotEmpty ? data.keys.join(", ") : "none"}',
     );
     _dispatchToNotificationManager(data, messageId: messageId);
@@ -553,12 +553,12 @@ class FcmService extends GetxService with WidgetsBindingObserver {
   void _dispatchToNotificationManager(Map<String, dynamic>? data, {String? messageId}) {
     try {
       if (!Get.isRegistered<NotificationManager>()) {
-        print('⚠️ [FcmService] NotificationManager not registered');
+        DiagnosticLogger.instance.error('⚠️ [FcmService] NotificationManager not registered');
         return;
       }
       Get.find<NotificationManager>().handlePushPayload(data, messageId: messageId);
     } catch (e) {
-      print('❌ [FcmService] Dispatch to NotificationManager error: $e');
+      DiagnosticLogger.instance.error('❌ [FcmService] Dispatch to NotificationManager error: $e');
     }
   }
 
@@ -575,7 +575,7 @@ class FcmService extends GetxService with WidgetsBindingObserver {
   Future<String?> getDeviceToken({Duration budget = _tokenWaitBudget}) async {
     final cached = _currentToken;
     if (cached != null && cached.isNotEmpty) {
-      print('🔑 [FcmService] Device token served from cache: ${_mask(cached)}');
+      DiagnosticLogger.instance.debug('🔑 [FcmService] Device token served from cache: ${_mask(cached)}');
       return cached;
     }
 
@@ -587,7 +587,7 @@ class FcmService extends GetxService with WidgetsBindingObserver {
       final remaining = deadline.difference(DateTime.now());
       final token = await _refreshToken(apnsBudget: remaining);
       if (token != null && token.isNotEmpty) {
-        print(
+        DiagnosticLogger.instance.info(
           '✅ [FcmService] Device token resolved on attempt $attempt: '
           '${_mask(token)}',
         );
@@ -599,14 +599,14 @@ class FcmService extends GetxService with WidgetsBindingObserver {
 
       final backoff = _backoffFor(attempt);
       final wait = backoff > left ? left : backoff;
-      print(
+      DiagnosticLogger.instance.debug(
         '🔄 [FcmService] Device token not ready (attempt $attempt) — '
         'retrying in ${wait.inMilliseconds}ms (remaining ${left.inMilliseconds}ms)',
       );
       await Future<void>.delayed(wait);
     }
 
-    print(
+    DiagnosticLogger.instance.warning(
       '⚠️ [FcmService] Device token unavailable after ${budget.inSeconds}s '
       '($attempt attempt(s)) — returning null (never an empty token)',
     );
@@ -619,9 +619,9 @@ class FcmService extends GetxService with WidgetsBindingObserver {
       if (Firebase.apps.isEmpty || messaging == null) return;
       await messaging!.deleteToken();
       _currentToken = null;
-      print('🗑️ [FcmService] Token deleted');
+      DiagnosticLogger.instance.error('🗑️ [FcmService] Token deleted');
     } catch (e) {
-      print('❌ [FcmService] Error deleting token: $e');
+      DiagnosticLogger.instance.error('❌ [FcmService] Error deleting token: $e');
     }
   }
 }

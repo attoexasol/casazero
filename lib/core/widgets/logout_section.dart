@@ -79,7 +79,7 @@ class LogoutSection extends StatelessWidget {
   Widget _logoutButton(BuildContext context) {
     return ElevatedButton.icon(
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.danger.withOpacity(.1),
+        backgroundColor: AppColors.danger.withValues(alpha: .1),
         foregroundColor: AppColors.danger,
         elevation: 0,
         minimumSize: const Size.fromHeight(48),

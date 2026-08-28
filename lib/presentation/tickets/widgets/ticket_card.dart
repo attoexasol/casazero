@@ -61,7 +61,7 @@ class TicketCard extends StatelessWidget {
         border: Border.all(color: AppColors.neutralLine200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -91,7 +91,7 @@ class TicketCard extends StatelessWidget {
                 SizedBox(height: 8.h),
                 Text(
                   ticket.title,
-                  style: AppTextStyles.CardHeaderText.copyWith(
+                  style: AppTextStyles.cardHeaderText.copyWith(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w600,
                     color: AppColors.neutralInk900,
@@ -313,7 +313,7 @@ class TicketCard extends StatelessWidget {
     String label;
     switch (status) {
       case 'pending':
-        bg = AppColors.warning.withOpacity(0.15);
+        bg = AppColors.warning.withValues(alpha: 0.15);
         textColor = AppColors.warning;
         label = 'pending'.tr;
         break;
@@ -323,12 +323,12 @@ class TicketCard extends StatelessWidget {
         label = 'open'.tr;
         break;
       case 'in-progress':
-        bg = AppColors.info.withOpacity(0.15);
+        bg = AppColors.info.withValues(alpha: 0.15);
         textColor = AppColors.info;
         label = 'inProgress'.tr;
         break;
       case 'resolved':
-        bg = AppColors.success.withOpacity(0.15);
+        bg = AppColors.success.withValues(alpha: 0.15);
         textColor = AppColors.success;
         label = 'resolved'.tr;
         break;
@@ -438,9 +438,9 @@ class TicketCard extends StatelessWidget {
       margin: EdgeInsets.only(bottom: 12.h),
       padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
-        color: AppColors.info.withOpacity(0.1),
+        color: AppColors.info.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: AppColors.info.withOpacity(0.2)),
+        border: Border.all(color: AppColors.info.withValues(alpha: 0.2)),
       ),
       child: Text(
         'technicianUpdate'.tr,
@@ -458,9 +458,9 @@ class TicketCard extends StatelessWidget {
       margin: EdgeInsets.only(bottom: 12.h),
       padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
-        color: AppColors.success.withOpacity(0.1),
+        color: AppColors.success.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: AppColors.success.withOpacity(0.2)),
+        border: Border.all(color: AppColors.success.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [

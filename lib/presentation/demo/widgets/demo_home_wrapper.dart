@@ -45,7 +45,7 @@ class DemoHomeWrapper extends StatelessWidget {
             child: GestureDetector(
               onTap: demoCtrl.closePanel,
               behavior: HitTestBehavior.opaque,
-              child: Container(color: Colors.black.withOpacity(0.25)),
+              child: Container(color: Colors.black.withValues(alpha: 0.25)),
             ),
           );
         }),

@@ -52,7 +52,7 @@ class LatestNotifications extends StatelessWidget {
                       color: AppColors.accentLime500,
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.accentLime500.withOpacity(0.5),
+                          color: AppColors.accentLime500.withValues(alpha: 0.5),
                           blurRadius: 8,
                           spreadRadius: 2,
                         ),
@@ -99,7 +99,7 @@ class LatestNotifications extends StatelessWidget {
             return Column(
               children: feedItems.asMap().entries.map((entry) {
                 final index = entry.key;
-                final notification = entry.value as FeedItemModel;
+                final notification = entry.value;
                 return Padding(
                   padding: EdgeInsets.only(
                     bottom: index < feedItems.length - 1 ? 10.h : 0,
@@ -161,7 +161,6 @@ class _LatestNotificationCardState extends State<_LatestNotificationCard> {
   @override
   Widget build(BuildContext context) {
     final notification = widget.notification;
-    final isRead = notification.isRead;
     final type = notification.type.toLowerCase();
 
     // Determine colors based on type
@@ -179,14 +178,14 @@ class _LatestNotificationCardState extends State<_LatestNotificationCard> {
       // Uses higher opacity values to accurately match the sidebar color intensity
       // Sidebar uses: 100% → 100% → 60% opacity, icon box uses proportional values
       iconGradientColors = [
-        accentColor.withOpacity(0.8),
-        accentColor.withOpacity(0.80),
-        accentColor.withOpacity(0.45),
+        accentColor.withValues(alpha: 0.8),
+        accentColor.withValues(alpha: 0.80),
+        accentColor.withValues(alpha: 0.45),
       ];
       accentGradientColors = [
         accentColor,
         accentColor,
-        accentColor.withOpacity(0.8),
+        accentColor.withValues(alpha: 0.8),
       ];
     } else if (type == 'document' || type == 'documents') {
       accentColor = AppColors.brandSage500;
@@ -205,14 +204,14 @@ class _LatestNotificationCardState extends State<_LatestNotificationCard> {
       accentColor = AppColors.info;
       iconColor = AppColors.info;
       iconGradientColors = [
-        AppColors.info.withOpacity(0.2),
-        AppColors.info.withOpacity(0.15),
-        AppColors.info.withOpacity(0.05),
+        AppColors.info.withValues(alpha: 0.2),
+        AppColors.info.withValues(alpha: 0.15),
+        AppColors.info.withValues(alpha: 0.05),
       ];
       accentGradientColors = [
         AppColors.info,
         AppColors.info,
-        AppColors.info.withOpacity(0.6),
+        AppColors.info.withValues(alpha: 0.6),
       ];
     }
 
@@ -223,7 +222,13 @@ class _LatestNotificationCardState extends State<_LatestNotificationCard> {
         onExit: (_) => setState(() => _isHovered = false),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
-          transform: Matrix4.identity()..scale(_isHovered ? 1.02 : 1.0),
+          transform: Matrix4.identity()
+            ..scaleByDouble(
+              _isHovered ? 1.02 : 1.0,
+              _isHovered ? 1.02 : 1.0,
+              _isHovered ? 1.02 : 1.0,
+              1.0,
+            ),
           child: ClipRRect(
             borderRadius: _cardBorderRadius,
             child: Container(
@@ -237,7 +242,7 @@ class _LatestNotificationCardState extends State<_LatestNotificationCard> {
                 border: Border.all(
                   color: _isHovered
                       ? AppColors.neutralLine200
-                      : AppColors.neutralLine200.withOpacity(0.4),
+                      : AppColors.neutralLine200.withValues(alpha: 0.4),
                   width: 1,
                 ),
                 boxShadow: _buildShadows(accentColor, _isHovered),
@@ -276,7 +281,7 @@ class _LatestNotificationCardState extends State<_LatestNotificationCard> {
                             begin: Alignment.centerLeft,
                             end: Alignment.centerRight,
                             colors: [
-                              accentColor.withOpacity(0.05),
+                              accentColor.withValues(alpha: 0.05),
                               Colors.transparent,
                             ],
                           ),
@@ -402,7 +407,7 @@ class _LatestNotificationCardState extends State<_LatestNotificationCard> {
         ),
         boxShadow: [
           BoxShadow(
-            color: iconColor.withOpacity(0.2),
+            color: iconColor.withValues(alpha: 0.2),
             blurRadius: 8,
             spreadRadius: 0,
           ),
@@ -416,7 +421,7 @@ class _LatestNotificationCardState extends State<_LatestNotificationCard> {
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                color: iconColor.withOpacity(0.3),
+                color: iconColor.withValues(alpha: 0.3),
               ),
             ),
           ),
@@ -437,13 +442,13 @@ class _LatestNotificationCardState extends State<_LatestNotificationCard> {
     if (isHovered) {
       return [
         BoxShadow(
-          color: accentColor.withOpacity(0.16),
+          color: accentColor.withValues(alpha: 0.16),
           blurRadius: 24,
           offset: const Offset(0, 8),
           spreadRadius: -4,
         ),
         BoxShadow(
-          color: accentColor.withOpacity(0.12),
+          color: accentColor.withValues(alpha: 0.12),
           blurRadius: 32,
           offset: const Offset(0, 12),
           spreadRadius: -8,
@@ -452,13 +457,13 @@ class _LatestNotificationCardState extends State<_LatestNotificationCard> {
     } else {
       return [
         BoxShadow(
-          color: accentColor.withOpacity(0.08),
+          color: accentColor.withValues(alpha: 0.08),
           blurRadius: 8,
           offset: const Offset(0, 2),
           spreadRadius: -2,
         ),
         BoxShadow(
-          color: accentColor.withOpacity(0.06),
+          color: accentColor.withValues(alpha: 0.06),
           blurRadius: 16,
           offset: const Offset(0, 4),
           spreadRadius: -4,

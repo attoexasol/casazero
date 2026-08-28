@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 /// Service to force native "Open With" chooser for all file types
 /// This ensures images don't auto-open and always show the app chooser
@@ -27,7 +28,7 @@ class FileOpenerService {
       }
     } catch (e) {
       // Platform not implemented or error: proceed to chooser so flow is not blocked
-      print('⚠️ Native Open/Cancel confirmation not available: $e');
+      DiagnosticLogger.instance.warning('⚠️ Native Open/Cancel confirmation not available: $e');
     }
     return true;
   }
@@ -75,7 +76,7 @@ class FileOpenerService {
           }
         } catch (e) {
           // Platform channel not implemented, fallback to OpenFilex
-          print('⚠️ Platform channel not available, using OpenFilex: $e');
+          DiagnosticLogger.instance.warning('⚠️ Platform channel not available, using OpenFilex: $e');
         }
       }
 
@@ -84,7 +85,7 @@ class FileOpenerService {
       // For a guaranteed chooser, implement the platform channel native code
       return await OpenFilex.open(filePath);
     } catch (e) {
-      print('❌ Error opening file with chooser: $e');
+      DiagnosticLogger.instance.error('❌ Error opening file with chooser: $e');
       return OpenResult(
         type: ResultType.error,
         message: e.toString(),

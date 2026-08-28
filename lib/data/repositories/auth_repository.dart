@@ -16,6 +16,7 @@ import '../../core/constants/api_constants.dart';
 import '../../core/services/storage_service.dart';
 import '../models/user_model.dart';
 import '../../core/services/fcm_service.dart';
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 class AuthRepository {
   final ApiService _apiService = Get.find();
@@ -44,24 +45,24 @@ class AuthRepository {
           fcmToken = await Get.find<FcmService>().getDeviceToken();
         }
       } catch (e) {
-        print('⚠️ FCM Service not available: $e');
+        DiagnosticLogger.instance.warning('⚠️ FCM Service not available: $e');
       }
       final hasFcmToken = fcmToken != null && fcmToken.trim().isNotEmpty;
 
       // Get stored device token (for trusted device verification)
       final storedToken = _storageService.getDeviceToken() ?? '';
 
-      print('📱 Device Info:');
-      print('  Device ID: ${deviceInfo['device_id']}');
-      print('  Device Name: ${deviceInfo['device_name']}');
-      print('  Platform: ${deviceInfo['platform']}');
-      print('  Location: ${deviceInfo['lat']}, ${deviceInfo['lng']}');
-      print('  IP: ${deviceInfo['ip_address']}');
-      print(
+      DiagnosticLogger.instance.debug('📱 Device Info:');
+      DiagnosticLogger.instance.debug('  Device ID: ${deviceInfo['device_id']}');
+      DiagnosticLogger.instance.debug('  Device Name: ${deviceInfo['device_name']}');
+      DiagnosticLogger.instance.debug('  Platform: ${deviceInfo['platform']}');
+      DiagnosticLogger.instance.debug('  Location: ${deviceInfo['lat']}, ${deviceInfo['lng']}');
+      DiagnosticLogger.instance.debug('  IP: ${deviceInfo['ip_address']}');
+      DiagnosticLogger.instance.debug(
         '  FCM Token: ${hasFcmToken ? fcmToken : 'unavailable (omitted from payload)'}',
       );
-      print('  Phone: ${phone ?? 'not provided'}');
-      print('  Stored Token: $storedToken');
+      DiagnosticLogger.instance.debug('  Phone: ${phone ?? 'not provided'}');
+      DiagnosticLogger.instance.debug('  Stored Token: $storedToken');
 
       final loginUrl = ApiConstants.buildUrl(ApiConstants.LOGIN);
       final loginPayload = <String, dynamic>{
@@ -80,7 +81,7 @@ class AuthRepository {
       if (hasFcmToken) {
         loginPayload['fcm_token'] = fcmToken;
       } else {
-        print(
+        DiagnosticLogger.instance.warning(
           '⚠️ [Login] fcm_token omitted — device produced no FCM token in time',
         );
       }
@@ -145,14 +146,14 @@ class AuthRepository {
           'message': body['message'],
         };
       } else {
-        final msg = body?['message'] ?? response.data?['message'];
+        final msg = body['message'] ?? response.data?['message'];
         return {
           'success': false,
           'error': msg?.toString() ?? 'Login failed',
         };
       }
     } catch (e) {
-      print('❌ Login Error: $e');
+      DiagnosticLogger.instance.error('❌ Login Error: $e');
       return {'success': false, 'error': e.toString()};
     }
   }
@@ -165,14 +166,14 @@ class AuthRepository {
     final firebaseToken = FirebaseResponseParser.extractFirebaseToken(body);
     final projectId = FirebaseResponseParser.extractFirebaseProjectId(body);
 
-    print(
+    DiagnosticLogger.instance.debug(
       '[LOGIN] parsed token from key: '
       '${body['firebase_token'] != null ? "firebase_token" : (body['firebaseToken'] != null ? "firebaseToken" : "none")}',
     );
 
     if (firebaseToken == null) {
       await _storageService.clearFirebaseToken();
-      print('[LOGIN] ERROR — no top-level firebase_token or firebaseToken');
+      DiagnosticLogger.instance.debug('[LOGIN] ERROR — no top-level firebase_token or firebaseToken');
       return false;
     }
 
@@ -180,11 +181,11 @@ class AuthRepository {
     if (projectId != null && projectId.isNotEmpty) {
       await _storageService.saveFirebaseProjectId(projectId);
     }
-    print('[LOGIN] stored firebase_token successfully');
+    DiagnosticLogger.instance.debug('[LOGIN] stored firebase_token successfully');
     _storageService.debugPrintStorageKeys();
 
     final payload = FirebaseJwtDebug.decodePayload(firebaseToken);
-    print('[LOGIN] JWT ${FirebaseJwtDebug.describeClaims(payload)}');
+    DiagnosticLogger.instance.debug('[LOGIN] JWT ${FirebaseJwtDebug.describeClaims(payload)}');
 
     return _signInWithStoredFirebaseToken(
       firebaseToken,
@@ -198,14 +199,14 @@ class AuthRepository {
     required String source,
   }) async {
     if (Firebase.apps.isEmpty) {
-      print('[FirebaseAuth] ABORT — Firebase not initialized');
+      DiagnosticLogger.instance.debug('[FirebaseAuth] ABORT — Firebase not initialized');
       return false;
     }
 
-    print('[FirebaseAuth] signInWithCustomToken START ($source)');
-    print('[FirebaseAuth] token length=${token.length}');
+    DiagnosticLogger.instance.debug('[FirebaseAuth] signInWithCustomToken START ($source)');
+    DiagnosticLogger.instance.debug('[FirebaseAuth] token length=${token.length}');
     try {
-      print(
+      DiagnosticLogger.instance.debug(
         '[FirebaseAuth] client projectId=${Firebase.app().options.projectId}',
       );
     } catch (_) {}
@@ -218,17 +219,17 @@ class AuthRepository {
         expectedLaravelUserId: expectedUid,
       );
       final uid = FirebaseAuth.instance.currentUser?.uid;
-      print('[FirebaseAuth] SUCCESS uid=$uid');
-      print('[FirebaseAuth] currentUser=${FirebaseAuth.instance.currentUser?.uid}');
+      DiagnosticLogger.instance.error('[FirebaseAuth] SUCCESS uid=$uid');
+      DiagnosticLogger.instance.error('[FirebaseAuth] currentUser=${FirebaseAuth.instance.currentUser?.uid}');
       return ok && uid != null;
     } catch (e, st) {
-      print('[FirebaseAuth] FAILED');
-      print('[FirebaseAuth] error=$e');
-      print('[FirebaseAuth] stackTrace:\n$st');
+      DiagnosticLogger.instance.error('[FirebaseAuth] FAILED');
+      DiagnosticLogger.instance.error('[FirebaseAuth] error=$e');
+      DiagnosticLogger.instance.error('[FirebaseAuth] stackTrace:\n$st');
       try {
-        print('[FirebaseAuth] projectId=${Firebase.app().options.projectId}');
+        DiagnosticLogger.instance.debug('[FirebaseAuth] projectId=${Firebase.app().options.projectId}');
       } catch (_) {}
-      print('[FirebaseAuth] currentUser=${FirebaseAuth.instance.currentUser?.uid}');
+      DiagnosticLogger.instance.debug('[FirebaseAuth] currentUser=${FirebaseAuth.instance.currentUser?.uid}');
       return false;
     }
   }
@@ -256,7 +257,7 @@ class AuthRepository {
       final token = _storageService.getAccessToken();
 
       if (token == null || token.isEmpty) {
-        print('⚠️  No access token found for logout API call');
+        DiagnosticLogger.instance.warning('⚠️  No access token found for logout API call');
         // Still proceed with clearing storage
         return {
           'success': true,
@@ -264,9 +265,9 @@ class AuthRepository {
         };
       }
 
-      print('🚪 Calling logout API with token: ${token.substring(0, 10)}...');
-      print('📍 Endpoint: ${ApiConstants.LOGOUT}');
-      print('📦 Request Body: { "token": "${token.substring(0, 10)}..." }');
+      DiagnosticLogger.instance.debug('🚪 Calling logout API with token: ${token.substring(0, 10)}...');
+      DiagnosticLogger.instance.debug('📍 Endpoint: ${ApiConstants.LOGOUT}');
+      DiagnosticLogger.instance.debug('📦 Request Body: { "token": "${token.substring(0, 10)}..." }');
 
       // Call logout API with token in request body
       // API URL: https://backend.casazero.site/api/user/logout
@@ -275,10 +276,10 @@ class AuthRepository {
         data: {'token': token},
       );
 
-      print('✅ Logout API Response:');
-      print('  Status Code: ${response.statusCode}');
-      print('  Status: ${response.data['status']}');
-      print('  Message: ${response.data['message']}');
+      DiagnosticLogger.instance.info('✅ Logout API Response:');
+      DiagnosticLogger.instance.debug('  Status Code: ${response.statusCode}');
+      DiagnosticLogger.instance.debug('  Status: ${response.data['status']}');
+      DiagnosticLogger.instance.debug('  Message: ${response.data['message']}');
 
       if (response.statusCode == 200 && response.data['status'] == true) {
         // Clear device token on logout
@@ -289,9 +290,9 @@ class AuthRepository {
         // Sign out from Firebase (use FirebaseAuthService to clear _lastSignedInUid)
         try {
           await Get.find<FirebaseAuthService>().signOut();
-          print('✅ Firebase Auth: Signed out');
+          DiagnosticLogger.instance.warning('✅ Firebase Auth: Signed out');
         } catch (e) {
-          print('⚠️ Firebase Auth: Sign out error (ignored): $e');
+          DiagnosticLogger.instance.warning('⚠️ Firebase Auth: Sign out error (ignored): $e');
         }
 
         // Delete FCM token
@@ -300,7 +301,7 @@ class AuthRepository {
             await Get.find<FcmService>().deleteToken();
           }
         } catch (e) {
-          print('⚠️ FCM Service not available during logout: $e');
+          DiagnosticLogger.instance.warning('⚠️ FCM Service not available during logout: $e');
         }
 
         return {
@@ -314,7 +315,7 @@ class AuthRepository {
         };
       }
     } catch (e) {
-      print('❌ Error during logout API call: $e');
+      DiagnosticLogger.instance.error('❌ Error during logout API call: $e');
       // Even if API fails, we should still clear local storage
       return {'success': false, 'error': 'Failed to logout. Please try again.'};
     }
@@ -326,20 +327,20 @@ class AuthRepository {
   Future<bool> syncFirebaseAuthAfterLogin() async {
     final storedToken = _storageService.getStoredFirebaseToken();
 
-    print('storedToken exists=${storedToken != null}');
-    print('storedToken length=${storedToken?.length ?? 0}');
-    print(
+    DiagnosticLogger.instance.debug('storedToken exists=${storedToken != null}');
+    DiagnosticLogger.instance.debug('storedToken length=${storedToken?.length ?? 0}');
+    DiagnosticLogger.instance.debug(
       'firebase_project_id=${_storageService.getFirebaseProjectId() ?? "null"}',
     );
 
     if (storedToken == null || storedToken.isEmpty) {
-      print('[AuthRepository] No stored Firebase token — login required');
+      DiagnosticLogger.instance.debug('[AuthRepository] No stored Firebase token — login required');
       _storageService.debugPrintStorageKeys();
       return false;
     }
 
     if (FirebaseAuth.instance.currentUser != null) {
-      print(
+      DiagnosticLogger.instance.debug(
         '[AuthRepository] Firebase already signed in uid=${FirebaseAuth.instance.currentUser!.uid}',
       );
       return true;
@@ -373,7 +374,7 @@ class AuthRepository {
         };
       }
     } catch (e) {
-      print('❌ Error sending forgot password request: $e');
+      DiagnosticLogger.instance.error('❌ Error sending forgot password request: $e');
       return {'success': false, 'error': e.toString()};
     }
   }
@@ -432,7 +433,7 @@ class AuthRepository {
       final userId = userData?['id'];
 
       if (userId == null) {
-        print('❌ [AuthRepository] User ID not found in local storage');
+        DiagnosticLogger.instance.error('❌ [AuthRepository] User ID not found in local storage');
         return {'success': false, 'error': 'User not found in local storage'};
       }
 
@@ -440,19 +441,19 @@ class AuthRepository {
       final userIdInt = userId is int ? userId : int.tryParse(userId.toString());
       
       if (userIdInt == null) {
-        print('❌ [AuthRepository] Invalid user ID format: $userId');
+        DiagnosticLogger.instance.error('❌ [AuthRepository] Invalid user ID format: $userId');
         return {'success': false, 'error': 'Invalid user ID format'};
       }
 
-      print('🔄 [AuthRepository] Changing password...');
-      print('📍 Endpoint: ${ApiConstants.CHANGE_PASSWORD}');
-      print('👤 User ID: $userIdInt');
-      print('📦 Request Body: {');
-      print('   "user_id": $userIdInt,');
-      print('   "old_password": "***",');
-      print('   "new_password": "***",');
-      print('   "new_password_confirmation": "***"');
-      print(' }');
+      DiagnosticLogger.instance.debug('🔄 [AuthRepository] Changing password...');
+      DiagnosticLogger.instance.debug('📍 Endpoint: ${ApiConstants.CHANGE_PASSWORD}');
+      DiagnosticLogger.instance.debug('👤 User ID: $userIdInt');
+      DiagnosticLogger.instance.debug('📦 Request Body: {');
+      DiagnosticLogger.instance.debug('   "user_id": $userIdInt,');
+      DiagnosticLogger.instance.debug('   "old_password": "***",');
+      DiagnosticLogger.instance.debug('   "new_password": "***",');
+      DiagnosticLogger.instance.debug('   "new_password_confirmation": "***"');
+      DiagnosticLogger.instance.debug(' }');
 
       // Call API with POST method
       final response = await _apiService.post(
@@ -465,10 +466,10 @@ class AuthRepository {
         },
       );
 
-      print('✅ [AuthRepository] Change Password API Response:');
-      print('  Status Code: ${response.statusCode}');
-      print('  Status: ${response.data['status']}');
-      print('  Message: ${response.data['message']}');
+      DiagnosticLogger.instance.info('✅ [AuthRepository] Change Password API Response:');
+      DiagnosticLogger.instance.debug('  Status Code: ${response.statusCode}');
+      DiagnosticLogger.instance.debug('  Status: ${response.data['status']}');
+      DiagnosticLogger.instance.debug('  Message: ${response.data['message']}');
 
       // Check if response is successful
       if (response.statusCode == 200 && response.data['status'] == true) {
@@ -484,14 +485,14 @@ class AuthRepository {
         };
       }
     } catch (e) {
-      print('❌ [AuthRepository] Error changing password: $e');
+      DiagnosticLogger.instance.error('❌ [AuthRepository] Error changing password: $e');
       return {'success': false, 'error': e.toString()};
     }
   }
 
   /// Get Document Password (read-only; for display on document password screen)
   /// POST /user/get-document-password
-  /// Request: { "token": "<stored_user_token>" }
+  /// Request: { "token": "`<stored_user_token>`" }
   /// Response: { "status": true, "document_password": "..." }
   /// On failure or missing token, returns success: false; do not log or persist password.
   Future<Map<String, dynamic>> getDocumentPassword() async {
@@ -539,17 +540,17 @@ class AuthRepository {
       final accessToken = _storageService.getAccessToken();
 
       if (accessToken == null || accessToken.isEmpty) {
-        print('❌ [AuthRepository] Access token not found in storage');
+        DiagnosticLogger.instance.error('❌ [AuthRepository] Access token not found in storage');
         return {'success': false, 'error': 'User not authenticated'};
       }
 
-      print('🔄 [AuthRepository] Setting document password...');
-      print('📍 Endpoint: ${ApiConstants.SET_DOCUMENT_PASSWORD}');
-      print('📦 Request Body: {');
-      print('   "token": "${accessToken.substring(0, 20)}...",');
-      print('   "password": "***",');
-      print('   "confirm_password": "***"');
-      print(' }');
+      DiagnosticLogger.instance.debug('🔄 [AuthRepository] Setting document password...');
+      DiagnosticLogger.instance.debug('📍 Endpoint: ${ApiConstants.SET_DOCUMENT_PASSWORD}');
+      DiagnosticLogger.instance.debug('📦 Request Body: {');
+      DiagnosticLogger.instance.debug('   "token": "${accessToken.substring(0, 20)}...",');
+      DiagnosticLogger.instance.debug('   "password": "***",');
+      DiagnosticLogger.instance.debug('   "confirm_password": "***"');
+      DiagnosticLogger.instance.debug(' }');
 
       // Call API with POST method
       final response = await _apiService.post(
@@ -561,10 +562,10 @@ class AuthRepository {
         },
       );
 
-      print('✅ [AuthRepository] Set Document Password API Response:');
-      print('  Status Code: ${response.statusCode}');
-      print('  Status: ${response.data['status']}');
-      print('  Message: ${response.data['message']}');
+      DiagnosticLogger.instance.info('✅ [AuthRepository] Set Document Password API Response:');
+      DiagnosticLogger.instance.debug('  Status Code: ${response.statusCode}');
+      DiagnosticLogger.instance.debug('  Status: ${response.data['status']}');
+      DiagnosticLogger.instance.debug('  Message: ${response.data['message']}');
 
       // Check if response is successful
       if (response.statusCode == 200 && response.data['status'] == true) {
@@ -580,7 +581,7 @@ class AuthRepository {
         };
       }
     } catch (e) {
-      print('❌ [AuthRepository] Error setting document password: $e');
+      DiagnosticLogger.instance.error('❌ [AuthRepository] Error setting document password: $e');
       return {'success': false, 'error': e.toString()};
     }
   }
@@ -619,7 +620,7 @@ class AuthRepository {
         };
       }
     } catch (e) {
-      print('Error setting up authenticator 2FA: $e');
+      DiagnosticLogger.instance.error('Error setting up authenticator 2FA: $e');
       return {
         'success': false,
         'error': 'Failed to setup authenticator. Please try again.',
@@ -646,14 +647,14 @@ class AuthRepository {
       // Get device information for verification
       final deviceInfo = await _deviceInfoService.getDeviceInfoForLogin();
 
-      print('🔐 Verifying Authenticator QR Code with Device Info:');
-      print('  User ID: $userId');
-      print('  Code: $code');
-      print('  Device ID: ${deviceInfo['device_id']}');
-      print('  Device Name: ${deviceInfo['device_name']}');
-      print('  Platform: ${deviceInfo['platform']}');
-      print('  Location: ${deviceInfo['lat']}, ${deviceInfo['lng']}');
-      print('  IP: ${deviceInfo['ip_address']}');
+      DiagnosticLogger.instance.debug('🔐 Verifying Authenticator QR Code with Device Info:');
+      DiagnosticLogger.instance.debug('  User ID: $userId');
+      DiagnosticLogger.instance.debug('  Code: $code');
+      DiagnosticLogger.instance.debug('  Device ID: ${deviceInfo['device_id']}');
+      DiagnosticLogger.instance.debug('  Device Name: ${deviceInfo['device_name']}');
+      DiagnosticLogger.instance.debug('  Platform: ${deviceInfo['platform']}');
+      DiagnosticLogger.instance.debug('  Location: ${deviceInfo['lat']}, ${deviceInfo['lng']}');
+      DiagnosticLogger.instance.debug('  IP: ${deviceInfo['ip_address']}');
 
       final response = await _apiService.post(
         ApiConstants.VERIFY_QR_CODE,
@@ -669,9 +670,9 @@ class AuthRepository {
         },
       );
 
-      print('✅ Authenticator Verification Response:');
-      print('  Status Code: ${response.statusCode}');
-      print('  Response: ${response.data}');
+      DiagnosticLogger.instance.info('✅ Authenticator Verification Response:');
+      DiagnosticLogger.instance.debug('  Status Code: ${response.statusCode}');
+      DiagnosticLogger.instance.debug('  Response: ${response.data}');
 
       if (response.statusCode == 200) {
         return {
@@ -685,7 +686,7 @@ class AuthRepository {
         };
       }
     } catch (e) {
-      print('❌ Error verifying authenticator QR code: $e');
+      DiagnosticLogger.instance.error('❌ Error verifying authenticator QR code: $e');
       return {
         'success': false,
         'error': 'Failed to verify code. Please try again.',
@@ -738,7 +739,7 @@ class AuthRepository {
         };
       }
     } catch (e) {
-      print('Error sending email OTP: $e');
+      DiagnosticLogger.instance.error('Error sending email OTP: $e');
       return {
         'success': false,
         'error': 'Failed to send email OTP. Please try again.',
@@ -762,10 +763,10 @@ class AuthRepository {
       // Get device information for verification
       final deviceInfo = await _deviceInfoService.getDeviceInfoForLogin();
 
-      print('📱 Verifying Email OTP with Device Info:');
-      print('  User ID: $userId');
-      print('  OTP: $otpString');
-      print('  Device Info: ${deviceInfo['device_name']}');
+      DiagnosticLogger.instance.debug('📱 Verifying Email OTP with Device Info:');
+      DiagnosticLogger.instance.debug('  User ID: $userId');
+      DiagnosticLogger.instance.debug('  OTP: $otpString');
+      DiagnosticLogger.instance.debug('  Device Info: ${deviceInfo['device_name']}');
 
       final response = await _apiService.post(
         ApiConstants.VERIFY_EMAIL_OTP,
@@ -794,7 +795,7 @@ class AuthRepository {
         };
       }
     } catch (e) {
-      print('❌ Error verifying email OTP: $e');
+      DiagnosticLogger.instance.error('❌ Error verifying email OTP: $e');
       return {
         'success': false,
         'error': 'Failed to verify OTP. Please try again.',
@@ -847,7 +848,7 @@ class AuthRepository {
         };
       }
     } catch (e) {
-      print('Error sending SMS OTP: $e');
+      DiagnosticLogger.instance.error('Error sending SMS OTP: $e');
       return {
         'success': false,
         'error': 'Failed to send SMS OTP. Please try again.',
@@ -872,10 +873,10 @@ class AuthRepository {
       // Get device information for verification
       final deviceInfo = await _deviceInfoService.getDeviceInfoForLogin();
 
-      print('📱 Verifying SMS OTP with Device Info:');
-      print('  User ID: $userId');
-      print('  OTP: $otpString');
-      print('  Device Info: ${deviceInfo['device_name']}');
+      DiagnosticLogger.instance.debug('📱 Verifying SMS OTP with Device Info:');
+      DiagnosticLogger.instance.debug('  User ID: $userId');
+      DiagnosticLogger.instance.debug('  OTP: $otpString');
+      DiagnosticLogger.instance.debug('  Device Info: ${deviceInfo['device_name']}');
 
       final response = await _apiService.post(
         ApiConstants.VERIFY_SMS_OTP,
@@ -904,7 +905,7 @@ class AuthRepository {
         };
       }
     } catch (e) {
-      print('Error verifying SMS OTP: $e');
+      DiagnosticLogger.instance.error('Error verifying SMS OTP: $e');
       return {
         'success': false,
         'error': 'Failed to verify SMS OTP. Please try again.',
@@ -993,7 +994,7 @@ class AuthRepository {
         };
       }
     } catch (e) {
-      print('Error disabling 2FA: $e');
+      DiagnosticLogger.instance.error('Error disabling 2FA: $e');
       return {
         'success': false,
         'error': 'Failed to disable 2FA. Please try again.',
@@ -1014,13 +1015,13 @@ class AuthRepository {
       final token = _storageService.getAccessToken();
 
       if (token == null || token.isEmpty) {
-        print('⚠️ [AuthRepository] No access token found for getUserProfile API call');
+        DiagnosticLogger.instance.warning('⚠️ [AuthRepository] No access token found for getUserProfile API call');
         return null;
       }
 
-      print('📥 [AuthRepository] Fetching user profile...');
-      print('📍 Endpoint: ${ApiConstants.GET_USER_PROFILE}');
-      print('📦 Request Body: { "token": "${token.substring(0, 10)}..." }');
+      DiagnosticLogger.instance.debug('📥 [AuthRepository] Fetching user profile...');
+      DiagnosticLogger.instance.debug('📍 Endpoint: ${ApiConstants.GET_USER_PROFILE}');
+      DiagnosticLogger.instance.debug('📦 Request Body: { "token": "${token.substring(0, 10)}..." }');
 
       // Call API with POST method and token in request body
       final response = await _apiService.post(
@@ -1028,10 +1029,10 @@ class AuthRepository {
         data: {'token': token},
       );
 
-      print('✅ [AuthRepository] User Profile API Response:');
-      print('  Status Code: ${response.statusCode}');
-      print('  Status: ${response.data['status']}');
-      print('  Message: ${response.data['message']}');
+      DiagnosticLogger.instance.info('✅ [AuthRepository] User Profile API Response:');
+      DiagnosticLogger.instance.debug('  Status Code: ${response.statusCode}');
+      DiagnosticLogger.instance.debug('  Status: ${response.data['status']}');
+      DiagnosticLogger.instance.debug('  Message: ${response.data['message']}');
 
       // Check if response is successful and has data
       if (response.statusCode == 200 && 
@@ -1041,11 +1042,11 @@ class AuthRepository {
         final userData = response.data['data'] as Map<String, dynamic>;
         return UserModel.fromJson(userData);
       } else {
-        print('⚠️ [AuthRepository] Invalid response format or missing data');
+        DiagnosticLogger.instance.error('⚠️ [AuthRepository] Invalid response format or missing data');
         return null;
       }
     } catch (e) {
-      print('❌ [AuthRepository] Error fetching user profile: $e');
+      DiagnosticLogger.instance.error('❌ [AuthRepository] Error fetching user profile: $e');
       return null;
     }
   }
@@ -1059,18 +1060,18 @@ class AuthRepository {
     required int status, // 1 for active, 0 for inactive
   }) async {
     try {
-      print('📡 Updating 2FA Status:');
-      print('  User ID: $userId');
-      print('  Status: $status (${status == 1 ? "ACTIVATE" : "DEACTIVATE"})');
+      DiagnosticLogger.instance.info('📡 Updating 2FA Status:');
+      DiagnosticLogger.instance.debug('  User ID: $userId');
+      DiagnosticLogger.instance.debug('  Status: $status (${status == 1 ? "ACTIVATE" : "DEACTIVATE"})');
 
       final response = await _apiService.post(
         ApiConstants.UPDATE_2FA_STATUS,
         data: {'user_id': userId, 'is_two_fa_status': status},
       );
 
-      print('✅ 2FA Status Update Response:');
-      print('  Status Code: ${response.statusCode}');
-      print('  Response: ${response.data}');
+      DiagnosticLogger.instance.info('✅ 2FA Status Update Response:');
+      DiagnosticLogger.instance.debug('  Status Code: ${response.statusCode}');
+      DiagnosticLogger.instance.debug('  Response: ${response.data}');
 
       if (response.statusCode == 200 && response.data['success'] == true) {
         return {
@@ -1087,7 +1088,7 @@ class AuthRepository {
         };
       }
     } catch (e) {
-      print('❌ Error updating 2FA status: $e');
+      DiagnosticLogger.instance.error('❌ Error updating 2FA status: $e');
       return {
         'success': false,
         'error': 'Failed to update 2FA status. Please try again.',

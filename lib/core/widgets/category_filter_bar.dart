@@ -118,7 +118,7 @@ class CategoryFilterBar extends StatelessWidget {
       boxShadow: isActive && showActiveShadow && !useOutlineActiveStyle
           ? [
               BoxShadow(
-                color: accentColor.withOpacity(.25),
+                color: accentColor.withValues(alpha: .25),
                 blurRadius: 8.r,
                 offset: Offset(0, 2.h),
               ),
@@ -153,9 +153,9 @@ class CategoryFilterBar extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             color: useOutline
-                ? accentColor.withOpacity(0.12)
+                ? accentColor.withValues(alpha: 0.12)
                 : (isActive
-                    ? Colors.white.withOpacity(0.25)
+                    ? Colors.white.withValues(alpha: 0.25)
                     : Colors.grey.shade200),
             borderRadius: BorderRadius.circular(50.r),
           ),

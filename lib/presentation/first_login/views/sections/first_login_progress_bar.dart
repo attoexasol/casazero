@@ -19,7 +19,7 @@ class FirstLoginProgressBar extends StatelessWidget {
             child: LinearProgressIndicator(
               value: controller.currentStep.value == 1 ? 0.5 : 1.0,
               minHeight: 8.h,
-              backgroundColor: Colors.white.withOpacity(0.2),
+              backgroundColor: Colors.white.withValues(alpha: 0.2),
               valueColor:
               const AlwaysStoppedAnimation<Color>(AppColors.brandSage500),
             ),
@@ -35,7 +35,7 @@ class FirstLoginProgressBar extends StatelessWidget {
                   fontSize: 12.sp,
                   color: controller.currentStep.value == 1
                       ? Colors.white
-                      : Colors.white.withOpacity(0.7),
+                      : Colors.white.withValues(alpha: 0.7),
                   fontWeight: controller.currentStep.value == 1
                       ? FontWeight.w600
                       : FontWeight.normal,
@@ -51,7 +51,7 @@ class FirstLoginProgressBar extends StatelessWidget {
                   fontSize: 12.sp,
                   color: controller.currentStep.value == 2
                       ? Colors.white
-                      : Colors.white.withOpacity(0.7),
+                      : Colors.white.withValues(alpha: 0.7),
                   fontWeight: controller.currentStep.value == 2
                       ? FontWeight.w600
                       : FontWeight.normal,

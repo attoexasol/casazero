@@ -7,14 +7,14 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../../core/controllers/message_popup_controller.dart';
 import 'dart:ui';
-import 'dart:convert'; // For base64Decode
-import 'package:qr_flutter/qr_flutter.dart';
+import 'dart:convert';
 import '../controllers/first_login_controller.dart';
 import '../../../data/models/two_factor_method_model.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/custom_text_field.dart';
 import '../../../app/theme/app_colors.dart';
-import 'package:flutter_svg/flutter_svg.dart';   //
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 class FirstLoginSetupScreen extends GetView<FirstLoginController> {
   const FirstLoginSetupScreen({super.key});
@@ -42,9 +42,9 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Colors.black.withOpacity(0.2),
-                        Colors.black.withOpacity(0.1),
-                        Colors.black.withOpacity(0.3),
+                        Colors.black.withValues(alpha: 0.2),
+                        Colors.black.withValues(alpha: 0.1),
+                        Colors.black.withValues(alpha: 0.3),
                       ],
                     ),
                   ),
@@ -87,98 +87,6 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
     );
   }
 
-  Widget _buildLogo() {
-    return Column(
-      children: [
-        Container(
-          width: 240.w,
-          height: 80.h,
-          alignment: Alignment.center,
-          child: Image.asset(
-            'assets/images/white_logo.png',
-            width: 180.w,
-            fit: BoxFit.contain,
-          ),
-        ),
-        SizedBox(height: 12.h),
-        Text(
-          'smart_living'.tr,
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.9),
-            fontSize: 14.sp,
-            letterSpacing: 1.5.w,
-          ),
-        ),
-        SizedBox(height: 16.h),
-        Text(
-          'first_login_setup'.tr,
-          style: TextStyle(
-            fontSize: 24.sp,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        SizedBox(height: 8.h),
-        Text(
-          'secure_your_account'.tr,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.7),
-            fontSize: 14.sp,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildProgressBar() {
-    return Obx(
-          () => Column(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4.r),
-            child: LinearProgressIndicator(
-              value: controller.currentStep.value == 1 ? 0.5 : 1.0,
-              minHeight: 8.h,
-              backgroundColor: Colors.white.withOpacity(0.2),
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.brandSage500),
-            ),
-          ),
-          SizedBox(height: 8.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'change_password'.tr,
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  color: controller.currentStep.value == 1
-                      ? Colors.white
-                      : Colors.white.withOpacity(0.7),
-                  fontWeight: controller.currentStep.value == 1
-                      ? FontWeight.w600
-                      : FontWeight.normal,
-                ),
-              ),
-              Text(
-                'two_factor_auth'.tr,
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  color: controller.currentStep.value == 2
-                      ? Colors.white
-                      : Colors.white.withOpacity(0.7),
-                  fontWeight: controller.currentStep.value == 2
-                      ? FontWeight.w600
-                      : FontWeight.normal,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildPasswordChangeCard() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(24.r),
@@ -187,12 +95,12 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
         child: Container(
           padding: EdgeInsets.all(24.r),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(24.r),
-            border: Border.all(color: Colors.white.withOpacity(0.2)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 40.r,
               ),
             ],
@@ -348,12 +256,12 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
         child: Container(
           padding: EdgeInsets.all(24.r),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(24.r),
-            border: Border.all(color: Colors.white.withOpacity(0.2)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 40.r,
               ),
             ],
@@ -432,7 +340,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                       onPressed: controller.setup2FA,
                       child: Text(
                         'skip_for_now'.tr,
-                        style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                        style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
                       ),
                     ),
                   ),
@@ -454,10 +362,10 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
         child: Container(
           padding: EdgeInsets.all(16.r),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(16.r),
             border: Border.all(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
             ),
           ),
           child: Row(
@@ -466,7 +374,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                 width: 48.w,
                 height: 48.h,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: Icon(
@@ -492,7 +400,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                     Text(
                       method.description,
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.7),
+                        color: Colors.white.withValues(alpha: 0.7),
                         fontSize: 13.sp,
                       ),
                     ),
@@ -501,7 +409,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
               ),
               Icon(
                 Icons.chevron_right,
-                color: Colors.white.withOpacity(0.7),
+                color: Colors.white.withValues(alpha: 0.7),
               ),
             ],
           ),
@@ -521,12 +429,12 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
         child: Container(
           padding: EdgeInsets.all(24.r),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(24.r),
-            border: Border.all(color: Colors.white.withOpacity(0.2)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 40.r,
               ),
             ],
@@ -643,7 +551,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                     ? 'hide_manual_entry'.tr
                     : 'show_manual_entry'.tr,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.8),
+                  color: Colors.white.withValues(alpha: 0.8),
                   fontSize: 13.sp,
                 ),
               ),
@@ -654,9 +562,9 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
             Container(
               padding: EdgeInsets.all(12.r),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(color: Colors.white.withOpacity(0.3)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -664,7 +572,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                   Text(
                     '${'manual_entry_key'.tr}:',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                       fontSize: 12.sp,
                       fontWeight: FontWeight.w600,
                     ),
@@ -733,9 +641,9 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
         Container(
           padding: EdgeInsets.all(12.r),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
+            color: Colors.white.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(color: Colors.white.withOpacity(0.3)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
           ),
           child: Row(
             children: [
@@ -782,7 +690,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
               child: Text(
                 '${'resend_in'.tr} ${controller.verificationCountdown.value}s',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.7),
+                  color: Colors.white.withValues(alpha: 0.7),
                   fontSize: 12.sp,
                 ),
               ),
@@ -848,7 +756,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
               child: Text(
                 '${'resend_in'.tr} ${controller.verificationCountdown.value}s',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.7),
+                  color: Colors.white.withValues(alpha: 0.7),
                   fontSize: 12.sp,
                 ),
               ),
@@ -888,9 +796,9 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
     return Container(
       padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        color: Colors.white.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.white.withOpacity(0.3)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -900,7 +808,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
             child: Text(
               text,
               style: TextStyle(
-                color: Colors.white.withOpacity(0.9),
+                color: Colors.white.withValues(alpha: 0.9),
                 fontSize: 13.sp,
               ),
             ),
@@ -919,13 +827,13 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
         padding: EdgeInsets.all(16.r),
         decoration: BoxDecoration(
           color: allMet
-              ? Colors.green.withOpacity(0.2)
-              : Colors.white.withOpacity(0.2),
+              ? Colors.green.withValues(alpha: 0.2)
+              : Colors.white.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(12.r),
           border: Border.all(
             color: allMet
-                ? Colors.green.withOpacity(0.4)
-                : Colors.white.withOpacity(0.3),
+                ? Colors.green.withValues(alpha: 0.4)
+                : Colors.white.withValues(alpha: 0.3),
           ),
         ),
         child: Column(
@@ -937,7 +845,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                 Text(
                   '${'password_requirements'.tr}:',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
                   ),
@@ -983,7 +891,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
                         style: TextStyle(
                           color: req.isMet
                               ? Colors.white
-                              : Colors.white.withOpacity(0.7),
+                              : Colors.white.withValues(alpha: 0.7),
                           fontSize: 13.sp,
                           fontWeight:
                           req.isMet ? FontWeight.w500 : FontWeight.normal,
@@ -1004,9 +912,9 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
     return Container(
       padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
-        color: Colors.green.withOpacity(0.2),
+        color: Colors.green.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.green.withOpacity(0.4)),
+        border: Border.all(color: Colors.green.withValues(alpha: 0.4)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -1037,7 +945,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
       textAlign: TextAlign.center,
       style: TextStyle(
         fontSize: 12.sp,
-        color: Colors.white.withOpacity(0.6),
+        color: Colors.white.withValues(alpha: 0.6),
       ),
     );
   }
@@ -1080,7 +988,7 @@ class FirstLoginSetupScreen extends GetView<FirstLoginController> {
         fit: BoxFit.contain,
       );
     } catch (e) {
-      print("QR decode error: $e");
+      DiagnosticLogger.instance.debug("QR decode error: $e");
       return Container(
         width: 200.w,
         height: 200.h,

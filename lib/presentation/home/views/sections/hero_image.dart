@@ -141,12 +141,12 @@ class _HeroImageState extends State<HeroImage>
                     ), // Higher up to reach top better
                     radius: 0.9, // Larger radius to cover top area
                     colors: [
-                      Colors.white.withOpacity(0.0),
-                      Colors.white.withOpacity(0.0),
-                      Colors.white.withOpacity(0.05),
-                      Colors.white.withOpacity(0.10),
-                      Colors.white.withOpacity(0.08),
-                      Colors.white.withOpacity(0.0),
+                      Colors.white.withValues(alpha: 0.0),
+                      Colors.white.withValues(alpha: 0.0),
+                      Colors.white.withValues(alpha: 0.05),
+                      Colors.white.withValues(alpha: 0.10),
+                      Colors.white.withValues(alpha: 0.08),
+                      Colors.white.withValues(alpha: 0.0),
                     ],
                     stops: const [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
                   ),
@@ -166,13 +166,13 @@ class _HeroImageState extends State<HeroImage>
                     center: Alignment.center,
                     radius: 1.1,
                     colors: [
-                      Colors.black.withOpacity(0.0),
-                      Colors.black.withOpacity(0.0),
-                      Colors.black.withOpacity(0.0),
-                      Colors.black.withOpacity(0.0),
-                      Colors.black.withOpacity(0.15),
-                      Colors.black.withOpacity(0.0),
-                      Colors.black.withOpacity(0.0),
+                      Colors.black.withValues(alpha: 0.0),
+                      Colors.black.withValues(alpha: 0.0),
+                      Colors.black.withValues(alpha: 0.0),
+                      Colors.black.withValues(alpha: 0.0),
+                      Colors.black.withValues(alpha: 0.15),
+                      Colors.black.withValues(alpha: 0.0),
+                      Colors.black.withValues(alpha: 0.0),
                     ],
                     stops: const [0.0, 0.4, 0.65, 0.72, 0.82, 0.92, 1.0],
                   ),
@@ -198,10 +198,10 @@ class _HeroImageState extends State<HeroImage>
                       1.0,
                     ], // Stop darkening at 75% to avoid bottom edge
                     colors: [
-                      Colors.black.withOpacity(0.0),
-                      Colors.black.withOpacity(0.03),
-                      Colors.black.withOpacity(0.03), // Keep same at 75%
-                      Colors.black.withOpacity(
+                      Colors.black.withValues(alpha: 0.0),
+                      Colors.black.withValues(alpha: 0.03),
+                      Colors.black.withValues(alpha: 0.03), // Keep same at 75%
+                      Colors.black.withValues(alpha: 
                         0.0,
                       ), // Fade to transparent at bottom to avoid dark line
                     ],
@@ -224,12 +224,12 @@ class _HeroImageState extends State<HeroImage>
                     ), // Higher up for top effect
                     radius: 1.8, // Larger radius for better coverage
                     colors: [
-                      Colors.white.withOpacity(0.0),
-                      Colors.white.withOpacity(0.0),
-                      Colors.white.withOpacity(0.00), // Stronger at center
-                      Colors.white.withOpacity(0.00),
-                      Colors.white.withOpacity(0.00),
-                      Colors.white.withOpacity(0.0),
+                      Colors.white.withValues(alpha: 0.0),
+                      Colors.white.withValues(alpha: 0.0),
+                      Colors.white.withValues(alpha: 0.00), // Stronger at center
+                      Colors.white.withValues(alpha: 0.00),
+                      Colors.white.withValues(alpha: 0.00),
+                      Colors.white.withValues(alpha: 0.0),
                     ],
                     stops: const [0.0, 0.15, 0.35, 0.55, 0.75, 1.0],
                   ),
@@ -260,10 +260,10 @@ class _HeroImageState extends State<HeroImage>
                       end: Alignment.topCenter,
                       colors: [
                         AppColors.surfaceWhite,
-                        AppColors.surfaceWhite.withOpacity(0.85),
-                        AppColors.surfaceWhite.withOpacity(0.50),
-                        AppColors.surfaceWhite.withOpacity(0.15),
-                        AppColors.surfaceWhite.withOpacity(0.0),
+                        AppColors.surfaceWhite.withValues(alpha: 0.85),
+                        AppColors.surfaceWhite.withValues(alpha: 0.50),
+                        AppColors.surfaceWhite.withValues(alpha: 0.15),
+                        AppColors.surfaceWhite.withValues(alpha: 0.0),
                       ],
                       stops: const [0.0, 0.20, 0.45, 0.75, 1.0],
                     ),
@@ -291,10 +291,10 @@ class _HeroImageState extends State<HeroImage>
                       end: Alignment.bottomCenter,
                       colors: [
                         AppColors.surfaceWhite,
-                        AppColors.surfaceWhite.withOpacity(0.85),
-                        AppColors.surfaceWhite.withOpacity(0.50),
-                        AppColors.surfaceWhite.withOpacity(0.15),
-                        AppColors.surfaceWhite.withOpacity(0.0),
+                        AppColors.surfaceWhite.withValues(alpha: 0.85),
+                        AppColors.surfaceWhite.withValues(alpha: 0.50),
+                        AppColors.surfaceWhite.withValues(alpha: 0.15),
+                        AppColors.surfaceWhite.withValues(alpha: 0.0),
                       ],
                       stops: const [0.0, 0.20, 0.45, 0.75, 1.0],
                     ),

@@ -156,6 +156,21 @@ class DiagnosticLogger with WidgetsBindingObserver {
     info('App lifecycle: ${state.name}');
   }
 
+  void debug(
+    String message, {
+    Map<String, Object?>? metadata,
+    Object? error,
+    StackTrace? stackTrace,
+  }) {
+    log(
+      DiagnosticLogLevel.debug,
+      message,
+      metadata: metadata,
+      error: error,
+      stackTrace: stackTrace,
+    );
+  }
+
   void info(
     String message, {
     Map<String, Object?>? metadata,
@@ -239,7 +254,11 @@ class DiagnosticLogger with WidgetsBindingObserver {
         buffer.writeln(_sanitize(stackTrace.toString()));
       }
 
-      _pending.add(buffer.toString());
+      final String entry = buffer.toString();
+      if (kDebugMode) {
+        debugPrint(entry.trimRight());
+      }
+      _pending.add(entry);
       unawaited(_drain());
     } catch (_) {}
   }
@@ -470,12 +489,15 @@ class DiagnosticLogger with WidgetsBindingObserver {
 }
 
 enum DiagnosticLogLevel {
+  debug,
   info,
   warning,
   error;
 
   String get label {
     switch (this) {
+      case DiagnosticLogLevel.debug:
+        return 'DEBUG';
       case DiagnosticLogLevel.info:
         return 'INFO';
       case DiagnosticLogLevel.warning:

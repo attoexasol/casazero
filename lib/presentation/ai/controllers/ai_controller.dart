@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/repositories/ai_repository.dart';
 import '../../../core/controllers/message_popup_controller.dart';
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 class Message {
   final String? id; // Nullable for pending messages
@@ -119,12 +120,12 @@ class AiController extends GetxController {
       isLoadingHistory.value = true;
       errorMessage.value = ''; // Clear error
 
-      print('🤖 [AiController] Loading chat history...');
+      DiagnosticLogger.instance.debug('🤖 [AiController] Loading chat history...');
       final result = await _aiRepository.getMessageHistory();
 
       if (result['success'] == true) {
         final List<dynamic> historyData = result['data'] ?? [];
-        print('📊 [AiController] Received ${historyData.length} chat messages from API');
+        DiagnosticLogger.instance.debug('📊 [AiController] Received ${historyData.length} chat messages from API');
 
         // Clear existing messages
         messages.clear();
@@ -175,7 +176,7 @@ class AiController extends GetxController {
           messages.addAll(parsedMessages);
           showAssistance.value = messages.length <= 1; // Show assistance only if no chat started
 
-          print('✅ [AiController] Loaded ${messages.length} messages from history');
+          DiagnosticLogger.instance.info('✅ [AiController] Loaded ${messages.length} messages from history');
         }
 
         // Scroll to bottom after loading
@@ -188,10 +189,10 @@ class AiController extends GetxController {
         errorMessage.value = error;
         messages.add(_greetingMessage());
         showAssistance.value = true;
-        print('⚠️ [AiController] Failed to load history: ${errorMessage.value}');
+        DiagnosticLogger.instance.error('⚠️ [AiController] Failed to load history: ${errorMessage.value}');
       }
     } catch (e) {
-      print('❌ [AiController] Error loading chat history: $e');
+      DiagnosticLogger.instance.error('❌ [AiController] Error loading chat history: $e');
       final error = 'Failed to load chat history. Please try again.';
       errorMessage.value = error;
       // Show greeting message on error
@@ -215,14 +216,7 @@ class AiController extends GetxController {
       // STEP 1: VALIDATE INPUT IS STRING
       // ============================================
       // Ensure text is a STRING (should always be from TextField, but validate anyway)
-      final String messageText;
-      if (text is String) {
-        messageText = text;
-      } else {
-        // Force conversion if somehow not a string
-        messageText = text.toString();
-        print('⚠️ [AiController] WARNING: Input text was not a String, converted: ${text.runtimeType} -> String');
-      }
+      final String messageText = text;
 
       // Validate message is not empty after conversion
       if (messageText.isEmpty) {
@@ -254,10 +248,10 @@ class AiController extends GetxController {
       // Show thinking indicator
       isLoading.value = true;
 
-      print('🤖 [AiController] Sending message to AI:');
-      print('   - Type: ${messageText.runtimeType}');
-      print('   - Length: ${messageText.length}');
-      print('   - Preview: ${messageText.substring(0, messageText.length > 50 ? 50 : messageText.length)}...');
+      DiagnosticLogger.instance.debug('🤖 [AiController] Sending message to AI:');
+      DiagnosticLogger.instance.debug('   - Type: ${messageText.runtimeType}');
+      DiagnosticLogger.instance.debug('   - Length: ${messageText.length}');
+      DiagnosticLogger.instance.debug('   - Preview: ${messageText.substring(0, messageText.length > 50 ? 50 : messageText.length)}...');
 
       // ============================================
       // STEP 3: CALL API WITH VALIDATED STRING
@@ -303,7 +297,7 @@ class AiController extends GetxController {
             }
           }
 
-          print('✅ [AiController] AI response received: ${aiReply.substring(0, aiReply.length > 50 ? 50 : aiReply.length)}...');
+          DiagnosticLogger.instance.info('✅ [AiController] AI response received: ${aiReply.substring(0, aiReply.length > 50 ? 50 : aiReply.length)}...');
 
           // Scroll to bottom after AI response
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -332,10 +326,10 @@ class AiController extends GetxController {
           titleKey: 'error',
         );
 
-        print('❌ [AiController] Failed to send message: $error');
+        DiagnosticLogger.instance.error('❌ [AiController] Failed to send message: $error');
       }
     } catch (e) {
-      print('❌ [AiController] Error sending message: $e');
+      DiagnosticLogger.instance.error('❌ [AiController] Error sending message: $e');
       isLoading.value = false;
       errorMessage.value = 'An unexpected error occurred. Please try again.';
       

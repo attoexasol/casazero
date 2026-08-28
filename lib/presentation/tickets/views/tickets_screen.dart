@@ -103,7 +103,7 @@ class TicketsScreen extends GetView<TicketsController> {
             borderRadius: BorderRadius.circular(10.r),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.06),
+                color: Colors.black.withValues(alpha: 0.06),
                 blurRadius: 4,
                 offset: const Offset(0, 2),
               ),
@@ -137,7 +137,7 @@ class TicketsScreen extends GetView<TicketsController> {
           SizedBox(height: 16.h),
           Text(
             'noTicketsInCategory'.tr,
-            style: AppTextStyles.CardHeaderText.copyWith(
+            style: AppTextStyles.cardHeaderText.copyWith(
               fontSize: 16.sp,
               color: AppColors.neutralInk900,
             ),

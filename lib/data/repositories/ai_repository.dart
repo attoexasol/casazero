@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import '../../core/services/api_service.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/services/storage_service.dart';
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 class AiRepository {
   final ApiService _apiService = Get.find();
@@ -10,15 +11,15 @@ class AiRepository {
 
   /// Send a message to AI
   /// POST /casazero-ai/send-message
-  /// Request: { "token": "<USER_API_TOKEN>", "message": "<USER_MESSAGE>" }
-  /// Response: { "success": true, "chat_id": 10, "reply": "<AI_REPLY>", "image": null }
+  /// Request: { "token": "`<USER_API_TOKEN>`", "message": "`<USER_MESSAGE>`" }
+  /// Response: { "success": true, "chat_id": 10, "reply": "`<AI_REPLY>`", "image": null }
   Future<Map<String, dynamic>> sendMessage(String message) async {
     try {
-      print('🤖 [AiRepository] Starting sendMessage()...');
+      DiagnosticLogger.instance.error('🤖 [AiRepository] Starting sendMessage()...');
       
       final token = _storageService.getAccessToken();
       if (token == null || token.isEmpty) {
-        print('❌ [AiRepository] Token is null or empty');
+        DiagnosticLogger.instance.error('❌ [AiRepository] Token is null or empty');
         return {
           'success': false,
           'error': 'User token not found. Please login again.',
@@ -29,21 +30,14 @@ class AiRepository {
       // STEP 1: VALIDATE AND ENFORCE STRING TYPES
       // ============================================
       // Ensure message is a STRING, not array/object
-      final String messageText;
-      if (message is String) {
-        messageText = message.trim();
-      } else {
-        // Force conversion to string if somehow not a string
-        messageText = message.toString().trim();
-        print('⚠️ [AiRepository] WARNING: Message was not a String, converted: ${message.runtimeType} -> String');
-      }
+      final String messageText = message.trim();
 
       // Ensure token is a STRING
       final String tokenString = token.toString();
 
       // Validate message is not empty
       if (messageText.isEmpty) {
-        print('❌ [AiRepository] Message is empty after trim');
+        DiagnosticLogger.instance.error('❌ [AiRepository] Message is empty after trim');
         return {
           'success': false,
           'error': 'Message cannot be empty.',
@@ -65,7 +59,7 @@ class AiRepository {
       // ============================================
       // Runtime type checking to catch any issues before API call
       if (requestBody['token'] is! String) {
-        print('❌ [AiRepository] CRITICAL: token is not a String! Type: ${requestBody['token'].runtimeType}');
+        DiagnosticLogger.instance.error('❌ [AiRepository] CRITICAL: token is not a String! Type: ${requestBody['token'].runtimeType}');
         return {
           'success': false,
           'error': 'Invalid token format.',
@@ -73,7 +67,7 @@ class AiRepository {
       }
 
       if (requestBody['message'] is! String) {
-        print('❌ [AiRepository] CRITICAL: message is not a String! Type: ${requestBody['message'].runtimeType}');
+        DiagnosticLogger.instance.error('❌ [AiRepository] CRITICAL: message is not a String! Type: ${requestBody['message'].runtimeType}');
         return {
           'success': false,
           'error': 'Invalid message format.',
@@ -83,18 +77,18 @@ class AiRepository {
       // ============================================
       // STEP 4: LOG PAYLOAD DETAILS FOR DEBUGGING
       // ============================================
-      print('═══════════════════════════════════════════════════════════');
-      print('📤 [AiRepository] SEND MESSAGE REQUEST');
-      print('═══════════════════════════════════════════════════════════');
-      print('📡 Endpoint: ${ApiConstants.AI_SEND_MESSAGE}');
-      print('🔑 Token type: ${requestBody['token'].runtimeType}');
-      print('🔑 Token length: ${tokenString.length}');
-      print('💬 Message type: ${requestBody['message'].runtimeType}');
-      print('💬 Message length: ${messageText.length}');
-      print('💬 Message preview: ${messageText.substring(0, messageText.length > 50 ? 50 : messageText.length)}...');
-      print('📦 Request body keys: ${requestBody.keys.toList()}');
-      print('✅ Payload validation: PASSED (all fields are strings)');
-      print('═══════════════════════════════════════════════════════════');
+      DiagnosticLogger.instance.info('═══════════════════════════════════════════════════════════');
+      DiagnosticLogger.instance.info('📤 [AiRepository] SEND MESSAGE REQUEST');
+      DiagnosticLogger.instance.info('═══════════════════════════════════════════════════════════');
+      DiagnosticLogger.instance.info('📡 Endpoint: ${ApiConstants.AI_SEND_MESSAGE}');
+      DiagnosticLogger.instance.debug('🔑 Token type: ${requestBody['token'].runtimeType}');
+      DiagnosticLogger.instance.debug('🔑 Token length: ${tokenString.length}');
+      DiagnosticLogger.instance.debug('💬 Message type: ${requestBody['message'].runtimeType}');
+      DiagnosticLogger.instance.debug('💬 Message length: ${messageText.length}');
+      DiagnosticLogger.instance.info('💬 Message preview: ${messageText.substring(0, messageText.length > 50 ? 50 : messageText.length)}...');
+      DiagnosticLogger.instance.info('📦 Request body keys: ${requestBody.keys.toList()}');
+      DiagnosticLogger.instance.info('✅ Payload validation: PASSED (all fields are strings)');
+      DiagnosticLogger.instance.debug('═══════════════════════════════════════════════════════════');
 
       // ============================================
       // STEP 5: MAKE API CALL
@@ -104,9 +98,9 @@ class AiRepository {
         data: requestBody,
       );
 
-      print('✅ [AiRepository] API Response received');
-      print('📊 [AiRepository] Status Code: ${response.statusCode}');
-      print('📊 [AiRepository] Response Data: ${response.data}');
+      DiagnosticLogger.instance.info('✅ [AiRepository] API Response received');
+      DiagnosticLogger.instance.debug('📊 [AiRepository] Status Code: ${response.statusCode}');
+      DiagnosticLogger.instance.debug('📊 [AiRepository] Response Data: ${response.data}');
 
       if (response.statusCode == 200 && response.data['success'] == true) {
         // ============================================
@@ -121,7 +115,7 @@ class AiRepository {
           replyText = replyRaw;
         } else if (replyRaw is List) {
           // If backend accidentally returns array, join it
-          print('⚠️ [AiRepository] WARNING: Reply is an array, converting to string');
+          DiagnosticLogger.instance.warning('⚠️ [AiRepository] WARNING: Reply is an array, converting to string');
           replyText = replyRaw.join(' ');
         } else {
           replyText = replyRaw.toString();
@@ -136,7 +130,7 @@ class AiRepository {
           imageUrl = imageRaw;
         } else if (imageRaw is List && imageRaw.isNotEmpty) {
           // If backend returns array, take first element if string
-          print('⚠️ [AiRepository] WARNING: Image is an array, taking first element');
+          DiagnosticLogger.instance.warning('⚠️ [AiRepository] WARNING: Image is an array, taking first element');
           imageUrl = imageRaw.first is String ? imageRaw.first as String : null;
         } else {
           imageUrl = imageRaw.toString();
@@ -168,11 +162,11 @@ class AiRepository {
           remainingAiCredit = int.tryParse(remainingCreditRaw.toString());
         }
 
-        print('✅ [AiRepository] Response validated:');
-        print('   - chat_id: $chatId (type: ${chatId.runtimeType})');
-        print('   - reply: ${replyText.length} chars (type: ${replyText.runtimeType})');
-        print('   - image: ${imageUrl ?? 'null'} (type: ${imageUrl?.runtimeType ?? 'null'})');
-        print('   - remaining_ai_credit: $remainingAiCredit (type: ${remainingAiCredit.runtimeType})');
+        DiagnosticLogger.instance.info('✅ [AiRepository] Response validated:');
+        DiagnosticLogger.instance.debug('   - chat_id: $chatId (type: ${chatId.runtimeType})');
+        DiagnosticLogger.instance.debug('   - reply: ${replyText.length} chars (type: ${replyText.runtimeType})');
+        DiagnosticLogger.instance.debug('   - image: ${imageUrl ?? 'null'} (type: ${imageUrl?.runtimeType ?? 'null'})');
+        DiagnosticLogger.instance.debug('   - remaining_ai_credit: $remainingAiCredit (type: ${remainingAiCredit.runtimeType})');
 
         return {
           'success': true,
@@ -194,16 +188,16 @@ class AiRepository {
           errorMessage = response.data as String;
         }
         
-        print('❌ [AiRepository] API returned error: $errorMessage');
-        print('📊 [AiRepository] Full response data: ${response.data}');
+        DiagnosticLogger.instance.error('❌ [AiRepository] API returned error: $errorMessage');
+        DiagnosticLogger.instance.error('📊 [AiRepository] Full response data: ${response.data}');
         return {
           'success': false,
           'error': errorMessage,
         };
       }
     } on DioException catch (e, stackTrace) {
-      print('❌ [AiRepository] DioException in sendMessage: $e');
-      print('📚 [AiRepository] Stack trace: $stackTrace');
+      DiagnosticLogger.instance.error('❌ [AiRepository] DioException in sendMessage: $e');
+      DiagnosticLogger.instance.error('📚 [AiRepository] Stack trace: $stackTrace');
 
       String errorMessage = 'Failed to send message. Please try again.';
       if (e.response != null && e.response!.data != null) {
@@ -225,8 +219,8 @@ class AiRepository {
           }
         }
         
-        print('📊 [AiRepository] Error response data: $responseData');
-        print('📊 [AiRepository] Extracted error message: $errorMessage');
+        DiagnosticLogger.instance.error('📊 [AiRepository] Error response data: $responseData');
+        DiagnosticLogger.instance.error('📊 [AiRepository] Extracted error message: $errorMessage');
       } else {
         // Network or connection error
         if (e.type == DioExceptionType.connectionTimeout ||
@@ -242,7 +236,7 @@ class AiRepository {
         'error': errorMessage,
       };
     } catch (e) {
-      print('❌ [AiRepository] Error in sendMessage: $e');
+      DiagnosticLogger.instance.error('❌ [AiRepository] Error in sendMessage: $e');
       
       // Try to extract error message from exception
       String errorMessage = 'An unexpected error occurred. Please try again.';
@@ -270,15 +264,15 @@ class AiRepository {
 
   /// Get AI message history
   /// POST /casazero-ai/get-message
-  /// Request: { "token": "<USER_API_TOKEN>" }
+  /// Request: { "token": "`<USER_API_TOKEN>`" }
   /// Response: { "success": true, "data": { "data": [...] } }
   Future<Map<String, dynamic>> getMessageHistory() async {
     try {
-      print('🤖 [AiRepository] Starting getMessageHistory()...');
+      DiagnosticLogger.instance.error('🤖 [AiRepository] Starting getMessageHistory()...');
       
       final token = _storageService.getAccessToken();
       if (token == null || token.isEmpty) {
-        print('❌ [AiRepository] Token is null or empty');
+        DiagnosticLogger.instance.error('❌ [AiRepository] Token is null or empty');
         return {
           'success': false,
           'error': 'User token not found. Please login again.',
@@ -286,8 +280,8 @@ class AiRepository {
         };
       }
 
-      print('📡 [AiRepository] Making POST request to: ${ApiConstants.AI_GET_MESSAGE_HISTORY}');
-      print('📦 [AiRepository] Request data: {"token": "${token.substring(0, 10)}..."}');
+      DiagnosticLogger.instance.info('📡 [AiRepository] Making POST request to: ${ApiConstants.AI_GET_MESSAGE_HISTORY}');
+      DiagnosticLogger.instance.debug('📦 [AiRepository] Request data: {"token": "${token.substring(0, 10)}..."}');
 
       final response = await _apiService.post(
         ApiConstants.AI_GET_MESSAGE_HISTORY,
@@ -296,9 +290,9 @@ class AiRepository {
         },
       );
 
-      print('✅ [AiRepository] API Response received');
-      print('📊 [AiRepository] Status Code: ${response.statusCode}');
-      print('📊 [AiRepository] Response Data: ${response.data}');
+      DiagnosticLogger.instance.info('✅ [AiRepository] API Response received');
+      DiagnosticLogger.instance.debug('📊 [AiRepository] Status Code: ${response.statusCode}');
+      DiagnosticLogger.instance.debug('📊 [AiRepository] Response Data: ${response.data}');
 
       if (response.statusCode == 200 && response.data['success'] == true) {
         // Extract data array from nested structure: response.data.data.data
@@ -307,7 +301,7 @@ class AiRepository {
             ? data['data'] as List<dynamic>
             : (data is List ? data : []);
         
-        print('📊 [AiRepository] Parsing ${messagesData.length} chat messages');
+        DiagnosticLogger.instance.debug('📊 [AiRepository] Parsing ${messagesData.length} chat messages');
         
         return {
           'success': true,
@@ -317,7 +311,7 @@ class AiRepository {
         final errorMessage = response.data['message'] ?? 
                             response.data['error'] ?? 
                             'Failed to load chat history. Please try again.';
-        print('❌ [AiRepository] API returned error: $errorMessage');
+        DiagnosticLogger.instance.error('❌ [AiRepository] API returned error: $errorMessage');
         return {
           'success': false,
           'error': errorMessage,
@@ -325,8 +319,8 @@ class AiRepository {
         };
       }
     } on DioException catch (e, stackTrace) {
-      print('❌ [AiRepository] DioException in getMessageHistory: $e');
-      print('📚 [AiRepository] Stack trace: $stackTrace');
+      DiagnosticLogger.instance.error('❌ [AiRepository] DioException in getMessageHistory: $e');
+      DiagnosticLogger.instance.error('📚 [AiRepository] Stack trace: $stackTrace');
 
       String errorMessage = 'Failed to load chat history. Please try again.';
       if (e.response != null && e.response!.data != null) {
@@ -336,7 +330,7 @@ class AiRepository {
                         responseData['error'] ?? 
                         errorMessage;
         }
-        print('📊 [AiRepository] Error response data: $responseData');
+        DiagnosticLogger.instance.error('📊 [AiRepository] Error response data: $responseData');
       }
 
       return {
@@ -345,7 +339,7 @@ class AiRepository {
         'data': [],
       };
     } catch (e) {
-      print('❌ [AiRepository] Error in getMessageHistory: $e');
+      DiagnosticLogger.instance.error('❌ [AiRepository] Error in getMessageHistory: $e');
       return {
         'success': false,
         'error': 'An unexpected error occurred. Please try again.',

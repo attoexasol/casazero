@@ -5,14 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/controllers/message_popup_controller.dart';
 import '../../../data/repositories/auth_repository.dart';
-import '../../../data/repositories/profile_repository.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/models/two_factor_method_model.dart';
+import '../../../core/logging/diagnostic_logger.dart';
 
 class TwoFAManagementController extends GetxController {
   final AuthRepository _authRepository = Get.find();
-  final ProfileRepository _profileRepository = Get.find();
   final StorageService _storageService = Get.find();
 
   // User data
@@ -153,10 +152,7 @@ class TwoFAManagementController extends GetxController {
       totpSecret.value = result['secret'] ?? '';
       otpauthUrl.value = result['otpauth_url'] ?? '';
 
-      print('Ã¢Å“â€¦ QR Code generated successfully');
-      print('   OtpAuth URL: ${otpauthUrl.value}');
-
-      print('ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ QR Code generated successfully');
+      DiagnosticLogger.instance.info('QR Code generated successfully');
     } else {
       MessagePopupController.showError(
         messageKey: 'failed_to_generate_qr',
@@ -177,7 +173,7 @@ class TwoFAManagementController extends GetxController {
     isLoading.value = false;
 
     if (result['success']) {
-      print('OTP sent for activation');
+      DiagnosticLogger.instance.error('OTP sent for activation');
     } else {
       MessagePopupController.showError(
         messageKey: 'failed_to_send_otp',
@@ -409,7 +405,7 @@ class TwoFAManagementController extends GetxController {
     final userId = userData?['id'];
 
     if (userId != null) {
-      print('📡 Calling update 2FA status API (deactivate)...');
+      DiagnosticLogger.instance.info('📡 Calling update 2FA status API (deactivate)...');
       final statusUpdateResult = await _authRepository.update2FAStatus(
         userId: userId,
         status: 0, // 0 = deactivate
@@ -425,7 +421,7 @@ class TwoFAManagementController extends GetxController {
         return false;
       }
 
-      print('✅ 2FA Status updated to inactive');
+      DiagnosticLogger.instance.info('✅ 2FA Status updated to inactive');
     }
 
     // Step 3: Call disable 2FA API

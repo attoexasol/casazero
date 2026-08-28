@@ -25,6 +25,7 @@ import '../../presentation/home/controllers/home_controller.dart';
 import '../../presentation/profile/controllers/profile_controller.dart';
 import '../../presentation/profile/controllers/two_fa_management_controller.dart';
 import '../../presentation/trusted_device/controllers/trusted_devices_controller.dart';
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 class InitialBinding extends Bindings {
   @override
@@ -95,7 +96,7 @@ class InitialBinding extends Bindings {
   /// Registers services that touch Firebase APIs. Call after [Firebase.initializeApp].
   static void registerFirebaseDependentServices() {
     if (Firebase.apps.isEmpty) {
-      print(
+      DiagnosticLogger.instance.warning(
         '⚠️ [InitialBinding] Skipping Firebase-dependent services — Firebase not initialized',
       );
       return;

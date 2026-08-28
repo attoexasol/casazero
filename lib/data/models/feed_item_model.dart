@@ -105,13 +105,14 @@ class FeedItemModel {
     url = _pickUrl(json);
     final relatedEntityName = _pickEntityName(json);
     final categoryName = _pickCategoryName(json);
-    final subtitle = _readString(json['subtitle']) ??
+    final subtitle =
+        _readString(json['subtitle']) ??
         _readString(json['sub_title']) ??
         _readString(json['subtitle_en']) ??
         _readString(json['subtitle_it']);
 
-    final referenceId = _readString(json['reference_id']) ??
-        _readString(json['referenceId']);
+    final referenceId =
+        _readString(json['reference_id']) ?? _readString(json['referenceId']);
 
     return FeedItemModel(
       id: id,
@@ -215,7 +216,64 @@ class FeedItemModel {
     return null;
   }
 
-  bool get _isDocumentType => PushTypes.isDocument(type);
+  static bool _isExplicitNonAnnouncementChat(String? type) {
+    final t = PushTypes.normalize(type);
+    if (t == null) return false;
+    if (t == 'announcement' || t == 'announcements') return false;
+    return PushTypes.isChat(t);
+  }
+
+  /// Document notification (API type aliases, document URL, document title/description).
+  bool get isDocumentType {
+    if (PushTypes.isDocument(type)) return true;
+
+    // Never reclassify if push type explicitly belongs to another known domain
+    if (_isExplicitNonAnnouncementChat(type) ||
+        PushTypes.isTicketOrSupport(type) ||
+        PushTypes.isMaintenance(type)) {
+      return false;
+    }
+
+    if (_categoryLooksLikeMaintenance) return false;
+
+    final lowerTitle = NotificationContentLocalizer.stripEmojis(
+      title,
+    ).toLowerCase().trim();
+    final lowerDesc = NotificationContentLocalizer.stripEmojis(
+      description,
+    ).toLowerCase().trim();
+
+    if (lowerTitle.contains('document') ||
+        lowerTitle.contains('documento') ||
+        lowerDesc.contains('document') ||
+        lowerDesc.contains('documento')) {
+      return true;
+    }
+
+    if (url != null && url!.isNotEmpty) {
+      final u = url!.toLowerCase();
+      if (u.contains('.pdf') ||
+          u.contains('.doc') ||
+          u.contains('/document') ||
+          u.contains('/storage/')) {
+        return true;
+      }
+    }
+
+    if (relatedEntityName != null && relatedEntityName!.isNotEmpty) {
+      final r = relatedEntityName!.toLowerCase();
+      if (r.contains('.pdf') ||
+          r.contains('.doc') ||
+          r.contains('.png') ||
+          r.contains('.jpg')) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  bool get _isDocumentType => isDocumentType;
 
   bool get _categoryLooksLikeMaintenance {
     final category = categoryName?.toLowerCase().trim() ?? '';
@@ -230,8 +288,8 @@ class FeedItemModel {
     if (PushTypes.isMaintenance(type)) return true;
 
     // Never reclassify a clearly different known type.
-    if (_isDocumentType ||
-        PushTypes.isChat(type) ||
+    if (PushTypes.isDocument(type) ||
+        _isExplicitNonAnnouncementChat(type) ||
         PushTypes.isTicketOrSupport(type)) {
       return false;
     }
@@ -252,7 +310,9 @@ class FeedItemModel {
 
     if (PushTypes.isTicketOrSupport(type)) return true;
 
-    if (_isDocumentType || PushTypes.isChat(type)) return false;
+    if (PushTypes.isDocument(type) || _isExplicitNonAnnouncementChat(type)) {
+      return false;
+    }
 
     // Backend sometimes stores tickets under a generic type.
     return NotificationContentLocalizer.looksLikeTicket(
@@ -263,33 +323,114 @@ class FeedItemModel {
 
   /// Whether this notification belongs to chat/messaging (API type or inferred).
   bool get isChatNotification {
-    // Keep filters mutually exclusive — never classify as chat if another
-    // known category matches first.
-    if (_isDocumentType || isMaintenanceType || isTicketType) {
-      return false;
-    }
-
-    if (PushTypes.isChat(type)) return true;
-
-    final normalized = PushTypes.normalize(type) ?? '';
-    if (normalized.contains('chat') || normalized.contains('messag')) {
+    if (PushTypes.isChat(type)) {
+      if (type == 'announcement' || type == 'announcements') {
+        if (isMaintenanceType || isTicketType || isDocumentType) {
+          return false;
+        }
+      }
       return true;
     }
 
-    // Some backends store chat pushes under generic types — infer from title.
-    final titleLower = title.toLowerCase();
-    const titleHints = [
+    if (PushTypes.isDocument(type) ||
+        PushTypes.isMaintenance(type) ||
+        PushTypes.isTicketOrSupport(type)) {
+      return false;
+    }
+
+    // Keep filters mutually exclusive with derived types
+    if (isMaintenanceType || isTicketType || isDocumentType) {
+      return false;
+    }
+
+    final normalized = PushTypes.normalize(type) ?? '';
+    if (normalized.contains('chat') ||
+        normalized.contains('messag') ||
+        normalized.contains('condomin') ||
+        normalized.contains('announcement')) {
+      return true;
+    }
+
+    final category = categoryName?.toLowerCase().trim() ?? '';
+    if (category.contains('chat') ||
+        category.contains('messag') ||
+        category.contains('condominio') ||
+        category.contains('condominium') ||
+        category.contains('announcement')) {
+      return true;
+    }
+
+    if (NotificationContentLocalizer.looksLikeChat(
+      title: title,
+      body: description,
+    )) {
+      return true;
+    }
+
+    // Some backends store chat pushes under generic types — infer from title or body.
+    final titleLower = NotificationContentLocalizer.stripEmojis(
+      title,
+    ).toLowerCase();
+    final descLower = NotificationContentLocalizer.stripEmojis(
+      description,
+    ).toLowerCase();
+    const chatHints = [
       'new message',
       'nuovo messaggio',
       'chat di condominio',
       'condominium chat',
       'messaggio chat',
+      'group chat',
+      'chat di gruppo',
+      'messaggio da',
+      'message from',
+      'condominio',
+      'condominium',
     ];
-    return titleHints.any((hint) => titleLower.contains(hint));
+    return chatHints.any(
+      (hint) => titleLower.contains(hint) || descLower.contains(hint),
+    );
   }
 
   /// Admin / private DM chat (vs condominium group chat).
-  bool get isAdminChatNotification => PushTypes.isPrivateChat(type);
+  bool get isAdminChatNotification {
+    if (PushTypes.isPrivateChat(type)) return true;
+    if (PushTypes.isGroupChat(type) &&
+        type != 'announcement' &&
+        type != 'announcements') {
+      return false;
+    }
+
+    final lowerTitle = NotificationContentLocalizer.stripEmojis(
+      title,
+    ).toLowerCase();
+    final lowerCat = (categoryName ?? '').toLowerCase();
+
+    if (lowerTitle.contains('condomin') ||
+        lowerTitle.contains('group') ||
+        lowerTitle.contains('gruppo') ||
+        lowerCat.contains('condomin') ||
+        lowerCat.contains('group') ||
+        lowerCat.contains('gruppo')) {
+      return false;
+    }
+
+    final lowerDesc = NotificationContentLocalizer.stripEmojis(
+      description,
+    ).toLowerCase();
+
+    return lowerTitle.contains('admin') ||
+        lowerDesc.contains('admin') ||
+        lowerCat.contains('admin') ||
+        lowerTitle.contains('amministratore') ||
+        lowerDesc.contains('amministratore') ||
+        lowerCat.contains('amministratore') ||
+        lowerTitle.contains('private') ||
+        lowerDesc.contains('private') ||
+        lowerCat.contains('private') ||
+        lowerTitle.contains('privat') ||
+        lowerDesc.contains('privat');
+  }
 
   bool get _isMessageType => isChatNotification;
 
@@ -307,9 +448,9 @@ class FeedItemModel {
   }
 
   bool get _isGenericApiTitle {
-    final lower = NotificationContentLocalizer.stripEmojis(title)
-        .toLowerCase()
-        .trim();
+    final lower = NotificationContentLocalizer.stripEmojis(
+      title,
+    ).toLowerCase().trim();
     if (lower.isEmpty) return true;
 
     const genericPatterns = [
@@ -341,8 +482,9 @@ class FeedItemModel {
   }
 
   bool _isGenericApiContent(String text) {
-    final lower =
-        NotificationContentLocalizer.stripEmojis(text).toLowerCase().trim();
+    final lower = NotificationContentLocalizer.stripEmojis(
+      text,
+    ).toLowerCase().trim();
     if (lower.isEmpty) return true;
 
     if (NotificationContentLocalizer.isGenericTicketContent(lower)) {
@@ -404,7 +546,11 @@ class FeedItemModel {
 
   /// Prefixed title for Notification Center (Documento:/Manutenzione:/Ticket:/Chat…).
   String get localizedCenterTitle {
-    if (_isMessageType) return 'notification_center_title_chat'.tr;
+    if (_isMessageType) {
+      return isAdminChatNotification
+          ? 'notification_center_title_private_chat'.tr
+          : 'notification_center_title_group_chat'.tr;
+    }
 
     if (_isDocumentType) {
       return '${'notification_center_prefix_document'.tr} $_centerTitleDetail';
@@ -496,11 +642,11 @@ class FeedItemModel {
 
       final raw = isItalian
           ? (titleIt?.isNotEmpty == true
-              ? titleIt!
-              : (title.isNotEmpty ? title : (titleEn ?? '')))
+                ? titleIt!
+                : (title.isNotEmpty ? title : (titleEn ?? '')))
           : (titleEn?.isNotEmpty == true
-              ? titleEn!
-              : (title.isNotEmpty ? title : (titleIt ?? '')));
+                ? titleEn!
+                : (title.isNotEmpty ? title : (titleIt ?? '')));
       return NotificationContentLocalizer.stripEmojis(raw);
     } catch (e) {
       return NotificationContentLocalizer.stripEmojis(
@@ -517,17 +663,15 @@ class FeedItemModel {
 
       final raw = isItalian
           ? (contentIt?.isNotEmpty == true
-              ? contentIt!
-              : (description.isNotEmpty ? description : (contentEn ?? '')))
+                ? contentIt!
+                : (description.isNotEmpty ? description : (contentEn ?? '')))
           : (contentEn?.isNotEmpty == true
-              ? contentEn!
-              : (description.isNotEmpty ? description : (contentIt ?? '')));
+                ? contentEn!
+                : (description.isNotEmpty ? description : (contentIt ?? '')));
       return NotificationContentLocalizer.stripEmojis(raw);
     } catch (e) {
       return NotificationContentLocalizer.stripEmojis(
-        description.isNotEmpty
-            ? description
-            : (contentEn ?? contentIt ?? ''),
+        description.isNotEmpty ? description : (contentEn ?? contentIt ?? ''),
       );
     }
   }
@@ -553,8 +697,19 @@ class FeedItemModel {
     var navType = type.toLowerCase().trim();
     if (isAdminChatNotification) {
       navType = 'private_chat';
-    } else if (isChatNotification) {
+    } else if (isDocumentType) {
+      navType = 'document';
+    } else if (isTicketType) {
+      navType = 'ticket';
+    } else if (isMaintenanceType) {
+      navType = 'maintenance';
+    } else if (PushTypes.isGroupChat(navType) ||
+        isChatNotification ||
+        navType == 'announcement' ||
+        navType == 'announcements') {
       navType = 'group_chat';
+    } else if (PushTypes.isPrivateChat(navType)) {
+      navType = 'private_chat';
     }
 
     final payload = <String, dynamic>{
@@ -575,6 +730,14 @@ class FeedItemModel {
     }
     if (title.isNotEmpty) {
       payload['title'] = title;
+    }
+    if (description.isNotEmpty) {
+      payload['description'] = description;
+      payload['body'] = description;
+    }
+    if (categoryName != null && categoryName!.isNotEmpty) {
+      payload['category'] = categoryName;
+      payload['category_name'] = categoryName;
     }
 
     return payload;
@@ -728,7 +891,9 @@ class FeedItemModel {
 
     if (categoryName != null &&
         categoryName!.isNotEmpty &&
-        !parts.any((p) => p.toLowerCase().contains(categoryName!.toLowerCase()))) {
+        !parts.any(
+          (p) => p.toLowerCase().contains(categoryName!.toLowerCase()),
+        )) {
       parts.add(categoryName!);
     }
 

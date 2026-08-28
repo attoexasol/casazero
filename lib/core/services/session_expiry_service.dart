@@ -75,7 +75,7 @@ class SessionExpiryService {
         );
       });
     } catch (e) {
-      print('❌ [SessionExpiryService] Error handling session expiry: $e');
+      DiagnosticLogger.instance.error('❌ [SessionExpiryService] Error handling session expiry: $e');
       DiagnosticLogger.instance.error(
         'Session expiry handling failed',
         error: e,

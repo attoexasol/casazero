@@ -49,9 +49,9 @@ class ForgotPasswordScreen extends GetView<ForgotPasswordController> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Colors.black.withOpacity(0.2),
-                Colors.black.withOpacity(0.1),
-                Colors.black.withOpacity(0.3),
+                Colors.black.withValues(alpha: 0.2),
+                Colors.black.withValues(alpha: 0.1),
+                Colors.black.withValues(alpha: 0.3),
               ],
             ),
           ),
@@ -105,14 +105,14 @@ class ForgotPasswordScreen extends GetView<ForgotPasswordController> {
                     children: [
                       Icon(
                         Icons.arrow_back,
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                         size: 20.sp,
                       ),
                       SizedBox(width: 8.w),
                       Text(
                         'back'.tr,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           fontSize: 14.sp,
                         ),
                       ),
@@ -132,12 +132,12 @@ class ForgotPasswordScreen extends GetView<ForgotPasswordController> {
   Widget _buildGlassCard() {
     return Container(
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.15),
+            color: Colors.white.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(24.r),
-            border: Border.all(color: Colors.white.withOpacity(0.2)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 20.r,
                 offset: Offset(0, 10.h),
               ),
@@ -150,8 +150,8 @@ class ForgotPasswordScreen extends GetView<ForgotPasswordController> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Colors.white.withOpacity(0.2),
-                    Colors.white.withOpacity(0.05),
+                    Colors.white.withValues(alpha: 0.2),
+                    Colors.white.withValues(alpha: 0.05),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -180,7 +180,7 @@ class ForgotPasswordScreen extends GetView<ForgotPasswordController> {
               style: TextStyle(
                 fontSize: 24.sp,
                 fontWeight: FontWeight.bold,
-                color: Colors.white.withOpacity(0.95),
+                color: Colors.white.withValues(alpha: 0.95),
               ),
             ),
             SizedBox(height: 8.h),
@@ -188,7 +188,7 @@ class ForgotPasswordScreen extends GetView<ForgotPasswordController> {
               'reset_password_description'.tr,
               style: TextStyle(
                 fontSize: 13.sp,
-                color: Colors.white.withOpacity(0.7),
+                color: Colors.white.withValues(alpha: 0.7),
               ),
             ),
             SizedBox(height: 32.h),
@@ -202,8 +202,8 @@ class ForgotPasswordScreen extends GetView<ForgotPasswordController> {
                   hint: 'email_placeholder'.tr,
                   controller: ctrl.emailController,
                   keyboardType: TextInputType.emailAddress,
-                  backgroundColor: Colors.white.withOpacity(0.9),
-                  borderColor: Colors.white.withOpacity(0.4),
+                  backgroundColor: Colors.white.withValues(alpha: 0.9),
+                  borderColor: Colors.white.withValues(alpha: 0.4),
                   textColor: const Color(0xFF1a1a1a),
                 ),
               ],
@@ -240,7 +240,7 @@ class ForgotPasswordScreen extends GetView<ForgotPasswordController> {
           ),
           elevation: 8,
           shadowColor: ctrl.canSubmit
-              ? AppColors.brandSage800.withOpacity(0.4)
+              ? AppColors.brandSage800.withValues(alpha: 0.4)
               : Colors.transparent,
         ),
         child: ctrl.isLoading.value

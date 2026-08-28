@@ -7,6 +7,7 @@ import '../../../data/models/two_factor_method_model.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../core/utils/validators.dart';
 import '../../../app/routes/app_routes.dart';
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 class FirstLoginController extends GetxController {
   final AuthRepository _authRepository = Get.find();
@@ -207,10 +208,10 @@ class FirstLoginController extends GetxController {
       // Store the base64 QR code image (includes data:image/svg+xml;base64, prefix)
       qrCodeData.value = result['qr_base64'] ?? '';
 
-      print('✅ Authenticator Setup Success:');
-      print('   Secret Key: ${totpSecret.value}');
-      print('   QR Base64 Length: ${qrCodeData.value.length}');
-      print('   OtpAuth URL: ${result['otpauth_url']}');
+      DiagnosticLogger.instance.info('✅ Authenticator Setup Success:');
+      DiagnosticLogger.instance.error('   Secret Key: ${totpSecret.value}');
+      DiagnosticLogger.instance.error('   QR Base64 Length: ${qrCodeData.value.length}');
+      DiagnosticLogger.instance.error('   OtpAuth URL: ${result['otpauth_url']}');
     } else {
       MessagePopupController.showError(
         messageKey: 'failed_to_generate_qr',

@@ -1,7 +1,6 @@
 // presentation/auth/controllers/auth_controller.dart
 // UPDATED WITH PHONE SUPPORT FOR LOGIN
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/auth/auth_phase.dart';
@@ -103,13 +102,13 @@ class AuthController extends GetxController {
       final bool isTrusted = result['is_trusted'] ?? false;
 
       // Save tokens and user data
-      print('🔑 Login Access Token (from API): ${result['access_token']}');
-      print('Is Trusted Device: $isTrusted');
-      print('Is Password Set By Admin: ${user.isPasswordSetByAdmin}');
+      DiagnosticLogger.instance.debug('🔑 Login Access Token (from API): ${result['access_token']}');
+      DiagnosticLogger.instance.debug('Is Trusted Device: $isTrusted');
+      DiagnosticLogger.instance.debug('Is Password Set By Admin: ${user.isPasswordSetByAdmin}');
 
       // Access token + user already saved in AuthRepository.login (before Firebase sign-in).
       final storedToken = _storageService.getAccessToken();
-      print('💾 Stored Access Token: $storedToken');
+      DiagnosticLogger.instance.debug('💾 Stored Access Token: $storedToken');
 
       // Keep the language the user chose on the login screen (do not override
       // with API profile language, which may still be Italian).
@@ -168,17 +167,17 @@ class AuthController extends GetxController {
   /// 3. Untrusted device + 2FA enabled → OTP Verification
   /// 4. Otherwise → Home
   Future<void> _navigateBasedOnUserStatus(UserModel user, bool isTrusted) async {
-    print('🔄 Navigation Decision:');
-    print('  - Password Set By Admin: ${user.isPasswordSetByAdmin}');
-    print('  - Is Trusted Device: $isTrusted');
-    print('  - 2FA Enabled: ${user.is2FAEnabled}');
+    DiagnosticLogger.instance.debug('🔄 Navigation Decision:');
+    DiagnosticLogger.instance.debug('  - Password Set By Admin: ${user.isPasswordSetByAdmin}');
+    DiagnosticLogger.instance.debug('  - Is Trusted Device: $isTrusted');
+    DiagnosticLogger.instance.debug('  - 2FA Enabled: ${user.is2FAEnabled}');
 
     // Priority 1: First login (password set by admin)
     // User must change password set by admin
     if (user.isPasswordSetByAdmin) {
       await _storageService.saveAuthPhase(AuthPhase.authenticated);
       _preloadDocuments();
-      print('  → Going to FIRST_LOGIN (password change required)');
+      DiagnosticLogger.instance.debug('  → Going to FIRST_LOGIN (password change required)');
       Get.offAllNamed(AppRoutes.FIRST_LOGIN);
       return;
     }
@@ -189,7 +188,7 @@ class AuthController extends GetxController {
     if (isTrusted) {
       await _storageService.saveAuthPhase(AuthPhase.authenticated);
       _preloadDocuments();
-      print('  → Going to HOME (trusted device - skipping 2FA)');
+      DiagnosticLogger.instance.debug('  → Going to HOME (trusted device - skipping 2FA)');
       Get.offAllNamed(AppRoutes.HOME);
       return;
     }
@@ -201,7 +200,7 @@ class AuthController extends GetxController {
     // authenticated preloads until OTP succeeds.
     if (user.is2FAEnabled) {
       await _storageService.saveAuthPhase(AuthPhase.pending2FA);
-      print('  → Going to OTP_VERIFICATION (untrusted device - 2FA required)');
+      DiagnosticLogger.instance.debug('  → Going to OTP_VERIFICATION (untrusted device - 2FA required)');
       Get.offAllNamed(AppRoutes.OTP_VERIFICATION);
       return;
     }
@@ -210,7 +209,7 @@ class AuthController extends GetxController {
     // This is less secure but follows the requested logic
     await _storageService.saveAuthPhase(AuthPhase.authenticated);
     _preloadDocuments();
-    print('  → Going to HOME (untrusted device without 2FA)');
+    DiagnosticLogger.instance.debug('  → Going to HOME (untrusted device without 2FA)');
     Get.offAllNamed(AppRoutes.HOME);
   }
 
@@ -220,7 +219,7 @@ class AuthController extends GetxController {
     // Call in background - don't await, don't block navigation
     Future.microtask(() async {
       try {
-        print('📄 Pre-loading documents after login...');
+        DiagnosticLogger.instance.debug('📄 Pre-loading documents after login...');
         final documentRepository = DocumentRepository();
         final result = await documentRepository.getDocumentsByUnit();
 
@@ -237,17 +236,17 @@ class AuthController extends GetxController {
             }).toList();
             documentsController.applyDocuments(parsed);
             await documentsController.fetchDocumentCategories();
-            print('✅ Documents pre-loaded: ${documentsData.length} documents');
+            DiagnosticLogger.instance.info('✅ Documents pre-loaded: ${documentsData.length} documents');
           } else {
             // If controller exists, just refresh
             final documentsController = Get.find<DocumentsController>();
             await documentsController.fetchDocuments();
           }
         } else {
-          print('⚠️  Failed to pre-load documents: ${result['error']}');
+          DiagnosticLogger.instance.error('⚠️  Failed to pre-load documents: ${result['error']}');
         }
       } catch (e) {
-        print('⚠️  Error pre-loading documents: $e');
+        DiagnosticLogger.instance.error('⚠️  Error pre-loading documents: $e');
         // Don't block - just log the error
       }
     });

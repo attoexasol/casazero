@@ -15,7 +15,7 @@ import '../../../../core/utils/accessibility.dart';
 import '../../../../core/widgets/responsive_alert_dialog.dart';
 import 'package:intl/intl.dart';
 import '../../controllers/maintenance_controller.dart';
-import '../../models/maintenance_category_model.dart';
+import '../../../../core/logging/diagnostic_logger.dart';
 
 class AddMaintenanceTaskDialog extends StatefulWidget {
   final VoidCallback onClose;
@@ -264,8 +264,8 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
       // On error, dialog stays open (popup shown in controller)
     } catch (e, stackTrace) {
       // Error handling is done in controller, but catch here to prevent crash
-      print('❌ Error in dialog: $e');
-      print('❌ Stack trace: $stackTrace');
+      DiagnosticLogger.instance.error('❌ Error in dialog: $e');
+      DiagnosticLogger.instance.error('❌ Stack trace: $stackTrace');
     } finally {
       // Always reset creating state, even on error
       // Check mounted to prevent setState after disposal
@@ -285,7 +285,7 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
     final preferredMaxHeight = screenSize.height * 0.9;
 
     return Material(
-      color: Colors.black.withOpacity(0.5),
+      color: Colors.black.withValues(alpha: 0.5),
       child: Padding(
         padding: EdgeInsets.only(bottom: viewInsets.bottom),
         child: LayoutBuilder(
@@ -508,7 +508,7 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
                   width: isCompact ? 48.w : 64.w,
                   height: isCompact ? 48.w : 64.w,
                   decoration: BoxDecoration(
-                    color: AppColors.brandSage500.withOpacity(0.1),
+                    color: AppColors.brandSage500.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -555,7 +555,7 @@ class _AddMaintenanceTaskDialogState extends State<AddMaintenanceTaskDialog> {
           width: 48.w,
           height: 48.w,
           decoration: BoxDecoration(
-            color: AppColors.brandSage500.withOpacity(0.1),
+            color: AppColors.brandSage500.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12.r),
           ),
           child: Icon(

@@ -7,7 +7,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
-import '../../../core/widgets/custom_text_field.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/responsive_alert_dialog.dart';
 import '../../otp_verification/controllers/otp_verification_controller.dart';
@@ -20,7 +19,7 @@ class DocumentPassword2FAVerificationScreen extends GetView<OtpVerificationContr
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         _handleBackButton();
       },

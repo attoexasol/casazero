@@ -34,9 +34,9 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Colors.black.withOpacity(0.2),
-                        Colors.black.withOpacity(0.1),
-                        Colors.black.withOpacity(0.3),
+                        Colors.black.withValues(alpha: 0.2),
+                        Colors.black.withValues(alpha: 0.1),
+                        Colors.black.withValues(alpha: 0.3),
                       ],
                     ),
                   ),
@@ -94,7 +94,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
         Text(
           'smart_living'.tr,
           style: TextStyle(
-            color: Colors.white.withOpacity(0.9),
+            color: Colors.white.withValues(alpha: 0.9),
             fontSize: 14.sp,
             letterSpacing: 1.5,
           ),
@@ -111,11 +111,11 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
         child: Container(
           padding: EdgeInsets.all(24.r),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(24.r),
-            border: Border.all(color: Colors.white.withOpacity(0.2)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
             boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 40.r),
+              BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 40.r),
             ],
           ),
           child: Column(
@@ -187,9 +187,9 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
     return Container(
       padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        color: Colors.white.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.white.withOpacity(0.3)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -200,7 +200,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
               () => Text(
                 controller.instructionText,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                   fontSize: 13.sp,
                 ),
               ),
@@ -219,9 +219,9 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
         return Container(
           padding: EdgeInsets.all(16.r),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(16.r),
-            border: Border.all(color: Colors.white.withOpacity(0.2)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
           ),
           child: Row(
             children: [
@@ -229,7 +229,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
                 width: 48.w,
                 height: 48.h,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: Icon(
@@ -255,7 +255,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
                     Text(
                       'open_authenticator_app'.tr,
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.7),
+                        color: Colors.white.withValues(alpha: 0.7),
                         fontSize: 13.sp,
                       ),
                     ),
@@ -271,9 +271,9 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
       return Container(
         padding: EdgeInsets.all(16.r),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
+          color: Colors.white.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(color: Colors.white.withOpacity(0.2)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
         ),
         child: Row(
           children: [
@@ -281,7 +281,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
               width: 48.w,
               height: 48.h,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12.r),
               ),
               child: Icon(
@@ -298,7 +298,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
                   Text(
                     method == 'email' ? 'sent_to_email'.tr : 'sent_to_phone'.tr,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.7),
+                      color: Colors.white.withValues(alpha: 0.7),
                       fontSize: 12.sp,
                     ),
                   ),
@@ -328,7 +328,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
         Text(
           'enter_6_digit_code'.tr,
           style: TextStyle(
-            color: Colors.white.withOpacity(0.9),
+            color: Colors.white.withValues(alpha: 0.9),
             fontSize: 14.sp,
             fontWeight: FontWeight.w500,
           ),
@@ -336,9 +336,9 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
         SizedBox(height: 12.h),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.9),
+            color: Colors.white.withValues(alpha: 0.9),
             borderRadius: BorderRadius.circular(16.r),
-            border: Border.all(color: Colors.white.withOpacity(0.3)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
           ),
           child: TextField(
             controller: controller.otpController,
@@ -389,7 +389,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
               Text(
                 'resend_code_in'.tr.replaceAll('{seconds}', seconds.toString()),
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.7),
+                  color: Colors.white.withValues(alpha: 0.7),
                   fontSize: 13.sp,
                 ),
               )
@@ -430,7 +430,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
           controller.fromDocumentPassword.value
               ? 'cancel'.tr
               : 'cancel_logout'.tr,
-          style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14.sp),
+          style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 14.sp),
         ),
       ),
     );
@@ -440,7 +440,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
     return Text(
       'copyright'.tr,
       textAlign: TextAlign.center,
-      style: TextStyle(fontSize: 12.sp, color: Colors.white.withOpacity(0.6)),
+      style: TextStyle(fontSize: 12.sp, color: Colors.white.withValues(alpha: 0.6)),
     );
   }
 

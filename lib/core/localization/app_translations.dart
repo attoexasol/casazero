@@ -243,6 +243,8 @@ class AppTranslations extends Translations {
     'notification_center_prefix_maintenance': 'Maintenance:',
     'notification_center_prefix_ticket': 'Ticket:',
     'notification_center_title_chat': 'Condominium chat: New message',
+    'notification_center_title_private_chat': 'Chat with administrator',
+    'notification_center_title_group_chat': 'Condominium chat',
     'notification_center_title_ticket': 'Support ticket updated',
 
     // Notification action labels (viewDocument already exists above)
@@ -1378,6 +1380,8 @@ class AppTranslations extends Translations {
     'notification_center_prefix_maintenance': 'Manutenzione:',
     'notification_center_prefix_ticket': 'Ticket:',
     'notification_center_title_chat': 'Chat di condominio: Nuovo messaggio',
+    'notification_center_title_private_chat': 'Chat con amministratore',
+    'notification_center_title_group_chat': 'Chat condominiale',
     'notification_center_title_ticket': 'Ticket di supporto aggiornato',
 
     // Notification type labels (Italian)

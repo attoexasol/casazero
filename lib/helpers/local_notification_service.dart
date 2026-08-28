@@ -12,6 +12,7 @@ import '../core/services/notification_manager.dart';
 import '../core/services/push_launch_handler.dart';
 import '../core/services/storage_service.dart';
 import '../core/utils/notification_content_localizer.dart';
+import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 /// Runs in a background isolate when a local notification is tapped while the
 /// app process is not in the foreground. Persist payload so main isolate can flush.
@@ -78,11 +79,11 @@ class LocalNotificationService {
       // Android 13+: without this, notifications never appear.
       try {
         final granted = await androidPlugin.requestNotificationsPermission();
-        print(
+        DiagnosticLogger.instance.warning(
           '📱 [LocalNotificationService] Android notification permission: $granted',
         );
       } catch (e) {
-        print(
+        DiagnosticLogger.instance.warning(
           '⚠️ [LocalNotificationService] Permission request skipped: $e',
         );
       }
@@ -99,7 +100,7 @@ class LocalNotificationService {
           showBadge: true,
         ),
       );
-      print('✅ [LocalNotificationService] Channel $channelId created (max)');
+      DiagnosticLogger.instance.info('✅ [LocalNotificationService] Channel $channelId created (max)');
     }
 
     _initialized = true;
@@ -228,7 +229,7 @@ class LocalNotificationService {
       });
       return jsonEncode(normalized);
     } catch (e) {
-      print('❌ [LocalNotificationService] encodePayload error: $e');
+      DiagnosticLogger.instance.error('❌ [LocalNotificationService] encodePayload error: $e');
       return '{}';
     }
   }
@@ -243,13 +244,13 @@ class LocalNotificationService {
         return decoded.map((key, value) => MapEntry(key.toString(), value));
       }
     } catch (e) {
-      print('❌ [LocalNotificationService] decodePayload error: $e');
+      DiagnosticLogger.instance.error('❌ [LocalNotificationService] decodePayload error: $e');
     }
     return {};
   }
 
   static void _onNotificationTapped(NotificationResponse response) {
-    print(
+    DiagnosticLogger.instance.debug(
       '📬 [LocalNotificationService] Notification tapped '
       '(action=${response.actionId}, id=${response.id})',
     );
@@ -264,7 +265,7 @@ class LocalNotificationService {
 
   static void _dispatchNavigation(Map<String, dynamic> payload) {
     if (payload.isEmpty) {
-      print('⚠️ [LocalNotificationService] Empty tap payload — skipping');
+      DiagnosticLogger.instance.warning('⚠️ [LocalNotificationService] Empty tap payload — skipping');
       return;
     }
 
@@ -277,7 +278,7 @@ class LocalNotificationService {
       }
 
       if (!Get.isRegistered<NotificationManager>()) {
-        print(
+        DiagnosticLogger.instance.warning(
           '⚠️ [LocalNotificationService] NotificationManager not ready — '
           'payload persisted for flush',
         );
@@ -290,7 +291,7 @@ class LocalNotificationService {
         }
       });
     } catch (e) {
-      print('❌ [LocalNotificationService] Navigation dispatch error: $e');
+      DiagnosticLogger.instance.error('❌ [LocalNotificationService] Navigation dispatch error: $e');
     }
   }
 
@@ -303,7 +304,7 @@ class LocalNotificationService {
       final payload = details.notificationResponse?.payload;
       if (payload == null || payload.trim().isEmpty) return;
 
-      print(
+      DiagnosticLogger.instance.debug(
         '📬 [LocalNotificationService] Launched from local notification '
         'payloadLen=${payload.length}',
       );
@@ -333,7 +334,7 @@ class LocalNotificationService {
         });
       }
     } catch (e) {
-      print('❌ [LocalNotificationService] Launch details error: $e');
+      DiagnosticLogger.instance.error('❌ [LocalNotificationService] Launch details error: $e');
     }
   }
 
@@ -392,7 +393,7 @@ class LocalNotificationService {
       details,
       payload: payload,
     );
-    print(
+    DiagnosticLogger.instance.debug(
       '📣 [LocalNotificationService] Shown id=$id title="$title" '
       'channel=$channelId',
     );

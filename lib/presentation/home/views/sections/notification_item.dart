@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../app/theme/app_shadows.dart';
 import '../../../../data/models/feed_item_model.dart';
 import '../../../../core/localization/locale_controller.dart';
-import '../../../../core/utils/accessibility.dart';
 
 class NotificationItem extends StatelessWidget {
   final dynamic item;
@@ -54,13 +52,13 @@ class NotificationItem extends StatelessWidget {
                     ]
                   : [
                       AppColors.surfaceWhite,
-                      AppColors.brandSage50.withOpacity(0.3),
+                      AppColors.brandSage50.withValues(alpha: 0.3),
                     ],
             ),
             border: Border.all(
               color: isRead
-                  ? AppColors.neutralLine200.withOpacity(0.4)
-                  : borderColor.withOpacity(0.3),
+                  ? AppColors.neutralLine200.withValues(alpha: 0.4)
+                  : borderColor.withValues(alpha: 0.3),
               width: isRead ? 1 : 1.5,
             ),
             boxShadow: AppShadows.customColoredShadow(
@@ -126,7 +124,7 @@ class NotificationItem extends StatelessWidget {
                                   color: borderColor,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: borderColor.withOpacity(0.5),
+                                      color: borderColor.withValues(alpha: 0.5),
                                       blurRadius: 4,
                                       spreadRadius: 1,
                                     ),
@@ -250,7 +248,7 @@ class NotificationItem extends StatelessWidget {
     // Use app primary color for icons
     final iconColor = AppColors.brandSage600;
     // Subtle circular background (8-12% opacity)
-    final iconBgColor = AppColors.brandSage500.withOpacity(0.1);
+    final iconBgColor = AppColors.brandSage500.withValues(alpha: 0.1);
     
     // Get semantic label for accessibility
     final semanticLabel = _getNotificationSemanticLabel(type);
@@ -297,51 +295,5 @@ class NotificationItem extends StatelessWidget {
       default:
         return 'notification_type_generic'.tr;
     }
-  }
-
-  Widget _buildActionButton({
-    required String label,
-    required IconData icon,
-    required VoidCallback? onPressed,
-  }) {
-    return SizedBox(
-      height: Accessibility.minTouchTarget,
-      child: OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.brandSage600,
-          side: BorderSide(
-            color: AppColors.brandSage300,
-            width: 1,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          minimumSize: const Size(0, Accessibility.minTouchTarget),
-          tapTargetSize: MaterialTapTargetSize.padded,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 14, color: AppColors.brandSage600),
-            const SizedBox(width: 4),
-            Flexible(
-              child: Text(
-                label,
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.brandSage600,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 11.sp,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

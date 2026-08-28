@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/localization/locale_controller.dart';
 import '../../models/maintenance_task_model.dart';
 import '../../controllers/maintenance_controller.dart';
+import '../../../../core/logging/diagnostic_logger.dart';
 
 const List<String> _monthAbbrEn = [
   'Jan',
@@ -120,72 +121,6 @@ class MaintenanceTaskCard extends StatelessWidget {
     }
   }
 
-  /// Get localized priority label using translation keys
-  /// Maps MaintenancePriority enum to translation keys
-  String _getPriorityLabel(MaintenancePriority priority) {
-    switch (priority) {
-      case MaintenancePriority.facoltative:
-        return 'facoltative'.tr;
-      case MaintenancePriority.obbligatorie:
-        return 'obbligatorie'.tr;
-      case MaintenancePriority.condominiali:
-        return 'condominiali'.tr;
-      case MaintenancePriority.personal:
-        return 'personal'.tr;
-      case MaintenancePriority.n1:
-        return 'N1';
-      case MaintenancePriority.n2:
-        return 'N2';
-      case MaintenancePriority.n3:
-        return 'N3';
-    }
-  }
-
-  /// Map API frequency value to translation key
-  /// Handles various frequency formats from API
-  String _getFrequencyLabel(String? frequency) {
-    if (frequency == null || frequency.isEmpty) {
-      return frequency ?? '';
-    }
-
-    // Normalize frequency string for comparison
-    final normalized = frequency.toLowerCase().trim();
-
-    // Map common API frequency values to translation keys
-    if (normalized.contains('weekly') || normalized.contains('settimanale')) {
-      return 'frequencyWeekly'.tr;
-    } else if (normalized.contains('monthly') ||
-        normalized.contains('mensile')) {
-      return 'frequencyMonthly'.tr;
-    } else if (normalized.contains('quarterly') ||
-        normalized.contains('trimestrale')) {
-      return 'frequencyQuarterly'.tr;
-    } else if (normalized.contains('6 months') ||
-        normalized.contains('6 mesi')) {
-      return 'frequencyEvery6Months'.tr;
-    } else if (normalized.contains('3 months') ||
-        normalized.contains('3 mesi')) {
-      return 'frequencyEvery3Months'.tr;
-    } else if (normalized.contains('12 months') ||
-        normalized.contains('12 mesi') ||
-        normalized.contains('annually') ||
-        normalized.contains('annuale') ||
-        normalized.contains('annualmente')) {
-      return 'frequencyAnnually'.tr;
-    } else if (normalized.contains('18 months') ||
-        normalized.contains('18 mesi')) {
-      return 'frequencyEvery18Months'.tr;
-    } else if (normalized.contains('one-time') ||
-        normalized.contains('una tantum') ||
-        normalized.contains('progetto una tantum')) {
-      return 'frequencyOneTime'.tr;
-    }
-
-    // If no match found, return original value (might be custom frequency)
-    // This handles edge cases where API returns custom frequencies
-    return frequency;
-  }
-
   /// Get priority border color from bilingual API labels (IT name or EN type).
   Color _getPriorityBorderColor() {
     final label = task.getPriorityLabel().toLowerCase();
@@ -210,7 +145,7 @@ class MaintenanceTaskCard extends StatelessWidget {
       return priorityColors[task.priority]!['bg']!;
     }
     // Return border color with slight opacity for badge background
-    return borderColor.withOpacity(0.2);
+    return borderColor.withValues(alpha: 0.2);
   }
 
   /// Get priority badge border color to match left border color
@@ -267,7 +202,7 @@ class MaintenanceTaskCard extends StatelessWidget {
       return '$day ${months[date.month - 1]} ${date.year}';
     } catch (e) {
       // If parsing fails, return original string
-      print('⚠️ [MaintenanceTaskCard] Error parsing date: $dateStr - $e');
+      DiagnosticLogger.instance.error('⚠️ [MaintenanceTaskCard] Error parsing date: $dateStr - $e');
       return dateStr;
     }
   }
@@ -308,7 +243,7 @@ class MaintenanceTaskCard extends StatelessWidget {
     final isOverdue = task.status == MaintenanceStatus.overdue;
 
     // DEBUG: Log priority display data
-    print(
+    DiagnosticLogger.instance.debug(
       'PRIORITY => it=${task.priorityNameIt} en=${task.priorityNameEn} shown=${task.getPriorityLabel()}',
     );
 
@@ -349,7 +284,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                       gradient: LinearGradient(
                         colors: [
                           priorityBorderColor,
-                          priorityBorderColor.withOpacity(0.5),
+                          priorityBorderColor.withValues(alpha: 0.5),
                         ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
@@ -441,7 +376,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                               border: Border.all(
                                                 color: _getStatusTextColor(
                                                   task.status,
-                                                ).withOpacity(0.3),
+                                                ).withValues(alpha: 0.3),
                                               ),
                                               borderRadius:
                                                   BorderRadius.circular(6.r),
@@ -675,7 +610,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                         if (isExpanded) ...[
                           Divider(height: 1, color: AppColors.neutralLine200),
                           Container(
-                            color: AppColors.surfaceWarm50.withOpacity(0.3),
+                            color: AppColors.surfaceWarm50.withValues(alpha: 0.3),
                             padding: EdgeInsets.all(16.w),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -811,7 +746,7 @@ class MaintenanceTaskCard extends StatelessWidget {
                                                 );
                                               }
                                             } catch (e) {
-                                              print(
+                                              DiagnosticLogger.instance.error(
                                                 '❌ Error launching phone call: $e',
                                               );
                                               MessagePopupController.showError(
@@ -862,10 +797,10 @@ class MaintenanceTaskCard extends StatelessWidget {
                                                 colors: [
                                                   const Color(
                                                     0xFF6A8F7B,
-                                                  ).withOpacity(0.2),
+                                                  ).withValues(alpha: 0.2),
                                                   const Color(
                                                     0xFF6A8F7B,
-                                                  ).withOpacity(0.1),
+                                                  ).withValues(alpha: 0.1),
                                                 ],
                                               ),
                                               borderRadius:

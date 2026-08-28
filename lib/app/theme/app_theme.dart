@@ -40,7 +40,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(16),
             side: const BorderSide(color: AppColors.neutralLine100),
           ),
-          shadowColor: Colors.black.withOpacity(0.04),
+          shadowColor: Colors.black.withValues(alpha: 0.04),
         ),
 
         // Text Theme
@@ -78,7 +78,7 @@ class AppTheme {
             backgroundColor: AppColors.brandSage500,
             foregroundColor: AppColors.surfaceWhite,
             elevation: 2,
-            shadowColor: Colors.black.withOpacity(0.1),
+            shadowColor: Colors.black.withValues(alpha: 0.1),
             minimumSize: const Size(64, Accessibility.minTouchTarget),
             tapTargetSize: MaterialTapTargetSize.padded,
             shape: RoundedRectangleBorder(
@@ -117,7 +117,7 @@ class AppTheme {
         // Input Decoration Theme
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: AppColors.surfaceWhite.withOpacity(0.9),
+          fillColor: AppColors.surfaceWhite.withValues(alpha: 0.9),
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           border: OutlineInputBorder(
@@ -127,7 +127,7 @@ class AppTheme {
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(
-              color: AppColors.surfaceWhite.withOpacity(0.4),
+              color: AppColors.surfaceWhite.withValues(alpha: 0.4),
             ),
           ),
           focusedBorder: OutlineInputBorder(

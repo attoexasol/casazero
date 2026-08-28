@@ -39,9 +39,9 @@ class AuthScreen extends GetView<AuthController> {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Colors.black.withOpacity(0.2),
-                        Colors.black.withOpacity(0.1),
-                        Colors.black.withOpacity(0.3),
+                        Colors.black.withValues(alpha: 0.2),
+                        Colors.black.withValues(alpha: 0.1),
+                        Colors.black.withValues(alpha: 0.3),
                       ],
                     ),
                   ),
@@ -107,12 +107,12 @@ class AuthScreen extends GetView<AuthController> {
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(24.r),
-              border: Border.all(color: Colors.white.withOpacity(0.3)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 20.r,
                   offset: Offset(0, 4.h),
                 ),
@@ -137,11 +137,11 @@ class AuthScreen extends GetView<AuthController> {
                         width: segmentWidth,
                         child: DecoratedBox(
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.92),
+                            color: Colors.white.withValues(alpha: 0.92),
                             borderRadius: BorderRadius.circular(20.r),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.08),
+                                color: Colors.black.withValues(alpha: 0.08),
                                 blurRadius: 8.r,
                                 offset: Offset(0, 2.h),
                               ),
@@ -196,8 +196,8 @@ class AuthScreen extends GetView<AuthController> {
       child: InkWell(
         onTap: () => controller.changeLanguage(lang),
         borderRadius: BorderRadius.circular(20.r),
-        splashColor: Colors.white.withOpacity(0.12),
-        highlightColor: Colors.white.withOpacity(0.06),
+        splashColor: Colors.white.withValues(alpha: 0.12),
+        highlightColor: Colors.white.withValues(alpha: 0.06),
         child: SizedBox(
           width: width,
           height: height,
@@ -218,32 +218,6 @@ class AuthScreen extends GetView<AuthController> {
     );
   }
 
-  Widget _buildLogo() {
-    return Column(
-      children: [
-        Container(
-          width: 240.w,
-          height: 80.h,
-          alignment: Alignment.center,
-          child: Image.asset(
-            'assets/images/white_logo.png',
-            width: 180.w,
-            fit: BoxFit.contain,
-          ),
-        ),
-        SizedBox(height: 12.h),
-        Text(
-          'smart_living'.tr,
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.9),
-            fontSize: 14.sp,
-            letterSpacing: 1.5,
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildLoginCard() {
     return KeyedSubtree(
       key: ValueKey(controller.hashCode),
@@ -254,12 +228,12 @@ class AuthScreen extends GetView<AuthController> {
         child: Container(
           padding: EdgeInsets.all(32.r),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(24.r),
-            border: Border.all(color: Colors.white.withOpacity(0.2)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 40.r,
                 offset: Offset(0, 10.h),
               ),
@@ -273,8 +247,8 @@ class AuthScreen extends GetView<AuthController> {
                 hint: 'email_placeholder'.tr,
                 controller: controller.emailController,
                 keyboardType: TextInputType.emailAddress,
-                backgroundColor: Colors.white.withOpacity(0.9),
-                borderColor: Colors.white.withOpacity(0.4),
+                backgroundColor: Colors.white.withValues(alpha: 0.9),
+                borderColor: Colors.white.withValues(alpha: 0.4),
                 textColor: const Color(0xFF1a1a1a),
               ),
               SizedBox(height: 20.h),
@@ -284,8 +258,8 @@ class AuthScreen extends GetView<AuthController> {
                   hint: '••••••••',
                   controller: controller.passwordController,
                   obscureText: controller.obscurePassword.value,
-                  backgroundColor: Colors.white.withOpacity(0.9),
-                  borderColor: Colors.white.withOpacity(0.4),
+                  backgroundColor: Colors.white.withValues(alpha: 0.9),
+                  borderColor: Colors.white.withValues(alpha: 0.4),
                   textColor: const Color(0xFF1a1a1a),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -308,7 +282,7 @@ class AuthScreen extends GetView<AuthController> {
                     'forgot_password'.tr,
                     style: TextStyle(
                       fontSize: 12.sp,
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                       decoration: TextDecoration.underline,
                     ),
                   ),
@@ -348,14 +322,14 @@ class AuthScreen extends GetView<AuthController> {
                 Icon(
                   Icons.ios_share,
                   size: 16.sp,
-                  color: Colors.white.withOpacity(0.8),
+                  color: Colors.white.withValues(alpha: 0.8),
                 ),
                 SizedBox(width: 8.w),
                 Text(
                   'export_diagnostic_log'.tr,
                   style: TextStyle(
                     fontSize: 12.sp,
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                     decoration: TextDecoration.underline,
                   ),
                 ),
@@ -397,7 +371,7 @@ class AuthScreen extends GetView<AuthController> {
     return Row(
       children: [
         Expanded(
-          child: Container(height: 1.h, color: Colors.white.withOpacity(0.2)),
+          child: Container(height: 1.h, color: Colors.white.withValues(alpha: 0.2)),
         ),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 12.w),
@@ -405,12 +379,12 @@ class AuthScreen extends GetView<AuthController> {
             'demo_mode'.tr,
             style: TextStyle(
               fontSize: 12.sp,
-              color: Colors.white.withOpacity(0.6),
+              color: Colors.white.withValues(alpha: 0.6),
             ),
           ),
         ),
         Expanded(
-          child: Container(height: 1.h, color: Colors.white.withOpacity(0.2)),
+          child: Container(height: 1.h, color: Colors.white.withValues(alpha: 0.2)),
         ),
       ],
     );
@@ -420,7 +394,7 @@ class AuthScreen extends GetView<AuthController> {
     return Text(
       'copyright'.tr,
       textAlign: TextAlign.center,
-      style: TextStyle(fontSize: 12.sp, color: Colors.white.withOpacity(0.6)),
+      style: TextStyle(fontSize: 12.sp, color: Colors.white.withValues(alpha: 0.6)),
     );
   }
 }
