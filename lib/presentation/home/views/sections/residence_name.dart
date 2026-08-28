@@ -68,10 +68,8 @@ class _ResidenceNameState extends State<ResidenceName>
 
     return Obx(() {
       // Get residence name from controller only (no user name fallback)
-      final name = controller.residenceData.value?['residence_name'] ?? 'Villa';
-
-      // Prepend localized "Residence" label based on language settings
-      final residenceName = '${'residence'.tr} $name';
+      final residenceName =
+          controller.residenceData.value?['residence_name'] ?? 'Villa';
 
       return FadeTransition(
         opacity: _fadeAnimation,
