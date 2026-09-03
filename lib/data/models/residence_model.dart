@@ -1,5 +1,7 @@
 // data/models/residence_model.dart
 
+import 'user_model.dart';
+
 class ResidenceModel {
   final int id;
   final String residenceName;
@@ -27,7 +29,7 @@ class ResidenceModel {
 
   factory ResidenceModel.fromJson(Map<String, dynamic> json) {
     return ResidenceModel(
-      id: json['id'] ?? 0,
+      id: UserModel.parseResidenceIdAsInt(json['id'] ?? json['residence_id']) ?? 0,
       residenceName: json['residence_name'] ?? '',
       residenceAddress: json['residence_address'],
       unitName: _parseUnitName(json),

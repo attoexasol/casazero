@@ -7,6 +7,7 @@ import '../models/feed_item_model.dart';
 import '../models/construction_phase_model.dart';
 import '../models/residence_model.dart';
 import '../models/residence_status_phase_model.dart';
+import '../models/user_model.dart';
 import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 class HomeRepository {
@@ -751,17 +752,19 @@ class HomeRepository {
   /// Request: { "api_token": "`<TOKEN>`", "residence_id": `<ID>` }
   Future<Map<String, dynamic>> getResidenceStatusWithPhases({
     required String apiToken,
-    required int residenceId,
+    required dynamic residenceId,
   }) async {
     try {
+      final cleanResidenceId =
+          UserModel.parseResidenceIdAsInt(residenceId) ?? 0;
       DiagnosticLogger.instance.debug(
-          '📐 [HomeRepository] getResidenceStatusWithPhases residenceId=$residenceId');
+          '📐 [HomeRepository] getResidenceStatusWithPhases residenceId=$cleanResidenceId');
       final endpoint = ApiConstants.GET_RESIDENCE_STATUS_WITH_PHASES;
       final response = await _apiService.post(
         endpoint,
         data: {
           'api_token': apiToken,
-          'residence_id': residenceId,
+          'residence_id': cleanResidenceId,
         },
       );
 

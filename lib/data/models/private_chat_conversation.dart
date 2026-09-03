@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'user_model.dart';
 
 /// Firestore document: conversations/{conversationId}
 class PrivateChatConversation {
@@ -87,7 +88,7 @@ class PrivateChatConversation {
 
   static int _readInt(dynamic value) {
     if (value is int) return value;
-    return int.tryParse(value?.toString() ?? '') ?? 0;
+    return UserModel.parseResidenceIdAsInt(value) ?? 0;
   }
 
   static List<int> _readIntList(dynamic value) {

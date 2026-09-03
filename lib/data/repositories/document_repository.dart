@@ -7,6 +7,7 @@ import '../../core/services/storage_service.dart';
 import '../../core/constants/api_constants.dart';
 import '../models/document_category_model.dart';
 import '../models/document_model.dart';
+import '../models/user_model.dart';
 import 'package:casazero/core/logging/diagnostic_logger.dart';
 
 /// Upload method enum
@@ -66,11 +67,13 @@ class DocumentRepository {
   /// Get Residence Documents
   /// POST /get_residence_wise_documents
   /// Request: { "residence_id": 23 }
-  Future<Map<String, dynamic>> getResidenceDocuments(int residenceId) async {
+  Future<Map<String, dynamic>> getResidenceDocuments(dynamic residenceId) async {
     try {
+      final cleanResidenceId =
+          UserModel.parseResidenceIdAsInt(residenceId) ?? 0;
       final response = await _apiService.post(
         ApiConstants.GET_RESIDENCE_DOCUMENTS,
-        data: {'residence_id': residenceId},
+        data: {'residence_id': cleanResidenceId},
       );
 
       if (response.statusCode == 200 && response.data['status'] == true) {

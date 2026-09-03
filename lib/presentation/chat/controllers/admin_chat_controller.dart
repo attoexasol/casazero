@@ -118,20 +118,24 @@ class AdminChatController extends GetxController {
 
       final residence = homeController.selectedResidence.value;
       if (residence != null) {
-        residenceId = residence.id;
+        residenceId = UserModel.parseResidenceIdAsInt(residence.id);
       }
       if (residenceId == null) {
         final residenceData = homeController.residenceData.value;
-        if (residenceData != null && residenceData['id'] != null) {
-          residenceId = residenceData['id'] is int
-              ? residenceData['id'] as int
-              : int.tryParse(residenceData['id'].toString());
+        if (residenceData != null) {
+          residenceId = UserModel.parseResidenceIdAsInt(
+            residenceData['id'] ?? residenceData['residence_id'],
+          );
         }
+      }
+      if (residenceId == null) {
+        final rid = homeController.currentUser.value?.residenceId;
+        residenceId = UserModel.parseResidenceIdAsInt(rid);
       }
       if (residenceId == null) {
         final userData = _storageService.getUserData();
         final rid = userData?['residence_id'] ?? userData?['unit_id'];
-        residenceId = rid is int ? rid : int.tryParse(rid?.toString() ?? '');
+        residenceId = UserModel.parseResidenceIdAsInt(rid);
       }
 
       _residenceId = residenceId?.toString();

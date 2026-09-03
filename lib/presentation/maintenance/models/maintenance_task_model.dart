@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../../../core/localization/locale_controller.dart';
 import 'maintenance_category_model.dart';
 import '../../../core/logging/diagnostic_logger.dart';
+import '../../../data/models/user_model.dart';
 
 enum MaintenancePriority { facoltative, obbligatorie, condominiali, personal, n1, n2, n3 }
 
@@ -746,10 +747,11 @@ class MaintenanceTask {
 
     // Get IDs from nested objects if not present directly
     final maintenanceCategoryId = json['maintenance_category_id'] ?? categoryObj?.id ?? 0;
-    final residenceId = json['residence_id'] ??
+    final rawResidenceId = json['residence_id'] ??
         residenceObj?.id ??
         fallbackResidenceId ??
         0;
+    final int residenceId = UserModel.parseResidenceIdAsInt(rawResidenceId) ?? 0;
     final maintenanceItemId = json['maintenance_item_id'] ?? itemObj?.id;
     final maintenanceResidenceIdRaw = json['maintenance_residence_id'];
     final int? maintenanceResidenceId = maintenanceResidenceIdRaw == null

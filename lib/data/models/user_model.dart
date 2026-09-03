@@ -67,7 +67,7 @@ class UserModel {
       isChatNotify: _parseBool(json['is_chat_notify']),
       isSupportTicketNotify: _parseBool(json['is_support_ticket_notify']),
       isPasswordSetByAdmin: _parseBool(json['is_password_set_by_admin']),
-      residenceId: json['residence_id']?.toString(),
+      residenceId: parseResidenceId(json['residence_id']),
       residenceStatus: _parseResidenceStatus(json['residence_status']),
       unitName: _optionalNonEmptyString(json['unit_name']),
     );
@@ -122,6 +122,32 @@ class UserModel {
   }
 
   static Role _parseRole(dynamic raw) => parseRoleFromApi(raw);
+
+  /// Parses raw residence ID which might be an int (139), a string ("139"),
+  /// a List ([139]), a bracketed string ("[139]"), or JSON array string ("[\"139\"]").
+  /// Returns a clean ID string (e.g. "139") without brackets or quotes.
+  static String? parseResidenceId(dynamic raw) {
+    if (raw == null) return null;
+    if (raw is int) return raw.toString();
+    if (raw is List) {
+      if (raw.isEmpty) return null;
+      return parseResidenceId(raw.first);
+    }
+    final str = raw.toString().trim();
+    if (str.isEmpty || str == 'null' || str == '[]') return null;
+    final cleaned = str.replaceAll(RegExp(r'[\[\]"\'\s]'), '');
+    if (cleaned.isEmpty) return null;
+    final first = cleaned.split(',').first.trim();
+    return first.isNotEmpty ? first : null;
+  }
+
+  /// Parses raw residence ID into an integer without any brackets or formatting artifacts.
+  static int? parseResidenceIdAsInt(dynamic raw) {
+    if (raw is int) return raw;
+    final str = parseResidenceId(raw);
+    if (str == null) return null;
+    return int.tryParse(str);
+  }
 
   static String? _optionalNonEmptyString(dynamic value) {
     final text = value?.toString().trim();

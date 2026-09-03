@@ -769,23 +769,30 @@ class HomeController extends GetxController {
   }
 
   int? _resolveResidenceIdForSingleResidence() {
-    if (selectedResidence.value != null) return selectedResidence.value!.id;
-    if (residences.isNotEmpty) return residences.first.id;
+    if (selectedResidence.value != null) {
+      final id = UserModel.parseResidenceIdAsInt(selectedResidence.value!.id);
+      if (id != null && id > 0) return id;
+    }
+    if (residences.isNotEmpty) {
+      final id = UserModel.parseResidenceIdAsInt(residences.first.id);
+      if (id != null && id > 0) return id;
+    }
 
-    final existing = residenceData.value?['id'];
-    if (existing is int) return existing;
-    final parsed = int.tryParse(existing?.toString() ?? '');
-    if (parsed != null) return parsed;
+    final existing =
+        residenceData.value?['id'] ?? residenceData.value?['residence_id'];
+    final parsedExisting = UserModel.parseResidenceIdAsInt(existing);
+    if (parsedExisting != null && parsedExisting > 0) return parsedExisting;
 
     final rid = currentUser.value?.residenceId;
-    if (rid != null && rid.isNotEmpty) {
-      return int.tryParse(rid);
-    }
+    final parsedRid = UserModel.parseResidenceIdAsInt(rid);
+    if (parsedRid != null && parsedRid > 0) return parsedRid;
 
     final userData = _storageService.getUserData();
     final stored = userData?['residence_id'] ?? userData?['unit_id'];
-    if (stored is int) return stored;
-    return int.tryParse(stored?.toString() ?? '');
+    final parsedStored = UserModel.parseResidenceIdAsInt(stored);
+    if (parsedStored != null && parsedStored > 0) return parsedStored;
+
+    return null;
   }
 
   void _storeResidenceAdminFromData(Map<String, dynamic> data) {

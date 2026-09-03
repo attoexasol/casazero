@@ -16,6 +16,7 @@ import '../../../app/theme/app_colors.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../home/controllers/home_controller.dart';
 import '../../../core/logging/diagnostic_logger.dart';
+import '../../../data/models/user_model.dart';
 
 class MaintenanceController extends GetxController {
   // API Service
@@ -136,8 +137,12 @@ class MaintenanceController extends GetxController {
       int? residenceId;
       try {
         final home = Get.find<HomeController>();
-        residenceId = home.selectedResidence.value?.id;
+        residenceId = UserModel.parseResidenceIdAsInt(home.selectedResidence.value?.id) ??
+            UserModel.parseResidenceIdAsInt(home.residenceData.value?['id']) ??
+            UserModel.parseResidenceIdAsInt(home.currentUser.value?.residenceId);
       } catch (_) {}
+
+      residenceId = UserModel.parseResidenceIdAsInt(residenceId);
 
       if (residenceId == null || residenceId <= 0) {
         DiagnosticLogger.instance.warning(
@@ -314,6 +319,9 @@ class MaintenanceController extends GetxController {
     try {
       isLoadingTasks.value = true;
 
+      final cleanResidenceId =
+          UserModel.parseResidenceIdAsInt(residenceId) ?? residenceId;
+
       // Validate required fields
       if (title.isEmpty) {
         throw Exception('Title is required');
@@ -321,7 +329,7 @@ class MaintenanceController extends GetxController {
       if (dueDate.isEmpty) {
         throw Exception('Due date is required');
       }
-      if (residenceId <= 0) {
+      if (cleanResidenceId <= 0) {
         throw Exception('Residence ID is required');
       }
 
@@ -333,7 +341,7 @@ class MaintenanceController extends GetxController {
         'due_date': dueDate,
         'maintenance_category_id': categoryId,
         'maintenance_item_id': maintenanceItemId ?? 1,
-        'residence_id': residenceId,
+        'residence_id': cleanResidenceId,
       };
 
       // Add optional fields
@@ -611,6 +619,9 @@ class MaintenanceController extends GetxController {
           break;
       }
 
+      final cleanResidenceId =
+          UserModel.parseResidenceIdAsInt(task.residenceId) ?? task.residenceId;
+
       final requestBody = <String, dynamic>{
         'maintenance_title': task.title,
         'maintenance_frequency': task.frequency,
@@ -618,7 +629,7 @@ class MaintenanceController extends GetxController {
         'due_date': dueDate,
         'maintenance_category_id': task.maintenanceCategoryId,
         'maintenance_item_id': task.maintenanceItemId ?? 1,
-        'residence_id': task.residenceId,
+        'residence_id': cleanResidenceId,
       };
 
       // Add optional fields

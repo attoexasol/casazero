@@ -7,6 +7,7 @@ import '../../../core/services/presence_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../core/utils/firebase_error_handler.dart';
 import '../../home/controllers/home_controller.dart';
+import '../../../data/models/user_model.dart';
 
 /// Resolves residence admin from [HomeController] (stored via single_residence API).
 class PrivateChatProvider extends GetxController {
@@ -80,18 +81,23 @@ class PrivateChatProvider extends GetxController {
     if (!Get.isRegistered<HomeController>()) return null;
     final home = Get.find<HomeController>();
 
-    final dataId = home.residenceData.value?['id'];
-    if (dataId is int) return dataId;
-    final parsedDataId = int.tryParse(dataId?.toString() ?? '');
-    if (parsedDataId != null) return parsedDataId;
+    final dataId =
+        home.residenceData.value?['id'] ?? home.residenceData.value?['residence_id'];
+    final parsedDataId = UserModel.parseResidenceIdAsInt(dataId);
+    if (parsedDataId != null && parsedDataId > 0) return parsedDataId;
 
     if (home.selectedResidence.value != null) {
-      return home.selectedResidence.value!.id;
+      final id = UserModel.parseResidenceIdAsInt(home.selectedResidence.value!.id);
+      if (id != null && id > 0) return id;
     }
-    if (home.residences.isNotEmpty) return home.residences.first.id;
+    if (home.residences.isNotEmpty) {
+      final id = UserModel.parseResidenceIdAsInt(home.residences.first.id);
+      if (id != null && id > 0) return id;
+    }
 
     final rid = home.currentUser.value?.residenceId;
-    if (rid != null && rid.isNotEmpty) return int.tryParse(rid);
+    final parsedRid = UserModel.parseResidenceIdAsInt(rid);
+    if (parsedRid != null && parsedRid > 0) return parsedRid;
 
     return null;
   }
