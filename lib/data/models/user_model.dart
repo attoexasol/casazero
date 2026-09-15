@@ -135,7 +135,7 @@ class UserModel {
     }
     final str = raw.toString().trim();
     if (str.isEmpty || str == 'null' || str == '[]') return null;
-    final cleaned = str.replaceAll(RegExp(r'[\[\]"\'\s]'), '');
+    final cleaned = str.replaceAll(RegExp(r'''[\[\]"'\s]'''), '');
     if (cleaned.isEmpty) return null;
     final first = cleaned.split(',').first.trim();
     return first.isNotEmpty ? first : null;

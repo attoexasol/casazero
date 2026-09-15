@@ -122,7 +122,7 @@ class DeviceInfoService extends GetxService {
   /// -------------------------------
   /// IP ADDRESS
   /// -------------------------------
-  Future<String> getIPAddress() async {
+  Future<String?> getIPAddress() async {
     try {
       final response = await http
           .get(Uri.parse('https://api.ipify.org?format=json'))
@@ -130,12 +130,15 @@ class DeviceInfoService extends GetxService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return data['ip'] ?? 'unknown';
+        final ip = data['ip'];
+        if (ip is String && ip.trim().isNotEmpty) {
+          return ip.trim();
+        }
       }
-      return 'unknown';
+      return null;
     } catch (e) {
       DiagnosticLogger.instance.error('Error getting IP address: $e');
-      return 'unknown';
+      return null;
     }
   }
 
@@ -169,7 +172,7 @@ class DeviceInfoService extends GetxService {
         'platform': getPlatform(),
         'lat': 0.0,
         'lng': 0.0,
-        'ip_address': 'unknown',
+        'ip_address': null,
       };
     }
   }

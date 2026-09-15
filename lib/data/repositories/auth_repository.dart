@@ -72,11 +72,15 @@ class AuthRepository {
         'device_id': deviceInfo['device_id'],
         'device_name': deviceInfo['device_name'],
         'platform': deviceInfo['platform'],
-        'ip_address': deviceInfo['ip_address'],
         'lat': deviceInfo['lat'],
         'lng': deviceInfo['lng'],
         'token': storedToken,
       };
+
+      final ipAddress = deviceInfo['ip_address'];
+      if (ipAddress is String && ipAddress.trim().isNotEmpty) {
+        loginPayload['ip_address'] = ipAddress;
+      }
 
       if (hasFcmToken) {
         loginPayload['fcm_token'] = fcmToken;
